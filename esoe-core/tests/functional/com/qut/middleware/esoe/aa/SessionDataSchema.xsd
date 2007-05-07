@@ -1,0 +1,60 @@
+<!-- 
+Copyright 2006, Queensland University of Technology
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at 
+
+  http://www.apache.org/licenses/LICENSE-2.0 
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+Creation Date: 26/09/2006
+-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.qut.com/middleware/SessionDataSchema"
+	xmlns:session="http://www.qut.com/middleware/SessionDataSchema"
+	elementFormDefault="qualified" 
+	attributeFormDefault="unqualified">
+  	  
+  	<xsd:element name="SessionData" type="session:SessionDataType"/>
+    <xsd:complexType name="SessionDataType">
+        <xsd:sequence>
+        	<xsd:element name="Identity" type="session:IdentityType" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <!-- <xsd:element name="Identity" type="session:IdentityType"/> -->
+    <xsd:complexType name="IdentityType">
+    	<xsd:sequence>
+    		<xsd:element name="Attribute" type="session:AttributeType" maxOccurs="unbounded"/>
+    	</xsd:sequence>
+    </xsd:complexType>
+    
+    <!-- <xsd:element name="Attribute" type="session:AttributeType"/> -->
+    <xsd:complexType name="AttributeType">
+    	<xsd:sequence>
+    		<xsd:element name="Handler" type="session:HandlerType" maxOccurs="unbounded"/>
+    	</xsd:sequence>
+    	<xsd:attribute name="Identifier" type="xsd:string" use="required" />
+    	<xsd:attribute name="Delimiter" type="xsd:string"/>
+    	<xsd:attribute name="Type" type="session:DataType" use="required" />
+    	<xsd:attribute name="Singleton" type="xsd:boolean" use="required" />
+    </xsd:complexType>
+    
+    <xsd:simpleType name="DataType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="String" />
+			<xsd:enumeration value="Integer" />
+			<xsd:enumeration value="Float" />
+			<xsd:enumeration value="Date" />
+			<xsd:enumeration value="Boolean" />
+			<xsd:enumeration value="Other" />
+		</xsd:restriction>
+	</xsd:simpleType>
+    
+    <!-- <xsd:element name="Handler" type="session:HandlerType"/> -->
+    <xsd:complexType name="HandlerType">
+    	<xsd:attribute name="Name" type="xsd:string" use="required"/>
+    	<xsd:attribute name="LocalIdentifier" type="xsd:string" use="required"/>
+    </xsd:complexType>
+    
+	
+</xsd:schema>

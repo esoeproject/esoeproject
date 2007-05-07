@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- ====================================================================== 
+		
+		Copyright 2006, Queensland University of Technology
+		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+		use this file except in compliance with the License. You may obtain a copy of 
+		the License at 
+		
+		http://www.apache.org/licenses/LICENSE-2.0 
+		
+		Unless required by applicable law or agreed to in writing, software 
+		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+		License for the specific language governing permissions and limitations under 
+		the License.
+		
+		Author: Bradley Beddoes
+		Date: 20/11/2006                                                        
+		Purpose: Defines spring integration for
+		====================================================================== -->
+
+		<!-- Global Configuration -->
+		<import resource="globalConfig.xml"/>
+		
+		<!-- Data Sources -->
+		<import resource="dataSources.xml"/>
+		
+		<!-- SAML2 Resources -->
+		<import resource="resources/saml2.xml" />
+		
+		<!-- Supported Identity Resolvers-->
+		<import resource="resources/sessions/identityresolvers/ldapIdentityResolver.xml"/>
+		
+		<!-- Identity Resolver -->
+		<import resource="resources/sessions/identityResolver.xml"/>
+		
+		<!-- Session Configuration Data -->
+		<import resource="resources/sessions/sessionConfigurationData.xml"/>
+		
+		<!-- Sessions Processor -->
+		<import resource="resources/sessions.xml" />
+		
+		<!-- Metadata Resolver -->
+		<import resource="resources/metadata.xml"/>
+		
+		<!-- Policy Decision Point Processor -->
+		<import resource="resources/policyDecisionPoint.xml"/>
+		
+		<!-- SPEP Startup Handler -->
+		<import resource="resources/spep/startup.xml"/>
+		
+		<!-- SPEP Interaction Processor -->
+		<import resource="resources/spep.xml"/>
+		
+		<!-- Supported Authenticators -->
+		<import resource="resources/authentication/handlers/authenticators/ldapBasicAuthenticator.xml" />
+		<!-- import resource="resources/authentication/handlers/authenticators/kerberosV5Authenticator.xml" / -->
+		
+		<!-- Supported Authentication Handlers -->
+		<import resource="resources/authentication/handlers/usernamePasswordHandler.xml" />
+		<!-- import resource="resources/authentication/handlers/SPNEGOHandler.xml" / -->
+		
+		<!-- Authentication Processor -->
+		<import resource="resources/authentication.xml" />
+		
+		<!-- Delegated Authentication Processor -->
+		<import resource="resources/delegatedAuthentication.xml" />
+		
+		<!-- SAML SSO Authentication Authority Processor -->
+		<import resource="resources/sso.xml"/>
+		
+		<!-- SSO Logout Failures and monitoring resources -->
+		<import resource="resources/logout.xml" />
+		
+		<!-- Attribute Authority Processor -->
+		<import resource="resources/attributeAuthority.xml"/>
+		
+		<!-- WS Implementations -->
+		<import resource="resources/webServices.xml"/>
+		
+</beans>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SPEPRegistration">
+
+	<!-- Data object being mapped to -->
+	<typeAlias alias="spepRegistration" type="com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationData" />
+	
+	<!-- Data object used for select statements -->
+	<typeAlias alias="spepRegistrationQuery" type="com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationQueryData" />
+	
+	
+	<cacheModel id="spepRegistrationCache" type="LRU" readOnly="false" serialize="false">
+		<flushInterval hours="1" />
+		<flushOnExecute statement="insertSPEPRegistration" />
+		<flushOnExecute statement="updateSPEPRegistration" />
+	</cacheModel>
+	
+	
+	<!-- - - - - Select definition - - - - -->
+	
+	<parameterMap id="spepRegistrationQueryParam" class="spepRegistrationQuery">
+		<parameter property="descriptorID" jdbcType="STRING" />
+		<!-- <parameter property="nodeID" jdbcType="STRING" /> -->
+	</parameterMap>
+	
+	<resultMap id="spepRegistrationResult" class="spepRegistration">
+		<result property="descriptorID" column="DESCRIPTORID"/>
+		<result property="ipAddress" column="IPADDRESS"/>		
+		<result property="compileDate" column="COMPILEDATE"/>		
+		<result property="compileSystem" column="COMPILESYSTEM"/>		
+		<result property="version" column="VERSION"/>		
+		<result property="environment" column="ENVIRONMENT"/>		
+		<result property="dateAdded" column="DATE_ADDED"/>		
+		<result property="dateUpdated" column="DATE_UPDATED"/>		
+	</resultMap>
+	
+	<select id="getSPEPRegistration" parameterMap="spepRegistrationQueryParam" 
+			resultClass="com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationData"
+			cacheModel="spepRegistrationCache">
+		SELECT * FROM SPEP_REGISTRATIONS
+		WHERE DESCRIPTORID = ?
+	</select>
+	
+	
+	<!-- - - - - Insert definition - - - - -->
+	
+	<parameterMap id="spepRegistrationInsertParam" class="spepRegistration">
+		<parameter property="descriptorID" />
+		<parameter property="nodeID" />
+		<parameter property="ipAddress" />
+		<parameter property="compileDate" />
+		<parameter property="compileSystem" />
+		<parameter property="version" />
+		<parameter property="environment" />
+		<parameter property="dateAdded" />
+		<parameter property="dateUpdated" />
+	</parameterMap>
+	
+	<insert id="insertSPEPRegistration" parameterMap="spepRegistrationInsertParam">
+		INSERT INTO
+		SPEP_REGISTRATIONS (DESCRIPTORID, NODEID, IPADDRESS, COMPILEDATE, COMPILESYSTEM, 
+							VERSION, ENVIRONMENT, DATE_ADDED, DATE_UPDATED)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	</insert>
+	
+	<parameterMap id="spepRegistrationHistoryInsertParam" class="spepRegistration">
+		<parameter property="descriptorID" />
+		<parameter property="nodeID" />
+		<parameter property="ipAddress" />
+		<parameter property="compileDate" />
+		<parameter property="compileSystem" />
+		<parameter property="version" />
+		<parameter property="environment" />
+		<parameter property="dateAdded" />
+	</parameterMap>
+	
+	<insert id="insertSPEPRegistrationHistory" parameterMap="spepRegistrationHistoryInsertParam">
+		INSERT INTO
+		SPEP_REGISTRATIONS_HISTORY (DESCRIPTORID, NODEID, IPADDRESS, COMPILEDATE, COMPILESYSTEM, 
+							VERSION, ENVIRONMENT, DATE_ADDED)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	</insert>
+	
+	
+	<!-- - - - - Update definition - - - - -->
+	
+	<parameterMap id="spepRegistrationUpdateParam" class="spepRegistration">
+		<parameter property="ipAddress" />
+		<parameter property="compileDate" />
+		<parameter property="compileSystem" />
+		<parameter property="version" />
+		<parameter property="environment" />
+		<parameter property="dateUpdated" />
+		<parameter property="descriptorID" />
+	</parameterMap>
+	
+	<update id="updateSPEPRegistration" parameterMap="spepRegistrationUpdateParam">
+		UPDATE SPEP_REGISTRATIONS
+		SET IPADDRESS = ?,
+			COMPILEDATE = ?,
+			COMPILESYSTEM = ?,
+			VERSION = ?,
+			ENVIRONMENT = ?,
+			DATE_UPDATED = ?
+		WHERE DESCRIPTORID = ?
+	</update>
+	
+	
+	<!-- - - - - Confirm SPEP exists in database query - - - - -->
+	
+	<select id="spepConfirmExists" parameterMap="spepRegistrationQueryParam" resultClass="java.lang.Integer">
+		SELECT Count(*) as value FROM DESCRIPTORS
+		WHERE DESCRIPTORID = ?
+	</select>
+	
+</sqlMap>

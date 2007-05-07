@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- ====================================================================== 
+		
+		Copyright 2006, Queensland University of Technology
+		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+		use this file except in compliance with the License. You may obtain a copy of 
+		the License at 
+		
+		http://www.apache.org/licenses/LICENSE-2.0 
+		
+		Unless required by applicable law or agreed to in writing, software 
+		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+		License for the specific language governing permissions and limitations under 
+		the License.
+		
+		Author: Bradley Beddoes
+		Date: 20/11/2006                                                        
+		Purpose: Defines spring integration for
+		====================================================================== -->
+
+	<bean name="esoeDAO" class="com.qut.middleware.esoestartup.esoe.sqlmap.impl.ESOEDAOImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean name="testDatabaseLogic" class="com.qut.middleware.esoestartup.logic.TestDatabaseLogic">
+	</bean>
+	
+	<bean name="renderESOEConfigLogic" class="com.qut.middleware.esoestartup.logic.RenderESOEConfigLogic">
+		<constructor-arg index="0" type="java.io.File" value="${renderesoeconfiglogic.esoeconfig}" />
+		<constructor-arg index="1" type="java.io.File" value="${renderesoeconfiglogic.esoemanagerconfig}" />
+		<constructor-arg index="2" type="java.io.File" value="${renderesoeconfiglogic.esoemanagerspepconfig}" />
+	</bean>
+	
+	<bean name="generateWarLogic" class="com.qut.middleware.esoestartup.logic.GenerateWarLogic">
+	</bean>
+
+	<bean name="registerESOELogic" class="com.qut.middleware.esoestartup.logic.RegisterESOELogic">
+		<constructor-arg index="0" ref="generateWarLogic" />
+		<constructor-arg index="1" ref="renderESOEConfigLogic" />
+		<constructor-arg index="2" ref="identifierGenerator" />
+		<constructor-arg index="3" ref="esoeDAO" />
+		<constructor-arg index="4" ref="ibatisDataSource" />
+		<constructor-arg index="5">
+			<map>
+				<entry>
+					<key>
+						<value>${registeresoelogic.mysql}</value>
+					</key>
+					<value>${registeresoelogic.mysql.file}</value>
+				</entry>
+				<entry>
+					<key>
+						<value>${registeresoelogic.oracle}</value>
+					</key>
+					<value>${registeresoelogic.oracle.file}</value>
+				</entry>
+			</map>
+		</constructor-arg>
+		<constructor-arg index="6" type="java.io.File" value="${registeresoelogic.defaultPolicy}" />
+	</bean>
+
+</beans>

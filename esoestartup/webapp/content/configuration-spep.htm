@@ -1,0 +1,65 @@
+<h3> ESOE Manager Java SPEP Configuration </h3>
+
+This section details configuration of the ESOE Manager SPEP software, the SPEP is the client side guard responsible for communicating with the ESOE
+validating authentication, enforcing access policy and retrieving attributes. The SPEP has been automatically configured for you, a WAR file called spep.war has been written to <strong>$esoeBean.getWriteableDirectory()</strong>
+If you configured multiple nodes multiple spep.war.<num> files have been created. Ensure you remove the numerical extenstion and deploy one WAR per node.
+<br/><br/>
+In all likely hood you can proceed from to the next stage without any further configuration changes. If you would like to configure advanced features you may need the below information, please take a copy for your records.
+<br/><br/>
+<a href="configuration-manager.htm">Proceed to configure the ESOE Manager >>></a>
+<br/><br/>
+The Java SPEP is configured almost entirely by its main config file called spep.config. This is located at:<br/>
+<tt>WEB-INF/spep.config</tt>
+<br/><br/>
+This file requires the following configuration:
+<br/>
+<tt>
+# The unique identifier of the service. NOTE: This is not the same as the index node ID <br/>
+spepIdentifier=$esoeBean.getSpEntityID() <br/>
+ <br/>
+# The unique identifier of the authenticating ESOE. <br/>
+esoeIdentifier=$esoeBean.getIdpEntityID() <br/>
+ <br/>
+# The URL to retrieve the metadata document from <br/>
+metadataUrl=$esoeBean.getManagerServiceURL()/esoemanager/metadata/retrieve.htm <br/>
+ <br/>
+# path to the keystore containing the ESOE public key and this SPEP private key and trusted certs etc <br/>
+keystorePath=/WEB-INF/spKeystore.ks <br/>
+ <br/>
+# password of above keystore <br/>
+keystorePassword=$esoeBean.getEsoeManagerKeyStorePassphrase() <br/>
+ <br/>
+# public key alias for metadata manager. Required to decrypt metadata document <br/>
+metadataKeyAlias=$esoeBean.getEsoeMetadataKeyPairName() <br/>
+ <br/>
+# private key alias for this SPEP <br/>
+spepKeyAlias=$esoeBean.getEsoeManagerKeyPairName() <br/>
+ <br/>
+# password for this SPEP private key <br/>
+spepKeyPassword=$esoeBean.getEsoeManagerKeyPairPassphrase() <br/>
+ <br/>
+ # string description of the service <br/>
+serverInfo=$esoeBean.getManagerServiceDescription() <br/>
+</tt>
+<br/>
+The below config is unique for each node you have setup for the ESOE Manager, generally this will only be one, however if you are deploying
+on multiple servers ensure to use unique data on each (This also means of course you need unique war files for each node when creating below)
+<br/>
+<tt>
+#foreach ($node in $esoeBean.getManagerServiceNodes())
+# Unique identifier of this service node <br/>
+nodeIdentifier=$node.getNodeID() <br/>
+ <br/>
+# Indicies of this service node  <br/>
+attributeConsumingServiceIndex=$node.getNodeID() <br/>
+assertionConsumerServiceIndex=$node.getNodeID() <br/>
+authzCacheIndex=$node.getNodeID() <br/>
+ <br/>
+#end
+</tt>
+Finally this process has saved a keystore called <strong>spepKeystore.ks</strong> to your nominated directory of <strong>$esoeBean.getWriteableDirectory()</strong> this should be placed at
+<br/>
+<tt>WEB-INF/spepKeystore.ks</tt>
+<br/>
+This should complete the ESOE Manager SPEP configuration process, you should now create the SPEP war. <strong>Remember if you have multiple nodes for your ESOE Manager service you MUST create multiple unique war files to install on each</strong>
+<br/>

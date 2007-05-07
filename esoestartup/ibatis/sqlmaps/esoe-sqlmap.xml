@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="spep">
+
+	<!-- Parameter Maps -->
+	<parameterMap id="entityDescriptorMap" class="java.util.HashMap">
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="organizationName" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="organizationDisplayName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="organizationURL" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="activeFlag" jdbcType="CHAR" javaType="java.lang.String" />
+	</parameterMap>
+
+	<parameterMap id="serviceDescriptionMap" class="java.util.HashMap">
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="serviceName" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="serviceURL" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="serviceDesc" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="authzFailureMsg" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+
+	<parameterMap id="serviceContactMap" class="java.util.HashMap">
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="contactID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="contactType" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="company" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="givenName" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="surname" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="emailAddress" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="telephoneNumber" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+
+	<parameterMap id="serviceNodeMap" class="java.util.HashMap">
+		<parameter property="endpointID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="descriptorID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="nodeURL" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="assertionConsumerEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="singleLogoutEndpoint" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="cacheClearEndpoint" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+
+	<parameterMap id="insertAuthorizationPolicy" class="java.util.HashMap">
+		<parameter property="descriptorID" javaType="java.lang.String" />
+		<parameter property="lxacmlPolicy" jdbcType="CLOB" javaType="java.lang.String" />
+		<parameter property="lxacmlDate" jdbcType="DATE" javaType="java.util.Date" />
+	</parameterMap>
+
+	<parameterMap id="descriptorMap" class="java.util.HashMap">
+		<parameter property="descriptorID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="descriptorXML" jdbcType="CLOB" javaType="java.lang.String" />
+		<parameter property="descriptorTypeID" jdbcType="NUMBER" javaType="java.lang.String" />
+	</parameterMap>
+
+	<parameterMap id="descriptorType" class="java.util.HashMap">
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="descriptorTypeID" jdbcType="NUMBER" javaType="java.lang.String" />
+	</parameterMap>
+
+	<!-- Insert Statements -->
+	<insert id="insertEntityDescriptor" parameterMap="entityDescriptorMap">
+		INSERT INTO ENTITY_DESCRIPTORS ( ENTITYID, ORGANIZATIONNAME, ORGANIZATIONDISPLAYNAME,
+		ORGANIZATIONURL, ACTIVEFLAG ) VALUES ( ?, ?, ?, ?, ? )
+	</insert>
+
+	<insert id="insertServiceDescription" parameterMap="serviceDescriptionMap">
+		INSERT INTO SERVICE_DESCRIPTIONS ( ENTITYID, SERVICENAME, SERVICEURL, SERVICEDESC,
+		AUTHZFAILUREMSG) VALUES ( ?, ?, ?, ?, ? )
+	</insert>
+
+	<insert id="insertServiceNode" parameterMap="serviceNodeMap">
+		INSERT INTO SERVICE_ENDPOINTS ( ENDPOINTID, DESCRIPTORID, NODEURL,
+		ASSERTIONCONSUMER_ENDPOINT, SINGLELOGOUT_ENDPOINT, CACHECLEAR_ENDPOINT) VALUES ( ?, ?, ?, ?,
+		?, ? )
+	</insert>
+
+	<insert id="insertServiceContacts" parameterMap="serviceContactMap">
+		INSERT INTO ENTITY_CONTACTS ( ENTITYID, CONTACTID, CONTACTTYPE, COMPANY, GIVENNAME, SURNAME,
+		EMAILADDRESS, TELEPHONENUMBER) VALUES( ?, ?, ?, ?, ?, ?, ?, ? )
+	</insert>
+
+	<insert id="insertServiceAuthorizationPolicy" parameterMap="insertAuthorizationPolicy">
+		INSERT INTO SERVICE_POLICIES (DESCRIPTORID, LXACMLPOLICY, DATE_LAST_UPDATED) VALUES (?, ?, ?)
+	</insert>
+
+	<insert id="insertDescriptor" parameterMap="descriptorMap">
+		INSERT INTO DESCRIPTORS ( DESCRIPTORID, ENTITYID, DESCRIPTORXML, DESCRIPTORTYPEID ) VALUES (
+		?, ?, ?, ? )
+	</insert>
+
+</sqlMap>

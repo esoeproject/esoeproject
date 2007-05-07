@@ -1,0 +1,98 @@
+<h3> ESOE Configuration </h3>
+
+The ESOE has been automatically configured for you, a WAR file called ROOT.war has been written to <strong>$esoeBean.getWriteableDirectory()</strong>
+<br/><br/>
+In all likely hood you can proceed to the next stage without any further configuration changes. If you would like to configure advanced features you may need the below information, please take a copy for your records.
+<br/></br>
+<br/>
+Once the ESOE is operation you should still inspect:<br/>
+<tt>WEB-INF/supportedSessionAttributes.xml</tt><br/>
+<p>By default it is set to allow the ESOE to resolve only uid from the LDAPHandler. You probably want to considerably expand the identity attributes
+able to be resolved by the ESOE and sent to services. If you have multiple identity handlers configured and they both contain values for a certain attribute
+simply add an additional &lt;Handler/&gt; element to that attribute definition.</p>
+
+<p>At the current time due to lack of attribute editor in the startup and manager web applications the ESOE will send ALL configured attributes to a service
+each time attributes are requested so be aware of this. Alpha version 0.02 will correct this so that only explicity allowed attributes on a per service basis are
+transfered.</p>
+<br/><br/>
+<a href="configuration-spep.htm">Proceed to configure the ESOE Manager SPEP >>></a>
+<br/>
+<h4>Manual Configuration</h4>
+The ESOE is configured almost entirely by its main config file called esoe.config. This is located at:<br/>
+<tt>WEB-INF/esoe.config</tt>
+<br/><br/>
+This file requires the following configuration:
+<br/>
+## Database Server 1 Connection<br/>
+databaseDriver-1=esoeBean.getDatbaseDriverString()<br/>
+databaseURL-1=$esoeBean.getDatabaseURL()<br/>
+databaseUsername-1=$esoeBean.getDatabaseUsername()<br/>
+databasePassword-1=$esoeBean.getDatabasePassword()<br/>
+databaseRemoveAbandoned-1=true<br/>
+databaseRemoveAbandonedTimeout-1=300<br/>
+databaseLogAbandoned-1=true<br/>
+databaseMaxIdle-1=5<br/>
+databaseMaxActive-1=25<br/>
+<br/>
+## LDAP Server 1 Connection<br/>
+ldapURL-1=$esoeBean.getLdapURL()<br/>
+ldapServer-1=$esoeBean.getLdapServer()<br/>
+ldapServerPort-1=$esoeBean.getLdapServerPort()<br/>
+baseDN-1=$esoeBean.getLdapServerBaseDN()<br/>
+identifier-1=$esoeBean.getLdapIdentifier()<br/>
+recursive-1=$esoeBean.getLdapRecursive()<br/>
+disableSSL-1=$esoeBean.getLdapDisableSSL()<br/>
+adminUser-1=$esoeBean.getLdapAdminUserDN()<br/>
+adminPassword-1=$esoeBean.getLdapAdminPassword<br/>
+<br/>
+## Keystore 1<br/>
+keystorePath-1=WEB-INF/esoeKeystore.ks<br/>
+keystorePassword-1=$esoeBean.getEsoeKeyStorePassphrase()<br/>
+keyAlias-1=$esoeBean.getEsoeKeyPairName()<br/>
+keyPassword-1=$esoeBean.getEsoeKeyPairPassphrase()<br/>
+keyAlias-2=$esoeBean.getEsoeMetadataKeyPairName()<br/>
+<br/>
+## ESOE trusted identifier for this deployment<br/>
+esoeIdentifier=$esoeBean.getIdpEntityID()<br/>
+<br/>
+## Trusted URL to recieve metadata files from<br/>
+metadataURL=$esoeBean.getManagerServiceURL()/metadata/retrieve.htm<br/>
+<br/>
+# Domain in which esoe cookie should be available - should NEVER be set institution wide<br/>
+sessionDomain=esoe-dev.qut.edu.au<br/>
+<br/>
+## URL to redirect unauthenticated principal to<br/>
+authenticationURL=https://esoe-dev.qut.edu.au:8443/signin<br/>
+<br/>
+## URL for SAML SSO endpoint supported by this instance<br/>
+ssoURL=$esoeBean.getEsoeNodeURL()$esoeBean.getEsoeSingleSignOn()<br/>
+<br/>
+## Authentication Identifiers<br/>
+# URL to redirect authenticated principal to logout<br/>
+logoutURL=$esoeBean.getEsoeNodeURL()<br/>
+<br/>
+# URL to redirect principal to for username and password submission<br/>
+usernamePasswordURL=$esoeBean.getEsoeNodeURL()/web/login.htm<br/>
+<br/>
+# Value to append to usernamePasswordURL when authentication fails<br/>
+authenticationFailedNameValue=rc=authnfail<br/>
+<br/>
+# URLS to redirect client to when authn has completed successfully and there is no dynamic URL<br/>
+successURL=$esoeBean.getEsoeNodeURL()/web/login_success.htm<br/>
+<br/>
+# URLS to redirect client to when logout has completed successfully and there is no dynamic URL<br/>
+logoutSuccessURL=$esoeBean.getEsoeNodeURL()/web/logout_success.htm<br/>
+<br/>
+# URL to redirect client to for a critical failure<br/>
+criticalfailureURL=$esoeBean.getEsoeNodeURL()/web/failure.htm<br/>
+<br/>
+<br/>
+Finally this process has saved a keystore called <strong>esoeKeystore.ks</strong> to your nominated directory of <strong>$esoeBean.getWriteableDirectory()</strong> this should be placed at
+<br/>
+<tt>WEB-INF/esoeKeystore.ks</tt>
+<br/>
+This should complete the ESOE configuration process, you should now create the esoe war by navigating to <strong>$downloads/esoe-package-$version/esoe</strong> and executing:
+<br/>
+<tt>$>jar cvf ../ROOT.war *</tt>
+<br/>
+<br/>

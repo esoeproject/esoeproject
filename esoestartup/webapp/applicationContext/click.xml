@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<click-app>
+
+	<pages autoconf="false">
+		<page path="index.htm" classname="com.qut.middleware.esoestartup.pages.IndexPage" />
+		<page path="registeresoe.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEDatabasePage" />
+		<page path="registeresoe-ajax.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEDatabaseAjaxPage" />
+		<page path="registeresoe-stage2.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEPage" />
+		<page path="registeresoe-stage3.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOELDAPAuthenticatorPage" />
+		<page path="registeresoe-stage4.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEContactPersonPage" />
+		<page path="registeresoe-stage5.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEManagerServicePage" />
+		<page path="registeresoe-stage6.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEManagerServiceNodesPage" />
+		<page path="registeresoe-stage7.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOECryptoPage" />
+		<page path="registeresoe-stage8.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOEFinalizePage" />
+		<page path="registeresoe-complete.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOECompletePage" />
+		<page path="configuration-esoe.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOECompleteESOEConfigPage" />
+		<page path="configuration-spep.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOECompleteManagerConfigPage" />
+		<page path="configuration-manager.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOECompleteSPEPConfigPage" />
+		<page path="configuration-deployment.htm"
+			classname="com.qut.middleware.esoestartup.pages.RegisterESOECompleteDeploymentPage" />
+		<page path="help.htm" classname="com.qut.middleware.esoestartup.pages.RegisterESOEHelpPage" />
+	</pages>
+
+	<mode value="debug" />
+
+</click-app>

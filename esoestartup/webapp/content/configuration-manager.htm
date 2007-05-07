@@ -1,0 +1,61 @@
+<h3> ESOE Manager Configuration </h3>
+This section details configuration of the ESOE Manager this is a web application which ESOE and service administrators alike can use
+to configure access policies, service deployments and monitor performance. The ESOE Manager has been automatically configured for you, a WAR file called esoemanager.war has been written to <strong>$esoeBean.getWriteableDirectory()</strong>
+<br/><br/>
+In all likely hood you can proceed to the next stage without any further configuration changes. If you would like to configure advanced features you may need the below information, please take a copy for your records.
+<br/><br/>
+<strong>Warning:</strong> While the ESOE Manager makes a disk copy of every metadata update for manual inspection it <strong>DOES NOT</strong> clean these up.
+System administrators are advised to use whatever means the deployment system has to remove these, excess files can be deleted at any time. Examples of solutions here may include a 5 hourly cron job on unix hosts to gzip current remove older updates.
+<br/><br/>
+<a href="configuration-deployment.htm">Proceed to deploying the ESOE >>></a>
+<br/><br/>
+
+The ESOE Manager is configured almost entirely by its main config file called esoemanager.config. This is located at:<br/>
+<tt>WEB-INF/esoemanager.config</tt>
+<br/><br/>
+This file requires the following configuration:
+<br/>
+# Database Server 1 Connection <br/>
+databaseDriver-1=$esoeBean.getDatbaseDriverString()<br/>
+databaseURL-1=$esoeBean.getDatabaseURL() <br/>
+databaseUsername-1=$esoeBean.getDatabaseUsername() <br/>
+databasePassword-1=$esoeBean.getDatabasePassword() <br/>
+databaseRemoveAbandoned-1=true <br/>
+databaseRemoveAbandonedTimeout-1=300 <br/>
+databaseLogAbandoned-1=true <br/>
+databaseMaxIdle-1=1 <br/>
+databaseMaxActive-1=5 <br/>
+ <br/>
+# Keystore 1<br/>
+keystorePath-1=WEB-INF/metadataKeystore.ks <br/>
+keystorePassword-1=$esoeBean.getEsoeMetadataKeyStorePassphrase() <br/>
+keyAlias-1=$esoeBean.getEsoeMetadataKeyPairName() <br/>
+keyPassword-1=$esoeBean.getEsoeMetadataKeyPairPassphrase() <br/>
+ <br/>
+# Organization Details <br/>
+organizationName=$esoeBean.getEsoeOrganizationName() <br/>
+organizationDisplayName=$esoeBean.getEsoeOrganizationDisplayName() <br/>
+organizationURL=$esoeBean.getEsoeOrganizationURL() <br/>
+ <br/>
+# Crypto <br/>
+# Issuer DN to assign to keys to generated for remote SPEP <br/>
+issuerDN=$esoeBean.getCertIssuerDN() <br/>
+# Issuer email address to assign to keys to generated for remote SPEP <br/>
+issuerEmail=$esoeBean.getCertIssuerEmailAddress() <br/>
+# Size of keys to generate for remote SPEP <br/>
+keySize=2048 <br/>
+# Period of time in years that generated keys should be active <br/>
+certExpiryInterval=2 <br/>
+ <br/>
+# Metadata <br/>
+# ESOE Trusted ID <br/>
+esoeIdentifier=$esoeBean.getIdpEntityID() <br/>
+<br/>
+<br/>
+Finally this process has saved a keystore called <strong>metadataKeystore.ks</strong> to your nominated directory of <strong>$esoeBean.getWriteableDirectory()</strong> this should be placed at
+<br/>
+<tt>WEB-INF/metadataKeystore.ks</tt>
+<br/>
+<br/>
+This should complete the ESOE Manager configuration process, you should now create the ESOE Manager WAR.
+<br/>

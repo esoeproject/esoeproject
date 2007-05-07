@@ -1,0 +1,23 @@
+<h2>Deployment</h2>
+<p>This section deals with deploying the various components you have now successfully created.</p>
+
+<p>All information below assumes you have undertaken all prerequisite stages at <a href="http://esoeproject.org/confluence/display/eu/ESOE+Installation+Guide">http://esoeproject.org/confluence/display/eu/ESOE+Installation+Guide</a></p>
+
+<p>This tool has created 3(or more) WAR files for you, these should now be deployed in Tomcat in the following order: 
+<br/><br/>
+Copy esoemanager.war to $TOMCAT/webapps, wait for approximately a minute as heavy XML loading will occur underneath. You may tail your logs defined in the log4j.xml file during this process to see whats going on
+<br/><br/>
+Copy ROOT.war to $TOMCAT/webapps, this will invoke even heavier processing load, again tail the logging for full details
+<br/><br/>
+Finally copy spep.war.XYZ (where XYZ is a node id, copy each created war to each machine in use) to $Tomcat/webapps/spep.war (Note the removal of the XYZ numbering)
+<br/><br/>
+After another minute or so depending on machine performance you should be able to navigate to http(s)://{HOSTNAME}[:PORT]/esoemanager/manager/, this will invoke the ESOE's SAML2 SSO engine and you will be redirected to authenticate 
+using the default forms based authentication against the LDAP server you provided. You will then be directed back to the manager application and all is now ready for more services to be setup.
+<br/><br/>
+You should probably look at the ESOE Managers LXACML policy at this stage and start locking it down, more details are available at <a href="http://esoeproject.org/confluence/display/eu/ESOE+Administrators+Guide">http://esoeproject.org/confluence/display/eu/ESOE+Administrators+Guide</a>
+or stop by the users mailing list.
+<br><br>
+This is an alpha release, so unfortunately there may be some pain while bugs and cross platform issues get ironed out, we'll listen to all your feedback and do our best to accomodate, thanks for trialing!
+<br/><br/>
+regards,<br/>
+Bradley, Shaun, Andre and the extended ESOE development team.

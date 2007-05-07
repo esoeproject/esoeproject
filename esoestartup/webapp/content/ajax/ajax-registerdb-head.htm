@@ -1,0 +1,18 @@
+<script type='text/javascript'
+	src='$context/click/prototype/prototype.js'></script>
+<script type='text/javascript' src='$context/ajax/prototypeUtils.js'></script>
+<script type='text/javascript' src='$context/ajax/rico.js'></script>
+<script type='text/javascript' src='$context/ajax/server.js'></script>
+<script type='text/javascript'>
+function registerAjax() 
+{
+    ajaxEngine.registerRequest('changeDatabaseDriver', '$context/registeresoe-ajax.htm');
+    ajaxEngine.registerAjaxObject('databaseDriver', new DatabaseDriver());
+}
+
+function changeDatabase(driver) 
+{
+	ajaxEngine.sendRequest('changeDatabaseDriver', "driver=" + driver.value);
+}
+
+</script>

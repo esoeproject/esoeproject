@@ -1,0 +1,92 @@
+
+<h2> ESOE Configuration form help</h2>
+
+<h3> Database Setup</h3>
+<a name="database"></a>
+	<h4>Database Connection String</h4>
+	JDBC connection string for connecting to the database of choice to power the ESOE. Default string is populated, you should replace the HOST, DATABASENAME and SID fields as appropriate. The database must be pre-created and empty before using this tool We suggest a database name of esoe
+	
+	<h4>Database Username</h4>
+	Username to connect to the database with, this must be an already active user on your database server with both read and write privileges to the database targeted above
+	
+	<h4>Database Password</h4>
+	Password of the user accessing the database.
+
+<h3>ESOE Configuration</h3>
+<a name="base"></a>
+	<h4>ESOE Service URL</h4>
+	The URL client browsers and services will connect to to access components of the ESOE. Generally the ESOE should be deployed within its own zone, with the ESOE itself being the zone host.
+	Example: https://esoe.intient.com
+	
+	<h4>Single Sign On Service</h4>
+	SAML 2.0 SSO Endpoint supporting the POST profile
+	
+	<h4>Attribute Service</h4>
+	SAML 2.0 WS endpoint supporting attribute resolution
+	
+	<h4>LXACML Service</h4>
+	WS endpoint which supports the ESOE LXACML PDP endpoint
+	
+	<h4>SPEP Startup Service</h4>
+	WS endpoint which Services will connect to on startup for their initial service state.
+
+<h3>Add ESOE LDAP Authentication and Identity Handler</h3>
+<a name="ldap"></a>
+	<h4>LDAP Server URL </h4>
+	URL of the ldap server you wish to connect to must be either ldap:// or ldaps://
+	For ldaps please ensure you have a valid teir one SSL certificate or that your Java environment knows about your local issuer.
+	 	
+	<h4>LDAP Server Port</h4>
+	389 for clear text, 636 for ssl
+		
+	<h4>LDAP Base DN</h4>
+	Base DN that the ESOE should start reading from, eg ou=people,dc=intient,dc=com
+	
+	<h4>LDAP Account Identifier</h4>
+	Generally uid or cn, attribute used to uniquely identify accounts in your deployment.
+	
+	<h4>LDAP Recursive</h4>
+	Should the ESOE recurse when searching for user details, generally this should be true unless all users of the ESOE
+	live in the base DN.
+	
+	<h4>LDAP Disable SSL</h4>
+	Additional checkpoint for SSL state in your deployment
+	
+	<h4>Admin User DN</h4>
+	DN of an admin user able to bind to your directory, account should generally only be for the ESOE.
+	
+	<h4>Admin Password</h4>
+	Password of admin user.
+
+<h3>ESOE Manager Details</h3>
+<a name="servicedetails"></a>
+	<h4>Service URL</h4>
+	URL where clients connect to access this service, should be secure. (NB: Don't include application directories here eg: https://service.com not https://service.com/myapp
+	
+	<h4>Service Authorization Failure</h4>
+	Description to present to users when they fail to access content based on defined policies for this service. May contain html markup. Should contain contact details for service owners to allow resolution of problems.
+	
+<h3>Add ESOE Manager Nodes</h3>
+<a name="servicenodes"></a>
+	<h4>SPEP Node URL</h4>
+	Generally the same as the service URL. However where services are deployed behind Layer 7 type balancing this should be the direct URL to a single pool node.
+	
+	<h4>Assertion Consumer Service</h4>
+	Endpoint supporting the SAML 2.0 POST profile
+	
+	<h4>Single Logout Service</h4>
+	WS endpoint supporting the SAML 2.0 single logout service
+	
+	<h4>Cache Clear Service</h4>
+	WS endpoint supporting the LXACML PDP cache clear service.
+
+<h3>ESOE Crypto</h3>
+<a name="crypto"></a>
+	<h4>Issuer DN</h4>
+	DN of the entity responsible for issuing certificates for the ESOE authentication network, generally this should be the group responsible for management of the ESOE and its associated tools.
+
+
+
+
+
+

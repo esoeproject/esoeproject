@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- ====================================================================== 
+		
+		Copyright 2006, Queensland University of Technology
+		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+		use this file except in compliance with the License. You may obtain a copy of 
+		the License at 
+		
+		http://www.apache.org/licenses/LICENSE-2.0 
+		
+		Unless required by applicable law or agreed to in writing, software 
+		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+		License for the specific language governing permissions and limitations under 
+		the License.
+		
+		Author: Bradley Beddoes
+		Date: 20/11/2006                                                        
+		Purpose: Defines spring integration for
+		====================================================================== -->
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEPage" scope="prototype">
+		<property name="defaultSingleSignOnService"
+			value="${registeresoepage.defaultSingleSignOnService}" />
+		<property name="defaultAttributeService"
+			value="${registeresoepage.defaultAttributeService}" />
+		<property name="defaultLxacmlService" value="${registeresoepage.defaultLxacmlService}" />
+		<property name="defaultSpepStartupService"
+			value="${registeresoepage.defaultSpepStartupService}" />
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEDatabasePage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEDatabasePage" scope="prototype">
+		<property name="testDatabaseLogic" ref="testDatabaseLogic" />
+		<property name="defaultMySQL" value="${registerdatbasepage.defaultMySQLURL}" />
+		<property name="defaultOracle" value="${registerdatbasepage.defaultOracleURL}" />
+	</bean>
+	
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEDatabaseAjaxPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEDatabaseAjaxPage" scope="prototype">
+		<property name="defaultMySQL" value="${registerdatbaseajaxpage.defaultMySQLURL}" />
+		<property name="defaultOracle" value="${registerdatbaseajaxpage.defaultOracleURL}" />
+	</bean>
+	
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEContactPersonPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEContactPersonPage" scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOELDAPAuthenticatorPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOELDAPAuthenticatorPage" scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOECryptoPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOECryptoPage" scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEManagerServicePage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEManagerServicePage" scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEManagerServiceNodesPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEManagerServiceNodesPage"
+		scope="prototype">
+		<property name="defaultSingleLogoutService"
+			value="${registeresoemanagerservicenodespage.defaultSingleLogoutService}" />
+		<property name="defaultAssertionConsumerService"
+			value="${registeresoemanagerservicenodespage.defaultAssertionConsumerService}" />
+		<property name="defaultCacheClearService"
+			value="${registeresoemanagerservicenodespage.defaultCacheClearService}" />
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOEFinalizePage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOEFinalizePage" scope="prototype">
+		<property name="registerESOELogic" ref="registerESOELogic" />
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOECompletePage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOECompletePage" scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOECompleteESOEConfigPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOECompleteESOEConfigPage"
+		scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOECompleteManagerConfigPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOECompleteManagerConfigPage"
+		scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOECompleteSPEPConfigPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOECompleteSPEPConfigPage"
+		scope="prototype">
+	</bean>
+
+	<bean id="com.qut.middleware.esoestartup.pages.RegisterESOECompleteDeploymentPage"
+		class="com.qut.middleware.esoestartup.pages.RegisterESOECompleteDeploymentPage"
+		scope="prototype">
+	</bean>
+
+</beans>

@@ -1,0 +1,16 @@
+**this is here for development only and will get rolled into full documention for release
+---INCREASED LOG OUTPUT FROM SAML2lib-j for cryptography problems---
+If you are running your application from the java command line, you need to configure the logging facility so that the XML DSig logging messages are emitted. You can do this by creating a logging.properties file and set it with the java.util.logging.config.file property
+
+java -Djava.util.logging.config.file=logging.properties
+
+where logging.properties is a properties document with:
+
+handlers= java.util.logging.ConsoleHandler
+.level= INFO
+java.util.logging.ConsoleHandler.level = FINER
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+org.jcp.xml.dsig.internal.level = FINER 
+com.sun.org.apache.xml.internal.security.level = FINER
+
+This will emit XML DSig log messages of level FINER and higher to the console, don't use this in production

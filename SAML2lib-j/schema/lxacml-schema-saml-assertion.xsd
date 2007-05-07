@@ -1,0 +1,49 @@
+<!-- 
+Copyright 2006, Queensland University of Technology
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at 
+
+  http://www.apache.org/licenses/LICENSE-2.0 
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+Creation Date: 26/09/2006
+-->
+<xsd:schema targetNamespace="http://www.qut.com/middleware/lxacmlSAMLAssertionSchema"
+    xmlns:lxacmla="http://www.qut.com/middleware/lxacmlSAMLAssertionSchema"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+    xmlns:lxacml-context="http://www.qut.com/middleware/lxacmlContextSchema"
+    xmlns:lxacml="http://www.qut.com/middleware/lxacmlSchema"
+    elementFormDefault="qualified" 
+    attributeFormDefault="unqualified">
+  
+  <xsd:import namespace="urn:oasis:names:tc:SAML:2.0:assertion" schemaLocation="saml-schema-assertion-2.0.xsd"/>
+  <xsd:import namespace="urn:oasis:names:tc:SAML:2.0:protocol" schemaLocation="saml-schema-protocol-2.0.xsd"/>
+  <xsd:import namespace="http://www.qut.com/middleware/lxacmlSchema" schemaLocation="lxacml-schema.xsd"/>
+  <xsd:import namespace="http://www.qut.com/middleware/lxacmlContextSchema" schemaLocation="lxacml-schema-context.xsd"/>
+  
+  <xsd:element name="LXACMLAuthzDecisionStatement" type="lxacmla:LXACMLAuthzDecisionStatementType"/>
+  <xsd:complexType name="LXACMLAuthzDecisionStatementType">
+    <xsd:complexContent>
+      <xsd:extension base="saml:StatementAbstractType">
+        <xsd:sequence>
+          <xsd:element ref="lxacml-context:Response"/>
+          <xsd:element ref="lxacml-context:Request" minOccurs="0"/>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  
+  <xsd:element name="LXACMLPolicyStatement" type="lxacmla:LXACMLPolicyStatementType"/>
+  <xsd:complexType name="LXACMLPolicyStatementType">
+    <xsd:complexContent>
+      <xsd:extension base="saml:StatementAbstractType">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+          <xsd:element ref="lxacml:Policy"/>
+          <xsd:element ref="lxacml:PolicySet"/>
+        </xsd:choice>
+      </xsd:extension>
+    </xsd:complexContent>
+  </xsd:complexType>
+  
+</xsd:schema>

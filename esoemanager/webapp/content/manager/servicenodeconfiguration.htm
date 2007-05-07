@@ -1,0 +1,43 @@
+<h3> Service node configuration </h3>
+<p>The details below specify the configuration options you are required to place in each node's spep.config file for your service.</p>
+
+<p>Keystores are the same across all nodes for your service and can be safely copied, all other data must be configured per node.</p>
+
+#foreach ($node in $serviceNodes)
+Configuration for node $velocityCount
+<div id="node">
+<table>
+<tr>
+<td><strong>Description</strong></td><td><strong>Configuration Option</strong></td><td><strong>Value to configure</strong></td>
+</tr>
+<tr>
+<td>Trusted ESOE Identifier</td><td>esoeIdentifier</td><td>$esoeTrustedID</td>
+</tr>
+<tr>
+<td>Service Identifier</td><td>spepIdentifier</td><td>$serviceID</td>
+</tr>
+<tr>
+<td>Trusted Metadata Key Name</td><td>metadataKeyAlias</td><td>$metadataKeyName</td>
+</tr>
+<tr>
+<td>Node Identifier</td><td>nodeIdentifier</td><td>$node.getNodeID()</td>
+</tr>
+<tr>
+<td>Key Store Download</td><td/><td><a href="retrievekeystore.htm?id=$id">download keystore</a></td>
+</tr>
+<tr>
+<td>KeyStore Passphrase</td><td>keystorePassword</td><td>#if($keyStoreDetails.getKeyStorePassphrase())$keyStoreDetails.getKeyStorePassphrase()#end</td>
+</tr>
+<tr>
+<td>Key Name</td><td>spepKeyAlias</td><td>#if($keyStoreDetails.getKeyPairName())$keyStoreDetails.getKeyPairName()#end</td>
+</tr>
+<tr>
+<td>Key Pasphrase</td><td>spepKeyPassword</td><td>#if($keyStoreDetails.getKeyPairPassphrase())$keyStoreDetails.getKeyPairPassphrase()#end</td>
+</tr>
+</table>
+</div>
+<br/>
+<br/>
+#end
+
+<td><a href="viewservice.htm?serviceID=$serviceID">return to service details</a></td>

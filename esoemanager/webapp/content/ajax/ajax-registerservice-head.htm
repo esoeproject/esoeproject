@@ -1,0 +1,17 @@
+<script type='text/javascript' src='$context/click/prototype/prototype.js'></script>
+<script type='text/javascript' src='$context/ajax/prototypeUtils.js'></script>
+<script type='text/javascript' src='$context/ajax/rico.js'></script>
+<script type='text/javascript' src='$context/ajax/server.js'></script>
+<script type='text/javascript'>
+function registerAjax() 
+{
+    ajaxEngine.registerRequest('changeServiceEnds', '$context/registerservice-stage3-ajax.htm');
+    ajaxEngine.registerAjaxObject('endpointDetails', new EndpointDetails());
+}
+
+function changeServiceEnds(endType) 
+{
+	ajaxEngine.sendRequest('changeServiceEnds', "endType=" + endType);
+}
+
+</script>

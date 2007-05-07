@@ -1,0 +1,31 @@
+<h3> Add Service Contacts </h3>
+<div id="contactPersons">
+#if($contacts)
+#if($contacts.size() > 0)
+<br/>
+You have added the following contacts for this service
+<br/>
+<table>
+<tr>
+<td><b>Name</b></td><td><b>Email</b></td><td><b>Type</b></td><td/><td/>
+</tr>
+#foreach( $contact in $contacts )
+<tr>
+<td>$contact.getGivenName() $contact.getSurName()</td>
+<td>$contact.getEmailAddress()</td>
+<td>$contact.getContactType()</td>
+<td><a href="registerservice-stage2.htm?action=edit&ref=$velocityCount">edit</a></td>
+<td><a href="registerservice-stage2.htm?action=delete&ref=$velocityCount">delete</a></td>
+</tr>
+#end
+</table>
+#end
+#end
+</div>
+<br/>
+<div id="createContact">
+<div id="createContactMessage">
+Please enter contact details for this service below
+</div>
+$contactDetails
+</div>

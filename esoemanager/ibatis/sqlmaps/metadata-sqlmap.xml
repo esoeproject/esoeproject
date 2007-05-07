@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="metadata">
+
+	<!-- Parameter Maps -->
+	<parameterMap id="descriptorType" class="java.util.HashMap">
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="descriptorTypeID" jdbcType="NUMBER" javaType="java.lang.String" />
+	</parameterMap>
+
+	<!-- Result Maps -->
+	<resultMap id="descriptorMap" class="java.util.HashMap">
+		<result property="descriptorXML" column="DESCRIPTORXML" jdbcType="CLOB"	javaType="java.lang.String" />
+	</resultMap>
+
+	<resultMap id="contactPersonMap" class="java.util.HashMap">
+		<result property="contactType" column="CONTACTTYPE" javaType="java.lang.String" />
+		<result property="company" column="COMPANY" javaType="java.lang.String" />
+		<result property="givenName" column="GIVENNAME" javaType="java.lang.String" />
+		<result property="surname" column="SURNAME" javaType="java.lang.String" />
+		<result property="emailAddress" column="EMAILADDRESS" javaType="java.lang.String" />
+		<result property="telephoneNumber" column="TELEPHONENUMBER" javaType="java.lang.String" />
+	</resultMap>
+
+	<!-- Select Statements -->
+	<select id="getActiveEntityIDList" resultClass="string">
+		SELECT ENTITYID FROM ENTITY_DESCRIPTORS 
+		WHERE ACTIVEFLAG = 'y'
+	</select>
+
+	<select id="getIDPList" parameterMap="descriptorType" resultMap="descriptorMap">
+		SELECT DESCRIPTORXML FROM DESCRIPTORS WHERE 
+		ENTITYID = ?
+		AND DESCRIPTORTYPEID = ?
+	</select>
+
+	<select id="getSPList" parameterMap="descriptorType" resultMap="descriptorMap">
+		SELECT DESCRIPTORXML FROM DESCRIPTORS WHERE 
+		ENTITYID = ?
+		AND DESCRIPTORTYPEID = ?
+	</select>
+
+	<select id="getAttributeAuthorityList" parameterMap="descriptorType" resultMap="descriptorMap">
+		SELECT DESCRIPTORXML FROM DESCRIPTORS WHERE 
+		ENTITYID = ?
+		AND DESCRIPTORTYPEID = ?
+	</select>
+
+	<select id="getLXACMLPDPList" parameterMap="descriptorType" resultMap="descriptorMap">
+		SELECT DESCRIPTORXML FROM DESCRIPTORS WHERE 
+		ENTITYID = ?
+		AND DESCRIPTORTYPEID = ?
+	</select>
+
+	<select id="getContacts" parameterClass="string" resultMap="contactPersonMap">
+		SELECT * FROM ENTITY_CONTACTS WHERE 
+		ENTITYID = #value#
+	</select>
+
+
+	<!-- Insert Statements -->
+
+	<!-- Update Statements -->
+
+	<!-- Delete Statements -->
+
+</sqlMap>

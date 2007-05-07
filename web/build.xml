@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+
+<!-- ====================================================================== 
+	Author: Bradley Beddoes
+	Date: 05/12/2006
+	Purpose: Builds ESOE Web Application
+	
+	This build file expects the system to present values for:
+	jar.repository - Base directory of binary repository
+	junit.test.regression.reports  - Directory to store XML output for regression testing
+	junit.test.functional.reports  - Directory to store XML output for functional testing
+	
+	Generally this is specified in localbuild.properties localbuild.properties is to be created by the developer and NOT STORED IN SVN   
+	====================================================================== -->
+
+<project name="web" default="dev-war">
+
+	<property file="localbuild.properties" />
+	<property file="build.properties" />
+
+	<description>Builds ESOE Web Application</description>
+
+	<!-- 
+		ESOEStartup development environment compilation and war creation
+	-->
+	<target name="dev-war" depends="dev-jar" description="Assembles ESOEStartup development war">
+		<war destfile="${output.dev}/${output.dev.war}" webxml="${war.dev.descriptor}">
+			<webinf file="webapp/click.xml" />
+			<lib file="${output.dev}/${output.dev.jar}.jar" />
+			<lib refid="click" />
+			
+			<fileset dir="${webapp.content}" />
+		</war>
+	</target>
+
+	<target name="dev-jar" depends="dev-build"
+		description="Assembles ESOEStartup development jar">
+		<jar destfile="${output.dev}/${output.dev.jar}.jar">
+			<fileset dir="${output.dev.build}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${src}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+				<include name="**/*.html" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="dev-build" depends="setup" description="Compiles ESOE Web code base">
+		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}"
+			classpathref="esoestartup.classpath" debug="true" debuglevel="lines,vars,source" />
+	</target>
+
+	<!-- 
+		ESOE Web java documentation generation
+	-->
+	<target name="javadoc" description="Build javadoc for the entire project">
+		<javadoc packagenames="com.qut.*" sourcepath="src" defaultexcludes="yes" destdir="${doc}"
+			author="true" version="true" use="true" windowtitle="administration">
+			<doctitle>
+				<![CDATA[<h1>ESOE Web API</h1>]]>
+			</doctitle>
+			<bottom>
+				<![CDATA[<i>Copyright &#169; 2006 Queensland University of Technology. All Rights Reserved.</i>]]>
+			</bottom>
+			<tag name="todo" scope="all" description="To do:" />
+
+			<!-- configure our classpath -->
+			<classpath>
+				<pathelement path="${classpath}" />
+				<fileset dir="${jar.repository}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+
+		</javadoc>
+	</target>
+
+	<!-- 
+		General operations to setup and cleanup environment 
+	-->
+	<target name="setup" depends="clean">
+		<mkdir dir="${output.dev.build}" />
+		<mkdir dir="${output.dev}" />
+	</target>
+
+	<target name="clean" description="clean up binaries and api doc">
+		<delete dir="${output.dev.build}" />
+		<delete dir="${output.dev}" />
+	</target>
+
+	<!-- 
+		Required binaries from repository
+	-->
+	<path id="esoestartup.classpath">
+		<fileset dir="${net.sourceforge.click}" id="click">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+</project>

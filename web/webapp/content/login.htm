@@ -1,0 +1,22 @@
+<center>
+#if($rc.equals("authnfail"))
+<div id="authnError">
+Your username or password is incorrect, please try again
+</div>
+#end
+
+<form method="post" name="userpassAuthenticator" action="/signin" id="esoe_login_form" autocomplete="off">
+
+<table>
+<tr>
+<td>Username:</td><td><input type="text"	name="esoeauthn_user" value="" id="username" class="login_input"></td>
+</tr>
+<tr>
+<td>Password:</td><td><input type="password" id="password" class="login_input" name="esoeauthn_pw" /></td>
+</tr>
+</table>
+
+<input type="submit" value="Login">
+
+</form>
+</center>

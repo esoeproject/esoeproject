@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<click-app>
+
+	<pages autoconf="false">
+		<page path="index.htm"
+			classname="com.qut.middleware.esoe.web.pages.IndexPage" />
+		<page path="login.htm" classname="com.qut.middleware.esoe.web.pages.LoginPage" />
+		<page path="loginsuccess.htm" classname="com.qut.middleware.esoe.web.pages.LoginSuccessPage" />
+		<page path="logout.htm" classname="com.qut.middleware.esoe.web.pages.LogoutPage" />
+		<page path="logoutsuccess.htm" classname="com.qut.middleware.esoe.web.pages.LogoutSuccessPage" />
+		<page path="denied.htm" classname="com.qut.middleware.esoe.web.pages.DeniedPage" />
+		<page path="failure.htm" classname="com.qut.middleware.esoe.web.pages.FailurePage" />
+
+	</pages>
+
+	<mode value="debug" />
+
+</click-app>

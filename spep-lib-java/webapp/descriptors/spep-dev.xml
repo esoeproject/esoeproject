@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+	<description>SPEP development environment web application</description>
+
+	<!-- Servlets defined by the SPEP -->
+	<servlet>
+		<servlet-name>authnServlet</servlet-name>
+		<servlet-class>com.qut.middleware.spep.servlet.AuthenticationServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>axisServlet</servlet-name>
+		<servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class>
+	</servlet>
+
+    <servlet>
+        <servlet-name>AxisRESTServlet</servlet-name>
+        <display-name>Apache-Axis Servlet (REST)</display-name>
+        <servlet-class>org.apache.axis2.transport.http.AxisRESTServlet</servlet-class>
+    </servlet>
+    
+	<!-- Servlet Mappings -->
+	<servlet-mapping>
+		<servlet-name>authnServlet</servlet-name>
+		<url-pattern>/sso</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>axisServlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>axisServlet</servlet-name>
+		<url-pattern>/authzCacheClear</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>axisServlet</servlet-name>
+		<url-pattern>/singleLogout</url-pattern>
+	</servlet-mapping>
+</web-app>

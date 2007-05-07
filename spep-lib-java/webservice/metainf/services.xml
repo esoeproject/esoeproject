@@ -1,0 +1,14 @@
+<service name="spep" targetNamespace="">
+	<schema schemaNamespace="http://www.qut.com/middleware/ESOEProtocolSchema"/>
+	<description>The description of the service</description>
+	<parameter name="ServiceClass" locked="xsd:false">com.qut.middleware.spep.ws.impl.WSProcessorImpl</parameter>
+	<handler name="SPEPDispatcherImpl" class="com.qut.middleware.spep.ws.impl.SPEPDispatcherImpl">
+		<order phase="Transport"/>
+	</handler>
+	<operation name="authzCacheClear">
+		<messageReceiver class="com.qut.middleware.spep.ws.receiver.BareXMLInOutReceiver"/>
+	</operation>
+	<operation name="singleLogout">
+		<messageReceiver class="com.qut.middleware.spep.ws.receiver.BareXMLInOutReceiver"/>
+	</operation>
+</service>

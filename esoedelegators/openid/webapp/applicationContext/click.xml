@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<click-app>
+
+	<pages autoconf="false">
+		<page path="openidauthenticator.htm"
+			classname="com.qut.middleware.delegator.openid.pages.OpenIDAuthenticatorPage" />
+		<page path="accept.htm"
+			classname="com.qut.middleware.delegator.openid.pages.AcceptPage" />
+		<page path="denied.htm"
+			classname="com.qut.middleware.delegator.openid.pages.DeniedPage" />
+		<page path="failed.htm"
+			classname="com.qut.middleware.delegator.openid.pages.FailedPage" />
+	</pages>
+
+	<mode value="debug" />
+
+</click-app>

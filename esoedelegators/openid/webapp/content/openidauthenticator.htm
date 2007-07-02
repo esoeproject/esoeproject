@@ -1,0 +1,14 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body onLoad="document.openidAuthRequest.submit()">
+<form method="post" action="$openIDServerEndpoint" name="openidAuthRequest">
+	#foreach( $param in $openIDParameters.keySet() )
+        <input type="hidden" name="$param" value="$openIDParameters.get($param)"/>
+    #end
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<click-app>
+
+	<pages autoconf="false">
+		<page path="accept.htm"
+			classname="com.qut.middleware.delegator.shib.pages.AcceptPage" />
+		<page path="denied.htm"
+			classname="com.qut.middleware.delegator.shib.pages.DeniedPage" />
+		<page path="failed.htm"
+			classname="com.qut.middleware.delegator.shib.pages.FailedPage" />
+	</pages>
+
+	<mode value="debug" />
+
+</click-app>

@@ -1,0 +1,39 @@
+<br/><br/>
+#if($attributes)
+	You are about to release the following information as part of using services provided by this site:
+	<br/><br/>
+	<table>
+	<tr>
+	<td> Name </td> <td> Values </td>
+	</tr>
+	#foreach( $attribute in $attributes )
+		<tr>
+		<td> $attribute.getName() </td>
+		<td>
+		#foreach( $value in $attribute.getAttributeValues() )
+			$value <br />
+		#end
+		</tr>
+		</tr>
+	#end
+	</table>
+
+#else
+	We have not recieved any attributes from you in this request, only that you have successfully authenticated as advised by your openID provider
+#end
+<br/><br/>
+This site has the following policies about how we use and retain information which you provide to us:
+<br/><br/>
+'We are not an evil corporate, we only use this data to provide you the access to services which you specifically request,
+we do not share, run analysis on or mine anything which you provide to us. Please contact our privacy officer Mr Private McPrivates on privacy@yourorg.com for more details"
+<br/><br/>
+
+<form method="post" name="acceptForm" action="/openiddelegator/login">
+<input type="hidden" name="identityacceptance" value="Accept"/>
+<input type="submit" name="Accept" value="Accept"/>
+</form>
+
+<form method="post" name="denyForm" action="/openiddelegator/login">
+<input type="hidden" name="identityacceptance" value="Deny"/>
+<input type="submit" name="Accept" value="Deny"/>
+</form>

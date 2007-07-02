@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+	<description>Shibboleth delegated authenticator development environment web application</description>
+
+	<!-- Explicitly set Xerces and Xalan implementations to avoid performance bottlenecks -->
+	<system-property javax.xml.parsers.DocumentBuilderFactory="org.apache.xerces.jaxp.DocumentBuilderFactoryImpl" />
+	<system-property javax.xml.parsers.SAXParserFactory="org.apache.xerces.jaxp.SAXParserFactoryImpl" />
+	<system-property javax.xml.transform.TransformerFactory="org.apache.xalan.processor.TransformerFactoryImpl" />
+	<system-property javax.xml.validation.SchemaFactory="org.apache.xerces.jaxp.validation.XMLSchemaFactory" />
+
+	<!-- Instantiate spring loader listener for servlet 2.4 compliant containers -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- Specify the context configuration path -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/shibdelegContext.xml</param-value>
+	</context-param>
+
+	<!-- Servlets defined for the shib authentication delegator -->
+	<servlet>
+		<servlet-name>shibdelegAuthentication</servlet-name>
+		<servlet-class>com.qut.middleware.delegator.shib.servlet.ShibbolethServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	
+	<servlet>
+		<servlet-name>click-servlet</servlet-name>
+		<servlet-class>
+			net.sf.click.extras.spring.SpringClickServlet
+		</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<!-- Servlet Mappings -->
+	<servlet-mapping>
+		<servlet-name>shibdelegAuthentication</servlet-name>
+		<url-pattern>/login</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>click-servlet</servlet-name>
+		<url-pattern>*.htm</url-pattern>
+	</servlet-mapping>
+	
+</web-app>

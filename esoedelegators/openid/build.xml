@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== 
+	Author: Bradley Beddoes
+	Date: 13/06/2007                                                        
+	Purpose: Builds the ESOE Delegator OpenID for various deployment environments
+	
+	====================================================================== -->
+
+<project name="esoedelegator-openid" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property file="build.properties" />
+
+	<description>
+		Builds the ESOE Delegator OpenID for various deployment environments
+	</description>
+
+	<taskdef resource="emma_ant.properties">
+		<classpath>
+			<pathelement location="${ant.emma}" />
+			<pathelement location="${ant.emma_ant}" />
+		</classpath>
+	</taskdef>
+
+	<!-- 
+		Integration with apache ivy for dependency resolution in the development environment, this is a standalone target and should be run manually before invoking other
+		ant operations associated with SAML2 lib for Java
+	-->
+	<target name="dev-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:retrieve pattern="${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${artifacts.dev}" />
+	</target>
+
+	<target name="dev-release-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:retrieve pattern="${artifacts.dev-release}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${artifacts.dev-release}" />
+	</target>
+
+	<target name="dev-publish">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:publish resolver="local-resolver" forcedeliver="true">
+			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+		</ivy:publish>
+	</target>
+
+	<!-- 
+		ESOE Delegator OpenID Development environment compilation and war creation
+	 -->
+	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the delegator">
+		<mkdir dir="${output.dev}/${output.dev.tar}/war" />
+		<unwar src="${output.dev}/${output.dev.war}" dest="${output.dev}/${output.dev.tar}/war" />
+		<delete dir="${output.dev}/${output.dev.tar}/war/META-INF" />
+		<copy file="${annotatedconfig}" todir="${output.dev}/${output.dev.tar}" />
+		<copy file="${output.dev}/${output.dev.jar.installer}.jar" todir="${output.dev}/${output.dev.tar}" />
+		
+		<!-- acquire jars to satisfy dependencies of command line installer -->
+		<mkdir dir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/esoecrypto.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/esoetools.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/saml2lib-j.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/log4j.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/commons-codec.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/bcprov.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		<copy file="${artifacts.dev}/click.jar" todir="${output.dev}/${output.dev.tar}/lib" />
+		
+		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" basedir="${output.dev}/${output.dev.tar}" compression="gzip" />
+	</target>
+
+	<target name="dev-war" depends="dev-release-resolve, dev-jar" description="Assembles ESOE development war">
+		<war destfile="${output.dev}/${output.dev.war}" webxml="${war.dev.descriptor}">
+			<webinf dir="${webapp.spring.resources}">
+				<include name="**/*.xml" />
+				<include name="**/*.config" />
+				<include name="**/*.conf" />
+				<include name="**/*.keytab" />
+			</webinf>
+
+			<classes dir="${webapp.classes}" />
+
+			<lib file="${output.dev}/${output.dev.jar}.jar" />
+			<lib dir="${artifacts.dev-release}" />
+
+			<fileset dir="${webapp.content}" />
+		</war>
+	</target>
+
+	<target name="dev-jar" depends="dev-build" description="Assembles ESOE development jar">
+		<jar destfile="${output.dev}/${output.dev.jar}.jar">
+			<fileset dir="${src}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+				<include name="**/*.html" />
+			</fileset>
+			<fileset dir="${output.dev.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+		<jar destfile="${output.dev}/${output.dev.jar.installer}.jar" manifest="${output.dev.manifest.installer}">
+			<fileset dir="${src.installer}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+				<include name="**/*.html" />
+			</fileset>
+			<fileset dir="${output.dev.build.installer}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="dev-build" depends="setup" description="Compiles ESOE code base">
+		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<javac source="1.5" target="1.5" destdir="${output.dev.build.installer}" srcdir="${src.installer}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<!-- 
+		ESOE Delegator OpenID JUnit test execution and report generation, includes automated code
+		coverage statistics generated by emma, emma.sourceforge.net
+	 -->
+	<target name="junit" depends="junit-functional, junit-regression" description="Invokes all unit tests defined for the ESOE">
+
+		<!-- Combine coverage reports to single view -->
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${output.dev.coverage.dir}">
+					<include name="**/*.emma" />
+				</fileset>
+
+				<txt outfile="${output.dev.coverage.dir}/coverage.txt" />
+				<html outfile="${output.dev.coverage.dir}/coverage.html" />
+				<xml outfile="${output.dev.coverage.dir}/coverage.xml" />
+			</report>
+		</emma>
+	</target>
+
+	<target name="emma-instr" description="Configures esoe jar for emma coverage reporting">
+		<emma>
+			<instr mode="fullcopy" outdir="${output.dev.coverage.dir}" merge="false" metadatafile="${output.dev.coverage.dir}/metadata.emma">
+				<instrpath>
+					<fileset dir="${output.dev}" includes="**/*.jar" />
+				</instrpath>
+				<!-- Coverage report on all ESOE Delegator OpenID code except WS code, SQLMap implementations, dynamically generated message classes, 
+					exception implementations and log4j extenstions (Currently also removes testing of AD integrated code on unix) -->
+				<filter includes="${emma.includes}" excludes="${emma.excludes}" />
+			</instr>
+		</emma>
+	</target>
+
+	<target name="junit-regression-build" depends="dev-jar" description="Compiles ESOE regression tests code base">
+		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<path path="${output.dev}/${output.dev.jar}.jar" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="junit-regression" depends="junit-regression-build, emma-instr" description="Invokes all junit regression tests for the ESOE">
+
+		<junit printsummary="yes" haltonfailure="no" fork="yes">
+			<classpath>
+				<path path="${output.dev.coverage.dir}/lib/${output.dev.jar}.jar" />
+				<path path="${output.test.regression.build}" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<!--  Allow tests to resolve locally required resouces such as xml config files -->
+				<path path="${src.tests.regression}" />
+			</classpath>
+
+			<jvmarg value="-Demma.coverage.out.file=${output.dev.coverage.regression.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+
+			<formatter type="xml" />
+
+			<batchtest fork="yes" todir="${output.dev.junit.regression.reports}">
+				<fileset dir="${output.test.regression.build}">
+					<include name="**/*Test*.class" />
+					<exclude name="**/*KerberosV5*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${output.dev.coverage.regression.dir}">
+					<include name="*.emma" />
+				</fileset>
+				<fileset file="${output.dev.coverage.dir}/metadata.emma" />
+
+				<txt outfile="${output.dev.coverage.regression.dir}/coverage.txt" />
+				<html outfile="${output.dev.coverage.regression.dir}/coverage.html" />
+				<xml outfile="${output.dev.coverage.regression.dir}/coverage.xml" />
+			</report>
+		</emma>
+
+	</target>
+
+	<target name="junit-functional-build" depends="dev-jar" description="Compiles ESOE functional test code base">
+		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<path path="${output.dev}/${output.dev.jar}.jar" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="junit-functional" depends="junit-functional-build, emma-instr" description="Invokes all junit functional tests for the ESOE">
+		<junit printsummary="yes" haltonfailure="no" fork="yes">
+			<classpath>
+				<path path="${output.dev.coverage.dir}/lib/${output.dev.jar}.jar" />
+				<path path="${output.test.functional.build}" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<!--  Allow tests to resolve locally required resouces such as xml config files -->
+				<path path="${src.tests.functional}" />
+			</classpath>
+
+			<formatter type="xml" />
+
+			<jvmarg value="-Demma.coverage.out.file=${output.dev.coverage.functional.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+
+			<batchtest fork="yes" todir="${output.dev.junit.functional.reports}">
+				<fileset dir="${output.test.functional.build}">
+					<include name="**/*Test*.class" />
+					<exclude name="**/*KerberosV5*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${output.dev.coverage.functional.dir}">
+					<include name="*.emma" />
+				</fileset>
+				<fileset file="${output.dev.coverage.dir}/metadata.emma" />
+
+				<txt outfile="${output.dev.coverage.functional.dir}/coverage.txt" />
+				<html outfile="${output.dev.coverage.functional.dir}/coverage.html" />
+				<xml outfile="${output.dev.coverage.functional.dir}/coverage.xml" />
+			</report>
+		</emma>
+	</target>
+
+	<!-- 
+		General operations to setup and cleanup environment 
+	 -->
+	<target name="setup" depends="clean" description="Creates base directories">
+		<mkdir dir="${output.dev.build}" />
+		<mkdir dir="${output.dev.build.installer}" />
+		<mkdir dir="${output.dev}" />
+		<mkdir dir="${output.dev.junit.dir}" />
+		<mkdir dir="${output.dev.junit.regression.reports}" />
+		<mkdir dir="${output.dev.junit.functional.reports}" />
+		<mkdir dir="${output.dev.coverage.dir}" />
+		<mkdir dir="${output.dev.coverage.functional.dir}" />
+		<mkdir dir="${output.dev.coverage.regression.dir}" />
+		<mkdir dir="${output.test.regression.build}" />
+		<mkdir dir="${output.test.functional.build}" />
+	</target>
+
+	<target name="clean" description="Removes base directories">
+		<delete dir="${output.dev.build}" />
+		<delete dir="${output.dev.build.installer}" />
+		<delete dir="${output.dev}" />
+		<delete dir="${output.dev.junit.dir}" />
+		<delete dir="${output.dev.junit.regression.reports}" />
+		<delete dir="${output.dev.junit.functional.reports}" />
+		<delete dir="${output.dev.coverage.dir}" />
+		<delete dir="${output.dev.coverage.functional.dir}" />
+		<delete dir="${output.dev.coverage.regression.dir}" />
+		<delete dir="${output.test.regression.build}" />
+		<delete dir="${output.test.functional.build}" />
+	</target>
+
+
+	<target name="javadoc" description="Create Javadocs">
+		<mkdir dir="${output.javadoc}" />
+		<javadoc destdir="${output.javadoc}" sourcepath="${src}">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javadoc>
+	</target>
+
+</project>

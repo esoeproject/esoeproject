@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="authnProcessor"
+		class="com.qut.middleware.delegator.shib.authn.impl.AuthnProcessorImpl">
+		<constructor-arg index="0" ref="samlValidator" />
+		<constructor-arg index="1" ref="wsClient" />
+		<constructor-arg index="2" ref="identifierGenerator" />
+		<constructor-arg index="3" ref="shibDelegKeyStoreResolver" />
+		<constructor-arg index="4" value="${authnprocessor.issuerID}" />
+		<constructor-arg index="5" value="${authnprocessor.principalRegistrationEndpoint}" />
+		<constructor-arg index="6">
+			<list>
+				<ref bean="externalIdentity" />
+				<ref bean="delegatorName" />
+			</list>
+		</constructor-arg>
+		<constructor-arg index="7">
+			<list>
+				<ref bean="shibCommon" />
+				<ref bean="shibFirst" />
+				<ref bean="shibLast" />
+				<ref bean="shibMail" />
+			</list>
+		</constructor-arg>
+		<constructor-arg index="4" value="${authnprocessor.userIdentifier}" />
+	</bean>
+
+</beans>

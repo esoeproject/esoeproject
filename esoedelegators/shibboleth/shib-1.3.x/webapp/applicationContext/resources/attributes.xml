@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- Set default attributes that all authenticated sessions will recieve from this delegator (includes required variables from spec) -->
+	<bean name="externalIdentity"
+		class="com.qut.middleware.delegator.shib.authn.bean.impl.ShibAttributeImpl">
+		<property name="esoeAttributeName"
+			value="esoe-externalised-identity" />
+		<property name="value" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+	<bean name="delegatorName"
+		class="com.qut.middleware.delegator.shib.authn.bean.impl.ShibAttributeImpl">
+		<property name="esoeAttributeName" value="esoe-delegator" />
+		<property name="value" value="shibboleth" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+	<!-- Setup Shib attribute retrieval -->
+	<bean name="shibMail"
+		class="com.qut.middleware.delegator.shib.authn.bean.impl.ShibAttributeImpl">
+		<property name="label" value="Shib-Person-mail" />
+		<property name="esoeAttributeName" value="mail" />
+		<property name="required" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+	<bean name="shibFirst"
+		class="com.qut.middleware.delegator.shib.authn.bean.impl.ShibAttributeImpl">
+		<property name="label" value="Shib-Person-givenName" />
+		<property name="esoeAttributeName" value="givenName" />
+		<property name="required" value="false" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+	<bean name="shibLast"
+		class="com.qut.middleware.delegator.shib.authn.bean.impl.ShibAttributeImpl">
+		<property name="label" value="Shib-Person-surname" />
+		<property name="esoeAttributeName" value="sn" />
+		<property name="required" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+	<bean name="shibCommon"
+		class="com.qut.middleware.delegator.shib.authn.bean.impl.ShibAttributeImpl">
+		<property name="label" value="Shib-Person-commonName" />
+		<property name="esoeAttributeName" value="cn" />
+		<property name="required" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+</beans>

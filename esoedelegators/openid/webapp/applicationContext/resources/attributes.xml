@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- Set default attributes that all authenticated sessions will recieve from this delegator (includes required variables from spec) -->
+	<bean name="externalIdentity" class="com.qut.middleware.delegator.openid.authn.bean.impl.OpenIDAttributeImpl">
+		<property name="esoeAttributeName" value="esoe-externalised-identity" />
+		<property name="value" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>	
+	
+	<bean name="delegatorName" class="com.qut.middleware.delegator.openid.authn.bean.impl.OpenIDAttributeImpl">
+		<property name="esoeAttributeName" value="esoe-delegator" />
+		<property name="value" value="openid" />
+		<property name="valuePrepend" value="" />
+	</bean>	
+			
+		
+	<!-- Setup OpenID attribute retrieval -->
+	<bean name="openIDMail" class="com.qut.middleware.delegator.openid.authn.bean.impl.OpenIDAttributeImpl">
+		<property name="label" value="Email" />
+		<property name="schema" value="http://openid.net/schema/contact/internet/email" />
+		<property name="esoeAttributeName" value="mail" />
+		<property name="required" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>
+	
+	<bean name="openIDFirst" class="com.qut.middleware.delegator.openid.authn.bean.impl.OpenIDAttributeImpl">
+		<property name="label" value="First name" />
+		<property name="schema" value="http://openid.net/schema/namePerson/first" />
+		<property name="esoeAttributeName" value="givenName" />
+		<property name="required" value="false" />
+		<property name="valuePrepend" value="" />
+	</bean>
+	
+	<bean name="openIDLast" class="com.qut.middleware.delegator.openid.authn.bean.impl.OpenIDAttributeImpl">
+		<property name="label" value="Last name" />
+		<property name="schema" value="http://openid.net/schema/namePerson/last" />
+		<property name="esoeAttributeName" value="sn" />
+		<property name="required" value="true" />
+		<property name="valuePrepend" value="" />
+	</bean>
+
+</beans>

@@ -36,7 +36,7 @@
 		<constructor-arg index="2" type="java.io.File" value="${renderesoeconfiglogic.esoemanagerspepconfig}" />
 	</bean>
 	
-	<bean name="generateWarLogic" class="com.qut.middleware.esoestartup.logic.GenerateWarLogic">
+	<bean name="generateWarLogic" class="com.qut.middleware.tools.war.logic.GenerateWarLogic">
 	</bean>
 
 	<bean name="registerESOELogic" class="com.qut.middleware.esoestartup.logic.RegisterESOELogic">

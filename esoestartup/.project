@@ -14,11 +14,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>repository</name>
-			<type>2</type>
-			<location>REPOS_HOME</location>
-		</link>
-	</linkedResources>
 </projectDescription>

@@ -29,8 +29,8 @@ import java.security.cert.CertificateException;
 import org.apache.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import com.qut.middleware.esoemanager.crypto.impl.CryptoProcessorImpl;
-import com.qut.middleware.esoemanager.exception.CryptoException;
+import com.qut.middleware.crypto.exception.CryptoException;
+import com.qut.middleware.crypto.impl.CryptoProcessorImpl;
 import com.qut.middleware.esoestartup.Constants;
 
 public class CryptoProcessorESOEImpl extends CryptoProcessorImpl

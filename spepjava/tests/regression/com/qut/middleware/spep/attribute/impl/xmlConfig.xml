@@ -1,0 +1,4 @@
+<AttributeConfig xmlns="http://www.qut.com/middleware/AttributeConfigSchema">
+	<RequestedAttribute Name="uid" FriendlyName="uid" NameFormat="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" />
+	<RequestedAttribute Name="mail" FriendlyName="mail" NameFormat="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" />
+</AttributeConfig>

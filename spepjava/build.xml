@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== 
+	Author: Bradley Beddoes
+	Date: 20/11/2006                                                        
+	Purpose: Builds the Service Provider Enforcement Point for various deployment environments
+	
+	====================================================================== -->
+
+<project name="spepjava" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property file="build.properties" />
+
+	<description>
+		Builds the Service Provider Enforcement Point for various deployment environments
+	</description>
+
+	<taskdef resource="emma_ant.properties">
+		<classpath>
+			<pathelement location="${ant.emma}" />
+			<pathelement location="${ant.emma_ant}" />
+		</classpath>
+	</taskdef>
+
+	<!-- 
+		Integration with apache ivy for dependency resolution in the development environment, this is a standalone target and should be run manually before invoking other
+		ant operations associated with SAML2 lib for Java
+	-->
+	<target name="dev-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:retrieve pattern="lib/dev/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+	</target>
+	
+	<target name="dev-release-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev-release" />
+		<ivy:retrieve pattern="${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
+		<ivy:report conf="dev-release" graph="false" todir="${artifacts.dev-release}" />
+		
+		<ivy:resolve file="ivy.xml" conf="dev-release-shared" />
+		<ivy:retrieve pattern="${artifacts.dev-release.shared}/[artifact].[ext]" conf="dev-release-shared" />
+		<ivy:report conf="dev-release-shared" graph="false" todir="${artifacts.dev-release.shared}" />
+			
+		<ivy:resolve file="ivy.xml" conf="dev-release-endorsed" />
+		<ivy:retrieve pattern="${artifacts.dev-release.endorsed}/[artifact].[ext]" conf="dev-release-endorsed" />
+		<ivy:report conf="dev-release-endorsed" graph="false" todir="${artifacts.dev-release.endorsed}" />
+	</target>
+
+	<target name="dev-publish">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:publish resolver="local-resolver" forcedeliver="true">
+			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+		</ivy:publish>
+	</target>
+
+	<!-- 
+		SPEP Development environment compilation and war creation
+	 -->
+	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the SPEP (generally utilised by ESOE Startup)">
+		<mkdir dir="${output.dev}/${output.dev.tar}"/>
+		<unwar src="${output.dev}/${output.dev.war}" dest="${output.dev}/${output.dev.tar}"/>
+		<delete file="${output.dev}/${output.dev.tar}/META-INF/MANIFEST.MF" />
+		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" basedir="${output.dev}/${output.dev.tar}" compression="gzip"/>
+		
+		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/shared/lib -->
+		<copy file="${output.dev}/${output.dev.jar}.jar" todir="${artifacts.dev-release.shared}" />
+		<tar destfile="${output.dev}/${output.dev.shared.tar}.tar.gz" basedir="${artifacts.dev-release.shared}" compression="gzip"/>
+		
+		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/common/endorsed -->
+		<tar destfile="${output.dev}/${output.dev.endorsed.tar}.tar.gz" basedir="${artifacts.dev-release.endorsed}" compression="gzip"/>
+	</target>
+		
+	<target name="dev-war" depends="dev-jar, dev-aar, dev-release-resolve" description="Assembles SPEP war">
+		<war destfile="${output.dev}/${output.dev.war}" webxml="${war.dev.descriptor}">
+			<classes dir="${webapp.classes}">
+				<include name="**/*" />
+			</classes>
+			<webinf dir="${webapp.descriptors}">
+				<include name="**/*.config" />
+				<include name="**/*.xml" />
+				<exclude name="spep-*.xml" />
+			</webinf>
+			<webinf dir="${webservice.deploy}">
+				<include name="**/*" />
+			</webinf>
+			<metainf dir="${webapp.metainf}">
+				<include name="**/*.xml" />
+			</metainf>
+		</war>
+	</target>
+
+	<target name="dev-aar">
+		<jar destfile="${webservice.deploy.services}/${output.dev.aar}">
+			<metainf dir="${webservice.metainf}">
+				<include name="**/*.xml" />
+			</metainf>
+		</jar>
+	</target>
+
+	<target name="dev-jar" depends="dev-build" description="Assembles SPEP jar">
+		<jar destfile="${output.dev}/${output.dev.jar}.jar">
+			<fileset dir="${src}">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+				<include name="**/*.html" />
+			</fileset>
+			<fileset dir="${output.dev.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="dev-build" depends="setup" description="Compiles SPEP code base">
+		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+
+		<tstamp>
+			<format property="build.time" pattern="yyyy-MM-dd HH.mm" unit="hour" />
+		</tstamp>
+		<property name="${spep.property-prefix}compileDate" value="${build.time}" />
+		<property name="${spep.property-prefix}compileSystem" value="${os.name} ${os.version} ${os.arch} - ${java.runtime.name} ${java.runtime.version} ${java.vendor}" />
+		<property name="${spep.property-prefix}swVersion" value="${spep.version}" />
+		<echoproperties destfile="${output.dev.build}/${output.dev.properties}">
+			<propertyset>
+				<propertyref prefix="${spep.property-prefix}" />
+			</propertyset>
+		</echoproperties>
+	</target>
+
+	<!-- 
+		SPEP JUnit test execution and report generation, includes automated code
+		coverage statistics generated by emma, emma.sourceforge.net
+	-->
+	<target name="junit" depends="junit-functional, junit-regression" description="Invokes all unit tests defined for the SPEP">
+
+		<!-- Combine coverage reports to single view -->
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${output.dev.coverage.dir}">
+					<include name="**/*.emma" />
+				</fileset>
+
+				<txt outfile="${output.dev.coverage.dir}/coverage.txt" />
+				<html outfile="${output.dev.coverage.dir}/coverage.html" />
+				<xml outfile="${output.dev.coverage.dir}/coverage.xml" />
+			</report>
+		</emma>
+	</target>
+
+	<target name="emma-instr" description="Configures SPEP jar for emma coverage reporting">
+		<emma>
+			<instr mode="fullcopy" outdir="${output.dev.coverage.dir}" merge="false" metadatafile="${output.dev.coverage.dir}/metadata.emma">
+				<instrpath>
+					<fileset dir="${output.dev}" includes="**/*.jar" />
+				</instrpath>
+				<!-- Coverage report on all SPEP code except dynamically generated message classes, 
+					exception implementations and log4j extenstions -->
+				<filter includes="${emma.includes}" excludes="${emma.excludes}" />
+			</instr>
+		</emma>
+	</target>
+
+	<target name="junit-regression-build" depends="dev-jar" description="Compiles SPEP regression tests code base">
+		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<path path="${output.dev}/${output.dev.jar}.jar" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="junit-regression" depends="junit-regression-build, emma-instr" description="Invokes all junit regression tests for the SPEP">
+
+		<junit printsummary="yes" haltonfailure="no" fork="yes">
+			<classpath>
+				<path path="${output.dev.coverage.dir}/lib/${output.dev.jar}.jar" />
+				<path path="${output.test.regression.build}" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<!--  Allow tests to resolve locally required resouces such as xml config files -->
+				<path path="${src.tests.regression}" />
+			</classpath>
+
+			<formatter type="xml" />
+
+			<jvmarg value="-Demma.coverage.out.file=${output.dev.coverage.regression.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+
+			<batchtest fork="yes" todir="${output.dev.junit.regression.reports}">
+				<fileset dir="${output.test.regression.build}">
+					<include name="**/*Test*.class" />
+					<!-- Don't run inner/anonymous classes in tests -->
+					<exclude name="**/*$$*" />
+					<exclude name="**/*KerberosV5*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${output.dev.coverage.regression.dir}">
+					<include name="*.emma" />
+				</fileset>
+				<fileset file="${output.dev.coverage.dir}/metadata.emma" />
+
+				<txt outfile="${output.dev.coverage.regression.dir}/coverage.txt" />
+				<html outfile="${output.dev.coverage.regression.dir}/coverage.html" />
+				<xml outfile="${output.dev.coverage.regression.dir}/coverage.xml" />
+			</report>
+		</emma>
+	</target>
+
+	<target name="junit-functional-build" depends="dev-jar" description="Compiles SPEP functional test code base">
+		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<path path="${output.dev}/${output.dev.jar}.jar" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="junit-functional" depends="junit-functional-build, emma-instr" description="Invokes all junit functional tests for the SPEP">
+
+		<junit printsummary="yes" haltonfailure="no" fork="yes">
+			<classpath>
+				<path path="${output.dev.coverage.dir}/lib/${output.dev.jar}.jar" />
+				<path path="${output.test.functional.build}" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+				<!--  Allow tests to resolve locally required resouces such as xml config files -->
+				<path path="${src.tests.functional}" />
+			</classpath>
+
+			<formatter type="xml" />
+
+			<jvmarg value="-Demma.coverage.out.file=${output.dev.coverage.functional.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+
+			<batchtest fork="yes" todir="${output.dev.junit.functional.reports}">
+				<fileset dir="${output.test.functional.build}">
+					<include name="**/*Test*.class" />
+					<!-- Don't run inner/anonymous classes in tests -->
+					<exclude name="**/*$$*" />
+					<exclude name="**/*KerberosV5*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${output.dev.coverage.functional.dir}">
+					<include name="*.emma" />
+				</fileset>
+				<fileset file="${output.dev.coverage.dir}/metadata.emma" />
+
+				<txt outfile="${output.dev.coverage.regression.dir}/coverage.txt" />
+				<html outfile="${output.dev.coverage.regression.dir}/coverage.html" />
+				<xml outfile="${output.dev.coverage.regression.dir}/coverage.xml" />
+			</report>
+		</emma>
+
+	</target>
+
+	<!-- 
+		General operations to setup and cleanup environment 
+	-->
+	<target name="setup" depends="clean" description="Creates base directories">
+		<mkdir dir="${output.dev.build}" />
+		<mkdir dir="${output.dev}" />
+		<mkdir dir="${webservice.deploy.modules}" />
+		<mkdir dir="${webservice.deploy.services}" />
+		<mkdir dir="${output.dev.junit.dir}" />
+		<mkdir dir="${output.dev.junit.regression.reports}" />
+		<mkdir dir="${output.dev.junit.functional.reports}" />
+		<mkdir dir="${output.dev.coverage.dir}" />
+		<mkdir dir="${output.dev.coverage.functional.dir}" />
+		<mkdir dir="${output.dev.coverage.regression.dir}" />
+		<mkdir dir="${output.test.regression.build}" />
+		<mkdir dir="${output.test.functional.build}" />
+	</target>
+
+	<target name="clean" description="Removes base directories">
+		<delete dir="${output.dev.build}" />
+		<delete dir="${output.dev}" />
+		<delete dir="${webservice.deploy}" />
+		<delete dir="${output.dev.junit.dir}" />
+		<delete dir="${output.dev.junit.regression.reports}" />
+		<delete dir="${output.dev.junit.functional.reports}" />
+		<delete dir="${output.dev.coverage.dir}" />
+		<delete dir="${output.dev.coverage.functional.dir}" />
+		<delete dir="${output.dev.coverage.regression.dir}" />
+		<delete dir="${output.test.regression.build}" />
+		<delete dir="${output.test.functional.build}" />
+	</target>
+
+	<target name="javadoc" description="Create Javadocs">
+		<mkdir dir="${output.javadoc}" />
+		<javadoc destdir="${output.javadoc}" sourcepath="${src}">
+			<classpath refid="spep.classpath" />
+		</javadoc>
+	</target>
+
+</project>

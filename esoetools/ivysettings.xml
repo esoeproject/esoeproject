@@ -1,0 +1,17 @@
+<ivysettings>
+        <settings checkUpToDate="true" />
+        <resolvers>
+        	<chain>
+                <url name="intient ivy repository">
+				  	<ivy pattern="http://ivy.intient.com/[organisation]/[module]/[revision]/ivys/ivy.xml" />
+				  	<artifact pattern="http://ivy.intient.com/[organisation]/[module]/[revision]/jars/[artifact]-[revision].[ext]" />
+				  	<artifact pattern="http://ivy.intient.com/[organisation]/[module]/[revision]/jars/[artifact].[ext]" />
+				</url>	
+				<filesystem name="local-resolver" local="true" >
+					<ivy pattern="${ivy.home}/local/[organisation]/[module]/[revision]/ivys/ivy.xml" />
+				  	<artifact pattern="${ivy.home}/local/[organisation]/[module]/[revision]/jars/[artifact]-[revision].[ext]" />
+				  	<artifact pattern="${ivy.home}/local/[organisation]/[module]/[revision]/jars/[artifact].[ext]" />
+				</filesystem>
+			</chain>
+        </resolvers>
+</ivysettings>

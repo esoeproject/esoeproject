@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="tests/functional"/>
+	<classpathentry kind="src" path="tests/regression"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/esoecore"/>
+	<classpathentry kind="lib" path="lib/dev/esoecore.jar" sourcepath="/esoecore/src"/>
+	<classpathentry kind="lib" path="lib/dev/saml2lib-j.jar" sourcepath="/saml2java"/>
+	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-codec.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/dev/easymock.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

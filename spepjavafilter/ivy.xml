@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="spepfilter" revision="0.2">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Bradley Beddoes"
+			url="http://intient.com/roller/beddoes" />
+		<repository name="intient-ivy"
+			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+	</info>
+
+	<configurations>
+		<conf name="dev" />
+		<conf name="dev-release" />
+	</configurations>
+	
+	<publications>
+		<artifact name="spepfilter" type="jar" />
+	</publications>
+
+	<dependencies>
+		<!-- Development release dependencies -->
+        <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev-release->default"/>
+        
+        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev-release->dev-release"/>
+        
+        <!-- Development dependencies -->
+        <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev->default"/>
+        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>  
+        
+        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
+        
+        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev->dev"/>
+        <dependency org="esoeproject" name="spep" rev="latest.integration" conf="dev->dev"/>	
+        
+	</dependencies>
+
+</ivy-module>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="tests/regression"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/dev/commons-collections.jar"/>
+	<classpathentry kind="lib" path="lib/dev/easymock.jar"/>
+	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-codec.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/spepjava"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

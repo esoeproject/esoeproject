@@ -1,30 +1,17 @@
 <?xml version="1.0"?>
 
 <!-- ====================================================================== 
-	Author: Matthew Anderson, Bradley Beddoes
+	Author: Bradley Beddoes
 	Date: 05/12/2006
 	Purpose: Builds ESOE Manager Web Application
 	
-	This build file expects the system to present values for:
-	jar.repository - Base directory of binary repository
-	junit.test.regression.reports  - Directory to store XML output for regression testing
-	junit.test.functional.reports  - Directory to store XML output for functional testing
-	
-	Generally this is specified in localbuild.properties localbuild.properties is to be created by the developer and NOT STORED IN SVN   
 	====================================================================== -->
 
-<project name="esoemanager" default="dev-war">
+<project name="esoemanager"  xmlns:ivy="antlib:org.apache.ivy.ant">
 
-	<property file="localbuild.properties" />
 	<property file="build.properties" />
 
-	<description>Builds ESOE Manager for various deployment environments</description>
-
-	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
-		<classpath>
-			<pathelement location="${ant.contrib}" />
-		</classpath>
-	</taskdef>
+	<description>Builds ESOE Manager web application</description>
 
 	<taskdef resource="emma_ant.properties">
 		<classpath>
@@ -34,9 +21,42 @@
 	</taskdef>
 
 	<!-- 
+		Integration with apache ivy for dependency resolution in the development environment, this is a standalone target and should be run manually before invoking other
+		ant operations associated with SAML2 lib for Java
+	-->
+	<target name="dev-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:retrieve pattern="lib/dev/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+	</target>
+	
+	<target name="dev-release-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev-release" />
+		<ivy:retrieve pattern="${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
+		<ivy:report conf="dev-release" graph="false" todir="${artifacts.dev-release}" />
+	</target>
+
+	<target name="dev-publish">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:publish resolver="local-resolver" forcedeliver="true">
+			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+		</ivy:publish>
+	</target>
+		
+	<!-- 
 		ESOEManager development environment compilation and war creation
 	-->
-	<target name="dev-war" depends="dev-jar" description="Assembles ESOEManager development war">
+	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the ESOE (generally utilised by ESOE Startup)">
+		<mkdir dir="${output.dev}/${output.dev.tar}"/>
+		<unwar src="${output.dev}/${output.dev.war}" dest="${output.dev}/${output.dev.tar}"/>
+		<delete file="${output.dev}/${output.dev.tar}/META-INF/MANIFEST.MF" />
+		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" basedir="${output.dev}/${output.dev.tar}" compression="gzip"/>
+	</target>
+			
+	<target name="dev-war" depends="dev-jar, dev-release-resolve" description="Assembles ESOEManager development war">
 		<war destfile="${output.dev}/${output.dev.war}" webxml="${war.dev.descriptor}">
 
 			<webinf dir="${webapp.spring.resources}">
@@ -44,16 +64,12 @@
 				<include name="**/*.config" />
 				<include name="**/*.conf" />
 			</webinf>
-			<webinf dir="${webapp.security}">
-				<include name="**/*.ks" />
-			</webinf>
 			
 			<classes dir="ibatis" />
 			<classes dir="${webapp.classes}" />
 			
 			<lib file="${output.dev}/${output.dev.jar}.jar" />
-			<lib refid="spep-filter" />
-			<lib refid="click" />
+			<lib dir="${artifacts.dev-release}"/>
 			
 			<metainf dir="${webapp.metainf}" />
 			
@@ -63,7 +79,6 @@
 
 	<target name="dev-jar" depends="dev-build"
 		description="Assembles ESOEManager development jar">
-		<osfamily property="osfamily" />
 		<jar destfile="${output.dev}/${output.dev.jar}.jar">
 			<fileset dir="${output.dev.build}">
 				<include name="**/*" />
@@ -77,8 +92,13 @@
 	</target>
 
 	<target name="dev-build" depends="setup" description="Compiles ESOEManager code base">
-		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}"
-			classpathref="esoemanager.classpath" debug="true" debuglevel="lines,vars,source" />
+		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 	</target>
 
 	<!-- 
@@ -121,7 +141,9 @@
 		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}"
 			srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
-				<path refid="esoemanager.classpath" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
 				<path path="${output.dev}/${output.dev.jar}.jar" />
 			</classpath>
 		</javac>
@@ -135,7 +157,9 @@
 			<classpath>
 				<path path="${output.dev.coverage.dir}/lib/${output.dev.jar}.jar" />
 				<path path="${output.test.regression.build}" />
-				<path refid="esoemanager.classpath" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
 				<!--  Allow tests to resolve locally required resouces such as xml config files -->
 				<path path="${src.tests.regression}" />
 			</classpath>
@@ -146,7 +170,7 @@
 
 			<formatter type="xml" />
 
-			<batchtest fork="yes" todir="${junit.test.regression.reports}">
+			<batchtest fork="yes" todir="${output.dev.junit.regression.reports}">
 				<fileset dir="${output.test.regression.build}">
 					<include name="**/*Test*.class" />
 					<exclude name="**/*KerberosV5*.class" />
@@ -174,7 +198,9 @@
 		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}"
 			srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
-				<path refid="esoemanager.classpath" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
 				<path path="${output.dev}/${output.dev.jar}.jar" />
 			</classpath>
 		</javac>
@@ -188,7 +214,9 @@
 			<classpath>
 				<path path="${output.dev.coverage.dir}/lib/${output.dev.jar}.jar" />
 				<path path="${output.test.functional.build}" />
-				<path refid="esoemanager.classpath" />
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
 				<!--  Allow tests to resolve locally required resouces such as xml config files -->
 				<path path="${src.tests.functional}" />
 			</classpath>
@@ -199,7 +227,7 @@
 				value="-Demma.coverage.out.file=${output.dev.coverage.functional.dir}/coverage.emma" />
 			<jvmarg value="-Demma.coverage.out.merge=true" />
 
-			<batchtest fork="yes" todir="${junit.test.functional.reports}">
+			<batchtest fork="yes" todir="${output.dev.junit.functional.reports}">
 				<fileset dir="${output.test.functional.build}">
 					<include name="**/*Test*.class" />
 					<exclude name="**/*KerberosV5*.class" />
@@ -238,7 +266,7 @@
 			<!-- configure our classpath -->
 			<classpath>
 				<pathelement path="${classpath}" />
-				<fileset dir="${jar.repository}">
+				<fileset dir="${artifacts}">
 					<include name="**/*.jar" />
 				</fileset>
 			</classpath>
@@ -272,53 +300,5 @@
 		<delete dir="${output.dev.coverage.functional.dir}" />
 		<delete dir="${output.dev.coverage.regression.dir}" />
 	</target>
-
-	<!-- 
-		Required binaries from repository
-	-->
-	<path id="esoemanager.classpath">
-		<fileset dir="${com.qut.middleware.saml2lib-j}" id="saml2lib-j">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${com.qut.middleware.spep.filter}" id="spep-filter">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${javax.servlet}" id="servlet">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${net.sourceforge.click}" id="click">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${javax.xml.jaxb}" id="jaxb">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${org.springframework.jakarta-commons}" id="spring.jakarta-commons">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${org.springframework.log4j}" id="spring.log4j">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${org.springframework}" id="spring">
-			<include name="*.jar" />
-		</fileset>
-		<fileset dir="${org.bouncycastle}" id="bouncycastle">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${org.apache.ibatis}" id="ibatis">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${org.apache.struts}" id="struts">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${com.oracle.jdbc}" id="oracle">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${org.junit}" id="junit4">
-			<include name="**/*.jar" />
-		</fileset>
-		<fileset dir="${net.sourceforge.emma}" id="emma">
-			<include name="**/*.jar" />
-		</fileset>
-	</path>
 
 </project>

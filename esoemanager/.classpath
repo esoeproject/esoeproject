@@ -2,34 +2,20 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="repository"/>
 	<classpathentry kind="src" path="tests/functional"/>
 	<classpathentry kind="src" path="tests/regression"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="repository/javax.xml/jaxb/jaxb-api.jar"/>
-	<classpathentry kind="lib" path="repository/org.bouncycastle/bcprov-jdk15-134.jar"/>
-	<classpathentry kind="lib" path="repository/org.springframework/jakarta-commons/commons-collections.jar"/>
-	<classpathentry kind="lib" path="repository/com.oracle/jdbc/ojdbc14.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/struts/struts.jar"/>
-	<classpathentry kind="lib" path="/repository/javax.servlet/servlet-api.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/ibatis/ibatis-dao-2.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/ibatis/ibatis-sqlmap-2.jar" sourcepath="/home/andersm2/workspace2/iBATIS_DBL-2.1.7.597/src/ibatis-src.zip"/>
-	<classpathentry kind="lib" path="repository/org.apache/ibatis/ibatis-common-2.jar"/>
-	<classpathentry kind="lib" path="repository/org.springframework/spring.jar"/>
-	<classpathentry kind="lib" path="repository/org.springframework/jakarta-commons/commons-codec.jar"/>
-	<classpathentry kind="lib" path="repository/javax.xml/jaxb/jaxb-impl.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/xerces/xercesImpl.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/xerces/xml-apis.jar"/>
-	<classpathentry kind="lib" path="/repository/org.apache/axis2/stax-api-1.0.1.jar"/>
-	<classpathentry kind="lib" path="/repository/org.springframework/jakarta-commons/commons-logging.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/log4j/log4j-1.2.14.jar"/>
-	<classpathentry kind="lib" path="repository/org.easymock/easymock.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/ant/tasks/aspectj/aspectjtools.jar"/>
-	<classpathentry kind="lib" path="repository/org.springframework/jakarta-commons/commons-httpclient.jar"/>
-	<classpathentry kind="lib" path="repository/net.sourceforge/httpunit/httpunit.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/SAML2lib-j"/>
-	<classpathentry kind="lib" path="repository/net.sourceforge/click/click-1.2.jar"/>
-	<classpathentry kind="lib" path="repository/net.sourceforge/click/click-extras-1.2.jar"/>
-	<classpathentry kind="lib" path="repository/org.apache/jakarta/commons-dbcp.jar"/>
+	<classpathentry kind="lib" path="lib/dev/click.jar"/>
+	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/bcprov.jar"/>
+	<classpathentry kind="lib" path="lib/dev/ibatis.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-ibatis.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-dao.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-dbcp.jar"/>
+	<classpathentry kind="lib" path="lib/dev/click-extras.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

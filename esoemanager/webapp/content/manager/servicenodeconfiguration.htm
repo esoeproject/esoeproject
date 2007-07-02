@@ -23,7 +23,7 @@ Configuration for node $velocityCount
 <td>Node Identifier</td><td>nodeIdentifier</td><td>$node.getNodeID()</td>
 </tr>
 <tr>
-<td>Key Store Download</td><td/><td><a href="retrievekeystore.htm?id=$id">download keystore</a></td>
+<td>Key Store Download</td><td/><td><a href="retrievekeystore.htm?serviceID=$serviceID">download keystore</a></td>
 </tr>
 <tr>
 <td>KeyStore Passphrase</td><td>keystorePassword</td><td>#if($keyStoreDetails.getKeyStorePassphrase())$keyStoreDetails.getKeyStorePassphrase()#end</td>
@@ -40,4 +40,4 @@ Configuration for node $velocityCount
 <br/>
 #end
 
-<td><a href="viewservice.htm?serviceID=$serviceID">return to service details</a></td>
+<td><a href="viewservice.htm?entityID=$entityID">return to service details</a></td>

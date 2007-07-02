@@ -26,10 +26,12 @@ import com.qut.middleware.esoemanager.logic.ViewServiceLogic;
 
 public class ViewServicePage extends BorderPage
 {
+	/* entityID is populated from name/value pair in the request */
+	public String entityID;
+	
 	public ServiceBean serviceDetails;
 	public String samlDescriptor;
 	public TextArea saml;
-	public String serviceID;
 	
 	private ViewServiceLogic logic;
 	private ClickUtils util;
@@ -45,11 +47,11 @@ public class ViewServicePage extends BorderPage
 		
 		this.saml = new TextArea(PageConstants.SAML_DESCRIPTOR_XML);
 		
-		if(this.serviceID != null)
+		if(this.entityID != null)
 		{
 			try
 			{
-				this.serviceDetails = this.logic.execute(serviceID);
+				this.serviceDetails = this.logic.execute(entityID);
 				this.samlDescriptor = this.util.escapeHtml(this.serviceDetails.getDescriptorXML());
 			}
 			catch (ViewServiceException e)

@@ -63,7 +63,7 @@
 	</bean>
 
 	<bean id="esoeManagerKeyStoreResolver"
-		class="com.qut.middleware.esoemanager.crypto.impl.KeyStoreResolverImpl">
+		class="com.qut.middleware.crypto.impl.KeyStoreResolverImpl">
 		<constructor-arg index="0" value="${esoemanagerkeystoreresolver.keystorePath}" />
 		<constructor-arg index="1" value="${esoemanagerkeystoreresolver.keystorePassphrase}" />
 		<constructor-arg index="2" value="${esoemanagerkeystoreresolver.keyAlias}" />

@@ -68,7 +68,7 @@
 
 	<parameterMap id="pkiMap" class="java.util.HashMap">
 		<parameter property="descriptorID" jdbcType="VARCHAR2" javaType="java.lang.String" />
-		<parameter property="expiryDate" jdbcType="DATE" javaType="java.util.Date" />
+		<parameter property="expiryDate" jdbcType="DATETIME" javaType="java.util.Date" />
 		<parameter property="keyPairName" jdbcType="VARCHAR2" javaType="java.lang.String" />
 		<parameter property="keyPairPassphrase" jdbcType="VARCHAR2" javaType="java.lang.String" />
 		<parameter property="keyStore" jdbcType="BLOB" javaType="[B" />
@@ -96,12 +96,12 @@
 	<parameterMap id="insertAuthorizationPolicy" class="java.util.HashMap">
 		<parameter property="descriptorID" javaType="java.lang.String" />
 		<parameter property="lxacmlPolicy" jdbcType="CLOB" javaType="java.lang.String" />
-		<parameter property="lxacmlDate" jdbcType="DATE" javaType="java.util.Date" />
+		<parameter property="lxacmlDate" jdbcType="DATETIME" javaType="java.util.Date" />
 	</parameterMap>
 
 	<parameterMap id="updateAuthorizationPolicy" class="java.util.HashMap">
 		<parameter property="lxacmlPolicy" jdbcType="CLOB" javaType="java.lang.String" />
-		<parameter property="lxacmlDate" jdbcType="DATE" javaType="java.util.Date" />
+		<parameter property="lxacmlDate" jdbcType="DATETIME" javaType="java.util.Date" />
 		<parameter property="descriptorID" javaType="java.lang.String" />
 	</parameterMap>
 
@@ -167,7 +167,7 @@
 
 	<resultMap id="activeAuthorizationPolicy" class="java.util.HashMap">
 		<result property="descriptorID" column="DESCRIPTORID" javaType="java.lang.String" />
-		<result property="lxacmlPolicy" column="LXACMLPOLICY" javaType="java.lang.String" />
+		<result property="lxacmlPolicy" column="LXACMLPOLICY" jdbcType="CLOB" javaType="java.lang.String" />
 		<result property="lxacmlDate" column="DATE_LAST_UPDATED" javaType="java.util.Date" />
 	</resultMap>
 

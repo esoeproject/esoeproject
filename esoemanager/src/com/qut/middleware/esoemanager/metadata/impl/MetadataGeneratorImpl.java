@@ -19,15 +19,14 @@
  */
 package com.qut.middleware.esoemanager.metadata.impl;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeyStoreResolver;
 import com.qut.middleware.esoemanager.Constants;
-import com.qut.middleware.esoemanager.crypto.KeyStoreResolver;
 import com.qut.middleware.esoemanager.metadata.MetadataGenerator;
 import com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -43,6 +42,7 @@ import com.qut.middleware.saml2.schemas.metadata.ContactTypeType;
 import com.qut.middleware.saml2.schemas.metadata.EntitiesDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.EntityDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.IDPSSODescriptor;
+import com.qut.middleware.saml2.schemas.metadata.RoleDescriptorType;
 import com.qut.middleware.saml2.schemas.metadata.SPSSODescriptor;
 import com.qut.middleware.saml2.schemas.metadata.lxacml.LXACMLPDPDescriptor;
 
@@ -62,7 +62,7 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 	private final String UNMAR_PKGNAMES = IDPSSODescriptor.class.getPackage().getName();
 	private final String UNMAR_PKGNAMES2 = SPSSODescriptor.class.getPackage().getName();
 	private final String UNMAR_PKGNAMES3 = AttributeAuthorityDescriptor.class.getPackage().getName();
-	private final String UNMAR_PKGNAMES4 = LXACMLPDPDescriptor.class.getPackage().getName();
+	private final String UNMAR_PKGNAMES4 = LXACMLPDPDescriptor.class.getPackage().getName() + ":" + RoleDescriptorType.class.getPackage().getName();
 
 	private final String MAR_PKGNAMES = EntitiesDescriptor.class.getPackage().getName() + ":" + LXACMLPDPDescriptor.class.getPackage().getName();
 

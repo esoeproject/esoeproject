@@ -29,8 +29,10 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 {
 	ConfigureServiceAuthorizationPolicyLogic logic;
 	
+	/* entityID and serviceID are supplied by name=value attribute pairs on the request */
+	public String entityID;
 	public String serviceID;
-	public String id;
+	
 	public PolicyForm policyForm;
 	public boolean validPolicy;
 	public boolean policyGuardRejected;
@@ -57,14 +59,14 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 	@Override
 	public void onGet()
 	{
-		if (this.serviceID != null && this.id != null)
+		if (this.entityID != null && this.serviceID != null)
 		{
 			try
 			{
-				AuthorizationPolicyBean authorizationPolicy = this.logic.getActiveServiceAuthorizationPolicy(this.id);
+				AuthorizationPolicyBean authorizationPolicy = this.logic.getActiveServiceAuthorizationPolicy(this.serviceID);
 				this.policyForm.getField(PageConstants.LXACML_POLICY).setValue(authorizationPolicy.getLxacmlPolicy());
-				this.policyForm.getField(PageConstants.SERVICEID).setValue(this.serviceID);
-				this.policyForm.getField(PageConstants.DESCRIPTORID).setValue(this.id);
+				this.policyForm.getField(PageConstants.ENTITYID).setValue(this.entityID);
+				this.policyForm.getField(PageConstants.DESCRIPTORID).setValue(this.serviceID);
 			}
 			catch (ServiceAuthorizationPolicyException e)
 			{
@@ -79,8 +81,8 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 	
 	public boolean completeClick()
 	{
-		this.serviceID = this.policyForm.getFieldValue(PageConstants.SERVICEID);
-		this.id = this.policyForm.getFieldValue(PageConstants.DESCRIPTORID);
+		this.entityID = this.policyForm.getFieldValue(PageConstants.ENTITYID);
+		this.serviceID = this.policyForm.getFieldValue(PageConstants.DESCRIPTORID);
 		
 		if(this.policyForm.isValid())
 		{

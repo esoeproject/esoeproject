@@ -25,17 +25,16 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.sql.Blob;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.qut.middleware.crypto.CryptoProcessor;
+import com.qut.middleware.crypto.exception.CryptoException;
 import com.qut.middleware.esoemanager.Constants;
 import com.qut.middleware.esoemanager.bean.KeyStoreBean;
 import com.qut.middleware.esoemanager.bean.impl.KeyStoreBeanImpl;
-import com.qut.middleware.esoemanager.crypto.CryptoProcessor;
-import com.qut.middleware.esoemanager.exception.CryptoException;
 import com.qut.middleware.esoemanager.exception.RetrieveKeystoreException;
 import com.qut.middleware.esoemanager.exception.SPEPDAOException;
 import com.qut.middleware.esoemanager.logic.RetrieveKeyStoreLogic;
@@ -90,8 +89,6 @@ public class RetrieveKeyStoreLogicImpl implements RetrieveKeyStoreLogic
 				throw new RetrieveKeystoreException("No key data returned for provided descriptor");
 			}
 			
-			//binaryKeystore = (Blob) keyStoreData.get(0).get(Constants.FIELD_PKI_KEYSTORE);
-			//rawKeyStore = binaryKeystore.getBytes(1, (int)binaryKeystore.length());
 			rawKeyStore = (byte[]) keyStoreData.get(0).get(Constants.FIELD_PKI_KEYSTORE);
 			keyStorePassphrase = (String) keyStoreData.get(0).get(Constants.FIELD_PKI_KEYSTORE_PASSPHRASE);
 
@@ -134,12 +131,6 @@ public class RetrieveKeyStoreLogicImpl implements RetrieveKeyStoreLogic
 			this.logger.debug(e);
 			throw new RetrieveKeystoreException(e.getLocalizedMessage(), e);
 		}
-	/*	catch (SQLException e)
-		{
-			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new RetrieveKeystoreException(e.getLocalizedMessage(), e);
-		}*/
 	}
 
 }

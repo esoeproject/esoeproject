@@ -4,11 +4,11 @@
 #if($confirm)
 Service was successfully set to state $state
 <br/>
-<a href="viewservice.htm?serviceID=$serviceID">Return to service details</a>
+<a href="viewservice.htm?entityID=$entityID">Return to service details</a>
 #else
 You have requested to set this service to a state of $state do you wish to proceed?
 <div id="confirmAction">
-<a href="modifyservicestate.htm?serviceID=$serviceID&state=$state&confirm=confirmed">Confirm change</a> | <a href="javascript: history.go(-1)">Cancel change</a>
+<a href="modifyservicestate.htm?entityID=$entityID&state=$state&confirm=confirmed">Confirm change</a> | <a href="javascript: history.go(-1)">Cancel change</a>
 </div>
 #end
 </div>

@@ -34,7 +34,7 @@ public class EditServiceContactsPage extends ContactPersonPage
 {
 	private EditServiceContactsLogic logic;
 
-	public String serviceID;
+	public String entityID;
 	public String action;
 	public String contactID;
 	public String confirm;
@@ -57,10 +57,10 @@ public class EditServiceContactsPage extends ContactPersonPage
 		Submit completeButton = new Submit(PageConstants.NAV_COMPLETE_LABEL, this, PageConstants.NAV_COMPLETE_FUNC);
 		this.contactDetails.add(completeButton);
 
-		if (this.serviceID != null)
+		if (this.entityID != null)
 		{
 			/* Store reference to serviceID for future interactions across multiple form submissions */
-			this.storeSession(PageConstants.STORED_SERVICE_ID, this.serviceID);
+			this.storeSession(PageConstants.STORED_ENTITY_ID, this.entityID);
 
 			/*
 			 * Refresh contacts whenerver serviceID is being submitted as this is a new edit attempt and things may get
@@ -68,7 +68,7 @@ public class EditServiceContactsPage extends ContactPersonPage
 			 */
 			try
 			{
-				this.contacts = this.logic.getServiceContacts(this.serviceID);
+				this.contacts = this.logic.getServiceContacts(this.entityID);
 				this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
 			}
 			catch (EditServiceContactException e)
@@ -78,10 +78,10 @@ public class EditServiceContactsPage extends ContactPersonPage
 		}
 		else
 		{
-			this.serviceID = (String) this.retrieveSession(PageConstants.STORED_SERVICE_ID);
+			this.entityID = (String) this.retrieveSession(PageConstants.STORED_ENTITY_ID);
 		}
 
-		if (this.serviceID == null)
+		if (this.entityID == null)
 		{
 			setError();
 		}
@@ -132,7 +132,7 @@ public class EditServiceContactsPage extends ContactPersonPage
 
 					try
 					{
-						this.logic.deleteServiceContact(this.serviceID, contact.getContactID());
+						this.logic.deleteServiceContact(this.entityID, contact.getContactID());
 					}
 					catch (EditServiceContactException e)
 					{
@@ -182,7 +182,7 @@ public class EditServiceContactsPage extends ContactPersonPage
 
 		try
 		{
-			this.logic.updateServiceContacts(this.serviceID, this.contacts);
+			this.logic.updateServiceContacts(this.entityID, this.contacts);
 		}
 		catch (EditServiceContactException e)
 		{
@@ -207,7 +207,7 @@ public class EditServiceContactsPage extends ContactPersonPage
 	
 	private void cleanSession()
 	{
-		this.removeSession(PageConstants.STORED_SERVICE_ID);
+		this.removeSession(PageConstants.STORED_ENTITY_ID);
 		this.removeSession(PageConstants.STORED_CONTACTS);
 	}
 

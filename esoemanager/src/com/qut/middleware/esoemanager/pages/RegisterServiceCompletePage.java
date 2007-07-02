@@ -20,5 +20,6 @@ package com.qut.middleware.esoemanager.pages;
 
 public class RegisterServiceCompletePage extends BorderPage
 {
-	public String serviceID;
+	/* set by name/value pair in the request */
+	public String entityID;
 }

@@ -33,8 +33,10 @@ public class ServiceNodeConfigurationPage extends BorderPage
 	RetrieveServiceNodesLogic serviceNodesLogic;
 	RetrieveServiceKeyStoreDetailsLogic serviceKeyStoreLogic;
 
-	public String id;
-	public String serviceID; //TODO invalid value here?
+	/* entityID and serviceID are passed in on query string */
+	public String entityID;
+	public String serviceID;
+	
 	public String esoeTrustedID;
 	public String metadataKeyName;
 	public List<ServiceNodeBean> serviceNodes;
@@ -54,8 +56,8 @@ public class ServiceNodeConfigurationPage extends BorderPage
 	{
 		try
 		{
-			this.serviceNodes = serviceNodesLogic.execute(id);
-			this.keyStoreDetails = serviceKeyStoreLogic.execute(id);
+			this.serviceNodes = serviceNodesLogic.execute(serviceID);
+			this.keyStoreDetails = serviceKeyStoreLogic.execute(serviceID);
 		}
 		catch (RetrieveServiceKeyStoreException e)
 		{

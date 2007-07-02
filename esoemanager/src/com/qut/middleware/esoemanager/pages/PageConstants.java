@@ -26,7 +26,7 @@ public class PageConstants
 	public final static String STORED_SERVICE_AUTHZ_MSG = "session-authz-failure-msg";
 	public final static String STORED_SERVICE_NODES = "session-service-nodes";
 	public final static String STORED_CONTACTS = "session-contacts";
-	public final static String STORED_SERVICE_ID = "session-identifier";
+	public final static String STORED_ENTITY_ID = "session-identifier";
 	
 	public final static String STAGE1_RES = "stage1-status";
 	public final static String STAGE2_RES = "stage2-status";
@@ -40,7 +40,7 @@ public class PageConstants
 	public final static String CONFIRMED = "confirmed";
 	public final static String COMPLETED = "completed";
 	public final static String ERROR = "error";
-	public final static String SERVICEID = "serviceID";
+	public final static String ENTITYID = "entityID";
 	public final static String DESCRIPTORID = "descriptorID";
 	public final static String SERVICE_ACTIVE = "activate";
 	public final static String SERVICE_INACTIVE = "deactivate";

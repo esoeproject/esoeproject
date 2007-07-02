@@ -34,7 +34,7 @@ public class EditServiceDescriptionPage extends BorderPage
 
 	/* Service Details */
 	public ServiceForm serviceDetails;
-	public String serviceID;
+	public String entityID;
 	public String action;
 
 	public EditServiceDescriptionPage()
@@ -66,11 +66,11 @@ public class EditServiceDescriptionPage extends BorderPage
 	{
 		ServiceBean serviceDetailsBean;
 
-		if (serviceID != null)
+		if (entityID != null)
 		{
 			try
 			{
-				serviceDetailsBean = this.logic.getServiceDetails(this.serviceID);
+				serviceDetailsBean = this.logic.getServiceDetails(this.entityID);
 
 				this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue(
 						serviceDetailsBean.getServiceName());
@@ -80,11 +80,11 @@ public class EditServiceDescriptionPage extends BorderPage
 				this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue(
 						serviceDetailsBean.getServiceAuthzFailureMsg());
 				
-				this.storeSession(PageConstants.STORED_SERVICE_ID, this.serviceID);
+				this.storeSession(PageConstants.STORED_ENTITY_ID, this.entityID);
 			}
 			catch (EditServiceDetailsException e)
 			{
-				this.storeSession(PageConstants.STORED_SERVICE_ID, null);
+				this.storeSession(PageConstants.STORED_ENTITY_ID, null);
 			}
 		}
 		else
@@ -103,8 +103,8 @@ public class EditServiceDescriptionPage extends BorderPage
 			{
 				URL validHost = new URL(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
 				
-				this.serviceID = (String)this.retrieveSession(PageConstants.STORED_SERVICE_ID);
-				if(this.serviceID == null)
+				this.entityID = (String)this.retrieveSession(PageConstants.STORED_ENTITY_ID);
+				if(this.entityID == null)
 				{
 					setError();
 				}
@@ -116,7 +116,7 @@ public class EditServiceDescriptionPage extends BorderPage
 				serviceDetailsBean.setServiceAuthzFailureMsg(this.serviceDetails.getField(
 						PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).getValue());
 
-				this.logic.updateServiceDetails(this.serviceID, serviceDetailsBean);
+				this.logic.updateServiceDetails(this.entityID, serviceDetailsBean);
 
 				this.action = PageConstants.COMPLETED;
 				cleanSession();
@@ -147,6 +147,6 @@ public class EditServiceDescriptionPage extends BorderPage
 	
 	private void cleanSession()
 	{
-		this.removeSession(PageConstants.STORED_SERVICE_ID);
+		this.removeSession(PageConstants.STORED_ENTITY_ID);
 	}
 }

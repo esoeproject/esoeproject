@@ -24,19 +24,19 @@ Below are the current details of your service
 <tr>
 <td><strong>Service Description</strong></td>
 <td>$serviceDetails.getServiceDescription()</td>
-<td><a href="editservicedescription.htm?serviceID=$serviceID">edit</a></td>
+<td><a href="editservicedescription.htm?entityID=$entityID">edit</a></td>
 <td/>
 </tr>
 
 <tr>
 <td><strong>Service Authorization Failure Message</strong></td>
 <td>$serviceDetails.getServiceAuthzFailureMsg()</td>
-<td><a href="">edit</a> (from v0.2)</td>
+<td><a href="">edit</a> (from v0.3)</td>
 </tr>
 
 <tr>
 <td><strong>Service Authorization Policy</strong></td>
-<td><a href="editserviceauthorizationpolicy.htm?serviceID=$serviceDetails.getEntityID()&id=$serviceDetails.getDescriptorID()">view / edit</a></td>
+<td><a href="editserviceauthorizationpolicy.htm?entityID=$serviceDetails.getEntityID()&serviceID=$serviceDetails.getDescriptorID()">view / edit</a></td>
 <td/>
 </tr>
 
@@ -44,9 +44,9 @@ Below are the current details of your service
 <td><strong>Service State</strong></td>
 <td>
 #if($serviceDetails.getActiveFlag().equals("y"))
-active (<a href="modifyservicestate.htm?serviceID=$serviceDetails.getEntityID()&state=deactivate">deactivate</a>)
+active (<a href="modifyservicestate.htm?entityID=$serviceDetails.getEntityID()&state=deactivate">deactivate</a>)
 #else
-inactive (<a href="modifyservicestate.htm?serviceID=$serviceDetails.getEntityID()&state=activate">activate</a>)
+inactive (<a href="modifyservicestate.htm?entityID=$serviceDetails.getEntityID()&state=activate">activate</a>)
 #end
 </td>
 <td/><td/>
@@ -54,7 +54,7 @@ inactive (<a href="modifyservicestate.htm?serviceID=$serviceDetails.getEntityID(
 
 <tr>
 <td><strong>Service configuration</strong></td>
-<td><a href="servicenodeconfiguration.htm?serviceID=$serviceDetails.getEntityID()&id=$serviceDetails.getDescriptorID()">nodes</a> | <a href="retrievekeystore.htm?id=$serviceDetails.getDescriptorID()">keystore</a></td>
+<td><a href="servicenodeconfiguration.htm?entityID=$serviceDetails.getEntityID()&serviceID=$serviceDetails.getDescriptorID()">nodes</a> | <a href="retrievekeystore.htm?serviceID=$serviceDetails.getDescriptorID()">keystore</a></td>
 <td/><td/>
 </tr>
 
@@ -77,16 +77,16 @@ You have added the following contacts for this service
 <td>$contact.getTelephoneNumber()</td>
 <td>$contact.getCompany()</td>
 <td>$contact.getContactType()</td>
-<td><a href="editservicecontacts.htm?serviceID=$serviceDetails.getEntityID()&contactID=$contact.getContactID()&action=edit">edit</a></td>
+<td><a href="editservicecontacts.htm?entityID=$serviceDetails.getEntityID()&contactID=$contact.getContactID()&action=edit">edit</a></td>
 #if( $serviceDetails.getContacts().size() > 1 )
-<td><a href="editservicecontacts.htm?serviceID=$serviceDetails.getEntityID()&action=delete&contactID=$contact.getContactID()">delete</a></td>
+<td><a href="editservicecontacts.htm?entityID=$serviceDetails.getEntityID()&action=delete&contactID=$contact.getContactID()">delete</a></td>
 #end
 </tr>
 #end
 </table>
 #end
 #end
-<a href="editservicecontacts.htm?serviceID=$serviceDetails.getEntityID()&action=add">add new contact</a>
+<a href="editservicecontacts.htm?entityID=$serviceDetails.getEntityID()&action=add">add new contact</a>
 </div>
 
 <div id="serviceNodes">
@@ -104,8 +104,8 @@ You have added the following nodes for this service
 <td>$node.getAssertionConsumerService()</td>
 <td>$node.getSingleLogoutService()</td>
 <td>$node.getCacheClearService()</td>
-<td><a href="">edit</a> (from v0.2)</td>
-<td><a href="">delete</a> (from v0.2)</td>
+<td><a href="">edit</a> (from v0.3)</td>
+<td><a href="">delete</a> (from v0.3)</td>
 </tr>
 #end
 </table>

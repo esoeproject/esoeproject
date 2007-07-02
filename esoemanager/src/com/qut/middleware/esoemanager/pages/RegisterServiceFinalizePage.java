@@ -125,7 +125,7 @@ public class RegisterServiceFinalizePage extends BorderPage
 			
 			/* Process was completed successfully, move client to success page */
 			String redirectPath = getContext().getPagePath(RegisterServiceCompletePage.class);
-			setForward(redirectPath + "?" + PageConstants.SERVICEID + "=" + registeredServiceID);
+			setForward(redirectPath + "?" + PageConstants.ENTITYID + "=" + registeredServiceID);
 			
 			cleanSession();
 			return false;

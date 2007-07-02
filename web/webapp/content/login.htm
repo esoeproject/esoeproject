@@ -5,6 +5,11 @@ Your username or password is incorrect, please try again
 </div>
 #end
 
+<table>
+<tr>
+<td/>
+<td>
+
 <form method="post" name="userpassAuthenticator" action="/signin" id="esoe_login_form" autocomplete="off">
 
 <table>
@@ -19,4 +24,27 @@ Your username or password is incorrect, please try again
 <input type="submit" value="Login">
 
 </form>
+<br/>
+
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="graphics/openid4java.png" alt="openID"/>
+</td>
+<td>
+Login using your OpenID credentials
+
+<form method="post" name="openidAuthenticator" action="/openiddelegator/login" id="esoe_login_form" autocomplete="off">
+
+<input type="text"	name="openid_identifier" value="http://" id="openid_identifier" class="login_input">
+
+<input type="submit" value="Login">
+
+</form>
+</td>
+</tr>
+</table>
+
 </center>

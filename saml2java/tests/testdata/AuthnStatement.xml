@@ -1,0 +1,19 @@
+<saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	Version="2.0" IssueInstant="2005-04-01T16:58:33.173Z" ID="abe567de6-122wert67">
+	<saml:Issuer>http://authority.example.com/</saml:Issuer>
+	<ds:Signature />
+	<saml:Subject>
+		<saml:NameID
+			Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent">
+			jygH5F90l
+		</saml:NameID>
+	</saml:Subject>
+	<saml:AuthnStatement AuthnInstant="2005-04-01T16:57:30.000Z" SessionIndex="6345789">
+		<saml:AuthnContext>
+			<saml:AuthnContextClassRef>
+				urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
+			</saml:AuthnContextClassRef>
+		</saml:AuthnContext>
+	</saml:AuthnStatement>
+</saml:Assertion>

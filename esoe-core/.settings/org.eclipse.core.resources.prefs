@@ -1,9 +1,0 @@
-#Tue Dec 05 13:13:48 EST 2006
-eclipse.preferences.version=1
-encoding//src/com/qut/middleware/esoe/authn/impl/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/authn/pipeline/authenticator/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/authn/pipeline/handlers/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/authn/servlet/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/pdp/cache/impl/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/sso/impl/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/ws/impl/messages.properties=8859_1

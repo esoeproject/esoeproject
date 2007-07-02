@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="tests/regression"/>
+	<classpathentry kind="src" path="tests/functional"/>
+	<classpathentry kind="src" path="tests/system"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/dev/annogen.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axiom-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axiom-dom.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axiom-impl.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-adb.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-adb-codegen.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-java2wsdl.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-kernel.jar" sourcepath="/home/beddoes/downloads/axis2/axis2-1.1.1"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-saaj.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-spring.jar"/>
+	<classpathentry kind="lib" path="lib/dev/axis2-tools.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-codec.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-collections.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/dev/easymock.jar"/>
+	<classpathentry kind="lib" path="lib/dev/httpunit.jar"/>
+	<classpathentry kind="lib" path="lib/dev/ibatis.jar"/>
+	<classpathentry kind="lib" path="lib/dev/jaxb-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/jaxb-impl.jar"/>
+	<classpathentry kind="lib" path="lib/dev/jaxb-xjc.jar"/>
+	<classpathentry kind="lib" path="lib/dev/ldap.jar"/>
+	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/neethi.jar"/>
+	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-aspects.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-dao.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-ibatis.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-jdbc.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-ldap.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-mock.jar"/>
+	<classpathentry kind="lib" path="lib/dev/stax.jar"/>
+	<classpathentry kind="lib" path="lib/dev/utilities.jar"/>
+	<classpathentry kind="lib" path="lib/dev/xalan.jar"/>
+	<classpathentry kind="lib" path="lib/dev/xmlschema.jar"/>
+	<classpathentry kind="lib" path="lib/dev/xmlsec.jar"/>
+	<classpathentry kind="lib" path="lib/dev/xercesImpl.jar"/>
+	<classpathentry kind="lib" path="lib/dev/ldapbp.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-lang.jar"/>
+	<classpathentry kind="lib" path="lib/dev/wsdl4j.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
+	<classpathentry kind="lib" path="lib/dev/stax-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/wstx.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

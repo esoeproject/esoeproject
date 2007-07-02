@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+        <!-- ====================================================================== 
+                
+                Copyright 2006, Queensland University of Technology
+                Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+                use this file except in compliance with the License. You may obtain a copy of 
+                the License at 
+                
+                http://www.apache.org/licenses/LICENSE-2.0 
+                
+                Unless required by applicable law or agreed to in writing, software 
+                distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+                WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+                License for the specific language governing permissions and limitations under 
+                the License.
+                
+                Author: Bradley Beddoes
+                Date: 20/11/2006                                                        
+                Purpose: Defines spring integration for
+                ====================================================================== -->
+
+        <!-- Authenticates principal against a generic LDAP data source -->
+        <bean id="ldapBasicAuthenticator"
+                class="com.qut.middleware.esoe.authn.pipeline.authenticator.LdapBasicAuthenticator">
+                <!--  LDAP server to bind to -->
+                <constructor-arg type="java.lang.String" index="0" value="${ldapbasicauthenticator.ldapServer}" />
+                <!-- LDAP port to bind to -->
+                <constructor-arg type="int" index="1" value="${ldapbasicauthenticator.ldapServerPort}" />
+                <!-- Base DN of the LDAP server -->
+                <constructor-arg type="java.lang.String" index="2" value="${ldapbasicauthenticator.baseDN}" />
+                <!-- Identifier for accounts in the system, usually one of uid or cn -->
+                <constructor-arg type="java.lang.String" index="3" value="${ldapbasicauthenticator.identifier}" />
+                <!-- Enable recursive searching from the base DN -->
+                <constructor-arg type="boolean" index="4" value="${ldapbasicauthenticator.recursive}" />
+                <!-- Disable SSL communication, highly unreccomended  -->
+                <constructor-arg type="boolean" index="5" value="${ldapbasicauthenticator.disableSSL}" />
+                <!-- Account name with privillege to bind to the LDAP server and locate account DN's  -->
+                <constructor-arg type="java.lang.String" index="6" value="${ldapbasicauthenticator.adminUser}" />
+                <!-- Password for the privilleged account -->
+                <constructor-arg type="java.lang.String" index="7" value="${ldapbasicauthenticator.adminPassword}" />
+        </bean>
+
+</beans>

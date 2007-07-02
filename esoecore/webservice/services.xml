@@ -1,0 +1,23 @@
+<service name="esoe">
+    <description>
+        ESOE SAML SOAP Interfaces
+    </description>
+    
+    <parameter name="ServiceObjectSupplier" locked="false">org.apache.axis2.extensions.spring.receivers.SpringServletContextObjectSupplier</parameter>
+    <parameter name="SpringBeanName" locked="false">wsProcessor</parameter>
+    <parameter name="ServiceClass" locked="false">com.qut.middleware.esoe.ws.impl.WSProcessorImpl</parameter>
+    <parameter name="enableMTOM" locked="false">false</parameter>
+    
+    <operation name="attributeAuthority">
+        <messageReceiver class="com.qut.middleware.esoe.ws.receiver.BareXMLInOutReceiver"/>
+    </operation>
+    <operation name="policyDecisionPoint">
+        <messageReceiver class="com.qut.middleware.esoe.ws.receiver.BareXMLInOutReceiver"/>
+    </operation>
+    <operation name="spepStartup">
+        <messageReceiver class="com.qut.middleware.esoe.ws.receiver.BareXMLInOutReceiver"/>
+    </operation>
+    <operation name="registerPrincipal">
+        <messageReceiver class="com.qut.middleware.esoe.ws.receiver.BareXMLInOutReceiver"/>
+    </operation>
+</service>

@@ -1,0 +1,61 @@
+ns$> keytool -genkey -alias tomcat -keyalg RSA -keypass changeit -storepass changeit
+
+What is your first and last name?
+  [Unknown]:  esoe-dev.qut.edu.au
+What is the name of your organizational unit?
+  [Unknown]:  QUT
+What is the name of your organization?
+  [Unknown]:  QUT
+What is the name of your City or Locality?
+  [Unknown]:  Brisbane
+What is the name of your State or Province?
+  [Unknown]:  QLD
+What is the two-letter country code for this unit?
+  [Unknown]:  AU
+Is CN=esoe-dev.qut.edu.au, OU=QUT, O=QUT, L=Brisbane, ST=QLD, C=AU correct?
+  [no]:  yes
+
+$> keytool -keystore .keystore -export -alias tomcat -storepass changeit -file tomcat.der
+
+$> cp /usr/java/jdk1.5.0_09/jre/lib/security/cacerts /usr/java/jdk1.5.0_09/jre/lib/security/cacerts.bak
+
+$> keytool -import -alias tomcat -file tomcat.pem -keystore /usr/java/jdk1.5.0_09/jre/lib/security/cacerts
+
+Enter keystore password:  changeit
+Owner: CN=esoe-dev.qut.edu.au, OU=QUT, O=QUT, L=Brisbane, ST=QLS, C=AU
+Issuer: CN=esoe-dev.qut.edu.au, OU=QUT, O=QUT, L=Brisbane, ST=QLS, C=AU
+Serial number: 456bbad3
+Valid from: Tue Nov 28 14:28:03 EST 2006 until: Mon Feb 26 14:28:03 EST 2007
+Certificate fingerprints:
+         MD5:  28:9D:CE:85:FB:9B:C9:1E:38:90:56:BD:F9:14:C7:29
+         SHA1: 12:7A:5A:6B:B8:B8:79:DC:B8:36:50:CE:EE:C6:43:8B:3F:B9:61:1A
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+
+
+# KERBEROS configuration - windows clients (from http://java.sun.com/j2se/1.5.0/docs/guide/security/jgss/tutorials/Troubleshooting.html) 
+ Cause 2: This exception is thrown when using native ticket cache on some Windows platforms. Microsoft has added a new feature in which they no longer export the session keys for Ticket-Granting Tickets (TGTs). As a result, the native TGT obtained on Windows has an "empty" session key and null EType. The effected platforms include: Windows Server 2003, Windows 2000 Server Service Pack 4 (SP4) and Windows XP SP2.
+
+Solution 2: You need to update the Windows registry to disable this new feature. The registry key allowtgtsessionkey should be added--and set correctly--to allow session keys to be sent in the Kerberos Ticket-Granting Ticket.
+
+On the Windows Server 2003 and Windows 2000 SP4, here is the required registry setting:
+
+    HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\Parameters
+    Value Name: allowtgtsessionkey
+    Value Type: REG_DWORD
+    Value: 0x01  ( default is 0 )
+
+By default, the value is 0; setting it to "0x01" allows a session key to be included in the TGT.
+
+Here is the location of the registry setting on Windows XP SP2:
+
+    HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Lsa\Kerberos\
+    Value Name: allowtgtsessionkey
+    Value Type: REG_DWORD
+    Value: 0x01
+
+
+# Adding custom header to firefox
+Alter the prefs.js file found within the working directory of Mozilla. A quick search for "Agent" should hunt it out for you.
+
+

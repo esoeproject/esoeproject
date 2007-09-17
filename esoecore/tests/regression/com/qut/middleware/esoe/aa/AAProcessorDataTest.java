@@ -23,19 +23,20 @@ public class AAProcessorDataTest {
 	@Test
 	public void testGetRequestDocument()
 	{
+		byte[] doc = new String("<test></test>").getBytes();
 		// covers get and set
-		this.data.setRequestDocument("<test></test>");
+		this.data.setRequestDocument(doc);
 	
-		assertEquals("<test></test>", this.data.getRequestDocument());
+		assertEquals(doc, this.data.getRequestDocument());
 	}
 	
 	@Test
 	public void testGetDescriptorID()
 	{
 		// covers get and set
-		this.data.setDescriptorID("_823478475834");
+		this.data.setIssuerID("_823478475834");
 	
-		assertEquals("_823478475834", this.data.getDescriptorID());	
+		assertEquals("_823478475834", this.data.getIssuerID());	
 	}
 
 	
@@ -52,10 +53,11 @@ public class AAProcessorDataTest {
 	@Test
 	public void testSetResponseDocument()
 	{
+		byte[] doc = new String("<test></test>").getBytes();
 		// covers get and set
-		this.data.setResponseDocument("<something></something>");
+		this.data.setResponseDocument(doc);
 	
-		assertEquals("<something></something>", this.data.getResponseDocument());
+		assertEquals(doc, this.data.getResponseDocument());
 	
 	}
 

@@ -24,5 +24,5 @@ import com.qut.middleware.esoemanager.exception.RetrieveKeystoreException;
 
 public interface RetrieveKeyStoreLogic
 {
-	public KeyStoreBean execute(String descriptorID)  throws RetrieveKeystoreException;
+	public KeyStoreBean execute(Integer descID)  throws RetrieveKeystoreException;
 }

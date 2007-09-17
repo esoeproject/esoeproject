@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="spepfilter-jvm1.4" revision="${esoe.version}">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Bradley Beddoes"
+			url="http://intient.com/roller/beddoes" />
+		<repository name="intient-ivy"
+			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+	</info>
+
+	<configurations>
+		<conf name="default"/>
+		
+		<conf name="dev" />
+		<conf name="dev-release" />
+	</configurations>
+	
+	<publications>
+		<artifact name="spepfilter" type="jar" />
+	</publications>
+
+	<dependencies>
+		<!-- Development release dependencies -->
+        <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev-release->default"/>
+        
+        <!-- Development dependencies -->
+        <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>  
+        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>  
+        
+        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
+        
+	</dependencies>
+
+</ivy-module>

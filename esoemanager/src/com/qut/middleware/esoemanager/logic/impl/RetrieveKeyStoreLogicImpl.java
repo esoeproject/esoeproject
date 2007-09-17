@@ -65,12 +65,7 @@ public class RetrieveKeyStoreLogicImpl implements RetrieveKeyStoreLogic
 		this.spepDAO = spepDAO;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoemanager.logic.RetrieveKeyStoreLogic#execute(java.lang.String)
-	 */
-	public KeyStoreBean execute(String descriptorID) throws RetrieveKeystoreException
+	public KeyStoreBean execute(Integer descID) throws RetrieveKeystoreException
 	{
 		List<Map<String, Object>> keyStoreData;
 		Blob binaryKeystore;
@@ -81,7 +76,7 @@ public class RetrieveKeyStoreLogicImpl implements RetrieveKeyStoreLogic
 
 		try
 		{
-			keyStoreData = this.spepDAO.queryKeystoreBinary(descriptorID);
+			keyStoreData = this.spepDAO.queryKeystoreBinary(descID);
 			
 			if(keyStoreData == null || keyStoreData.size() == 0)
 			{

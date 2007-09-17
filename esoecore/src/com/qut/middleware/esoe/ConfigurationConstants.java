@@ -20,10 +20,16 @@
  */
 package com.qut.middleware.esoe;
 
+import java.io.File;
+
 /** */
 @SuppressWarnings("nls")
 public class ConfigurationConstants
 {
+	/* Loggers */
+	public static final String authnLogger = "esoe.authn";
+	public static final String authzLogger = "esoe.authz";
+	
 	/* Schema constants, included across the project */
 	
 	/** SAML Protocol schema */
@@ -57,18 +63,25 @@ public class ConfigurationConstants
 	public static final String timeZone = "UTC"; 
 	
 	/** Spring IoC Integration */
-	public static final String ESOE_CONFIG = "/WEB-INF/esoe.config"; 
+	public static final String ESOE_CONFIG = File.separatorChar + "config" + File.separatorChar + "esoe.config"; 
 	public static final String AUTHN_PROCESSOR = "authnProcessor"; 
 	public static final String LOGOUT_AUTHORITY_PROCESSOR = "logoutAuthorityProcessor"; 
 	public static final String AUTHN_AUTHORITY_PROCESSOR = "authnAuthorityProcessor"; 
-	public static final String SESSION_TOKEN_NAME = "sessionTokenName";
+	public static final String ESOE_SESSION_TOKEN_NAME = "sessionTokenName";
+	public static final String COMMON_DOMAIN_TOKEN_NAME = "commonDomainTokenName";
 	public static final String DISABLE_SSO_TOKEN_NAME = "disableAutomatedAuthnTokenName";
 	public static final String AUTHN_REDIRECT_URL = "authenticationURL";
 	public static final String LOGOUT_REDIRECT_URL = "logoutURL";
 	public static final String LOGOUT_RESPONSE_REDIRECT_URL = "logoutSuccessURL";
 	public static final String AUTHN_DYNAMIC_URL_PARAM = "authenticationDynamicParameter";
 	public static final String SSO_URL = "ssoURL";	
-	public static final String COOKIE_SESSION_DOMAIN = "sessionDomain";	
+	public static final String ESOE_SESSION_DOMAIN = "sessionDomain";	
+	public static final String ESOE_IDENTIFIER = "esoeIdentifier";	
+	public static final String COMMON_DOMAIN = "commonDomain";	
 	
-	
+	/** Policy state changes as specified by poll actions */
+	public final static char POLICY_STATE_UPDATE = 'U';
+	public final static char POLICY_STATE_DELETE = 'D';
+	public final static char POLICY_STATE_ADD = 'A';
+	public final static char POLICY_STATE_NONE = 'z';
 }

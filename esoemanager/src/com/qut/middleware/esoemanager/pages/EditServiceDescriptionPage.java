@@ -34,7 +34,7 @@ public class EditServiceDescriptionPage extends BorderPage
 
 	/* Service Details */
 	public ServiceForm serviceDetails;
-	public String entityID;
+	public String eid;
 	public String action;
 
 	public EditServiceDescriptionPage()
@@ -47,15 +47,18 @@ public class EditServiceDescriptionPage extends BorderPage
 	{
 		this.serviceDetails.init();
 		
+		/* Don't support currently modification to entityID */
+		this.serviceDetails.remove(this.serviceDetails.getField(PageConstants.SERVICE_IDENTIFIER));
+
 		Submit completeButton = new Submit(PageConstants.NAV_COMPLETE_LABEL, this, PageConstants.NAV_COMPLETE_FUNC);
 		this.serviceDetails.add(completeButton);
 	}
-	
+
 	public EditServiceDescriptionLogic getEditServiceDescriptionLogic()
 	{
 		return this.logic;
 	}
-	
+
 	public void setEditServiceDescriptionLogic(EditServiceDescriptionLogic logic)
 	{
 		this.logic = logic;
@@ -66,25 +69,20 @@ public class EditServiceDescriptionPage extends BorderPage
 	{
 		ServiceBean serviceDetailsBean;
 
-		if (entityID != null)
+		if (eid != null)
 		{
 			try
 			{
-				serviceDetailsBean = this.logic.getServiceDetails(this.entityID);
-
-				this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue(
-						serviceDetailsBean.getServiceName());
+				serviceDetailsBean = this.logic.getServiceDetails(new Integer(this.eid));	
+				this.serviceDetails.getField(PageConstants.EID).setValue(eid);
+				this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue(serviceDetailsBean.getServiceName());
 				this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue(serviceDetailsBean.getServiceURL());
-				this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue(
-						serviceDetailsBean.getServiceDescription());
-				this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue(
-						serviceDetailsBean.getServiceAuthzFailureMsg());
-				
-				this.storeSession(PageConstants.STORED_ENTITY_ID, this.entityID);
+				this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue(serviceDetailsBean.getServiceDescription());
+				this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue(serviceDetailsBean.getServiceAuthzFailureMsg());
 			}
 			catch (EditServiceDetailsException e)
 			{
-				this.storeSession(PageConstants.STORED_ENTITY_ID, null);
+				setError();
 			}
 		}
 		else
@@ -102,24 +100,16 @@ public class EditServiceDescriptionPage extends BorderPage
 			try
 			{
 				URL validHost = new URL(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
-				
-				this.entityID = (String)this.retrieveSession(PageConstants.STORED_ENTITY_ID);
-				if(this.entityID == null)
-				{
-					setError();
-				}
 
 				serviceDetailsBean.setServiceName(this.serviceDetails.getField(PageConstants.SERVICE_NAME).getValue());
+				serviceDetailsBean.setEntityID(this.serviceDetails.getFieldValue(PageConstants.SERVICE_IDENTIFIER));
 				serviceDetailsBean.setServiceURL(this.serviceDetails.getField(PageConstants.SERVICE_URL).getValue());
-				serviceDetailsBean.setServiceDescription(this.serviceDetails
-						.getField(PageConstants.SERVICE_DESCRIPTION).getValue());
-				serviceDetailsBean.setServiceAuthzFailureMsg(this.serviceDetails.getField(
-						PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).getValue());
+				serviceDetailsBean.setServiceDescription(this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).getValue());
+				serviceDetailsBean.setServiceAuthzFailureMsg(this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).getValue());
 
-				this.logic.updateServiceDetails(this.entityID, serviceDetailsBean);
+				this.logic.updateServiceDetails(new Integer(this.serviceDetails.getField(PageConstants.EID).getValue()), serviceDetailsBean);
 
 				this.action = PageConstants.COMPLETED;
-				cleanSession();
 				return false;
 			}
 			catch (MalformedURLException e)
@@ -134,19 +124,13 @@ public class EditServiceDescriptionPage extends BorderPage
 				setError();
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	private void setError()
 	{
 		/* Move users to error view */
 		this.action = PageConstants.ERROR;
-		cleanSession();		
-	}
-	
-	private void cleanSession()
-	{
-		this.removeSession(PageConstants.STORED_ENTITY_ID);
 	}
 }

@@ -21,11 +21,13 @@
 package com.qut.middleware.spep.metadata.impl;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.CharBuffer;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,22 +50,24 @@ import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.exception.InvalidSAMLDataException;
 import com.qut.middleware.spep.metadata.Messages;
 
-/** Maintains a background thread that polls the metadata from the given URL, 
- * 		on a given interval, and updates if there have been any changes.*/
+/**
+ * Maintains a background thread that polls the metadata from the given URL, on a given interval, and updates if there
+ * have been any changes.
+ */
 public class MetadataThread extends Thread
 {
 	private MetadataImpl metadata;
 	private String[] schemas;
 	private int interval;
 	private Unmarshaller<EntitiesDescriptor> unmarshaller;
-	
+
 	private final String UNMAR_PKGNAMES = EntitiesDescriptor.class.getPackage().getName() + ":" + LXACMLPDPDescriptor.class.getPackage().getName();
-	
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(MetadataThread.class.getName());
 
 	/**
-	 * @param reportingProcessor 
+	 * @param reportingProcessor
 	 * @param metadata
 	 *            The metadata implementation class to manipulate with this thread
 	 * @param interval
@@ -85,8 +89,8 @@ public class MetadataThread extends Thread
 			this.logger.error(Messages.getString("MetadataThread.0") + e.getLocalizedMessage()); //$NON-NLS-1$
 			throw new UnsupportedOperationException(e);
 		}
-		
-		this.logger.info(MessageFormat.format(Messages.getString("MetadataThread.22"), interval) ); //$NON-NLS-1$
+
+		this.logger.info(MessageFormat.format(Messages.getString("MetadataThread.22"), interval)); //$NON-NLS-1$
 	}
 
 	/*
@@ -133,12 +137,12 @@ public class MetadataThread extends Thread
 			this.logger.error(Messages.getString("MetadataThread.7") + e.getLocalizedMessage()); //$NON-NLS-1$
 			this.metadata.hasError.set(true);
 		}
-		catch(UnsupportedOperationException e)
+		catch (UnsupportedOperationException e)
 		{
 			this.logger.error("Initial metadata update failed: " + e.getMessage()); //$NON-NLS-1$
-			this.metadata.hasError.set(true);		
+			this.metadata.hasError.set(true);
 		}
-		
+
 		while (true)
 		{
 			try
@@ -176,7 +180,7 @@ public class MetadataThread extends Thread
 			{
 				this.logger.warn(Messages.getString("MetadataThread.17")); //$NON-NLS-1$
 			}
-			catch(UnsupportedOperationException e)
+			catch (UnsupportedOperationException e)
 			{
 				this.logger.error("Metadata update failed. Ignoring new metadata. " + e.getMessage()); //$NON-NLS-1$
 			}
@@ -187,29 +191,24 @@ public class MetadataThread extends Thread
 	 * 
 	 */
 	private void doGetMetadata() throws SignatureValueException, ReferenceValueException, UnmarshallerException, NoSuchAlgorithmException, IOException, InvalidSAMLDataException
-	{		
+	{
 		RawMetadata rawMetadata = getRawMetadata(this.metadata.metadataUrl);
-		
+
 		EntitiesDescriptor entitiesDescriptor = null;
-	
-		this.logger.debug(MessageFormat.format(Messages.getString("MetadataThread.24"), rawMetadata.hashValue, this.metadata.currentRevision) ); //$NON-NLS-1$
+
+		this.logger.debug(MessageFormat.format(Messages.getString("MetadataThread.24"), rawMetadata.hashValue, this.metadata.currentRevision)); //$NON-NLS-1$
 
 		if (!rawMetadata.hashValue.equalsIgnoreCase(this.metadata.currentRevision))
 		{
 			this.logger.info(Messages.getString("MetadataThread.18")); //$NON-NLS-1$
 
-			if (!rawMetadata.data.contains("EntitiesDescriptor")) //$NON-NLS-1$
-			{
-				throw new IllegalArgumentException(Messages.getString("MetadataThread.19")); //$NON-NLS-1$
-			}
-			
 			try
 			{
 				// Do the unmarshalling step
 				Map<String, KeyData> keyMap = new HashMap<String, KeyData>();
-			
+
 				entitiesDescriptor = this.unmarshaller.unMarshallMetadata(this.metadata.metadataPublicKey, rawMetadata.data, keyMap);
-			
+
 				this.metadata.rebuildCache(entitiesDescriptor, rawMetadata.hashValue, keyMap);
 			}
 			catch (ClassCastException e)
@@ -228,30 +227,29 @@ public class MetadataThread extends Thread
 
 		// Figure out which protocol to use
 		URL url = new URL(metadataUrl);
-		
+
 		// Open the URL and get a stream.
 		URLConnection connection = url.openConnection();
 		DigestInputStream digestStream = new DigestInputStream(connection.getInputStream(), messageDigest);
 		BufferedInputStream bufferedStream = new BufferedInputStream(digestStream);
-		InputStreamReader in = new InputStreamReader(bufferedStream, "UTF-16"); //$NON-NLS-1$
-		
-		// Read the file.
-		StringBuffer stringBuffer = new StringBuffer();
-		CharBuffer charBuffer = CharBuffer.allocate(MetadataImpl.BUFFER_LEN);
-		while (in.read(charBuffer) >= 0)
+
+		// Read the metadata stream
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		byte[] buf = new byte[MetadataImpl.BUFFER_LEN];
+		int len;
+		while ((len = bufferedStream.read(buf)) > 0)
 		{
-			charBuffer.flip();
-			stringBuffer.append(charBuffer.toString());
-			charBuffer.clear();
+			bos.write(buf, 0, len);
 		}
 
 		RawMetadata rawMetadata = new RawMetadata();
 
-		rawMetadata.data = stringBuffer.toString();
+		rawMetadata.data = bos.toByteArray();
 		byte[] digestBytes = digestStream.getMessageDigest().digest();
 		rawMetadata.hashValue = new String(Hex.encodeHex(digestBytes));
 
-		this.logger.debug(MessageFormat.format(Messages.getString("MetadataThread.26"), Integer.toString(rawMetadata.data.length()), rawMetadata.hashValue)); //$NON-NLS-1$
+		this.logger.info(MessageFormat.format(Messages.getString("MetadataThread.26"), Integer.toString(rawMetadata.data.length), rawMetadata.hashValue)); //$NON-NLS-1$
+		this.logger.trace(new String (rawMetadata.data));
 
 		return rawMetadata;
 	}
@@ -267,6 +265,6 @@ public class MetadataThread extends Thread
 		}
 
 		protected String hashValue;
-		protected String data;
+		protected byte[] data;
 	}
 }

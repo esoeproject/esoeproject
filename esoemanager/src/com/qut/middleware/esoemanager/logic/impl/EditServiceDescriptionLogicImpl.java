@@ -22,6 +22,7 @@ package com.qut.middleware.esoemanager.logic.impl;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.Constants;
@@ -53,43 +54,37 @@ public class EditServiceDescriptionLogicImpl implements EditServiceDescriptionLo
 		this.util = new UtilityFunctions();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.logic.impl.EditServiceDetailsLogic#getServiceDetails(java.lang.String)
-	 */
-	public ServiceBean getServiceDetails(String entityID) throws EditServiceDetailsException
+	public ServiceBean getServiceDetails(Integer entID) throws EditServiceDetailsException
 	{
 		ServiceBean serviceDetails = new ServiceBeanImpl();
-		List<Map<String, String>> serviceDetailsMap;
+		List<Map<String, Object>> serviceDetailsMap;
 		try
 		{
-			serviceDetailsMap = this.spepDAO.queryServiceDescription(entityID);
+			serviceDetailsMap = this.spepDAO.queryServiceDescription(entID);
 		}
 		catch (SPEPDAOException e)
 		{
 			throw new EditServiceDetailsException("Exception when retrieving service details", e);
 		}
 		
-		for (Map<String, String> description : serviceDetailsMap)
+		for (Map<String, Object> description : serviceDetailsMap)
 		{
 			/* There should only be one, if there is multiple results the last one returned will be displayed */
-			serviceDetails.setEntityID(description.get(Constants.FIELD_DESCRIPTOR_ID));
-			serviceDetails.setServiceName(description.get(Constants.FIELD_SERVICE_NAME));
-			serviceDetails.setServiceURL(description.get(Constants.FIELD_SERVICE_URL));
-			serviceDetails.setServiceDescription(description.get(Constants.FIELD_SERVICE_DESC));
-			serviceDetails.setServiceAuthzFailureMsg(description.get(Constants.FIELD_SERVICE_AUTHZ_FAIL));
+			serviceDetails.setEntID(entID);
+			serviceDetails.setServiceName((String)description.get(Constants.FIELD_SERVICE_NAME));
+			serviceDetails.setServiceURL((String)description.get(Constants.FIELD_SERVICE_URL));
+			serviceDetails.setServiceDescription((String)description.get(Constants.FIELD_SERVICE_DESC));
+			serviceDetails.setServiceAuthzFailureMsg((String)description.get(Constants.FIELD_SERVICE_AUTHZ_FAIL));
 		}
 		
 		return serviceDetails;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.logic.impl.EditServiceDetailsLogic#updateServiceDetails(java.lang.String, com.qut.middleware.esoemanager.bean.ServiceBean)
-	 */
-	public void updateServiceDetails(String entityID, ServiceBean serviceDetails) throws EditServiceDetailsException
+	public void updateServiceDetails(Integer entID, ServiceBean serviceDetails) throws EditServiceDetailsException
 	{
 		try
 		{
-			this.spepDAO.updateServiceDescription(entityID, serviceDetails.getServiceName(), serviceDetails.getServiceURL(), serviceDetails.getServiceDescription(), serviceDetails.getServiceAuthzFailureMsg());
+			this.spepDAO.updateServiceDescription(entID, serviceDetails.getServiceName(), serviceDetails.getServiceURL(), serviceDetails.getServiceDescription(), serviceDetails.getServiceAuthzFailureMsg());
 		}
 		catch (SPEPDAOException e)
 		{

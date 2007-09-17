@@ -25,8 +25,8 @@ import java.util.Date;
  * */
 public class SPEPRegistrationData
 {
-	//DESCRIPTORID VARCHAR2(512) NOT NULL
-	private String descriptorID;
+	//ENT_ID MEDIUMINT UNSIGNED NOT NULL
+	private Integer entID;
 	//NODEID VARCHAR2(512) NOT NULL
 	private String nodeID;
 	//IPADDRESS VARCHAR2(1024) NOT NULL
@@ -106,18 +106,18 @@ public class SPEPRegistrationData
 		this.dateUpdated = dateUpdated;
 	}
 	/**
-	 * @return Descriptor ID
+	 * @return entID
 	 */
-	public String getDescriptorID()
+	public Integer getEntID()
 	{
-		return this.descriptorID;
+		return this.entID;
 	}
 	/**
-	 * @param descriptorID Descriptor ID
+	 * @param entID The entID value to set
 	 */
-	public void setDescriptorID(String descriptorID)
+	public void setEntID(Integer entID)
 	{
-		this.descriptorID = descriptorID;
+		this.entID = entID;
 	}
 	/**
 	 * @return Environment string.

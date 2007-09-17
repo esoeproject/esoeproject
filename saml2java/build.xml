@@ -24,7 +24,7 @@
 	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask" onerror="ignore">
 		<!-- https://jaxb.dev.java.net/jaxb20-ea/docs/xjcTask.html -->
 		<classpath>
-			<fileset dir="${artifacts}">
+			<fileset dir="${basedir}/${artifacts}">
 				<include name="**/*.jar" />
 			</fileset>
 		</classpath>
@@ -37,15 +37,15 @@
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="lib/dev/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 	
 	<target name="dev-publish">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
 		<ivy:publish resolver="local-resolver" forcedeliver="true">
-			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
 		</ivy:publish>
 	</target>
 
@@ -68,22 +68,28 @@
 	</target>
 
 	<target name="dev-build" depends="generate" description="Builds the JAXB generated code.">
-		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${gensrc}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build}" srcdir="${gensrc}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
-				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+				<fileset dir="${basedir}/${artifacts}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${basedir}/${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
-		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
-				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+				<fileset dir="${basedir}/${artifacts}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${basedir}/${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
 		<copy todir="${output.dev.build}/${schemajar.dir}">
-			<fileset dir="${schema.dir}">
+			<fileset dir="${basedir}/${schema.dir}">
 				<include name="*.xsd" />
 			</fileset>
 		</copy>
@@ -91,7 +97,16 @@
 
 	<target name="generate" depends="setup" description="Builds the JAXB generated code.">
 		<xjc destdir="${gensrc}" binding="${schema.dir}/saml2.xjb" extension="true" >
-			<schema dir="${schema.dir}">
+			<classpath>
+				<fileset dir="${basedir}/${artifacts}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${basedir}/${artifacts.dev}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+				
+			<schema dir="${basedir}/${schema.dir}">
 				<include name="*.xsd" />
 				<!--  The following are retrieved from the internet during generation and ignored locally -->
 				<exclude name="xml.xsd" />
@@ -135,7 +150,7 @@
 	</target>
 
 	<target name="junit-regression-build" depends="dev-jar" description="Compiles SAML2lib-j regression tests code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
 					<include name="**/*.jar" />
@@ -183,7 +198,7 @@
 	</target>
 
 	<target name="junit-functional-build" depends="dev-jar" description="Compiles SAML2lib-j functional test code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
 					<include name="**/*.jar" />

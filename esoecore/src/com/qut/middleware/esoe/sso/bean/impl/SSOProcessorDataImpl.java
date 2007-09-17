@@ -35,16 +35,24 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	private HttpServletRequest httpRequest;
 	private HttpServletResponse httpResponse;
 	
+	private String samlBinding;
 	private AuthnRequest authnRequest;
-
-	private String descriptorID;
+	private String relayState;
+	private String samlEncoding;
+	private String sigAlg;
+	private String signature;
+	private String issuerID;
 	private String responseEndpoint;
 	private int responseEndpointID;
 	private String responseURL;
-	private String requestDocument;
-	private String responseDocument;
+	private byte[] requestDocument;
+	private byte[] responseDocument;
 	private String sessionID;
 	private List<SSOLogoutState> logoutStates;
+	private String requestCharsetName;
+	private String samlDomainCookieData;
+	private String commonCookieValue;
+	private List<String> validIdentifiers;
 	
 	private boolean returningRequest;
 
@@ -61,9 +69,9 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getDescriptorID()
 	 */
-	public String getDescriptorID()
+	public String getIssuerID()
 	{
-		return this.descriptorID;
+		return this.issuerID;
 	}
 
 	/*
@@ -91,7 +99,7 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getRequestDocument()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -101,7 +109,7 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getResponseDocument()
 	 */
-	public String getResponseDocument()
+	public byte[] getResponseDocument()
 	{
 		return this.responseDocument;
 	}
@@ -167,9 +175,9 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setDescriptorID(java.lang.String)
 	 */
-	public void setDescriptorID(String descriptorID)
+	public void setIssuerID(String issuerID)
 	{
-		this.descriptorID = descriptorID;
+		this.issuerID = issuerID;
 	}
 
 	/*
@@ -199,7 +207,7 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setRequestDocument(java.lang.String)
 	 */
-	public void setRequestDocument(String requestDocument)
+	public void setRequestDocument(byte[] requestDocument)
 	{
 		this.requestDocument = requestDocument;
 
@@ -210,7 +218,7 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setResponseDocument(java.lang.String)
 	 */
-	public void setResponseDocument(String responseDocument)
+	public void setResponseDocument(byte[] responseDocument)
 	{
 		this.responseDocument = responseDocument;
 
@@ -282,6 +290,96 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	public void setLogoutStates(List<SSOLogoutState> logoutStates)
 	{
 		this.logoutStates = logoutStates;
+	}
+
+	public String getRequestCharsetName()
+	{
+		return requestCharsetName;
+	}
+
+	public void setRequestCharsetName(String requestCharsetName)
+	{
+		this.requestCharsetName = requestCharsetName;
+	}
+
+	public String getRelayState()
+	{
+		return relayState;
+	}
+
+	public void setRelayState(String relayState)
+	{
+		this.relayState = relayState;
+	}
+
+	public String getSamlEncoding()
+	{
+		return samlEncoding;
+	}
+
+	public void setSamlEncoding(String samlEncoding)
+	{
+		this.samlEncoding = samlEncoding;
+	}
+
+	public String getSigAlg()
+	{
+		return sigAlg;
+	}
+
+	public void setSigAlg(String sigAlg)
+	{
+		this.sigAlg = sigAlg;
+	}
+
+	public String getSamlBinding()
+	{
+		return samlBinding;
+	}
+
+	public void setSamlBinding(String samlBinding)
+	{
+		this.samlBinding = samlBinding;
+	}
+
+	public String getSignature()
+	{
+		return signature;
+	}
+
+	public void setSignature(String signature)
+	{
+		this.signature = signature;
+	}
+
+	public String getSamlDomainCookieData()
+	{
+		return samlDomainCookieData;
+	}
+
+	public void setSamlDomainCookieData(String samlDomainCookieData)
+	{
+		this.samlDomainCookieData = samlDomainCookieData;
+	}
+
+	public String getCommonCookieValue()
+	{
+		return commonCookieValue;
+	}
+
+	public void setCommonCookieValue(String commonCookieValue)
+	{
+		this.commonCookieValue = commonCookieValue;
+	}
+
+	public List<String> getValidIdentifiers()
+	{
+		return validIdentifiers;
+	}
+
+	public void setValidIdentifiers(List<String> validIdentifiers)
+	{
+		this.validIdentifiers = validIdentifiers;
 	}
 
 }

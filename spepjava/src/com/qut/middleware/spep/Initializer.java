@@ -19,10 +19,14 @@
  */
 package com.qut.middleware.spep;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.security.PublicKey;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -46,6 +50,7 @@ import com.qut.middleware.spep.authn.impl.AuthnProcessorImpl;
 import com.qut.middleware.spep.exception.SPEPInitializationException;
 import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
 import com.qut.middleware.spep.impl.SPEPImpl;
+import com.qut.middleware.spep.SPEP;
 import com.qut.middleware.spep.impl.StartupProcessorImpl;
 import com.qut.middleware.spep.metadata.KeyStoreResolver;
 import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
@@ -64,6 +69,28 @@ public class Initializer
 	/* Local logging instance */
 	static private Logger logger = Logger.getLogger(Initializer.class.getName());
 	
+	private final static String DENY = "deny";
+	private final static String PERMIT = "permit";
+	
+	private static String SPEP_CONFIGURATION_PATH = null;
+	
+	private static String resolveProperty(Properties properties, String propName) throws SPEPInitializationException
+	{
+		String tmpProp = properties.getProperty(propName);
+		
+		if(tmpProp == null)
+		{
+			throw new SPEPInitializationException("Unable to find any value for requested property " + propName);
+		}
+		
+		if(tmpProp.contains("${"+ ConfigurationConstants.SPEP_PATH_PROP + "}"))
+		{
+			tmpProp = tmpProp.replace("${"+ ConfigurationConstants.SPEP_PATH_PROP + "}", SPEP_CONFIGURATION_PATH);
+		}
+		
+		return tmpProp;
+	}
+	
 	/**
 	 * @param context The servlet context in which to initialize a SPEP
 	 * @return The SPEP for the given servlet context.
@@ -80,11 +107,47 @@ public class Initializer
 		{
 			SPEPImpl spep = new SPEPImpl();
 			
-			// Get the properties file from the servlet context and read it in.
-			InputStream propertyInputStream = context.getResourceAsStream(ConfigurationConstants.SPEP_CONFIG);
+			/* Determine the location of spep.data either from local spep config or from system property */
+			InputStream varPropertyInputStream = context.getResourceAsStream(ConfigurationConstants.SPEP_CONFIG_LOCAL);
+			if(varPropertyInputStream != null)
+			{
+				Properties varProperties = new Properties();
+				try
+				{
+					varProperties.load(varPropertyInputStream);
+				}
+				catch (IOException e)
+				{
+					throw new SPEPInitializationException(Messages.getString("Initializer.0"), e); //$NON-NLS-1$
+				}
+				
+				SPEP_CONFIGURATION_PATH = varProperties.getProperty(ConfigurationConstants.SPEP_PATH_PROP);
+			}
 			
-			if(propertyInputStream == null)
-				throw new IllegalArgumentException(Messages.getString("Initializer.15") + ConfigurationConstants.SPEP_CONFIG); //$NON-NLS-1$
+			if(SPEP_CONFIGURATION_PATH != null && SPEP_CONFIGURATION_PATH.length() > 0)
+				logger.info("Configured spep.data locally from spepvars.config, with a value of: " + SPEP_CONFIGURATION_PATH);
+			else
+			{
+				SPEP_CONFIGURATION_PATH = System.getProperty(ConfigurationConstants.SPEP_PATH_PROP);
+				if(SPEP_CONFIGURATION_PATH != null)
+					logger.info("Configured spep.data from java property spep.data, with a value of: " + SPEP_CONFIGURATION_PATH);
+				else
+				{
+					logger.fatal("Unable to resolve location of spep config and keystores from either local file of WEB-INF/spepvars.config (spep.data) or java property spep.data");
+					throw new IllegalArgumentException("Unable to resolve location of spep config and keystores from either local file of WEB-INF/spepvars.config (spep.data) or java property spep.data");
+				}
+			}
+			
+			/* Get the core properties file */
+			FileInputStream propertyInputStream;
+			try
+			{
+				propertyInputStream = new FileInputStream( SPEP_CONFIGURATION_PATH + ConfigurationConstants.SPEP_CONFIG);
+			}
+			catch (FileNotFoundException e1)
+			{
+				throw new IllegalArgumentException(Messages.getString("Initializer.15") + SPEP_CONFIGURATION_PATH  +  ConfigurationConstants.SPEP_CONFIG); //$NON-NLS-1$
+			}
 			
 			Properties properties = new Properties();
 			try
@@ -97,45 +160,42 @@ public class Initializer
 			}
 			
 			// Grab all the configuration data from the properties file.
-			
-			String spepIdentifier = properties.getProperty("spepIdentifier"); //$NON-NLS-1$
-			String esoeIdentifier = properties.getProperty("esoeIdentifier"); //$NON-NLS-1$
-			String metadataUrl = properties.getProperty("metadataUrl"); //$NON-NLS-1$
-			
-			// Path to attribute configuration data
-			String attributeConfigPath = properties.getProperty("attributeConfigPath"); //$NON-NLS-1$
+			String spepIdentifier = resolveProperty(properties, "spepIdentifier"); //$NON-NLS-1$
+			String esoeIdentifier = resolveProperty(properties, "esoeIdentifier"); //$NON-NLS-1$
+			String metadataUrl = resolveProperty(properties, "metadataUrl"); //$NON-NLS-1$
 			
 			// Path, password and aliases for keystore
-			String keystorePath = properties.getProperty("keystorePath"); //$NON-NLS-1$
-			String keystorePassword = properties.getProperty("keystorePassword"); //$NON-NLS-1$
-			String metadataKeyAlias = properties.getProperty("metadataKeyAlias"); //$NON-NLS-1$
-			String spepKeyAlias = properties.getProperty("spepKeyAlias"); //$NON-NLS-1$
-			String spepKeyPassword = properties.getProperty("spepKeyPassword");  //$NON-NLS-1$
+			String keystorePath = resolveProperty(properties, "keystorePath"); //$NON-NLS-1$
+			
+			String keystorePassword = resolveProperty(properties, "keystorePassword"); //$NON-NLS-1$
+			String metadataKeyAlias = resolveProperty(properties, "metadataKeyAlias"); //$NON-NLS-1$
+			String spepKeyAlias = resolveProperty(properties, "spepKeyAlias"); //$NON-NLS-1$
+			String spepKeyPassword = resolveProperty(properties, "spepKeyPassword");  //$NON-NLS-1$
 			
 			// Information line about the server
-			String serverInfo = properties.getProperty("serverInfo");  //$NON-NLS-1$
+			String serverInfo = resolveProperty(properties, "serverInfo");  //$NON-NLS-1$
 			
 			// Node identifier configured in the metadata
-			int nodeID = Integer.parseInt(properties.getProperty("nodeIdentifier"));  //$NON-NLS-1$
+			int nodeID = Integer.parseInt(resolveProperty(properties, "nodeIdentifier"));  //$NON-NLS-1$
 			
 			// Interval on which to refresh the metadata (seconds)
-			int metadataInterval = Integer.parseInt(properties.getProperty("metadataInterval")); //$NON-NLS-1$
+			int metadataInterval = Integer.parseInt(resolveProperty(properties, "metadataInterval")); //$NON-NLS-1$
 			
 			// Allowable time skew for SAML document expiry (seconds)
-			int allowedTimeSkew = Integer.parseInt(properties.getProperty("allowedTimeSkew")); //$NON-NLS-1$
+			int allowedTimeSkew = Integer.parseInt(resolveProperty(properties, "allowedTimeSkew")); //$NON-NLS-1$
 			
 			// Timeout and interval on which to check the session caches.
-			long sessionCacheTimeout = Long.parseLong(properties.getProperty("sessionCacheTimeout")); //$NON-NLS-1$
-			long sessionCacheInterval = Long.parseLong(properties.getProperty("sessionCacheInterval")); //$NON-NLS-1$
+			long sessionCacheTimeout = Long.parseLong(resolveProperty(properties, "sessionCacheTimeout")); //$NON-NLS-1$
+			long sessionCacheInterval = Long.parseLong(resolveProperty(properties, "sessionCacheInterval")); //$NON-NLS-1$
 			
 			// Timeout on data in the identifier cache. Should be longer than SAML document lifetime + time skew allowed
-			long identifierCacheTimeout = Long.parseLong(properties.getProperty("identifierCacheTimeout")); //$NON-NLS-1$
+			long identifierCacheTimeout = Long.parseLong(resolveProperty(properties, "identifierCacheTimeout")); //$NON-NLS-1$
 			
 			// Default policy decision for LAXCML
-			decision defaultPolicyDecision = decision.valueOf(properties.getProperty("defaultPolicyDecision")); //$NON-NLS-1$
+			decision defaultPolicyDecision = decision.valueOf(resolveProperty(properties, "defaultPolicyDecision")); //$NON-NLS-1$
 			
 			// IP Address list for this host
-			String ipAddresses = properties.getProperty("ipAddresses"); //$NON-NLS-1$
+			String ipAddresses = resolveProperty(properties, "ipAddresses"); //$NON-NLS-1$
 			List<String> ipAddressList = new Vector<String>();
 			StringTokenizer ipAddressTokenizer = new StringTokenizer(ipAddresses);
 			while (ipAddressTokenizer.hasMoreTokens())
@@ -144,17 +204,19 @@ public class Initializer
 			}
 			
 			// Cookie and redirect information for authn
-			spep.setTokenName(properties.getProperty("tokenName")); //$NON-NLS-1$
-			spep.setTokenDomain(properties.getProperty("tokenDomain")); //$NON-NLS-1$
-			spep.setLoginRedirect(properties.getProperty("loginRedirect")); //$NON-NLS-1$
+			spep.setTokenName(resolveProperty(properties, "spepTokenName")); //$NON-NLS-1$
+			spep.setEsoeGlobalTokenName(resolveProperty(properties, "commonDomainTokenName"));
+			spep.setServiceHost(resolveProperty(properties, "serviceHost")); //$NON-NLS-1$
+			spep.setSsoRedirect(resolveProperty(properties, "ssoRedirect"));
 			
 			// Default url for users with no unauthenticated session
-			spep.setDefaultUrl(properties.getProperty("defaultUrl")); //$NON-NLS-1$
+			spep.setDefaultURL(resolveProperty(properties, "defaultURL")); //$NON-NLS-1$
 			
 			// List of cookies to clear when an invalid session is encountered.
 			List<Cookie> logoutClearCookies = new Vector<Cookie>();
 			String clearCookiePropertyValue = null;
-			for( int i = 1; (clearCookiePropertyValue = properties.getProperty("logoutClearCookie." + i)) != null; ++i ) //$NON-NLS-1$
+			
+			for( int i = 1; (clearCookiePropertyValue = properties.getProperty("logoutClearCookie." + i )) != null; ++i ) //$NON-NLS-1$
 			{
 				StringTokenizer cookieTokenizer = new StringTokenizer( clearCookiePropertyValue );
 				
@@ -176,10 +238,60 @@ public class Initializer
 				}
 			}
 			
+			// Determine if SPEP is operating is lazy mode
+			spep.setLazyInit(new Boolean(properties.getProperty("lazyInit")).booleanValue());
+			
+			// If its in lazy mode then load up hardInit URL's there are the URLS that will force the SPEP to establish a session for the user
+			if(spep.isLazyInit())
+			{
+				String lazyInitDefaultAction = properties.getProperty("lazyInitDefaultAction");
+				if(lazyInitDefaultAction == null)
+				{
+					logger.fatal("Failed to retrieve lazyInitDefaultAction value");
+					throw new SPEPInitializationException("Failed to retrieve lazyInitDefaultAction value");
+				}
+				
+				if(lazyInitDefaultAction.equals(Initializer.DENY))
+					spep.setLazyInitDefaultAction(SPEP.defaultAction.Deny);
+				else
+					if(lazyInitDefaultAction.equals(Initializer.PERMIT))
+						spep.setLazyInitDefaultAction(SPEP.defaultAction.Permit);
+					else
+					{
+						logger.fatal("Failed to retrieve lazyInitDefaultAction, invalid value must be deny or permit");
+						throw new SPEPInitializationException("Failed to retrieve lazyInitDefaultAction, invalid value must be deny or permit");
+					}
+				
+				List<String> lazyInitResources = new ArrayList<String>();
+				String url;
+				
+				for(int i = 1; (url = properties.getProperty("lazyInit-resource-" + i)) != null; ++i)
+				{
+						lazyInitResources.add(url);
+				}
+				
+				if(lazyInitResources.size() <= 0)
+				{
+					logger.fatal("Failed to retrieve any lazyinit-resource values, at least one URL MUST be specified");
+					throw new SPEPInitializationException("Failed to retrieve any hardInit-URL-[] values, at least one URL MUST be specified");
+				}
+				
+				spep.setLazyInitResources(lazyInitResources);
+			}
+			
 			
 			// Instantiate the input streams for other configuration.
-			InputStream keyStoreInputStream = context.getResourceAsStream(keystorePath);
-			InputStream attributeConfigInputStream = context.getResourceAsStream(attributeConfigPath);
+			InputStream keyStoreInputStream;
+			try
+			{
+				keyStoreInputStream = new FileInputStream(keystorePath);
+			}
+			catch (FileNotFoundException e)
+			{
+				logger.fatal("Failed to open config input stream " + e.getLocalizedMessage());
+				logger.debug(e);
+				throw new SPEPInitializationException("Failed to open config input stream " + e.getLocalizedMessage());
+			}
 			
 			// Initialize the keystore resolver from the stream, and grab the metadata public key.
 			KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(keyStoreInputStream, keystorePassword, spepKeyAlias, spepKeyPassword);
@@ -207,7 +319,7 @@ public class Initializer
 			// Try to create the attribute processor instance
 			try
 			{
-				spep.setAttributeProcessor(new AttributeProcessorImpl(spep.getMetadata(), wsClient, identifierGenerator, samlValidator, attributeConfigInputStream, keyStoreResolver));
+				spep.setAttributeProcessor(new AttributeProcessorImpl(spep.getMetadata(), wsClient, identifierGenerator, samlValidator, keyStoreResolver));
 			}
 			catch (MarshallerException e)
 			{
@@ -228,7 +340,7 @@ public class Initializer
 			// Try to create the authn processor instance
 			try
 			{
-				spep.setAuthnProcessor(new AuthnProcessorImpl(spep.getAttributeProcessor(), spep.getMetadata(), sessionCache, samlValidator, identifierGenerator, keyStoreResolver, nodeID, nodeID));
+				spep.setAuthnProcessor(new AuthnProcessorImpl(spep.getAttributeProcessor(), spep.getMetadata(), sessionCache, samlValidator, identifierGenerator, keyStoreResolver, spep.getServiceHost(), spep.getSsoRedirect(), nodeID, nodeID));
 			}
 			catch (MarshallerException e)
 			{
@@ -238,6 +350,11 @@ public class Initializer
 			catch (UnmarshallerException e)
 			{
 				logger.fatal(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage())); //$NON-NLS-1$
+				throw new SPEPInitializationException(Messages.getString("Initializer.4"), e); //$NON-NLS-1$
+			}
+			catch (MalformedURLException e)
+			{
+				logger.fatal(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage()));
 				throw new SPEPInitializationException(Messages.getString("Initializer.4"), e); //$NON-NLS-1$
 			}
 			

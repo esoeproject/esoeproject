@@ -22,8 +22,6 @@ package com.qut.middleware.esoe.metadata.impl;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +30,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +45,6 @@ import org.w3c.dom.Element;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.MonitorThread;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.metadata.cache.CacheData;
 import com.qut.middleware.esoe.metadata.cache.MetadataCache;
 import com.qut.middleware.esoe.metadata.cache.impl.CacheDataImpl;
@@ -207,14 +205,8 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 		
 		if (!rawMetadata.hashValue.equalsIgnoreCase(this.metadataCache.getCurrentRevision()))
 		{
-			this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("MetadataUpdateMonitor.11"), rawMetadata.hashValue, rawMetadata.data));  //$NON-NLS-1$
-
-			if (!rawMetadata.data.contains("EntitiesDescriptor")) //$NON-NLS-1$
-			{
-				this.logger.error(Messages.getString("MetadataUpdateMonitor.12"));  //$NON-NLS-1$
-				throw new UnsupportedOperationException(Messages.getString("MetadataUpdateMonitor.13")); //$NON-NLS-1$
-			}
-			
+			this.logger.trace(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.11"), rawMetadata.hashValue, rawMetadata.data));  //$NON-NLS-1$
+		
 			try
 			{
 				this.logger.debug(Messages.getString("MetadataUpdateMonitor.14"));  //$NON-NLS-1$
@@ -251,11 +243,10 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 			URL url = new URL(metadataUrl);
 			DigestInputStream digestStream = new DigestInputStream(url.openStream(), messageDigest);
 			BufferedInputStream bufferedStream = new BufferedInputStream(digestStream);
-			Reader reader = new InputStreamReader(bufferedStream, "UTF-16"); //$NON-NLS-1$
 
-			rawMetadata.data = FileCopyUtils.copyToString(reader);
+			rawMetadata.data = FileCopyUtils.copyToByteArray(bufferedStream);
 			
-			this.logger.debug(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.17"), Integer.toString(rawMetadata.data.length())));  //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.17"), Integer.toString(rawMetadata.data.length)));  //$NON-NLS-1$
 			
 			digestBytes = digestStream.getMessageDigest().digest();
 			rawMetadata.hashValue = new String(Hex.encodeHex(digestBytes));
@@ -277,10 +268,11 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 		this.logger.info(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.19"), newRevision));  //$NON-NLS-1$
 		
 		Map<String, String> newAssertionConsumerServices = Collections.synchronizedMap(new HashMap<String,String>());
+		Map<String, List<String>> newAssertionConsumerServiceIdentifierTypes = Collections.synchronizedMap(new HashMap<String, List<String>>());
 		Map<String, List<String>> newSingleLogoutServices = Collections.synchronizedMap(new HashMap<String,List<String>>());
 		Map<String, Map<Integer,String>> newCacheClearServices = Collections.synchronizedMap(new HashMap<String,Map<Integer,String>>());
 
-		buildCacheRecurse(entitiesDescriptor, newAssertionConsumerServices, newSingleLogoutServices, newCacheClearServices);
+		buildCacheRecurse(entitiesDescriptor, newAssertionConsumerServices, newAssertionConsumerServiceIdentifierTypes, newSingleLogoutServices, newCacheClearServices);
 		
 		// create the new cache data 
 		CacheData data = new CacheDataImpl();
@@ -288,6 +280,7 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 		data.setCurrentRevision(newRevision);
 		data.setKeyMap(newKeyMap);
 		data.setAssertionConsumerServices(newAssertionConsumerServices);
+		data.setAssertionConsumerServiceIdentifierTypes(newAssertionConsumerServiceIdentifierTypes);
 		data.setSingleLogoutServices(newSingleLogoutServices);
 		data.setCacheClearServices(newCacheClearServices);
 		
@@ -297,9 +290,9 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 	}
 	
 	
-	private void buildCacheRecurse(EntitiesDescriptor entitiesDescriptor, Map<String, String> newAssertionConsumerServices, Map<String, List<String>> newSingleLogoutServices, Map<String, Map<Integer,String>> newCacheClearServices)
+	private void buildCacheRecurse(EntitiesDescriptor entitiesDescriptor, Map<String, String> newAssertionConsumerServices, Map<String, List<String>> newAssertionConsumerServiceIdentifierTypes, Map<String, List<String>> newSingleLogoutServices, Map<String, Map<Integer,String>> newCacheClearServices)
 	{
-		this.logger.log(InsaneLogLevel.INSANE, Messages.getString("MetadataUpdateMonitor.20")); //$NON-NLS-1$
+		this.logger.trace(Messages.getString("MetadataUpdateMonitor.20")); //$NON-NLS-1$
 
 		List<Object> descriptorList = entitiesDescriptor.getEntitiesDescriptorsAndEntityDescriptors();
 		// Go through the list of descriptors
@@ -309,7 +302,7 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 		{
 			if (descriptor instanceof EntityDescriptor)
 			{
-				this.logger.log(InsaneLogLevel.INSANE, Messages.getString("MetadataUpdateMonitor.21")); //$NON-NLS-1$
+				this.logger.trace(Messages.getString("MetadataUpdateMonitor.21")); //$NON-NLS-1$
 				
 				EntityDescriptor entityDescriptor = (EntityDescriptor) descriptor;
 				List<RoleDescriptorType> roleDescriptorList = entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors();
@@ -320,7 +313,7 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 					// If we have an SPSSODescriptor, populate the caches with the information inside.
 					if (roleDescriptor instanceof SPSSODescriptor)
 					{
-						this.logger.log(InsaneLogLevel.INSANE, Messages.getString("MetadataUpdateMonitor.22")); //$NON-NLS-1$
+						this.logger.trace(Messages.getString("MetadataUpdateMonitor.22")); //$NON-NLS-1$
 						
 						// Assertion consumer services..
 						SPSSODescriptor spSSODescriptor = (SPSSODescriptor) roleDescriptor;
@@ -331,12 +324,20 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 						{
 							String assertionConsumerServiceLocation = assertionConsumerService.getLocation();
 							
-							this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("MetadataUpdateMonitor.23"), assertionConsumerServiceLocation)); //$NON-NLS-1$
+							this.logger.trace(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.23"), assertionConsumerServiceLocation)); //$NON-NLS-1$
 
 							int index = assertionConsumerService.getIndex();
-							String key = generateKey(spSSODescriptor.getID(), index);
+							String key = generateKey(entityDescriptor.getEntityID(), index);
 							
 							newAssertionConsumerServices.put(key, assertionConsumerServiceLocation);
+							
+							List<String> identifiers = new ArrayList<String>();
+							for(String acceptedIdentifier : spSSODescriptor.getNameIDFormats())
+							{
+								identifiers.add(acceptedIdentifier);
+							}
+							
+							newAssertionConsumerServiceIdentifierTypes.put(key, identifiers);
 						}
 
 						// Single logout services..
@@ -348,12 +349,12 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 						{
 							String singleLogoutServiceLocation = singleLogoutService.getLocation();
 							
-							this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("MetadataUpdateMonitor.24"), singleLogoutServiceLocation));  //$NON-NLS-1$
+							this.logger.trace(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.24"), singleLogoutServiceLocation));  //$NON-NLS-1$
 
 							singleLogoutServiceLocationList.add(singleLogoutServiceLocation);
 						}
 						
-						newSingleLogoutServices.put(spSSODescriptor.getID(), singleLogoutServiceLocationList);
+						newSingleLogoutServices.put(entityDescriptor.getEntityID(), singleLogoutServiceLocationList);
 						
 						// Cache clear services..
 						Extensions extensions = spSSODescriptor.getExtensions();
@@ -382,12 +383,12 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 									{
 										String location = cacheClearService.getLocation();
 										cacheClearServiceLocationMap.put( Integer.valueOf( cacheClearService.getIndex() ), location );
-										this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("MetadataUpdateMonitor.25"), location)); //$NON-NLS-1$
+										this.logger.trace(MessageFormat.format(Messages.getString("MetadataUpdateMonitor.25"), location)); //$NON-NLS-1$
 									}
 								}
 							}
 							
-							newCacheClearServices.put(spSSODescriptor.getID(), cacheClearServiceLocationMap);
+							newCacheClearServices.put(entityDescriptor.getEntityID(), cacheClearServiceLocationMap);
 						}
 					}
 				}
@@ -444,7 +445,7 @@ public class MetadataUpdateMonitor extends Thread implements MonitorThread
 		}
 
 		protected String hashValue;
-		protected String data;
+		protected byte[] data;
 	}
 	
 }

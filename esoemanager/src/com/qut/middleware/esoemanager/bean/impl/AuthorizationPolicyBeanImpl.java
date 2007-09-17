@@ -27,7 +27,7 @@ public class AuthorizationPolicyBeanImpl implements AuthorizationPolicyBean
 {
 	boolean modified;
 	Date lastUpdated;
-	String lxacmlPolicy;
+	byte[] lxacmlPolicy;
 	
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.bean.impl.AuthorizationPolicyBean#getLastUpdated()
@@ -46,14 +46,14 @@ public class AuthorizationPolicyBeanImpl implements AuthorizationPolicyBean
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.bean.impl.AuthorizationPolicyBean#getLxacmlPolicy()
 	 */
-	public String getLxacmlPolicy()
+	public byte[] getLxacmlPolicy()
 	{
 		return this.lxacmlPolicy;
 	}
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.bean.impl.AuthorizationPolicyBean#setLxacmlPolicy(java.lang.String)
 	 */
-	public void setLxacmlPolicy(String lxacmlPolicy)
+	public void setLxacmlPolicy(byte[] lxacmlPolicy)
 	{
 		this.lxacmlPolicy = lxacmlPolicy;
 	}

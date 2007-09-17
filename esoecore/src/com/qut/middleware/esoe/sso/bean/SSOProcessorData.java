@@ -33,6 +33,16 @@ public interface SSOProcessorData extends SAMLProcessorData
 	public static String SESSION_NAME = "com.qut.middleware.esoe.sso.bean"; //$NON-NLS-1$
 	
 	/**
+	 * @return The binding used in this request
+	 */
+	public String getSamlBinding();
+	
+	/**
+	 * @param samlBinding
+	 */
+	public void setSamlBinding(String samlBinding);
+	
+	/**
 	 * @return the current unmarshalled AuthnRequest
 	 */
 	public AuthnRequest getAuthnRequest();
@@ -43,9 +53,59 @@ public interface SSOProcessorData extends SAMLProcessorData
 	public void setAuthnRequest(AuthnRequest authnRequest);
 	
 	/**
-	 * @return the descriptor ID of the communicating SPEP
+	 * @return the relay stae of the request
 	 */
-	public String getDescriptorID();
+	public String getRelayState();
+	
+	/**
+	 * @param relayState
+	 */
+	public void setRelayState(String relayState);
+	
+	/**
+	 * @return the SAML Encoding in use
+	 */
+	public String getSamlEncoding();
+	
+	/**
+	 * @param samlEncoding
+	 */
+	public void setSamlEncoding(String samlEncoding);
+	
+	/**
+	 * @return The value to set in the domain cookie
+	 */
+	public String getSamlDomainCookieData();
+	
+	/**
+	 * @param samlDomainCookieData
+	 */
+	public void setSamlDomainCookieData(String samlDomainCookieData);
+	
+	/**
+	 * @return The algorithm used to create the signature for HTTP Redirect binding
+	 */
+	public String getSigAlg();
+	
+	/**
+	 * @param sigAlg
+	 */
+	public void setSigAlg(String sigAlg);
+	
+	/*
+	 * @return The signature of the request for HTTP Redirect binding
+	 */
+	public String getSignature();
+	
+	/**
+	 * @param sigAlg
+	 */
+	public void setSignature(String signature);
+	
+	/**
+	 * @return the issuer ID of the communicating SPEP
+	 */
+	public String getIssuerID();
 
 	/**
 	 * @return the current http request object
@@ -83,10 +143,10 @@ public interface SSOProcessorData extends SAMLProcessorData
 	public boolean isReturningRequest();
 
 	/**
-	 * Sets the descriptorID
-	 * @param descriptorID The descriptor ID
+	 * Sets the issuerID
+	 * @param issuerID The issuer ID
 	 */
-	public void setDescriptorID(String descriptorID);
+	public void setIssuerID(String issuerID);
 
 	/**
 	 * Sets the httpRequest
@@ -139,5 +199,23 @@ public interface SSOProcessorData extends SAMLProcessorData
 	 * 
 	 */
 	public void setLogoutStates(List<SSOLogoutState> logoutStates);
+	
+	/**
+	 * @return The charset used by the caller
+	 */
+	public String getRequestCharsetName();
+	
+	/**
+	 * @param name
+	 */
+	public void setRequestCharsetName(String name);
+	
+	public String getCommonCookieValue();
+	
+	public void setCommonCookieValue(String commonCookieValue);
+	
+	public List<String> getValidIdentifiers();
+	
+	public void setValidIdentifiers(List<String> validIdentifiers);
 	
 }

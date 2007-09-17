@@ -25,7 +25,7 @@ import com.qut.middleware.esoemanager.guard.PolicyGuard;
 public class NonInvasivePolicyGuardImpl implements PolicyGuard
 {
 
-	public void validatePolicy(String submittedPolicy) throws PolicyGuardException
+	public void validatePolicy(byte[] submittedPolicy) throws PolicyGuardException
 	{
 		/* This policy guard just accepts everything, we'll demonstrate more advanced 
 		 * policy guards over the coming weeks

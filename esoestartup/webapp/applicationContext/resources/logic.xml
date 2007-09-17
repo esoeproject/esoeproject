@@ -23,7 +23,7 @@
 		Purpose: Defines spring integration for
 		====================================================================== -->
 
-	<bean name="esoeDAO" class="com.qut.middleware.esoestartup.esoe.sqlmap.impl.ESOEDAOImpl">
+	<bean name="esoeDAO" class="com.qut.middleware.esoestartup.sqlmap.impl.ESOEDAOImpl">
 		<property name="sqlMapClient" ref="sqlMapClient" />
 	</bean>
 
@@ -45,23 +45,9 @@
 		<constructor-arg index="2" ref="identifierGenerator" />
 		<constructor-arg index="3" ref="esoeDAO" />
 		<constructor-arg index="4" ref="ibatisDataSource" />
-		<constructor-arg index="5">
-			<map>
-				<entry>
-					<key>
-						<value>${registeresoelogic.mysql}</value>
-					</key>
-					<value>${registeresoelogic.mysql.file}</value>
-				</entry>
-				<entry>
-					<key>
-						<value>${registeresoelogic.oracle}</value>
-					</key>
-					<value>${registeresoelogic.oracle.file}</value>
-				</entry>
-			</map>
-		</constructor-arg>
-		<constructor-arg index="6" type="java.io.File" value="${registeresoelogic.defaultPolicy}" />
+		<constructor-arg index="5" type="java.io.File" value="${registeresoelogic.defaultPolicy}" />
+		<constructor-arg index="6" type="java.io.File" value="${registeresoelogic.defaultManagementPolicy}" />
+		<constructor-arg index="7" type="java.io.File" value="${registeresoelogic.defaultAttributePolicy}" />
 	</bean>
 
 </beans>

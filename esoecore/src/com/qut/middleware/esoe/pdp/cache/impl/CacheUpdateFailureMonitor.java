@@ -24,14 +24,12 @@ import java.security.PrivateKey;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.MonitorThread;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
 import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor;
@@ -134,7 +132,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.MAR_PKGNAMES, schemas, this.keyName, this.key);
 		this.clearAuthzCacheRequestUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheRequest>(this.UNMAR_PKGNAMES2, schemas, this.metadata);
 		
-		this.setName("CacheUpdate failure Monitor {" + new Integer(new Random().nextInt()) + "}");  //$NON-NLS-1$ //$NON-NLS-2$
+		this.setName("CacheUpdate failure Monitor");  //$NON-NLS-1$
 
 		this.logger.info(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitorImpl.16"), maxFailureAge, retryInterval) );  //$NON-NLS-1$
 
@@ -185,9 +183,9 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 	 * 
 	 * @return the result of the attempted send.
 	 */
-	private result sendCacheUpdate(String authzClearCacheRequest, String endPoint)
+	private result sendCacheUpdate(byte[] authzClearCacheRequest, String endPoint)
 	{
-		String responseDocument;
+		byte[] responseDocument;
 
 		try
 		{
@@ -225,28 +223,28 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		catch (SignatureValueException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitorImpl.7")); //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.INSANE, e.getLocalizedMessage(), e);
+			this.logger.debug(e.getLocalizedMessage(), e);
 
 			return result.Failure;
 		}
 		catch (ReferenceValueException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitorImpl.8")); //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.INSANE, e.getLocalizedMessage(), e);
+			this.logger.debug( e.getLocalizedMessage(), e);
 
 			return result.Failure;
 		}
 		catch (UnmarshallerException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitorImpl.9")); //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.INSANE, e.getLocalizedMessage(), e);
+			this.logger.debug( e.getLocalizedMessage(), e);
 
 			return result.Failure;
 		}
 		catch (WSClientException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitorImpl.10") + endPoint); //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.INSANE, e.getLocalizedMessage(), e);
+			this.logger.debug( e.getLocalizedMessage(), e);
 
 			return result.Failure;
 		}
@@ -271,16 +269,15 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		{
 			FailedAuthzCacheUpdate failure = iter.next();
 
+			// make sure the failure is valid before processing
 			if(failure != null)
 			{			
-				// make sure the failure is valid before processing
-				
 				// don't leave requests with no timestamp in repo coz they will stay in there forever
 				Date failureDate = failure.getTimeStamp();
 				if(failureDate == null)
 				{
 					this.logger.warn(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitor.13") , failure.getEndPoint()) );  //$NON-NLS-1$
-					iter.remove();
+					this.updateFailures.remove(failure);
 					continue;
 				}
 				
@@ -288,22 +285,22 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 				if(failure.getRequestDocument() == null)
 				{
 					this.logger.warn(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitor.14") , failure.getEndPoint()) );  //$NON-NLS-1$
-					iter.remove();		
+					this.updateFailures.remove(failure);	
 					continue;
 				}
 				
-				// make sure endpoint has been set
+				// make sure end point has been set
 				if(failure.getEndPoint() == null)
 				{
 					this.logger.warn(Messages.getString("CacheUpdateFailureMonitor.15"));  //$NON-NLS-1$
-					iter.remove();	
+					this.updateFailures.remove(failure);	
 					continue;
 				}
 				
 				// we have to regenerate the original request with updated timestamps and sigs before sending
 				// because the allowed time skew will more than likely have expired.
 				
-				String newDocument = this.regenerateDocument(failure.getRequestDocument());
+				byte[] newDocument = this.regenerateDocument(failure.getRequestDocument());
 				
 				if(newDocument != null)
 				{
@@ -320,7 +317,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 				if (result == PolicyCacheProcessor.result.Success)
 				{
 					this.logger.info(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitorImpl.11"), failure.getEndPoint()) ); //$NON-NLS-1$
-					iter.remove();
+					this.updateFailures.remove(failure);	
 				}
 				else
 				// see if it's time to expire the record
@@ -335,7 +332,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 					if (age > this.maxFailureAge)
 					{
 						this.logger.info(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitorImpl.12"), failure.getEndPoint()) ); //$NON-NLS-1$
-						iter.remove();
+						this.updateFailures.remove(failure);	
 					}
 				}
 			}
@@ -346,14 +343,14 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 
 	
 	/* Modifies the given string representation of the ClearAuthzCacheRequest with updated timestamps
-	 * SAML ID's and signatures. If an error occurs diring the process, null is returned.
+	 * SAML ID's and signatures. If an error occurs during the process, null is returned.
 	 * 
 	 */
-	private String regenerateDocument(String oldDocument)
+	private byte[] regenerateDocument(byte[] oldDocument)
 	{
-		this.logger.log(InsaneLogLevel.INSANE, Messages.getString("CacheUpdateFailureMonitor.8")); //$NON-NLS-1$
+		this.logger.debug( Messages.getString("CacheUpdateFailureMonitor.8")); //$NON-NLS-1$
 		
-		String newDoc = null;
+		byte[] newDoc = null;
 		ClearAuthzCacheRequest request = null;
 		
 		// unmarshall the original failure request for modification

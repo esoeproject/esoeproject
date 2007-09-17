@@ -1,5 +1,7 @@
 package com.qut.middleware.delegator.shib;
 
+import java.io.File;
+
 /** */
 @SuppressWarnings("nls")
 public class ConfigurationConstants
@@ -37,7 +39,7 @@ public class ConfigurationConstants
 	public static final String timeZone = "UTC";
 
 	/** Spring IoC Integration */
-	public static final String DELEGATOR_CONFIG = "/WEB-INF/shibdelegator.config";
+	public static final String DELEGATOR_CONFIG = File.separatorChar + "config" + File.separatorChar + "shibdelegator.config";
 	public static final String AUTHN_PROCESSOR = "authnProcessor";
 	public static final String AUTHN_AUTHORITY_PROCESSOR = "authnAuthorityProcessor";
 	public static final String SESSION_TOKEN_NAME = "sessionTokenName";

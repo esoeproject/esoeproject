@@ -27,15 +27,15 @@
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="lib/dev/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 
 	<target name="dev-publish">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
 		<ivy:publish resolver="local-resolver" forcedeliver="true">
-			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
 		</ivy:publish>
 	</target>
 		
@@ -57,10 +57,13 @@
 	</target>
 
 	<target name="dev-build" depends="setup" description="Compiles ESOE crypto code base">
-		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -103,7 +106,7 @@
 
 	<target name="junit-regression-build" depends="dev-jar"
 		description="Compiles ESOE crypto regression tests code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}"
+		<javac destdir="${output.test.regression.build}"
 			srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
@@ -160,7 +163,7 @@
 
 	<target name="junit-functional-build" depends="dev-jar"
 		description="Compiles ESOE crypto functional test code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}"
+		<javac destdir="${output.test.functional.build}"
 			srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">

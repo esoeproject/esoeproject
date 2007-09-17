@@ -28,6 +28,6 @@ public interface RetrieveServiceKeyStoreDetailsLogic
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.logic.impl.RetrieveServiceNodes#execute(java.lang.String)
 	 */
-	public abstract KeyStoreDetailsBean execute(String descriptorID) throws RetrieveServiceKeyStoreException;
+	public abstract KeyStoreDetailsBean execute(Integer descID) throws RetrieveServiceKeyStoreException;
 
 }

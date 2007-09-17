@@ -24,26 +24,26 @@ import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 
 public class DelegatedAuthenticationDataImpl implements DelegatedAuthenticationData
 {
-	private String requestDocument;
-	private String responseDocument;
+	private byte[] requestDocument;
+	private byte[] responseDocument;
 	private RegisterPrincipalRequest registerPrincipalRequest;
 	
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.requestDocument;
 	}
 
-	public String getResponseDocument()
+	public byte[] getResponseDocument()
 	{
 		return this.responseDocument;
 	}
 
-	public void setRequestDocument(String requestDocument)
+	public void setRequestDocument(byte[] requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}
 
-	public void setResponseDocument(String responseDocument)
+	public void setResponseDocument(byte[] responseDocument)
 	{
 		this.responseDocument = responseDocument;
 	}

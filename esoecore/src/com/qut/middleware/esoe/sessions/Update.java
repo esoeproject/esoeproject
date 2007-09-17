@@ -46,11 +46,11 @@ public interface Update
 	 * 
 	 * @param sessionID
 	 *            The principal's session identifier.
-	 * @param descriptorID
+	 * @param entityID
 	 *            The SPEP identifier to store.
 	 * @throws InvalidSessionIdentifierException
 	 */
-	public void updateDescriptorList(String sessionID, String descriptorID) throws InvalidSessionIdentifierException;
+	public void updateDescriptorList(String sessionID, String entityID) throws InvalidSessionIdentifierException;
 
 	/**
 	 * This method takes a session identifier, descriptor identifier and SAML session index and stores the value in the
@@ -58,14 +58,14 @@ public interface Update
 	 * 
 	 * @param sessionID
 	 *             The principal's session identifier.
-	 * @param descriptorID
+	 * @param entityID
 	 *            The descriptor identifier
 	 * @param descriptorSessionID
 	 *            The session index to store
 	 * @throws InvalidSessionIdentifierException
 	 * @throws InvalidDescriptorIdentifierException
 	 */
-	public void updateDescriptorSessionIdentifierList(String sessionID, String descriptorID, String descriptorSessionID)
+	public void updateDescriptorSessionIdentifierList(String sessionID, String entityID, String descriptorSessionID)
 			throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException;
 	
 	/**

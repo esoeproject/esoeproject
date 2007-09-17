@@ -143,7 +143,7 @@ public class LogoutFailureMonitorTest {
 		failures.add(failure2);
 	
 		// return a success response when the singleLogout call is made
-		expect(webServiceClient.singleLogout((String)notNull(), (String)notNull())).andReturn(this.generateSuccessLogoutResponse(authnID2)).once();
+		expect(webServiceClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(this.generateSuccessLogoutResponse(authnID2)).once();
 		replay(webServiceClient);
 	
 		this.monitor = new FailedLogoutMonitor(failures, samlValidator, metadata, this.keyStoreResolver, this.idGenerator, webServiceClient, retryInterval, maxAge);		
@@ -201,7 +201,7 @@ public class LogoutFailureMonitorTest {
 		failures.add(failure3);
 		
 		// return a failure (invalid) response when the singleLogout call is made. 
-		expect(webServiceClient.singleLogout((String)notNull(), (String)notNull())).andReturn(this.generateFailedLogoutResponse(authnID2)).atLeastOnce();
+		expect(webServiceClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(this.generateFailedLogoutResponse(authnID2)).atLeastOnce();
 		replay(webServiceClient);
 	
 		this.monitor = new FailedLogoutMonitor(failures, samlValidator, metadata, this.keyStoreResolver, this.idGenerator, webServiceClient, retryInterval, maxAge);		
@@ -244,10 +244,10 @@ public class LogoutFailureMonitorTest {
 	 * Generate the Logout Response to be sent back to the ESOE.
 	 * 
 	 */
-	private String generateSuccessLogoutResponse(String inResponseTo)
+	private byte[] generateSuccessLogoutResponse(String inResponseTo)
 			throws MarshallerException
 	{		
-		String responseDocument = null;
+		byte[] responseDocument = null;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue("some.spep.identifier");
@@ -294,9 +294,9 @@ public class LogoutFailureMonitorTest {
 	 * Generate the Logout Response to be sent back to the ESOE.
 	 * 
 	 */
-	private String generateFailedLogoutResponse(String inResponseTo) throws MarshallerException
+	private byte[] generateFailedLogoutResponse(String inResponseTo) throws MarshallerException
 	{		
-		String responseDocument = null;
+		byte[] responseDocument = null;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue("some.spep.identifier");
@@ -381,9 +381,9 @@ public class LogoutFailureMonitorTest {
 		this.monitor = new FailedLogoutMonitor(failures, samlValidator, metadata, keyStoreResolver, new IdentifierGeneratorImpl(new IdentifierCacheImpl()), webServiceClient,  retryInterval, -933);		
 	}
 	
-	private String generateLogoutRequest(String samlAuthnID) throws MarshallerException
+	private byte[] generateLogoutRequest(String samlAuthnID) throws MarshallerException
 	{
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		LogoutRequest request = new LogoutRequest();
 				
 		NameIDType subject = new NameIDType();

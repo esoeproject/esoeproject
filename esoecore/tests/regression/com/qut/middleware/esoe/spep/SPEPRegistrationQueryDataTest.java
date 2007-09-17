@@ -23,7 +23,7 @@ public class SPEPRegistrationQueryDataTest {
 	@Test
 	public void testGetDescriptorID()
 	{
-		this.data.setDescriptorID(this.descID);
+		this.data.setEntID(this.descID);
 		
 		assertEquals(this.descID, this.data.getDescriptorID());
 	}

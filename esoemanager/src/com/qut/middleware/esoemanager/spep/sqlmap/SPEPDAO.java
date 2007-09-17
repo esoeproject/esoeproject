@@ -27,62 +27,89 @@ import com.qut.middleware.esoemanager.exception.SPEPDAOException;
 
 public interface SPEPDAO
 {
+	/* Data repository select operations */
+	/**
+	 * Selects the next sequence value as controlled by the repository for entID, this is a data repository specific value which can be used as a mapping between entries in SAML metadata (entity) and backend store rows
+	 * @return The next ID which can be subsequently used to insert a new record into ENTITY_DESCRIPTORS
+	 * @throws ESOEDAOException
+	 */
+	public Integer getNextEntID() throws SPEPDAOException;
+
+	/**
+	 * Selects the next sequence value as controlled by the repository for descID, this is a data repository specific value which can be used as a mapping between entries in SAML metadata (descriptors) and backend store rows
+	 * @return The next ID which can be subsequently used to insert a new record into DESCRIPTORS
+	 * @throws ESOEDAOException
+	 */
+	public Integer getNextDescID() throws SPEPDAOException;
+	
+	/**
+	 * Returns the entID mapping from the data repository for a given entityID
+	 * @param entityID As configured in metadata
+	 * @return The value for entID for use in future queries with the data repository
+	 * @throws SPEPDAOException
+	 */
+	public Integer getEntID(String entityID) throws SPEPDAOException;
+	
 	/* Data repository query operations */
-	public List<Map<String, Object>> queryKeystoreBinary(String descriptorID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryKeystoreBinary(Integer descID) throws SPEPDAOException;
 
-	public List<String> queryActiveServices() throws SPEPDAOException;
+	public List<Integer> queryActiveServices() throws SPEPDAOException;
 	
-	public List<Map<String, String>> queryServiceDetails(String entityID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryServiceDetails(Integer entID) throws SPEPDAOException;
 
-	public List<Map<String, String>> queryServiceContacts(String entityID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryServiceContacts(Integer entID) throws SPEPDAOException;
 
-	public List<Map<String, String>> queryServiceDescriptor(String entityID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryServiceDescriptor(Integer entID) throws SPEPDAOException;
 
-	public List<Map<String, String>> queryServiceDescription(String entityID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryServiceDescription(Integer entID) throws SPEPDAOException;
 	
-	public List<Map<String, String>> queryServiceNodes(String descriptorID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryServiceNodes(Integer descID) throws SPEPDAOException;
 	
-	public List<Map<String, Object>> queryKeyStoreDetails(String descriptorID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryKeyStoreDetails(Integer descID) throws SPEPDAOException;
 	
-	public List<Map<String, Object>> queryActiveAuthorizationPolicy(String descriptorID) throws SPEPDAOException;
+	public List<Map<String, Object>> queryActiveAuthorizationPolicy(Integer entID) throws SPEPDAOException;
+	
+	public List<Map<String, byte[]>> queryActiveAttributePolicy(Integer entID) throws SPEPDAOException;
 
 	/* Data repository insert operations */
-	public void insertEntityDescriptor(String entityID, String organizationName,
+	public void insertEntityDescriptor(Integer entID, String entityID, String organizationName,
 			String organizationDisplayName, String organizationURL, String activeFlag)
 			throws SPEPDAOException;
 
-	public void insertServiceDescription(String entityID, String serviceName, String serviceURL,
+	public void insertServiceDescription(Integer entID, String serviceName, String serviceURL,
 			String serviceDescription, String serviceAuthzFailureMsg) throws SPEPDAOException;
 
-	public void insertServiceContacts(String entityID, String contactID, String contactType, String company, String givenName,
+	public void insertServiceContacts(Integer entID, String contactID, String contactType, String company, String givenName,
 			String surname, String emailAddress, String telephoneNumber) throws SPEPDAOException;
 
-	public void insertDescriptor(String entityID, String descriptorID, String descriptorXML,
+	public void insertDescriptor(Integer entID, Integer descID, String descriptorID, byte[] descriptorXML,
 			String descriptorTypeID) throws SPEPDAOException;
+	
+	public void insertPublicKey(Integer DESC_IC, Date expiryDate, String keyPairName, byte[] publicKey)  throws SPEPDAOException;
 
-	public void insertPKIData(String descriptorID, Date expiryDate, byte[] keyStore, String keyStorePassphrase,
+	public void insertPKIData(Integer descID,Date expiryDate, byte[] keyStore, String keyStorePassphrase,
 			String keyPairName, String keyPairPassphrase) throws SPEPDAOException;
 
-	public void insertServiceNode(String endpointID, String descriptorID, String nodeURL,
+	public void insertServiceNode(String endpointID, Integer descID, String nodeURL,
 			String assertionConsumerEndpoint, String singleLogoutEndpoint, String cacheClearEndpoint)
 			throws SPEPDAOException;
 	
-	public void insertServiceAuthorizationPolicy(String descriptorID, String lxacmlPolicy, Date updateTime) throws SPEPDAOException;
+	public void insertServiceAuthorizationPolicy(Integer entID, String policyID, byte[] lxacmlPolicy) throws SPEPDAOException;
 	
-	public void insertServiceAuthorizationHistoricalPolicy(String descriptorID, String lxacmlPolicy, Date insertTime) throws SPEPDAOException;
-	
-	public void insertServiceAuthorizationShuntedPolicy(String descriptorID, String lxacmlPolicy, Date insertTime) throws SPEPDAOException;
+	public void insertServiceAuthorizationShuntedPolicy(Integer entID, byte[] lxacmlPolicy, Date insertTime) throws SPEPDAOException;
 	
 	/* Data repository update operations */
-	public void updateServiceContact(String entityID, String contactID, String contactType, String company, String givenName,
+	public void updateServiceContact(Integer entID, String contactID, String contactType, String company, String givenName,
 			String surname, String emailAddress, String telephoneNumber) throws SPEPDAOException;
 	
-	public void updateServiceActiveState(String entityID, String state) throws SPEPDAOException;
+	public void updateServiceActiveState(Integer entID, String state) throws SPEPDAOException;
 	
-	public void updateServiceDescription(String entityID, String serviceName, String serviceURL, String serviceDescription, String serviceAuthzFailureMsg) throws SPEPDAOException;
+	public void updateServiceDescription(Integer entID, String serviceName, String serviceURL, String serviceDescription, String serviceAuthzFailureMsg) throws SPEPDAOException;
 	
-	public void updateServiceAuthorizationPolicy(String descriptorID, String lxacmlPolicy, Date updateTime) throws SPEPDAOException;
+	public void updateServiceAuthorizationPolicy(Integer entID, String policyID, byte[] lxacmlPolicy) throws SPEPDAOException;
+	
+	public void updateActiveAttributePolicy(Integer entID, byte[] attributePolicy) throws SPEPDAOException;
 	
 	/* Data repository delete operations */
-	public void deleteServiceContact(String entityID, String contactID) throws SPEPDAOException;
+	public void deleteServiceContact(Integer entID, String contactID) throws SPEPDAOException;
 }

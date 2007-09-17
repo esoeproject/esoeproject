@@ -27,8 +27,7 @@ public interface RegisterServiceLogic
 	/**
 	 * Creates a new service in the authentication system
 	 * @param bean Populated Service bean with all details of new service
-	 * @return The serviceID (entityID) of the service that has been created
 	 * @throws RegisterServiceException
 	 */
-	public String execute(ServiceBean bean)  throws RegisterServiceException;
+	public void execute(ServiceBean bean)  throws RegisterServiceException;
 }

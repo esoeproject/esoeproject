@@ -17,6 +17,8 @@
  */
 package com.qut.middleware.esoemanager.pages;
 
+import java.io.UnsupportedEncodingException;
+
 import net.sf.click.control.Submit;
 
 import com.qut.middleware.esoemanager.bean.AuthorizationPolicyBean;
@@ -30,8 +32,8 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 	ConfigureServiceAuthorizationPolicyLogic logic;
 	
 	/* entityID and serviceID are supplied by name=value attribute pairs on the request */
-	public String entityID;
-	public String serviceID;
+	public String eid;
+	public String did;
 	
 	public PolicyForm policyForm;
 	public boolean validPolicy;
@@ -59,18 +61,23 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 	@Override
 	public void onGet()
 	{
-		if (this.entityID != null && this.serviceID != null)
+		if (this.eid != null && this.did != null)
 		{
 			try
 			{
-				AuthorizationPolicyBean authorizationPolicy = this.logic.getActiveServiceAuthorizationPolicy(this.serviceID);
-				this.policyForm.getField(PageConstants.LXACML_POLICY).setValue(authorizationPolicy.getLxacmlPolicy());
-				this.policyForm.getField(PageConstants.ENTITYID).setValue(this.entityID);
-				this.policyForm.getField(PageConstants.DESCRIPTORID).setValue(this.serviceID);
+				AuthorizationPolicyBean authorizationPolicy = this.logic.getActiveServiceAuthorizationPolicy(new Integer(this.eid));
+				this.policyForm.getField(PageConstants.LXACML_POLICY).setValue(new String(authorizationPolicy.getLxacmlPolicy(), "UTF-16"));
+				this.policyForm.getField(PageConstants.EID).setValue(this.eid);
+				this.policyForm.getField(PageConstants.DID).setValue(this.did);
 			}
 			catch (ServiceAuthorizationPolicyException e)
 			{
 				// TODO: Error page
+			}
+			catch (UnsupportedEncodingException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		else
@@ -81,14 +88,14 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 	
 	public boolean completeClick()
 	{
-		this.entityID = this.policyForm.getFieldValue(PageConstants.ENTITYID);
-		this.serviceID = this.policyForm.getFieldValue(PageConstants.DESCRIPTORID);
+		this.eid = this.policyForm.getFieldValue(PageConstants.EID);
+		this.did = this.policyForm.getFieldValue(PageConstants.DID);
 		
 		if(this.policyForm.isValid())
 		{
 			try
 			{
-				this.logic.updateServiceAuthorizationPolicy(this.policyForm.getFieldValue(PageConstants.DESCRIPTORID), this.policyForm.getFieldValue(PageConstants.LXACML_POLICY));
+				this.logic.updateServiceAuthorizationPolicy(new Integer(this.policyForm.getFieldValue(PageConstants.EID)), this.policyForm.getFieldValue(PageConstants.LXACML_POLICY).getBytes("UTF-16"));
 			}
 			catch (PolicyGuardException e)
 			{
@@ -96,6 +103,12 @@ public class ConfigureServiceAuthorizationPolicyPage extends BorderPage
 				return true;
 			}
 			catch (ServiceAuthorizationPolicyException e)
+			{
+				this.validPolicy = false;
+				this.errorMessage = e.getLocalizedMessage();
+				return true;
+			}
+			catch (UnsupportedEncodingException e)
 			{
 				this.validPolicy = false;
 				this.errorMessage = e.getLocalizedMessage();

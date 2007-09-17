@@ -218,7 +218,7 @@ public class MetadataTest {
 	{
 		replay(this.testcache);
 		
-		assertEquals(this.esoeID, this.metadata.getESOEIdentifier());
+		assertEquals(this.esoeID, this.metadata.getEsoeEntityID());
 		
 	
 	}

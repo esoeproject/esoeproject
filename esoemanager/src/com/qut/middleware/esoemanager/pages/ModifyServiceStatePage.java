@@ -26,7 +26,7 @@ public class ModifyServiceStatePage extends BorderPage
 {
 	ModifyServiceStateLogic logic;
 
-	public String entityID;
+	public String eid;
 	public String state;
 	public String confirm;
 
@@ -35,7 +35,7 @@ public class ModifyServiceStatePage extends BorderPage
 
 	public ModifyServiceStatePage()
 	{
-		this.entityID = null;
+		this.eid = null;
 		this.state = null;
 		this.confirm = null;
 	}
@@ -53,7 +53,7 @@ public class ModifyServiceStatePage extends BorderPage
 	@Override
 	public void onGet()
 	{
-		if(this.entityID != null && this.state != null && ( this.state.equals(PageConstants.SERVICE_ACTIVE) || this.state.equals(PageConstants.SERVICE_INACTIVE)))
+		if(this.eid != null && this.state != null && ( this.state.equals(PageConstants.SERVICE_ACTIVE) || this.state.equals(PageConstants.SERVICE_INACTIVE)))
 		{
 			/* Determine if the user has confirmed this action */
 			if(this.confirm != null && this.confirm.equals(PageConstants.CONFIRMED))
@@ -62,7 +62,7 @@ public class ModifyServiceStatePage extends BorderPage
 				{
 					try
 					{
-						this.logic.setActive(this.entityID);
+						this.logic.setActive(new Integer(this.eid));
 					}
 					catch (ModifyServiceStateException e)
 					{
@@ -76,7 +76,7 @@ public class ModifyServiceStatePage extends BorderPage
 				{
 					try
 					{
-						this.logic.setInActive(entityID);
+						this.logic.setInActive(new Integer(eid));
 					}
 					catch (ModifyServiceStateException e)
 					{

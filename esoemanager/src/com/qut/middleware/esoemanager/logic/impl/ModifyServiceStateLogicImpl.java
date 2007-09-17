@@ -19,6 +19,7 @@
  */
 package com.qut.middleware.esoemanager.logic.impl;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.Constants;
@@ -45,14 +46,11 @@ public class ModifyServiceStateLogicImpl implements ModifyServiceStateLogic
 		this.spepDAO = spepDAO;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.logic.impl.ModifyServiceStateLogic#setActive(java.lang.String)
-	 */
-	public void setActive(String entityID) throws ModifyServiceStateException
+	public void setActive(Integer entID) throws ModifyServiceStateException
 	{
 		try
 		{
-			this.spepDAO.updateServiceActiveState(entityID, Constants.SERVICE_ACTIVE);
+			this.spepDAO.updateServiceActiveState(entID, Constants.SERVICE_ACTIVE);
 		}
 		catch (SPEPDAOException e)
 		{
@@ -61,14 +59,11 @@ public class ModifyServiceStateLogicImpl implements ModifyServiceStateLogic
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.logic.impl.ModifyServiceStateLogic#setInActive(java.lang.String)
-	 */
-	public void setInActive(String entityID) throws ModifyServiceStateException
+	public void setInActive(Integer entID) throws ModifyServiceStateException
 	{
 		try
 		{
-			this.spepDAO.updateServiceActiveState(entityID, Constants.SERVICE_INACTIVE);
+			this.spepDAO.updateServiceActiveState(entID, Constants.SERVICE_INACTIVE);
 		}
 		catch (SPEPDAOException e)
 		{

@@ -15,6 +15,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Vector;
 
+import javax.xml.bind.JAXBElement;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
@@ -43,13 +45,13 @@ import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
-import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
 import com.qut.middleware.saml2.schemas.assertion.NameIDType;
-import com.qut.middleware.saml2.schemas.protocol.Response;
+import com.qut.middleware.saml2.schemas.protocol.LogoutResponse;
 import com.qut.middleware.saml2.schemas.protocol.Status;
 import com.qut.middleware.saml2.schemas.protocol.StatusCode;
+import com.qut.middleware.saml2.schemas.protocol.StatusResponseType;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
@@ -70,7 +72,7 @@ public class LogoutAuthorityProcessorTest
 	private String validSessionIdentifier = "83uihas7983y2r2r2r";
 	private WSClient wsClient;
 	private Query query;
-	private Marshaller<Response> logoutResponseMarshaller;
+	private Marshaller<JAXBElement<StatusResponseType>> logoutResponseMarshaller;
 	private String[] logoutSchemas;
 	
 	List<String> testEntities;
@@ -117,7 +119,7 @@ public class LogoutAuthorityProcessorTest
 		KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 
 		this.logoutSchemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion };
-		this.logoutResponseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.logoutResponseMarshaller = new MarshallerImpl<JAXBElement<StatusResponseType>>(StatusResponseType.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
 
 		List<String> testIndicies = new Vector<String>();
 		testIndicies.add("test1-index");
@@ -133,7 +135,7 @@ public class LogoutAuthorityProcessorTest
 		expect(sessionsProcessor.getQuery()).andReturn(query).anyTimes();
 		expect(sessionsProcessor.getTerminate()).andReturn(terminator).anyTimes();
 		expect(metadata.resolveSingleLogoutService((String) notNull())).andReturn(this.testEndpoints).anyTimes();
-		expect(metadata.getESOEIdentifier()).andReturn("12345-12345").anyTimes();
+		expect(metadata.getEsoeEntityID()).andReturn("12345-12345").anyTimes();
 		expect(metadata.resolveKey("esoeprimary")).andReturn(keyStoreResolver.getPublicKey()).anyTimes();
 
 		this.logoutAuthorityProcessor = new LogoutAuthorityProcessor(failedLogouts, samlValidator, sessionsProcessor, metadata, new IdentifierGeneratorImpl(new IdentifierCacheImpl()), keyStoreResolver, wsClient);
@@ -171,8 +173,8 @@ public class LogoutAuthorityProcessorTest
 	{	
 		try
 		{
-			String responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
-			expect(wsClient.singleLogout((String)notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
+			byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
+			expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
 			data.setSessionID(this.validSessionIdentifier);
 			this.terminator.terminateSession((String)anyObject());
 			expectLastCall().anyTimes();
@@ -221,8 +223,8 @@ public class LogoutAuthorityProcessorTest
 	{	
 		try
 		{
-			String responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
-			expect(wsClient.singleLogout((String)notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
+			byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
+			expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
 			data.setSessionID(this.validSessionIdentifier);
 			this.terminator.terminateSession((String)anyObject());
 			expectLastCall().anyTimes();
@@ -300,10 +302,10 @@ public class LogoutAuthorityProcessorTest
 
 	
 	
-	private String generateLogoutResponse(String statusCodeValue, String statusMessage, String inResponseTo)
+	private byte[] generateLogoutResponse(String statusCodeValue, String statusMessage, String inResponseTo)
 			throws MarshallerException
 	{
-		String responseDocument = null;
+		byte[] responseDocument = null;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue("_1234-spep");
@@ -314,7 +316,7 @@ public class LogoutAuthorityProcessorTest
 		status.setStatusCode(statusCode);
 		status.setStatusMessage(statusMessage);
 
-		Response response = new Response();
+		StatusResponseType response = new StatusResponseType();
 		response.setID("_resp12-123445");
 		response.setInResponseTo(inResponseTo);
 		response.setIssueInstant(new XMLGregorianCalendarImpl(new GregorianCalendar()));
@@ -322,8 +324,10 @@ public class LogoutAuthorityProcessorTest
 		response.setSignature(new Signature());
 		response.setStatus(status);
 		response.setVersion(VersionConstants.saml20);
+		
+		LogoutResponse logoutResponse = new LogoutResponse(response);
 
-		responseDocument = this.logoutResponseMarshaller.marshallSigned(response);
+		responseDocument = this.logoutResponseMarshaller.marshallSigned(logoutResponse);
 
 		return responseDocument;
 	}

@@ -35,7 +35,6 @@ import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.exception.InvalidPrincipalException;
 import com.qut.middleware.esoe.aa.exception.InvalidRequestException;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
@@ -207,13 +206,13 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 			}
 		}
 		
-		this.logger.debug(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.15"), attributeStatement.getEncryptedAttributesAndAttributes())); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.15"), principal.getPrincipalAuthnIdentifier(), attributeStatement.getEncryptedAttributesAndAttributes().size())); //$NON-NLS-1$
 
 		String assertionID = this.identifierGenerator.generateSAMLID();
 		String responseID = this.identifierGenerator.generateSAMLID();
 		
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getESOEIdentifier());
+		issuer.setValue(this.metadata.getEsoeEntityID());
 
 		// Create and populate the response with values
 		Response response = new Response();
@@ -275,7 +274,7 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 		// Won't need any more information since it's an error response.	
 		Response response = new Response();
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getESOEIdentifier());
+		issuer.setValue(this.metadata.getEsoeEntityID());
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.16"), code)); //$NON-NLS-1$
 
@@ -309,15 +308,11 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 		
 		try
 		{
-			String requestDocument = processorData.getRequestDocument();
-
-			this.logger.log(InsaneLogLevel.INSANE, requestDocument);
-
 			AttributeQuery attributeQuery;
 			try
 			{
 				// Unmarshal the attribute query (request document).
-				attributeQuery = this.attributeQueryUnmarshaller.unMarshallSigned(requestDocument);
+				attributeQuery = this.attributeQueryUnmarshaller.unMarshallSigned(processorData.getRequestDocument());
 			}
 			catch (UnmarshallerException e)
 			{
@@ -407,9 +402,8 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 				throw new InvalidRequestException(Messages.getString("AttributeAuthorityProcessorImpl.8")); //$NON-NLS-1$
 			}
 
-			String descriptorID = issuer.getValue();
-			// Set the descriptor ID
-			processorData.setDescriptorID(descriptorID);
+			// Set the issuer ID
+			processorData.setIssuerID(issuer.getValue());
 
 			response = buildResponse(attributeQuery, principal);
 					
@@ -426,13 +420,10 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 				{
 					response = getErrorResponse(this.requestError);
 				}
-				// Marshal and sign the response
-				responseDocument = this.attributeStatementMarshaller.marshallSigned(response);
+				// Marshal and sign the response			
+				processorData.setResponseDocument(this.attributeStatementMarshaller.marshallSigned(response));
 				
 				this.logger.debug(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.18"), response.getID())); //$NON-NLS-1$
-				this.logger.log(InsaneLogLevel.INSANE, responseDocument);
-
-				processorData.setResponseDocument(responseDocument);
 			}
 			catch (MarshallerException e)
 			{

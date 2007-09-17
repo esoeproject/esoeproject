@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.Constants;
@@ -58,62 +59,66 @@ public class ViewServiceLogicImpl implements ViewServiceLogic
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.logic.impl.ViewServiceLogic#execute(java.lang.String)
 	 */
-	public ServiceBean execute(String entityID) throws ViewServiceException
-	{
+	public ServiceBean execute(Integer entID) throws ViewServiceException
+	{	
 		ServiceBean bean = new ServiceBeanImpl();
 		Vector<ContactPersonBean> contactPersons = new Vector<ContactPersonBean>();
 		Vector<ServiceNodeBean> serviceNodes = new Vector<ServiceNodeBean>();
 
+		bean.setEntID(entID);
+		
 		try
 		{
 			/* Get the core system data for this service */
-			List<Map<String, String>> serviceDetails = this.spepDAO.queryServiceDetails(entityID);
-			for (Map<String, String> service : serviceDetails)
+			List<Map<String, Object>> serviceDetails = this.spepDAO.queryServiceDetails(bean.getEntID());
+			
+			for (Map<String, Object> service : serviceDetails)
 			{
 				/* There should only be one, if there is multiple results the last one returned will be displayed */
-				bean.setEntityID(service.get(Constants.FIELD_ENTITY_ID));
-				bean.setActiveFlag(service.get(Constants.FIELD_ACTIVE_FLAG));
+				bean.setActiveFlag((String)service.get(Constants.FIELD_ACTIVE_FLAG));
+				bean.setEntityID((String)service.get(Constants.FIELD_ENTITY_ID));
 			}
 
 			/* Get SAML descriptor for this service */
-			List<Map<String, String>> serviceDescriptor = this.spepDAO.queryServiceDescriptor(entityID);
-			for (Map<String, String> descriptor : serviceDescriptor)
+			List<Map<String, Object>> serviceDescriptor = this.spepDAO.queryServiceDescriptor(bean.getEntID());
+			for (Map<String, Object> descriptor : serviceDescriptor)
 			{
-				bean.setDescriptorID(descriptor.get(Constants.FIELD_DESCRIPTOR_ID));
-				bean.setDescriptorXML(descriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+				bean.setDescID((Integer)descriptor.get(Constants.FIELD_DESC_ID));
+				bean.setDescriptorID((String)descriptor.get(Constants.FIELD_DESCRIPTOR_ID));
+				bean.setDescriptorXML((byte[])descriptor.get(Constants.FIELD_DESCRIPTOR_XML));
 			}
 
 			/* Get contact data */
-			List<Map<String, String>> contacts = this.spepDAO.queryServiceContacts(entityID);
-			for (Map<String, String> contact : contacts)
+			List<Map<String, Object>> contacts = this.spepDAO.queryServiceContacts(bean.getEntID());
+			for (Map<String, Object> contact : contacts)
 			{
 				ContactPersonBean contactPerson = new ContactPersonBeanImpl();
-				contactPerson.setCompany(contact.get(Constants.FIELD_CONTACT_COMPANY));
-				contactPerson.setContactID(contact.get(Constants.FIELD_CONTACT_ID));
-				contactPerson.setContactType(contact.get(Constants.FIELD_CONTACT_TYPE));
-				contactPerson.setGivenName(contact.get(Constants.FIELD_CONTACT_GIVEN_NAME));
-				contactPerson.setSurName(contact.get(Constants.FIELD_CONTACT_SURNAME));
-				contactPerson.setEmailAddress(contact.get(Constants.FIELD_CONTACT_EMAIL_ADDRESS));
-				contactPerson.setTelephoneNumber(contact.get(Constants.FIELD_CONTACT_TELEPHONE_NUMBER));
+				contactPerson.setCompany((String)contact.get(Constants.FIELD_CONTACT_COMPANY));
+				contactPerson.setContactID((String)contact.get(Constants.FIELD_CONTACT_ID));
+				contactPerson.setContactType((String)contact.get(Constants.FIELD_CONTACT_TYPE));
+				contactPerson.setGivenName((String)contact.get(Constants.FIELD_CONTACT_GIVEN_NAME));
+				contactPerson.setSurName((String)contact.get(Constants.FIELD_CONTACT_SURNAME));
+				contactPerson.setEmailAddress((String)contact.get(Constants.FIELD_CONTACT_EMAIL_ADDRESS));
+				contactPerson.setTelephoneNumber((String)contact.get(Constants.FIELD_CONTACT_TELEPHONE_NUMBER));
 
 				contactPersons.add(contactPerson);
 			}
 			bean.setContacts(contactPersons);
 
 			/* Get descriptive detail about the service */
-			List<Map<String, String>> serviceDescription = this.spepDAO.queryServiceDescription(entityID);
-			for (Map<String, String> description : serviceDescription)
+			List<Map<String, Object>> serviceDescription = this.spepDAO.queryServiceDescription(bean.getEntID());
+			for (Map<String, Object> description : serviceDescription)
 			{
 				/* There should only be one, if there is multiple results the last one returned will be displayed */
-				bean.setServiceName(description.get(Constants.FIELD_SERVICE_NAME));
-				bean.setServiceURL(description.get(Constants.FIELD_SERVICE_URL));
-				bean.setServiceDescription(description.get(Constants.FIELD_SERVICE_DESC));
-				bean.setServiceAuthzFailureMsg(description.get(Constants.FIELD_SERVICE_AUTHZ_FAIL));
+				bean.setServiceName((String)description.get(Constants.FIELD_SERVICE_NAME));
+				bean.setServiceURL((String)description.get(Constants.FIELD_SERVICE_URL));
+				bean.setServiceDescription((String)description.get(Constants.FIELD_SERVICE_DESC));
+				bean.setServiceAuthzFailureMsg((String)description.get(Constants.FIELD_SERVICE_AUTHZ_FAIL));
 			}
 
 			/* Get the service nodes */
-			List<Map<String, String>> serviceNodeData = this.spepDAO.queryServiceNodes(bean.getDescriptorID());
-			for (Map<String, String> node : serviceNodeData)
+			List<Map<String, Object>> serviceNodeData = this.spepDAO.queryServiceNodes(bean.getDescID());
+			for (Map<String, Object> node : serviceNodeData)
 			{
 				ServiceNodeBean serviceNode = new ServiceNodeBeanImpl();
 				serviceNode.setNodeID((String) node.get(Constants.FIELD_ENDPOINT_ID));

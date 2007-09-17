@@ -23,12 +23,16 @@ import java.net.URL;
 import net.sf.click.control.Form;
 import net.sf.click.control.Submit;
 
+import com.qut.middleware.esoemanager.bean.ServiceBean;
+import com.qut.middleware.esoemanager.bean.impl.ServiceBeanImpl;
 import com.qut.middleware.esoemanager.pages.forms.impl.ServiceForm;
 
 public class RegisterServicePage extends BorderPage
 {
 	/* Service Details */
 	public ServiceForm serviceDetails;
+
+	ServiceBean bean;
 
 	public RegisterServicePage()
 	{
@@ -38,14 +42,19 @@ public class RegisterServicePage extends BorderPage
 	@Override
 	public void onInit()
 	{
-		super.onInit();
+		bean = new ServiceBeanImpl();
+		this.storeSession(ServiceBean.class.getName(), bean);
 
 		this.serviceDetails.init();
-		this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue((String) this.retrieveSession(PageConstants.STORED_SERVICE_NAME));
-		this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue((String) this.retrieveSession(PageConstants.STORED_SERVICE_URL));
-		this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue((String)this.retrieveSession(PageConstants.STORED_SERVICE_DESC));
-		this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue((String)this.retrieveSession(PageConstants.STORED_SERVICE_AUTHZ_MSG));
-		
+
+		if (this.bean.getEntityID() != null)
+			this.serviceDetails.getField(PageConstants.SERVICE_IDENTIFIER).setValue((String) this.bean.getEntityID());
+
+		this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue((String) this.bean.getServiceName());
+		this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue((String) this.bean.getServiceURL());
+		this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue((String) this.bean.getServiceDescription());
+		this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue((String) this.bean.getServiceAuthzFailureMsg());
+
 		Submit nextButton = new Submit(PageConstants.NAV_NEXT_LABEL, this, PageConstants.NAV_NEXT_FUNC);
 
 		this.serviceDetails.add(nextButton);
@@ -55,7 +64,7 @@ public class RegisterServicePage extends BorderPage
 	public boolean nextClick()
 	{
 		String redirectPath;
-		
+
 		if (this.serviceDetails.isValid())
 		{
 			try
@@ -63,11 +72,12 @@ public class RegisterServicePage extends BorderPage
 				URL validHost = new URL(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
 
 				/* Store details in the session */
-				this.storeSession(PageConstants.STORED_SERVICE_NAME, this.serviceDetails.getFieldValue(PageConstants.SERVICE_NAME));
-				this.storeSession(PageConstants.STORED_SERVICE_URL, this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
-				this.storeSession(PageConstants.STORED_SERVICE_DESC, this.serviceDetails.getFieldValue(PageConstants.SERVICE_DESCRIPTION));
-				this.storeSession(PageConstants.STORED_SERVICE_AUTHZ_MSG, this.serviceDetails.getFieldValue(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE));
-				
+				this.bean.setEntityID(this.serviceDetails.getFieldValue(PageConstants.SERVICE_IDENTIFIER));
+				this.bean.setServiceName(this.serviceDetails.getFieldValue(PageConstants.SERVICE_NAME));
+				this.bean.setServiceURL(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
+				this.bean.setServiceDescription(this.serviceDetails.getFieldValue(PageConstants.SERVICE_DESCRIPTION));
+				this.bean.setServiceAuthzFailureMsg(this.serviceDetails.getFieldValue(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE));
+
 				/* This stage completed correctly */
 				this.storeSession(PageConstants.STAGE1_RES, new Boolean(true));
 

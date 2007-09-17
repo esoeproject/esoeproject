@@ -68,6 +68,42 @@ public class RequestEvaluator
 		return value;
 	}
 	
+	/** Get specified action from the given LXACMLAuthzDecisionQuery.
+	 * 
+	 * @param authzRequest The authz request to extract the resource string from.
+	 * @return The action that was located, null if non specified (default from SPEPS)
+	 * @throws InvalidRequestException
+	 */
+	public String getAction(LXACMLAuthzDecisionQuery authzRequest) throws InvalidRequestException
+	{
+		String value = new String();
+		
+		try
+		{
+			Request request = authzRequest.getRequest();
+			if(request.getAction() != null)
+			{
+				List<Object> content = request.getAction().getAttribute().getAttributeValue().getContent();
+			
+				Iterator<Object> iter = content.iterator();
+				while(iter.hasNext())
+				{
+					value += iter.next();
+				}
+			}
+			else
+			{
+				return null;
+			}
+		}
+		catch(NullPointerException e)
+		{
+			throw new InvalidRequestException(Messages.getString("RequestEvaluator.0")); //$NON-NLS-1$
+		}
+		
+		return value;
+	}
+	
 	
 	/** Get the subjectID from the given LXACMLAuthzDecisionQuery.
 	 * 

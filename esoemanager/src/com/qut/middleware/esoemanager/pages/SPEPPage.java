@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Vector;
 
+import com.qut.middleware.esoemanager.bean.ServiceBean;
 import com.qut.middleware.esoemanager.bean.ServiceNodeBean;
 import com.qut.middleware.esoemanager.bean.impl.ServiceNodeBeanImpl;
 import com.qut.middleware.esoemanager.pages.forms.impl.SPEPForm;
@@ -43,48 +44,22 @@ public class SPEPPage extends BorderPage
 	public void onInit()
 	{
 		this.spepDetails.init();
-
-		/* Retrieve any already active contacts */
-		this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
 	}
 
 	@Override
 	public void onGet()
 	{
-		if (this.action != null)
-		{
-			if (this.action.equals(PageConstants.EDIT))
-			{
-				editSPEP();
-			}
-			if (this.action.equals(PageConstants.DELETE))
-			{
-				deleteSPEP();
-			}
-		}
+
 	}
 
 	public void onPost()
 	{
-		/* Determine if the submitted form for new contact person is valid */
-		if (this.spepDetails.isFormSubmission())
-		{
-			try
-			{
-				URL validHost = new URL(this.spepDetails.getFieldValue(PageConstants.SPEP_NODE_URL));
-				createOrUpdateSPEP();
-			}
-			catch (MalformedURLException e)
-			{
-				// TODO Log4j here
-				this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setError("Malformed server address submitted");
-			}
-		}
+
 	}
 
-	private void deleteSPEP()
+	protected void deleteSPEP(ServiceBean serviceBean)
 	{
-		this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+		this.serviceNodes = (Vector<ServiceNodeBean>) serviceBean.getServiceNodes();
 		if (this.serviceNodes != null)
 		{
 			if (this.ref != null)
@@ -94,15 +69,15 @@ public class SPEPPage extends BorderPage
 				 * as listed by velocity when writing the response
 				 */
 				this.serviceNodes.remove(this.ref - 1);
-				this.storeSession(PageConstants.STORED_SERVICE_NODES, this.serviceNodes);
+				serviceBean.setServiceNodes(this.serviceNodes);
 			}
 
 		}
 	}
 
-	private void editSPEP()
+	protected void editSPEP(ServiceBean serviceBean)
 	{
-		this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+		this.serviceNodes = (Vector<ServiceNodeBean>) serviceBean.getServiceNodes();
 		if (this.serviceNodes != null)
 		{
 			if (this.ref != null)
@@ -113,7 +88,7 @@ public class SPEPPage extends BorderPage
 				 */
 				ServiceNodeBean spep = this.serviceNodes.get(this.ref - 1);
 				this.serviceNodes.remove(this.ref - 1);
-				this.storeSession(PageConstants.STORED_SERVICE_NODES, this.serviceNodes);
+				serviceBean.setServiceNodes(this.serviceNodes);
 
 				/* Now the contact person has been switched out of the active array translate to comma seperated string */
 				translateDetails(spep);
@@ -131,18 +106,18 @@ public class SPEPPage extends BorderPage
 		this.spepDetails.getField(PageConstants.CACHE_CLEAR_SERVICE).setValue(bean.getCacheClearService());
 	}
 
-	protected void createOrUpdateSPEP()
+	protected void createOrUpdateSPEP(ServiceBean serviceBean)
 	{
 		if (this.spepDetails.isValid())
 		{
 			/* All data for creating a new contact person is valid, copy to service node bean instance */
-			this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+			this.serviceNodes = (Vector<ServiceNodeBean>) serviceBean.getServiceNodes();
 			if (this.serviceNodes == null)
 				this.serviceNodes = new Vector<ServiceNodeBean>();
 
 			this.serviceNodes.add(translateDetails());
 
-			this.storeSession(PageConstants.STORED_SERVICE_NODES, this.serviceNodes);
+			serviceBean.setServiceNodes(this.serviceNodes);
 		}
 	}
 

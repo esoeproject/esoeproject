@@ -18,7 +18,9 @@
 	<classpathentry kind="lib" path="lib/dev/jaxb-impl.jar"/>
 	<classpathentry kind="lib" path="lib/dev/serializer.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
-	<classpathentry kind="lib" path="lib/dev/stax-api.jar"/>
 	<classpathentry kind="lib" path="lib/dev/wstx.jar"/>
+	<classpathentry kind="lib" path="lib/dev/stax.jar"/>
+	<classpathentry kind="lib" path="lib/dev/resolver.jar"/>
+	<classpathentry kind="lib" path="lib/dev/jsr173_1.0_api.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

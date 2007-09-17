@@ -24,18 +24,18 @@ import com.qut.middleware.esoe.bean.SAMLProcessorData;
 public interface SPEPProcessorData extends SAMLProcessorData
 {
 	/**
-	 * Accessor for request descriptor ID. The descriptor ID uniquely identifies an SPEP.
+	 * Accessor for request issuer ID. The issuer ID uniquely identifies an SPEP.
 	 * 
-	 * @return The request descriptor ID.
+	 * @return The request issuer ID.
 	 */
-	public String getRequestDescriptorID();
+	public String getIssuerID();
 	
 	/**
-	 * Mutator for request descriptor ID. The descriptor ID uniquely identifies an SPEP.
+	 * Mutator for request issuer ID. The issuer ID uniquely identifies an SPEP.
 	 * 
-	 * @param requestDescriptorID The request descriptor ID.
+	 * @param issuerID The request issuer ID.
 	 */
-	public void setRequestDescriptorID(String requestDescriptorID);
+	public void setIssuerID(String issuerID);
 	
 	/** Accessor for authorization cache index. The index is used to identify a particular
 	 * node in an SPEP configuration. An SPEP can have mutliple nodes, each with different IP

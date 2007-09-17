@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.Constants;
@@ -54,18 +55,13 @@ public class EditServiceContactsLogicImpl implements EditServiceContactsLogic
 		this.util = new UtilityFunctions();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoemanager.logic.EditServiceContactLogic#getServiceContacts(java.lang.String)
-	 */
-	public Vector<ContactPersonBean> getServiceContacts(String entityID) throws EditServiceContactException
+	public Vector<ContactPersonBean> getServiceContacts(Integer entID) throws EditServiceContactException
 	{
-		List<Map<String, String>> contactData;
+		List<Map<String, Object>> contactData;
 
 		try
 		{
-			contactData = this.spepDAO.queryServiceContacts(entityID);
+			contactData = this.spepDAO.queryServiceContacts(entID);
 		}
 		catch (SPEPDAOException e)
 		{
@@ -74,19 +70,14 @@ public class EditServiceContactsLogicImpl implements EditServiceContactsLogic
 
 		if (contactData == null)
 		{
-			this.logger.info("No service contacts returned for entityID " + entityID);
+			this.logger.info("No service contacts returned for entID " + entID);
 			return null;
 		}
 
 		return generateContactPersonList(contactData);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoemanager.logic.EditServiceContactLogic#updateServiceContacts(java.util.Vector)
-	 */
-	public void updateServiceContacts(String entityID, Vector<ContactPersonBean> contacts)
+	public void updateServiceContacts(Integer entID, Vector<ContactPersonBean> contacts)
 			throws EditServiceContactException
 	{
 		try
@@ -98,7 +89,7 @@ public class EditServiceContactsLogicImpl implements EditServiceContactsLogic
 				{
 					contact.setContactID(this.util.generateID());
 					this.logger.debug("Inserting new contact with contactID " + contact.getContactID());
-					this.spepDAO.insertServiceContacts(entityID, contact.getContactID(), contact
+					this.spepDAO.insertServiceContacts(entID, contact.getContactID(), contact
 							.getContactType(), contact.getCompany(), contact.getGivenName(), contact.getSurName(),
 							contact.getEmailAddress(), contact.getTelephoneNumber());
 				}
@@ -107,7 +98,7 @@ public class EditServiceContactsLogicImpl implements EditServiceContactsLogic
 					if (contact.isModified())
 					{
 						this.logger.debug("Updating contact with contactID " + contact.getContactID());
-						this.spepDAO.updateServiceContact(entityID, contact.getContactID(), contact
+						this.spepDAO.updateServiceContact(entID, contact.getContactID(), contact
 								.getContactType(), contact.getCompany(), contact.getGivenName(), contact.getSurName(),
 								contact.getEmailAddress(), contact.getTelephoneNumber());
 					}
@@ -123,12 +114,12 @@ public class EditServiceContactsLogicImpl implements EditServiceContactsLogic
 
 	}
 
-	public void deleteServiceContact(String entityDescriptorID, String contactID)
+	public void deleteServiceContact(Integer entID, String contactID)
 			throws EditServiceContactException
-	{
+	{	
 		try
 		{
-			this.spepDAO.deleteServiceContact(entityDescriptorID, contactID);
+			this.spepDAO.deleteServiceContact(entID, contactID);
 		}
 		catch (SPEPDAOException e)
 		{
@@ -138,20 +129,20 @@ public class EditServiceContactsLogicImpl implements EditServiceContactsLogic
 		}
 	}
 
-	private Vector<ContactPersonBean> generateContactPersonList(List<Map<String, String>> contacts)
+	private Vector<ContactPersonBean> generateContactPersonList(List<Map<String, Object>> contacts)
 	{
 		Vector<ContactPersonBean> contactPersons = new Vector<ContactPersonBean>();
 
-		for (Map<String, String> contact : contacts)
+		for (Map<String, Object> contact : contacts)
 		{
 			ContactPersonBean contactPerson = new ContactPersonBeanImpl();
-			contactPerson.setContactID(contact.get(Constants.FIELD_CONTACT_ID));
-			contactPerson.setCompany(contact.get(Constants.FIELD_CONTACT_COMPANY));
-			contactPerson.setContactType(contact.get(Constants.FIELD_CONTACT_TYPE));
-			contactPerson.setGivenName(contact.get(Constants.FIELD_CONTACT_GIVEN_NAME));
-			contactPerson.setSurName(contact.get(Constants.FIELD_CONTACT_SURNAME));
-			contactPerson.setEmailAddress(contact.get(Constants.FIELD_CONTACT_EMAIL_ADDRESS));
-			contactPerson.setTelephoneNumber(contact.get(Constants.FIELD_CONTACT_TELEPHONE_NUMBER));
+			contactPerson.setContactID((String)contact.get(Constants.FIELD_CONTACT_ID));
+			contactPerson.setCompany((String)contact.get(Constants.FIELD_CONTACT_COMPANY));
+			contactPerson.setContactType((String)contact.get(Constants.FIELD_CONTACT_TYPE));
+			contactPerson.setGivenName((String)contact.get(Constants.FIELD_CONTACT_GIVEN_NAME));
+			contactPerson.setSurName((String)contact.get(Constants.FIELD_CONTACT_SURNAME));
+			contactPerson.setEmailAddress((String)contact.get(Constants.FIELD_CONTACT_EMAIL_ADDRESS));
+			contactPerson.setTelephoneNumber((String)contact.get(Constants.FIELD_CONTACT_TELEPHONE_NUMBER));
 
 			contactPersons.add(contactPerson);
 		}

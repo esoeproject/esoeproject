@@ -19,8 +19,8 @@
  */
 package com.qut.middleware.spep.ws.impl;
 
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.text.MessageFormat;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -48,7 +48,7 @@ public class WSClientImpl implements WSClient
 	private XMLInputFactory xmlInputFactory;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
+	private Logger logger = Logger.getLogger(WSClientImpl.class.getName());
 
 	/**
 	 * Constructor
@@ -64,7 +64,7 @@ public class WSClientImpl implements WSClient
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSClient#attributeAuthority(java.lang.String, java.lang.String)
 	 */
-	public String attributeAuthority(String attributeQuery, String endpoint) throws WSClientException
+	public byte[] attributeAuthority(byte[] attributeQuery, String endpoint) throws WSClientException
 	{
 		if (endpoint == null || endpoint.length() <= 0)
 		{
@@ -72,7 +72,7 @@ public class WSClientImpl implements WSClient
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.1")); //$NON-NLS-1$
 		}
 		
-		if (attributeQuery == null || attributeQuery.length() <= 0)
+		if (attributeQuery == null || attributeQuery.length <= 0)
 		{
 			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.9"), endpoint)); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.0")); //$NON-NLS-1$
@@ -86,7 +86,7 @@ public class WSClientImpl implements WSClient
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSClient#policyDecisionPoint(java.lang.String, java.lang.String)
 	 */
-	public String policyDecisionPoint(String decisionRequest, String endpoint) throws WSClientException
+	public byte[] policyDecisionPoint(byte[] decisionRequest, String endpoint) throws WSClientException
 	{
 		if (endpoint == null || endpoint.length() <= 0)
 		{
@@ -94,7 +94,7 @@ public class WSClientImpl implements WSClient
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.3")); //$NON-NLS-1$
 		}
 		
-		if (decisionRequest == null || decisionRequest.length() <= 0)
+		if (decisionRequest == null || decisionRequest.length <= 0)
 		{
 			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.12"), endpoint)); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.2")); //$NON-NLS-1$
@@ -108,7 +108,7 @@ public class WSClientImpl implements WSClient
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSClient#spepStartup(java.lang.String, java.lang.String)
 	 */
-	public String spepStartup(String spepStartup, String endpoint) throws WSClientException
+	public byte[] spepStartup(byte[] spepStartup, String endpoint) throws WSClientException
 	{
 		if (endpoint == null || endpoint.length() <= 0)
 		{
@@ -116,7 +116,7 @@ public class WSClientImpl implements WSClient
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.5")); //$NON-NLS-1$
 		}
 		
-		if (spepStartup == null || spepStartup.length() <= 0)
+		if (spepStartup == null || spepStartup.length <= 0)
 		{
 			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.15"), endpoint)); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.4")); //$NON-NLS-1$
@@ -138,10 +138,10 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private String invokeWSCall(String request, String endpoint) throws WSClientException
+	private byte[] invokeWSCall(byte[] request, String endpoint) throws WSClientException
 	{
-		StringReader reader;
-		StringWriter writer;
+		ByteArrayInputStream reader;
+		ByteArrayOutputStream writer;
 		XMLStreamReader xmlreader;
 		StAXOMBuilder builder;
 		OMElement requestElement, resultElement;
@@ -152,7 +152,7 @@ public class WSClientImpl implements WSClient
 		try
 		{
 			targetEPR = new EndpointReference(endpoint);
-			reader = new StringReader(request);
+			reader = new ByteArrayInputStream(request);
 			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
 			builder = new StAXOMBuilder(xmlreader);
 			requestElement = builder.getDocumentElement();
@@ -160,13 +160,14 @@ public class WSClientImpl implements WSClient
 			serviceClient = new ServiceClient();
 			options = new Options();
 			options.setTo(targetEPR);
+			options.setProperty(org.apache.axis2.Constants.Configuration.CHARACTER_SET_ENCODING, "UTF-16");
 			serviceClient.setOptions(options);
 			
 			this.logger.debug(Messages.getString("WSClientImpl.17")); //$NON-NLS-1$
 
 			resultElement = serviceClient.sendReceive(requestElement);
 
-			writer = new StringWriter();
+			writer = new ByteArrayOutputStream();
 			if (resultElement != null)
 			{
 				resultElement.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
@@ -176,19 +177,20 @@ public class WSClientImpl implements WSClient
 				this.logger.error(Messages.getString("WSClientImpl.18")); //$NON-NLS-1$
 				throw new WSClientException(Messages.getString("WSClientImpl.6")); //$NON-NLS-1$
 			}
-			writer.flush();
 
 			this.logger.debug(MessageFormat.format(Messages.getString("WSClientImpl.19"), endpoint)); //$NON-NLS-1$
-			return writer.toString();
+			return writer.toByteArray();
 		}
 		catch (AxisFault e)
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.20"), e.getMessage())); //$NON-NLS-1$
+			this.logger.error("AxisFault occured while invoking WS call - trace level has full output");
+			this.logger.trace(MessageFormat.format(Messages.getString("WSClientImpl.20"), e.getMessage())); //$NON-NLS-1$
 			throw new WSClientException(e.getMessage(), e);
 		}
 		catch (XMLStreamException e)
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.21"), e.getMessage())); //$NON-NLS-1$
+			this.logger.error("XML Stream exception occured while invoking WS call");
+			this.logger.trace(MessageFormat.format(Messages.getString("WSClientImpl.21"), e.getMessage())); //$NON-NLS-1$
 			throw new WSClientException(e.getMessage(), e);
 		}
 		catch (FactoryConfigurationError e)

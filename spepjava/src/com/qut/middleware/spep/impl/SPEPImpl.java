@@ -38,9 +38,9 @@ import com.qut.middleware.spep.pep.SessionGroupCache;
 public class SPEPImpl implements SPEP
 {
 	private String tokenName;
-	private String tokenDomain;
-	private String loginRedirect;
-	private String defaultUrl;
+	private String serviceHost;
+	private String ssoRedirect;
+	private String defaultURL;
 	private AttributeProcessor attributeProcessor;
 	private AuthnProcessor authnProcessor;
 	private Metadata metadata;
@@ -48,6 +48,10 @@ public class SPEPImpl implements SPEP
 	private SessionGroupCache sessionGroupCache;
 	private boolean started;
 	private StartupProcessor startupProcessor;
+	private boolean lazyInit;
+	private List<String> hardInitQueries;
+	private String esoeGlobalTokenName;
+	private defaultAction lazyInitDefaultAction;
 	
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(SPEPImpl.class.getName());
@@ -126,42 +130,23 @@ public class SPEPImpl implements SPEP
 	public void setTokenName(String tokenName)
 	{
 		this.tokenName = tokenName;
+	}	
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.SPEP#getServiceURL()
+	 */
+	public String getServiceHost()
+	{
+		return this.serviceHost;
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * @see com.qut.middleware.spep.SPEP#getTokenDomain()
+	/**
+	 * Sets address of the service in use without any application path e.g. https://myserver.company.com or https://myotherserver.company.com:8443 NOT https://myserver.company.com/myapp/
+	 * @param serviceHost serviceHost in required format
 	 */
-	public String getTokenDomain()
+	public void setServiceHost(String serviceHost)
 	{
-		return this.tokenDomain;
-	}
-	
-	/** Set the domain to be used in the authentication cookie.
-	 * 
-	 * @param tokenDomain The tokenDomain to set.
-	 */
-	public void setTokenDomain(String tokenDomain)
-	{
-		this.tokenDomain = tokenDomain;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see com.qut.middleware.spep.SPEP#getLoginRedirect()
-	 */
-	public String getLoginRedirect()
-	{
-		return this.loginRedirect;
-	}
-	
-	/** Set the URL to redirect the unauthenticated user to.
-	 * 
-	 * @param loginRedirect The loginRedirect to set.
-	 */
-	public void setLoginRedirect(String loginRedirect)
-	{
-		this.loginRedirect = loginRedirect;
+		this.serviceHost = serviceHost;
 	}
 	
 	/*
@@ -170,15 +155,15 @@ public class SPEPImpl implements SPEP
 	 */
 	public String getDefaultUrl()
 	{
-		return this.defaultUrl;
+		return this.defaultURL;
 	}
 	
 	/**
 	 * @param defaultUrl The defaultUrl to set.
 	 */
-	public void setDefaultUrl(String defaultUrl)
+	public void setDefaultURL(String defaultUrl)
 	{
-		this.defaultUrl = defaultUrl;
+		this.defaultURL = defaultUrl;
 	}
 
 	public SessionGroupCache getSessionGroupCache()
@@ -275,5 +260,59 @@ public class SPEPImpl implements SPEP
 				}
 			}
 		}
+	}
+
+	public String getSsoRedirect()
+	{
+		return ssoRedirect;
+	}
+
+	public void setSsoRedirect(String ssoRedirect)
+	{
+		this.ssoRedirect = ssoRedirect;
+	}
+
+	public boolean isLazyInit()
+	{
+		return lazyInit;
+	}
+
+	/**
+	 * Determines if this spep is operating in lazy mode or not
+	 * @param lazyInit Boolean state for lazyInit
+	 */
+	public void setLazyInit(boolean lazyInit)
+	{
+		this.lazyInit = lazyInit;
+	}
+
+	public List<String> getLazyInitResources()
+	{
+		return hardInitQueries;
+	}
+
+	public void setLazyInitResources(List<String> hardInitQueries)
+	{
+		this.hardInitQueries = hardInitQueries;
+	}
+
+	public String getEsoeGlobalTokenName()
+	{
+		return esoeGlobalTokenName;
+	}
+
+	public void setEsoeGlobalTokenName(String esoeGlobalTokenName)
+	{
+		this.esoeGlobalTokenName = esoeGlobalTokenName;
+	}
+
+	public defaultAction getLazyInitDefaultAction()
+	{
+		return lazyInitDefaultAction;
+	}
+
+	public void setLazyInitDefaultAction(defaultAction lazyInitDefaultAction)
+	{
+		this.lazyInitDefaultAction = lazyInitDefaultAction;
 	}
 }

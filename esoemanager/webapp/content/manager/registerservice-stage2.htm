@@ -1,15 +1,15 @@
 <h3> Add Service Contacts </h3>
 <div id="contactPersons">
-#if($contacts)
-#if($contacts.size() > 0)
+#if($serviceBean.getContacts())
+#if($serviceBean.getContacts().size() > 0)
 <br/>
 You have added the following contacts for this service
 <br/>
 <table>
 <tr>
-<td><b>Name</b></td><td><b>Email</b></td><td><b>Type</b></td><td/><td/>
+<th>Name</th><th>Email</th><th>Type</th><th/><th/>
 </tr>
-#foreach( $contact in $contacts )
+#foreach( $contact in $serviceBean.getContacts() )
 <tr>
 <td>$contact.getGivenName() $contact.getSurName()</td>
 <td>$contact.getEmailAddress()</td>

@@ -19,9 +19,9 @@
  */
 package com.qut.middleware.esoe.sso.servlet;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -43,108 +43,116 @@ import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.saml2.BindingConstants;
 
 public class SSOLogoutServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 5192046378667020982L;
-	private final String LOGOUT_REQUEST_FORM_ELEMENT = "esoelogout_nonsso"; //$NON-NLS-1$
+	private final String LOGOUT_REQUEST_ELEMENT = "esoelogout_nonsso"; //$NON-NLS-1$
 	private final String LOGOUT_RESPONSE_FORM_ELEMENT = "esoelogout_response"; //$NON-NLS-1$
 	private final String DISABLE_SSO_FORM_ELEMENT = "disablesso"; //$NON-NLS-1$
-	
-	private SSOProcessor logoutAuthorityProcessor;	
+
+	private SSOProcessor logoutAuthorityProcessor;
 	private String sessionTokenName;
 	private String disableSSOTokenName;
 	private String logoutURL;
 	private String logoutResponseURL;
-	private String sessionDomain;
-	
+	private String sessionDomain, commonDomain, commonDomainTokenName;
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(SSOLogoutServlet.class.getName());
-	
-	/* (non-Javadoc)
-	 * @see javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest,
+	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{		
-		this.execLogoutAuthorityProcessor(request, response);
+	{
+		SSOProcessorData data = (SSOProcessorData) request.getSession().getAttribute(SSOProcessorData.SESSION_NAME);
+
+		if (data == null)
+			data = new SSOProcessorDataImpl();
+
+		data.setSamlBinding(BindingConstants.httpPost);
+
+		this.execLogoutAuthorityProcessor(request, response, data);
 	}
-	
-	/* Get methods should not really be utilized, but may be required on occasion.
-	 * (non-Javadoc)
-	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+
+	/*
+	 * Get methods should not really be utilized, but may be required on occasion. (non-Javadoc)
+	 * 
+	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest,
+	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException
 	{
 		try
 		{
-			if(this.logoutURL != null)
+			if (this.logoutURL != null)
 			{
 				response.sendRedirect(this.logoutURL);
 				return;
 			}
-			
+
 			throw new ServletException(Messages.getString("SSOLogoutServlet.18")); //$NON-NLS-1$
-			
+
 		}
-		catch(IOException e)
+		catch (IOException e)
 		{
 			this.logger.warn(Messages.getString("SSOLogoutServlet.0")); //$NON-NLS-1$
 		}
 	}
-	
-	private void execLogoutAuthorityProcessor(HttpServletRequest request, HttpServletResponse response)
-	{		
-		// retrieve the required parameters from user request. These are: 
+
+	private void execLogoutAuthorityProcessor(HttpServletRequest request, HttpServletResponse response, SSOProcessorData data)
+	{
+		// retrieve the required parameters from user request. These are:
 		// esoelogout_nonsso (required)
 		// esoelogout_response=NUM (optional redirect destination)
 		// disablesso (optional)
-				
-		this.logger.debug(Messages.getString("SSOLogoutServlet.1") + request.getRemoteAddr() ); //$NON-NLS-1$
-		
-		SSOProcessorData data = (SSOProcessorData) request.getSession().getAttribute(SSOProcessorData.SESSION_NAME);
-		
-		if(data == null)
-			data = new SSOProcessorDataImpl();
-		
-		String logoutRequestParam = request.getParameter(this.LOGOUT_REQUEST_FORM_ELEMENT);
-		
-		if(logoutRequestParam == null)
+
+		this.logger.debug(Messages.getString("SSOLogoutServlet.1") + request.getRemoteAddr()); //$NON-NLS-1$
+
+		String logoutRequestParam = request.getParameter(this.LOGOUT_REQUEST_ELEMENT);
+
+		if (logoutRequestParam == null)
 		{
-			this.generateErrorResponse(response, Messages.getString("SSOLogoutServlet.2"));	 //$NON-NLS-1$
+			this.generateErrorResponse(response, MessageFormat.format(Messages.getString("SSOLogoutServlet.2"), this.LOGOUT_REQUEST_ELEMENT)); //$NON-NLS-1$
 		}
 		else
 		{
 			this.processCookieData(request, data);
-			
+
 			// the result of the logout call can only result in an exception or success. We only care
 			// about the exceptions. If none thrown, send the user on their way
 			try
-			{	
+			{
 				this.logoutAuthorityProcessor.execute(data);
 			}
-			catch(InvalidRequestException e)
+			catch (InvalidRequestException e)
 			{
-				this.generateErrorResponse(response, Messages.getString("SSOLogoutServlet.3"));	 //$NON-NLS-1$
+				this.generateErrorResponse(response, e.getMessage());
 				return;
 			}
-			catch(InvalidSessionIdentifierException e)
+			catch (InvalidSessionIdentifierException e)
 			{
 				this.generateErrorResponse(response, Messages.getString("SSOLogoutServlet.4")); //$NON-NLS-1$
 				return;
 			}
-			
+
 			// examine the request for the presense of 'disablesso' parameter. If it exists, we attempt to set a cookie
-			// that will be used do disable SSO throughout the SSO environment. If it does not exist, we 
+			// that will be used do disable SSO throughout the SSO environment. If it does not exist, we
 			// determine if one had been set previously and set its value to false.
 			String disableSSOString = request.getParameter(this.DISABLE_SSO_FORM_ELEMENT);
-			if(disableSSOString != null)
+			if (disableSSOString != null)
 			{
 				this.logger.debug(Messages.getString("SSOLogoutServlet.5")); //$NON-NLS-1$
 				Cookie disableSSOCookie = new Cookie(this.disableSSOTokenName, "true"); //$NON-NLS-1$
 				disableSSOCookie.setDomain(this.sessionDomain);
-				disableSSOCookie.setSecure(true);
+				disableSSOCookie.setSecure(false);
 				response.addCookie(disableSSOCookie);
 			}
 			else
@@ -152,36 +160,44 @@ public class SSOLogoutServlet extends HttpServlet
 				this.logger.debug(Messages.getString("SSOLogoutServlet.6")); //$NON-NLS-1$
 				Cookie disableSSOCookie = new Cookie(this.disableSSOTokenName, "false"); //$NON-NLS-1$
 				disableSSOCookie.setDomain(this.sessionDomain);
-				disableSSOCookie.setSecure(true);
+				disableSSOCookie.setSecure(false);
 				response.addCookie(disableSSOCookie);
 			}
-			
+
 			/* Remove the value of the users session cookie at the ESOE */
 			Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$
 			sessionCookie.setDomain(this.sessionDomain);
-			sessionCookie.setSecure(true);
+			sessionCookie.setSecure(false);
+			sessionCookie.setMaxAge(0);
+
+			/* Remove the value of the users common domain cookie at the ESOE */
+			Cookie commonDomainCookie = new Cookie(this.commonDomainTokenName, "");
+			commonDomainCookie.setDomain(this.commonDomain);
+			commonDomainCookie.setSecure(false);
+			commonDomainCookie.setMaxAge(0);
+
 			response.addCookie(sessionCookie);
-			
-			this.logger.info(MessageFormat.format(Messages.getString("SSOLogoutServlet.7"), data.getSessionID()) ); //$NON-NLS-1$
-			
+			response.addCookie(commonDomainCookie);
+
+			this.logger.info(MessageFormat.format(Messages.getString("SSOLogoutServlet.7"), data.getSessionID())); //$NON-NLS-1$
+
 			try
-			{				
+			{
 				// logout request processing completed
 				String userResponseURL = request.getParameter(this.LOGOUT_RESPONSE_FORM_ELEMENT);
-				if(userResponseURL != null)
+				if (userResponseURL != null)
 					response.sendRedirect(userResponseURL);
 				else
-					response.sendRedirect(this.logoutResponseURL); 
+					response.sendRedirect(this.logoutResponseURL);
 			}
-			catch(IOException e)
+			catch (IOException e)
 			{
 				this.logger.warn(Messages.getString("SSOLogoutServlet.8")); //$NON-NLS-1$
 			}
-			
+
 		}
-	}	
-	
-	
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -191,73 +207,81 @@ public class SSOLogoutServlet extends HttpServlet
 	public void init(ServletConfig servletConfig) throws ServletException
 	{
 		super.init(servletConfig);
-		
-		URL configFile;
+
+		FileInputStream configFile;
 		Properties props;
+		WebApplicationContext webAppContext;
 
 		try
 		{
-			configFile = this.getServletContext().getResource(ConfigurationConstants.ESOE_CONFIG);
+			configFile = new FileInputStream(System.getProperty("esoe.data") + ConfigurationConstants.ESOE_CONFIG);
+
 			props = new java.util.Properties();
 
-			props.load(configFile.openStream());
+			props.load(configFile);
 
 			/* Spring integration to make our servlet aware of IoC */
-			WebApplicationContext webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this
-					.getServletContext());
+			webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this.getServletContext());
 
-			this.logoutAuthorityProcessor = (SSOProcessor) webAppContext.getBean(
-					ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR, com.qut.middleware.esoe.sso.SSOProcessor.class);
+			this.logoutAuthorityProcessor = (SSOProcessor) webAppContext.getBean(ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR, com.qut.middleware.esoe.sso.SSOProcessor.class);
 
 			if (this.logoutAuthorityProcessor == null)
 				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.9")); //$NON-NLS-1$
 
-			this.sessionTokenName = props.getProperty(ConfigurationConstants.SESSION_TOKEN_NAME);
+			this.sessionTokenName = props.getProperty(ConfigurationConstants.ESOE_SESSION_TOKEN_NAME);
 			this.logoutURL = props.getProperty(ConfigurationConstants.LOGOUT_REDIRECT_URL);
 			this.disableSSOTokenName = props.getProperty(ConfigurationConstants.DISABLE_SSO_TOKEN_NAME);
 			this.logoutResponseURL = props.getProperty(ConfigurationConstants.LOGOUT_RESPONSE_REDIRECT_URL);
-			this.sessionDomain = props.getProperty(ConfigurationConstants.COOKIE_SESSION_DOMAIN);
-			
+			this.sessionDomain = props.getProperty(ConfigurationConstants.ESOE_SESSION_DOMAIN);
+			this.commonDomain = props.getProperty(ConfigurationConstants.COMMON_DOMAIN);
+			this.commonDomainTokenName = props.getProperty(ConfigurationConstants.COMMON_DOMAIN_TOKEN_NAME);
+
 			if (this.sessionTokenName == null)
-				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.20")+ ConfigurationConstants.SESSION_TOKEN_NAME ); //$NON-NLS-1$
-			
+				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.20") + ConfigurationConstants.ESOE_SESSION_TOKEN_NAME); //$NON-NLS-1$
+
 			if (this.logoutURL == null)
-				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.21")+ ConfigurationConstants.LOGOUT_REDIRECT_URL ); //$NON-NLS-1$
+				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.21") + ConfigurationConstants.LOGOUT_REDIRECT_URL); //$NON-NLS-1$
 
 			if (this.disableSSOTokenName == null)
-				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.22")+ ConfigurationConstants.DISABLE_SSO_TOKEN_NAME ); //$NON-NLS-1$
+				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.22") + ConfigurationConstants.DISABLE_SSO_TOKEN_NAME); //$NON-NLS-1$
 
 			if (this.logoutResponseURL == null)
-				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.23")+ ConfigurationConstants.LOGOUT_RESPONSE_REDIRECT_URL ); //$NON-NLS-1$
-			
-			if (this.sessionDomain == null)
-				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.24")+ ConfigurationConstants.COOKIE_SESSION_DOMAIN ); //$NON-NLS-1$
+				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.23") + ConfigurationConstants.LOGOUT_RESPONSE_REDIRECT_URL); //$NON-NLS-1$
 
-			this.logger.info(MessageFormat.format(Messages.getString("SSOLogoutServlet.10"), this.sessionTokenName , this.logoutURL)); //$NON-NLS-1$
+			if (this.sessionDomain == null)
+				throw new IllegalArgumentException(Messages.getString("SSOLogoutServlet.24") + ConfigurationConstants.ESOE_SESSION_DOMAIN); //$NON-NLS-1$
+
+			if (this.commonDomainTokenName == null)
+				throw new IllegalArgumentException("Unable to retrieve common domain token name from config file, looking for: " + ConfigurationConstants.COMMON_DOMAIN_TOKEN_NAME); //$NON-NLS-1$
+
+			if (this.commonDomain == null)
+				throw new IllegalArgumentException("Unable to retrieve common domain from config file, looking for: " + ConfigurationConstants.COMMON_DOMAIN); //$NON-NLS-1$
+
+			this.logger.info(MessageFormat.format(Messages.getString("SSOLogoutServlet.10"), this.sessionTokenName, this.logoutURL)); //$NON-NLS-1$
 		}
 		catch (BeansException e)
 		{
-			this.logger.fatal(Messages.getString("SSOLogoutServlet.11") + e.getLocalizedMessage());  //$NON-NLS-1$
-			throw new ServletException(Messages.getString("SSOLogoutServlet.12")+ ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR ); //$NON-NLS-1$
+			this.logger.fatal(Messages.getString("SSOLogoutServlet.11") + e.getLocalizedMessage()); //$NON-NLS-1$
+			throw new ServletException(Messages.getString("SSOLogoutServlet.12") + ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR); //$NON-NLS-1$
 		}
 		catch (MalformedURLException e)
 		{
-			throw new ServletException(Messages.getString("SSOLogoutServlet.13") + ConfigurationConstants.ESOE_CONFIG );  //$NON-NLS-1$
+			throw new ServletException(Messages.getString("SSOLogoutServlet.13") + ConfigurationConstants.ESOE_CONFIG); //$NON-NLS-1$
 		}
 		catch (IllegalStateException e)
 		{
-			this.logger.fatal(e.getLocalizedMessage()); 
-			throw new ServletException(); 
+			this.logger.fatal(e.getLocalizedMessage());
+			throw new ServletException();
 		}
 		catch (IOException e)
 		{
-			this.logger.fatal(e.getLocalizedMessage()); 
-			throw new ServletException(Messages.getString("SSOLogoutServlet.14") + ConfigurationConstants.ESOE_CONFIG );  //$NON-NLS-1$
+			this.logger.fatal(e.getLocalizedMessage());
+			throw new ServletException(Messages.getString("SSOLogoutServlet.14") + ConfigurationConstants.ESOE_CONFIG); //$NON-NLS-1$
 		}
 	}
-	
-	
-	/* Extract the appropriate data from the appropriate cookies.
+
+	/*
+	 * Extract the appropriate data from the appropriate cookies.
 	 * 
 	 */
 	private void processCookieData(HttpServletRequest request, SSOProcessorData data)
@@ -271,7 +295,7 @@ public class SSOLogoutServlet extends HttpServlet
 			for (Cookie cookie : cookies)
 			{
 				this.logger.debug("Processing client cookie: " + cookie.getValue()); //$NON-NLS-1$
-				
+
 				if (cookie.getName().equals(this.sessionTokenName))
 				{
 					this.logger.debug(Messages.getString("SSOLogoutServlet.15") + cookie.getValue()); //$NON-NLS-1$
@@ -280,11 +304,10 @@ public class SSOLogoutServlet extends HttpServlet
 			}
 		}
 		else
-			this.logger.debug(Messages.getString("SSOLogoutServlet.17"));  //$NON-NLS-1$
-		
+			this.logger.debug(Messages.getString("SSOLogoutServlet.17")); //$NON-NLS-1$
+
 	}
-		
-	
+
 	/**
 	 * Sends the user to the servlet configured error page for internal errors due to an inability to recover from some
 	 * request
@@ -296,15 +319,15 @@ public class SSOLogoutServlet extends HttpServlet
 	 */
 	private void generateErrorResponse(HttpServletResponse response, String message)
 	{
-		this.logger.debug(MessageFormat.format(Messages.getString("SSOLogoutServlet.16"), HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message) );  //$NON-NLS-1$
-		
+		this.logger.debug(MessageFormat.format(Messages.getString("SSOLogoutServlet.16"), HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message)); //$NON-NLS-1$
+
 		try
 		{
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
 		}
 		catch (IOException e)
 		{
-			this.logger.error(e.getLocalizedMessage()); 
+			this.logger.error(e.getLocalizedMessage());
 		}
 	}
 }

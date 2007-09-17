@@ -142,7 +142,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((String)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.success));
+		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.success));
 		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
 		
 		startMock();
@@ -169,7 +169,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((String)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
+		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
 		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
 		
 		startMock();
@@ -199,7 +199,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((String)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
+		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
 		
 		// change is here
 		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
@@ -231,7 +231,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((String)notNull(), eq(this.spepStartupService))).andReturn(buildResponse("_4736247324", "blah"));
+		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse("_4736247324", "blah"));
 		
 		// change is here
 		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
@@ -263,7 +263,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((String)notNull(), eq(this.spepStartupService))).andThrow(new WSClientException("Unable to send ws request."));
+		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andThrow(new WSClientException("Unable to send ws request."));
 		
 		// change is here
 		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
@@ -281,7 +281,7 @@ public class StartupProcessorTest
 		
 		endMock();
 	}
-	private String buildResponse(String samlID, String statusCodeValue) throws MarshallerException
+	private byte[] buildResponse(String samlID, String statusCodeValue) throws MarshallerException
 	{
 		String issuerValue = this.esoeID;
 		

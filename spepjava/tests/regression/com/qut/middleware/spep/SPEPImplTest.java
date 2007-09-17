@@ -116,14 +116,14 @@ public class SPEPImplTest {
 	{
 		this.spep.setLoginRedirect(this.loginRedirect);
 		
-		assertEquals(this.loginRedirect, this.spep.getLoginRedirect());
+		assertEquals(this.loginRedirect, this.spep.getServiceHost());
 	}
 
 	
 	@Test
 	public void testGetDefaultUrl() 
 	{
-		this.spep.setDefaultUrl(this.defaultUrl);
+		this.spep.setDefaultURL(this.defaultUrl);
 		
 		assertEquals(this.defaultUrl, this.spep.getDefaultUrl());
 	}

@@ -31,7 +31,7 @@ public interface WSClient
 	 * @return The response to the query.
 	 * @throws WSClientException if the Web service client cannot establish the connection.
 	 */
-	public String attributeAuthority(String attributeQuery, String endpoint) throws WSClientException;
+	public byte[] attributeAuthority(byte[] attributeQuery, String endpoint) throws WSClientException;
 	
 	/** Performs a web service policy decision query to determine whether access to a resource
 	 * should be allowed, and returns the response. 
@@ -41,7 +41,7 @@ public interface WSClient
 	 * @return The response to the query
 	 * @throws WSClientException if the Web service client cannot establish the connection
 	 */
-	public String policyDecisionPoint(String decisionRequest, String endpoint) throws WSClientException;
+	public byte[] policyDecisionPoint(byte[] decisionRequest, String endpoint) throws WSClientException;
 	
 	/** Performs a web service spep startup request and returns the response.
 	 * 
@@ -50,5 +50,5 @@ public interface WSClient
 	 * @return The response to the request.
 	 * @throws WSClientException if the Web service client cannot establish the connection
 	 */
-	public String spepStartup(String spepStartup, String endpoint) throws WSClientException;
+	public byte[] spepStartup(byte[] spepStartup, String endpoint) throws WSClientException;
 }

@@ -19,14 +19,18 @@
  */
 package com.qut.middleware.esoemanager.metadata.impl;
 
+import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.CryptoProcessor;
 import com.qut.middleware.crypto.KeyStoreResolver;
+import com.qut.middleware.crypto.exception.CryptoException;
 import com.qut.middleware.esoemanager.Constants;
+import com.qut.middleware.esoemanager.exception.MetadataDAOException;
 import com.qut.middleware.esoemanager.metadata.MetadataGenerator;
 import com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -42,6 +46,7 @@ import com.qut.middleware.saml2.schemas.metadata.ContactTypeType;
 import com.qut.middleware.saml2.schemas.metadata.EntitiesDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.EntityDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.IDPSSODescriptor;
+import com.qut.middleware.saml2.schemas.metadata.KeyDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.RoleDescriptorType;
 import com.qut.middleware.saml2.schemas.metadata.SPSSODescriptor;
 import com.qut.middleware.saml2.schemas.metadata.lxacml.LXACMLPDPDescriptor;
@@ -50,6 +55,7 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 {
 	private MetadataDAO metadataDAO;
 	private KeyStoreResolver keystoreResolver;
+	private CryptoProcessor cryptoProcessor;
 
 	/* SAML Integration */
 	private IdentifierGenerator identifierGenerator;
@@ -69,8 +75,7 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(MetadataGeneratorImpl.class.getName());
 
-	MetadataGeneratorImpl(MetadataDAO metadataDAO, IdentifierGenerator identifierGenerator,
-			KeyStoreResolver keystoreResolver) throws UnmarshallerException, MarshallerException
+	MetadataGeneratorImpl(MetadataDAO metadataDAO, IdentifierGenerator identifierGenerator, KeyStoreResolver keystoreResolver, CryptoProcessor cryptoProcessor) throws UnmarshallerException, MarshallerException
 	{
 		if (metadataDAO == null)
 		{
@@ -87,20 +92,25 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 			this.logger.error("Supplied keystoreResolver was NULL for MetadataGeneratorImpl");
 			throw new IllegalArgumentException("Supplied keystoreResolver was NULL for MetadataGeneratorImpl");
 		}
+		if (cryptoProcessor == null)
+		{
+			this.logger.error("Supplied cryptoProcessor was NULL for MetadataGeneratorImpl");
+			throw new IllegalArgumentException("Supplied cryptoProcessor was NULL for MetadataGeneratorImpl");
+		}
 
 		String[] schemas = { Constants.lxacmlMetadata, Constants.samlMetadata };
 
 		this.metadataDAO = metadataDAO;
 		this.identifierGenerator = identifierGenerator;
 		this.keystoreResolver = keystoreResolver;
+		this.cryptoProcessor = cryptoProcessor;
 
 		this.idpUnmarshaller = new UnmarshallerImpl<IDPSSODescriptor>(this.UNMAR_PKGNAMES, schemas);
 		this.spUnmarshaller = new UnmarshallerImpl<SPSSODescriptor>(this.UNMAR_PKGNAMES2, schemas);
 		this.attribAuthUnmarshaller = new UnmarshallerImpl<AttributeAuthorityDescriptor>(this.UNMAR_PKGNAMES3, schemas);
 		this.lxacmlPDPUnmarshaller = new UnmarshallerImpl<LXACMLPDPDescriptor>(this.UNMAR_PKGNAMES4, schemas);
 
-		this.metadataMarshaller = new MarshallerImpl<EntitiesDescriptor>(this.MAR_PKGNAMES, schemas,
-				this.keystoreResolver.getKeyAlias(), this.keystoreResolver.getPrivateKey());
+		this.metadataMarshaller = new MarshallerImpl<EntitiesDescriptor>(this.MAR_PKGNAMES, schemas, this.keystoreResolver.getKeyAlias(), this.keystoreResolver.getPrivateKey());
 	}
 
 	/*
@@ -108,14 +118,14 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 	 * 
 	 * @see com.qut.middleware.esoemanager.metadata.MetadataGenerator#generateMetadata()
 	 */
-	public String generateMetadata()
+	public byte[] generateMetadata()
 	{
-		List<String> activeEntities;
+		List<Integer> activeEntities;
 		List<Map<String, String>> contacts;
-		List<Map<String, String>> idpDescriptors;
-		List<Map<String, String>> spDescriptors;
-		List<Map<String, String>> lxacmlPDPDescriptors;
-		List<Map<String, String>> attribAuthDescriptors;
+		List<Map<String, Object>> idpDescriptors;
+		List<Map<String, Object>> spDescriptors;
+		List<Map<String, Object>> lxacmlPDPDescriptors;
+		List<Map<String, Object>> attribAuthDescriptors;
 
 		EntitiesDescriptor entitiesDescriptor;
 
@@ -126,18 +136,19 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 		/* Ensure entities descriptor is signed */
 		entitiesDescriptor.setSignature(new Signature());
 
-		activeEntities = this.metadataDAO.queryActiveEntities();
-		if (activeEntities != null)
+		try
 		{
-			try
+			activeEntities = this.metadataDAO.queryActiveEntities();
+			if (activeEntities != null)
 			{
-				for (String entityID : activeEntities)
+
+				for (Integer entID : activeEntities)
 				{
 					EntityDescriptor entityDescriptor = new EntityDescriptor();
-					entityDescriptor.setEntityID(entityID);
+					entityDescriptor.setEntityID(this.metadataDAO.getEntityID(entID));
 					entityDescriptor.setID(this.identifierGenerator.generateSAMLID());
 
-					contacts = this.metadataDAO.queryContacts(entityID);
+					contacts = this.metadataDAO.queryContacts(entID);
 					for (Map<String, String> contact : contacts)
 					{
 						ContactPerson contactPerson = new ContactPerson();
@@ -146,50 +157,84 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 						contactPerson.setSurName(contact.get(Constants.FIELD_CONTACT_SURNAME));
 						contactPerson.getEmailAddress().add(contact.get(Constants.FIELD_CONTACT_EMAIL_ADDRESS));
 						contactPerson.getTelephoneNumbers().add(contact.get(Constants.FIELD_CONTACT_TELEPHONE_NUMBER));
-						contactPerson.setContactType(ContactTypeType.fromValue(contact
-								.get(Constants.FIELD_CONTACT_TYPE)));
+						contactPerson.setContactType(ContactTypeType.fromValue(contact.get(Constants.FIELD_CONTACT_TYPE)));
 
 						entityDescriptor.getContactPersons().add(contactPerson);
 					}
+					
+					// keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor(pubKey, keyPairName);
+					// spDescriptor.getKeyDescriptors().add(keyDescriptor);
 
-					idpDescriptors = this.metadataDAO.queryIDPDescriptor(entityID);
-					for (Map<String, String> idpDescriptor : idpDescriptors)
+					idpDescriptors = this.metadataDAO.queryIDPDescriptor(entID);
+					for (Map<String, Object> idpDescriptor : idpDescriptors)
 					{
-						String tmp = idpDescriptor.get(Constants.FIELD_DESCRIPTOR_XML);
-						IDPSSODescriptor idp = this.idpUnmarshaller.unMarshallUnSigned(tmp);
+						IDPSSODescriptor idp = this.idpUnmarshaller.unMarshallUnSigned((byte[]) idpDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						
+						/* Retrieve all active public key data for this instance and insert into object */
+						List<Map<String, Object>> publicKeys = this.metadataDAO.queryDescriptorActivePublicKeys((Integer) idpDescriptor.get(Constants.FIELD_DESC_ID));
+						for(Map<String, Object> publicKey : publicKeys)
+						{
+							RSAPublicKey key = (RSAPublicKey) this.cryptoProcessor.convertByteArrayPublicKey( (byte[]) publicKey.get(Constants.FIELD_PK_BINARY) );
+							KeyDescriptor keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor(key, (String) publicKey.get(Constants.FIELD_PK_KEYPAIR_NAME));
+							idp.getKeyDescriptors().add(keyDescriptor);
+						}
+						
 						entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(idp);
-						this.logger.debug("Retrieved idpDescriptor of: \n"
-								+ idpDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						this.logger.debug("Retrieved idpDescriptor of: \n" + idpDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
 					}
 
-					spDescriptors = this.metadataDAO.querySPDescriptors(entityID);
-					for (Map<String, String> spDescriptor : spDescriptors)
+					spDescriptors = this.metadataDAO.querySPDescriptors(entID);
+					for (Map<String, Object> spDescriptor : spDescriptors)
 					{
-						SPSSODescriptor sp = this.spUnmarshaller.unMarshallUnSigned(spDescriptor
-								.get(Constants.FIELD_DESCRIPTOR_XML));
+						SPSSODescriptor sp = this.spUnmarshaller.unMarshallUnSigned((byte[]) spDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						
+						/* Retrieve all active public key data for this instance and insert into object */
+						List<Map<String, Object>> publicKeys = this.metadataDAO.queryDescriptorActivePublicKeys((Integer) spDescriptor.get(Constants.FIELD_DESC_ID));
+						for(Map<String, Object> publicKey : publicKeys)
+						{
+							RSAPublicKey key = (RSAPublicKey) this.cryptoProcessor.convertByteArrayPublicKey( (byte[]) publicKey.get(Constants.FIELD_PK_BINARY) );
+							KeyDescriptor keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor(key, (String) publicKey.get(Constants.FIELD_PK_KEYPAIR_NAME));
+							sp.getKeyDescriptors().add(keyDescriptor);
+						}
+						
 						entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(sp);
-						this.logger.debug("Retrieved spDescriptor of: \n"
-								+ spDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						this.logger.debug("Retrieved spDescriptor of: \n" + spDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
 					}
 
-					attribAuthDescriptors = this.metadataDAO.queryAttributeAuthorityDescriptor(entityID);
-					for (Map<String, String> attribAuthDescriptor : attribAuthDescriptors)
+					attribAuthDescriptors = this.metadataDAO.queryAttributeAuthorityDescriptor(entID);
+					for (Map<String, Object> attribAuthDescriptor : attribAuthDescriptors)
 					{
-						AttributeAuthorityDescriptor sp = this.attribAuthUnmarshaller
-								.unMarshallUnSigned(attribAuthDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
-						entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(sp);
-						this.logger.debug("Retrieved attribAuthDescriptor of: \n"
-								+ attribAuthDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						AttributeAuthorityDescriptor aa = this.attribAuthUnmarshaller.unMarshallUnSigned((byte[]) attribAuthDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						
+						/* Retrieve all active public key data for this instance and insert into object */
+						List<Map<String, Object>> publicKeys = this.metadataDAO.queryDescriptorActivePublicKeys((Integer) attribAuthDescriptor.get(Constants.FIELD_DESC_ID));
+						for(Map<String, Object> publicKey : publicKeys)
+						{
+							RSAPublicKey key = (RSAPublicKey) this.cryptoProcessor.convertByteArrayPublicKey( (byte[]) publicKey.get(Constants.FIELD_PK_BINARY) );
+							KeyDescriptor keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor(key, (String) publicKey.get(Constants.FIELD_PK_KEYPAIR_NAME));
+							aa.getKeyDescriptors().add(keyDescriptor);
+						}
+						
+						entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(aa);
+						this.logger.debug("Retrieved attribAuthDescriptor of: \n" + attribAuthDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
 					}
 
-					lxacmlPDPDescriptors = this.metadataDAO.queryLXACMLPDPDescriptor(entityID);
-					for (Map<String, String> lxacmlPDPDescriptor : lxacmlPDPDescriptors)
+					lxacmlPDPDescriptors = this.metadataDAO.queryLXACMLPDPDescriptor(entID);
+					for (Map<String, Object> lxacmlPDPDescriptor : lxacmlPDPDescriptors)
 					{
-						LXACMLPDPDescriptor sp = this.lxacmlPDPUnmarshaller.unMarshallUnSigned(lxacmlPDPDescriptor
-								.get(Constants.FIELD_DESCRIPTOR_XML));
-						entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(sp);
-						this.logger.debug("Retrieved lxacmlPDPDescriptor of: \n"
-								+ lxacmlPDPDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						LXACMLPDPDescriptor lx = this.lxacmlPDPUnmarshaller.unMarshallUnSigned((byte[]) lxacmlPDPDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
+						
+						/* Retrieve all active public key data for this instance and insert into object */
+						List<Map<String, Object>> publicKeys = this.metadataDAO.queryDescriptorActivePublicKeys((Integer) lxacmlPDPDescriptor.get(Constants.FIELD_DESC_ID));
+						for(Map<String, Object> publicKey : publicKeys)
+						{
+							RSAPublicKey key = (RSAPublicKey) this.cryptoProcessor.convertByteArrayPublicKey( (byte[]) publicKey.get(Constants.FIELD_PK_BINARY) );
+							KeyDescriptor keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor(key, (String) publicKey.get(Constants.FIELD_PK_KEYPAIR_NAME));
+							lx.getKeyDescriptors().add(keyDescriptor);
+						}
+						
+						entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(lx);
+						this.logger.debug("Retrieved lxacmlPDPDescriptor of: \n" + lxacmlPDPDescriptor.get(Constants.FIELD_DESCRIPTOR_XML));
 					}
 
 					/*
@@ -203,19 +248,28 @@ public class MetadataGeneratorImpl implements MetadataGenerator
 				this.logger.debug("About to marshall metadata, all data loaded from repository correctly");
 				return this.metadataMarshaller.marshallSigned(entitiesDescriptor);
 			}
-			catch (UnmarshallerException e)
-			{
-				this.logger.error("Exception when attempting to unmarshall metadata");
-				this.logger.debug(e.getLocalizedMessage(), e);
-			}
-			catch (MarshallerException e)
-			{
-				this.logger.error("Exception when attempting to marshall completed metadata document");
-				this.logger.debug(e.getLocalizedMessage(), e);
-			}
+		}
+		catch (UnmarshallerException e)
+		{
+			this.logger.error("Exception when attempting to unmarshall metadata");
+			this.logger.debug(e.getLocalizedMessage(), e);
+		}
+		catch (MarshallerException e)
+		{
+			this.logger.error("Exception when attempting to marshall completed metadata document");
+			this.logger.debug(e.getLocalizedMessage(), e);
+		}
+		catch (MetadataDAOException e)
+		{
+			this.logger.error("Exception when attempting to retrieve data to create metadata document");
+			this.logger.debug(e.getLocalizedMessage(), e);
+		}
+		catch (CryptoException e)
+		{
+			this.logger.error("Exception when attempting to retrieve crypto data to create metadata document");
+			this.logger.debug(e.getLocalizedMessage(), e);
 		}
 
 		return null;
 	}
-
 }

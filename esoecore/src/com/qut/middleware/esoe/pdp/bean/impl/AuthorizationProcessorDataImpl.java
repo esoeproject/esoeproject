@@ -27,20 +27,20 @@ import com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData;
 public class AuthorizationProcessorDataImpl implements AuthorizationProcessorData
 {
 
-	private String descriptorID;
+	private String issuerID;
 	
 	private String subjectID;
 	
-	private String request;
+	private byte[] request;
 	
-	private String response;
+	private byte[] response;
 	
 	/**
 	 * Default constructor. Sets all values to null.
 	 */
 	public AuthorizationProcessorDataImpl()
 	{
-		this.descriptorID = null;
+		this.issuerID = null;
 		this.subjectID =  null;
 		this.request =  null;
 		this.response =  null;
@@ -49,16 +49,16 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData#getDescriptorID()
 	 */
-	public String getDescriptorID()
+	public String getIssuerID()
 	{		
-		return this.descriptorID;
+		return this.issuerID;
 	}
 
 		
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData#getRequest()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.request;
 	}
@@ -67,7 +67,7 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData#getResponse()
 	 */
-	public String getResponseDocument()
+	public byte[] getResponseDocument()
 	{
 		return this.response;
 	}
@@ -85,16 +85,16 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData#setDescriptorID(java.lang.String)
 	 */
-	public void setDescriptorID(String ID)
+	public void setIssuerID(String issuerID)
 	{
-		this.descriptorID = ID;
+		this.issuerID = issuerID;
 	}
 
 	
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData#setRequest(java.lang.String)
 	 */
-	public void setRequestDocument(String request)
+	public void setRequestDocument(byte[] request)
 	{
 		this.request = request;
 	}
@@ -103,7 +103,7 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData#setResponse(java.lang.String)
 	 */
-	public void setResponseDocument(String response)
+	public void setResponseDocument(byte[] response)
 	{
 		this.response = response;
 	}

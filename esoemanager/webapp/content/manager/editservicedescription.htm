@@ -1,12 +1,12 @@
 <h3> Edit Service Details </h3>
 
 #if ($action.equals("completed"))
-The description of this service has been updated, <a href="viewservice.htm?serviceID=$serviceID">return to service details</a>
+The description of this service has been updated, <a href="viewservice.htm?eid=$eid">return to service details</a>
 #else
 
 #if ($action.equals("error"))
 <div id="error">
-The operation you have attempted to undertake has resulted in an error and the operation being terminated, <a href="viewservice.htm?serviceID=$serviceID">return to service details</a>
+The operation you have attempted to undertake has resulted in an error and the operation being terminated, <a href="viewservice.htm?sid=$sid">return to service details</a>
 </div>
 #else
 

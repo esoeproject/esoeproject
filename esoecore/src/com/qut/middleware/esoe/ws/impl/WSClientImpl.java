@@ -19,7 +19,8 @@
  */
 package com.qut.middleware.esoe.ws.impl;
 
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -57,7 +58,7 @@ public class WSClientImpl implements WSClient
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSClient#authzCacheClear(java.lang.String, java.lang.String)
 	 */
-	public String authzCacheClear(String request, String endpoint) throws WSClientException
+	public byte[] authzCacheClear(byte[] request, String endpoint) throws WSClientException
 	{
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.0")); //$NON-NLS-1$
@@ -73,7 +74,7 @@ public class WSClientImpl implements WSClient
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSClient#singleLogout(java.lang.String, java.lang.String)
 	 */
-	public String singleLogout(String request, String endpoint) throws WSClientException
+	public byte[] singleLogout(byte[] request, String endpoint) throws WSClientException
 	{
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.2")); //$NON-NLS-1$
@@ -95,10 +96,9 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private String invokeWSCall(String request, String endpoint) throws WSClientException
+	private byte[] invokeWSCall(byte[] request, String endpoint) throws WSClientException
 	{
-		StringReader reader;
-		StringWriter writer;
+		ByteArrayOutputStream response;
 		XMLStreamReader xmlreader;
 		StAXOMBuilder builder;
 		OMElement requestElement, resultElement;
@@ -109,8 +109,7 @@ public class WSClientImpl implements WSClient
 		try
 		{
 			targetEPR = new EndpointReference(endpoint);
-			reader = new StringReader(request);
-			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
+			xmlreader = this.xmlInputFactory.createXMLStreamReader(new ByteArrayInputStream(request));
 			builder = new StAXOMBuilder(xmlreader);
 			requestElement = builder.getDocumentElement();
 
@@ -118,21 +117,21 @@ public class WSClientImpl implements WSClient
 			options = new Options();
 			serviceClient.setOptions(options);
 			options.setTo(targetEPR);
+			options.setProperty(org.apache.axis2.Constants.Configuration.CHARACTER_SET_ENCODING, "UTF-16");
 
 			resultElement = serviceClient.sendReceive(requestElement);
 
-			writer = new StringWriter();
+			response = new ByteArrayOutputStream();
 			if (resultElement != null)
 			{
-				resultElement.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
+				resultElement.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(response));
 			}
 			else
 			{
 				throw new WSClientException(com.qut.middleware.esoe.ws.impl.Messages.getString("WSClientImpl.4")); //$NON-NLS-1$
 			}
-			writer.flush();
 
-			return writer.toString();
+			return response.toByteArray();
 		}
 		catch (AxisFault e)
 		{

@@ -19,6 +19,7 @@
  */
 package com.qut.middleware.esoe.authn.servlet;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -123,8 +124,8 @@ public class AuthnServlet extends HttpServlet
 			if (encodedURL != null)
 			{
 				this.logger.debug(Messages.getString("AuthnServlet.24")); //$NON-NLS-1$
-				decodedURL = Base64.decodeBase64(encodedURL.getBytes("UTF-8")); //$NON-NLS-1$
-				dynamicResponseURL = new String(decodedURL);
+				decodedURL = Base64.decodeBase64(encodedURL.getBytes()); //$NON-NLS-1$
+				dynamicResponseURL = new String(decodedURL, "UTF-16");
 
 				/*
 				 * Store this value in the session in case the authn system requires further interactions with the
@@ -216,16 +217,17 @@ public class AuthnServlet extends HttpServlet
 	{
 		super.init(servletConfig);
 
-		URL configFile;
+		FileInputStream configFile;
 		Properties props;
 		WebApplicationContext webAppContext;
 
 		try
 		{
-			configFile = this.getServletContext().getResource(ConfigurationConstants.ESOE_CONFIG);
+			configFile = new FileInputStream(System.getProperty("esoe.data") + ConfigurationConstants.ESOE_CONFIG);
+
 			props = new java.util.Properties();
 
-			props.load(configFile.openStream());
+			props.load(configFile);
 
 			/* Spring integration to make our servlet aware of IoC */
 			webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this.getServletContext());
@@ -240,8 +242,8 @@ public class AuthnServlet extends HttpServlet
 			}
 
 			this.authnDynamicURLParam = props.getProperty(ConfigurationConstants.AUTHN_DYNAMIC_URL_PARAM);
-			this.sessionTokenName = props.getProperty(ConfigurationConstants.SESSION_TOKEN_NAME);
-			this.sessionDomain = props.getProperty(ConfigurationConstants.COOKIE_SESSION_DOMAIN);
+			this.sessionTokenName = props.getProperty(ConfigurationConstants.ESOE_SESSION_TOKEN_NAME);
+			this.sessionDomain = props.getProperty(ConfigurationConstants.ESOE_SESSION_DOMAIN);
 			this.disableSSOTokenName = props.getProperty(ConfigurationConstants.DISABLE_SSO_TOKEN_NAME);
 
 			if (this.authnDynamicURLParam == null)
@@ -254,16 +256,16 @@ public class AuthnServlet extends HttpServlet
 			if (this.sessionTokenName == null)
 			{
 				this.logger.fatal(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
-						+ ConfigurationConstants.SESSION_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
+						+ ConfigurationConstants.ESOE_SESSION_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
-						+ ConfigurationConstants.SESSION_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
+						+ ConfigurationConstants.ESOE_SESSION_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 			}
 			if (this.sessionDomain == null)
 			{
 				this.logger.fatal(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
-						+ ConfigurationConstants.COOKIE_SESSION_DOMAIN + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
+						+ ConfigurationConstants.ESOE_SESSION_DOMAIN + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
-						+ ConfigurationConstants.COOKIE_SESSION_DOMAIN + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
+						+ ConfigurationConstants.ESOE_SESSION_DOMAIN + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 			}
 			if (this.disableSSOTokenName == null)
 			{
@@ -339,9 +341,9 @@ public class AuthnServlet extends HttpServlet
 	{
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, data.getSessionID());
 		sessionCookie.setDomain(this.sessionDomain);
+		sessionCookie.setMaxAge(-1); //negative indicates session scope cookie
+		sessionCookie.setPath("/");
 		
-		/* TODO: Re-enable for non alpha releases */
-		/* sessionCookie.setSecure(true); */
 		data.getHttpResponse().addCookie(sessionCookie);
 	}
 	
@@ -354,7 +356,7 @@ public class AuthnServlet extends HttpServlet
 		/* Remove the value of the users session cookie at the ESOE */
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$
 		sessionCookie.setDomain(this.sessionDomain);
-		sessionCookie.setSecure(true);
+		sessionCookie.setSecure(false);
 		data.getHttpResponse().addCookie(sessionCookie);
 	}
 }

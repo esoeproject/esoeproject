@@ -30,9 +30,10 @@ public class FailedLogoutRepositoryTest {
 	@Test
 	public void testAdd() 
 	{
+		byte[] doc = new String("<xml>test</xml>").getBytes();
 		FailedLogout failure = new FailedLogoutImpl();
 		failure.setEndPoint("www.test.co");
-		failure.setRequestDocument("<xml>test</xml>");
+		failure.setRequestDocument(doc);
 		Date date = new Date(System.currentTimeMillis());
 		failure.setTimeStamp(date);		
 		
@@ -42,7 +43,7 @@ public class FailedLogoutRepositoryTest {
 		
 		FailedLogout returned = this.logoutFailures.getFailures().get(0);
 		assertEquals("Returned data does not match Set data. ", "www.test.co", returned.getEndPoint());
-		assertEquals("Returned data does not match Set data. ", "<xml>test</xml>", returned.getRequestDocument());
+		assertEquals("Returned data does not match Set data. ", doc, returned.getRequestDocument());
 		assertEquals("Returned data does not match Set data. ", date.getTime(), returned.getTimeStamp().getTime());
 	}
 
@@ -67,13 +68,13 @@ public class FailedLogoutRepositoryTest {
 		
 		FailedLogout failure = new FailedLogoutImpl();
 		failure.setEndPoint("www.test.1");
-		failure.setRequestDocument("<xml>test</xml>");
+		failure.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure.setTimeStamp(date);		
 		
 		
 		FailedLogout failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("www.test.2");
-		failure2.setRequestDocument("<xml>test</xml>");
+		failure2.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure2.setTimeStamp(date);	
 		
 		this.logoutFailures.add(failure);
@@ -97,13 +98,13 @@ public class FailedLogoutRepositoryTest {
 		
 		FailedLogout failure = new FailedLogoutImpl();
 		failure.setEndPoint("www.test.1");
-		failure.setRequestDocument("<xml>test</xml>");
+		failure.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure.setTimeStamp(date);		
 		
 		
 		FailedLogout failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("www.test.2");
-		failure2.setRequestDocument("<xml>test</xml>");
+		failure2.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure2.setTimeStamp(date);	
 		
 		this.logoutFailures.add(failure);

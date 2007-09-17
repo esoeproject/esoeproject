@@ -49,6 +49,7 @@ public class RenderESOEConfigLogic
 	private final String COMMENT_REPLACE = "_#";
 	private final String VELOCITY_BEAN_NAME = "esoeBean";
 	private final String VELOCITY_NODE_ID_NAME = "nodeID";
+	private final String VELOCITY_SERVICE_URL = "serviceURL";
 	private final String VELOCITY_SERVICE_NODE_URL = "serviceNodeURL";
 	
 	/* Local logging instance */
@@ -124,7 +125,7 @@ public class RenderESOEConfigLogic
 			context.put(this.VELOCITY_NODE_ID_NAME, iNodeID);
 			
 			/* Slightly nasty hack but for now we aren't able to use velocity functionality due to comment stripping */ 
-			for(ServiceNodeBean bean : esoeBean.getManagerServiceNodes())
+			for(ServiceNodeBean bean : esoeBean.getServiceNodes())
 			{
 				if(bean.getNodeID().equals(iNodeID.toString()))
 				{
@@ -132,6 +133,9 @@ public class RenderESOEConfigLogic
 					break;
 				}
 			}
+			
+			/* Get the base service URL without application data*/
+			context.put(this.VELOCITY_SERVICE_URL, esoeBean.getServiceURL());
 
 			Velocity.evaluate(context, stringWriter, input.getName(), ammendedDocument);
 			

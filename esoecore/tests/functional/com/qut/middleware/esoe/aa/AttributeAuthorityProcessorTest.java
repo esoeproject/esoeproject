@@ -156,7 +156,7 @@ public class AttributeAuthorityProcessorTest
 		
 		this.metadata = createMock(Metadata.class);
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(publicKey).anyTimes();
-		expect(this.metadata.getESOEIdentifier()).andReturn("_jfalskjflkeworijqowiejroiajsotijaspgkjplakeprtqwoer").anyTimes();
+		expect(this.metadata.getEsoeEntityID()).andReturn("_jfalskjflkeworijqowiejroiajsotijaspgkjplakeprtqwoer").anyTimes();
 		
 		replay(this.metadata);
 		
@@ -212,7 +212,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -256,7 +256,7 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length() == 0)
+		if(requestDocument == null || requestDocument.length == 0)
 		{
 			fail("Request was empty");
 			return;
@@ -295,7 +295,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -337,7 +337,7 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length() == 0)
+		if(requestDocument == null || requestDocument.length == 0)
 		{
 			fail("Request was empty");
 			return;
@@ -405,7 +405,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -450,7 +450,7 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length() == 0)
+		if(requestDocument == null || requestDocument.length == 0)
 		{
 			fail("Request was empty");
 			return;
@@ -519,7 +519,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -551,7 +551,7 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length() == 0)
+		if(requestDocument == null || requestDocument.length == 0)
 		{
 			fail("Request was empty");
 			return;

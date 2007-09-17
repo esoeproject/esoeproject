@@ -75,5 +75,12 @@ public class BindingConstants
 	 * <saml:Assertion> element (but not a complete SAML response).
 	 */
 	public static String uri = "urn:oasis:names:tc:SAML:2.0:bindings:URI"; //$NON-NLS-1$
+	
+	/**
+	 * Encoding method associated HTTP Redirect Binding
+	 */
+	public static String deflateEncoding = "urn:oasis:names:tc:SAML:2.0:bindings:URL-Encoding:DEFLATE"; //$NON-NLS-1$
+
+
 
 }

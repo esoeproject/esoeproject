@@ -67,7 +67,7 @@ public class SPEPRegistrationDataTest {
 	@Test
 	public void testGetDescriptorID()
 	{
-		this.data.setDescriptorID(this.descriptorID);
+		this.data.setEntID(this.descriptorID);
 		
 		assertEquals(this.descriptorID, this.data.getDescriptorID());
 	}

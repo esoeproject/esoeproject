@@ -84,6 +84,16 @@ public interface CacheData
 	 */
 	public String getCurrentRevision();
 	
+	/** Returns a list of acceptable identifier types for this SP to be used in generation of responses
+	 * @return List of acceptable NameID format identifiers
+	 */
+	public Map<String, List<String>> getAssertionConsumerServiceIdentifierTypes();
+
+	/** Set a list of acceptable identifier types for a service provider ACS
+	 * @param assertionConsumerServiceIdentifierTypes
+	 */
+	public void setAssertionConsumerServiceIdentifierTypes(Map<String, List<String>> assertionConsumerServiceIdentifierTypes);
+	
 	
 	/** Get the keyMap as obtained from the metadata file. 
 	 * 

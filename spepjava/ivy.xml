@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
 
-	<info organisation="esoeproject" module="spep" revision="0.2">
+	<info organisation="esoeproject" module="spep" revision="${esoe.version}">
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"
@@ -13,6 +13,8 @@
 	</info>
 
 	<configurations>
+		<conf name="default" />
+	
 		<conf name="dev" />
 		
 		<conf name="dev-release" />
@@ -21,7 +23,7 @@
 	</configurations>
 	
 	<publications>
-		<artifact name="spep" type="jar" />
+		<artifact name="spep" type="jar" conf="*"/>
 	</publications>
 
 	<dependencies>
@@ -33,6 +35,7 @@
 		<!-- Development release shared dependencies (excluded below) -->
         <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release-shared->default"/>
         <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release-shared->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release-shared->default"/>
         
         <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev-release-shared->dev-release">
         	<exclude org="sun" module="jaxb" />

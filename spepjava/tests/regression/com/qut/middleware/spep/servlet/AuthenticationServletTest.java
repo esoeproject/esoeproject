@@ -67,7 +67,7 @@ public class AuthenticationServletTest
 	private Metadata metadata;
 	private String tokenName;
 	private String tokenDomain;
-	private String authnRequest;
+	private byte[] authnRequest;
 	private String singleSignOnEndpoint;
 	private String defaultRequestURL;
 
@@ -79,7 +79,7 @@ public class AuthenticationServletTest
 	{
 		this.tokenName = "spep-session";
 		this.tokenDomain = "spep-dev.qut.edu.au";
-		this.authnRequest = "This is an authn request.";
+		this.authnRequest = new String("This is an authn request.").getBytes();
 		this.singleSignOnEndpoint = "this is the single sign-on endpoint";
 		this.defaultRequestURL = "http://this.is.the.default/url";
 		
@@ -132,7 +132,7 @@ public class AuthenticationServletTest
 		final LineVectorOutputStream outputStream = new LineVectorOutputStream();
 
 		String redirectURL = "http://spep-dev.qut.edu.au/redirect";
-		String base64RedirectURL = new String(Base64.encodeBase64(redirectURL.getBytes("UTF-8")));
+		String base64RedirectURL = new String(Base64.encodeBase64(redirectURL.getBytes("UTF-16")));
 		
 		Modify<AuthnProcessorData> modifyAuthnProcessorData = new ModifyAuthnProcessorData( null, null, AuthenticationServletTest.this.authnRequest );
 		
@@ -152,6 +152,7 @@ public class AuthenticationServletTest
 		expect(response.getOutputStream()).andReturn(out).anyTimes();
 		
 		response.setStatus(200);
+		response.setHeader("Content-Type", "text/html");
 		expectLastCall().anyTimes();
 		
 		replay(request);
@@ -162,7 +163,7 @@ public class AuthenticationServletTest
 		verify(request);
 		verify(response);
 		
-		String base64Document = new String(Base64.encodeBase64(this.authnRequest.getBytes("UTF-8")));
+		String base64Document = new String(Base64.encodeBase64(this.authnRequest));
 		
 		boolean foundURL = false, foundDocument = false;
 		for (String line : outputStream.getLines())
@@ -444,9 +445,9 @@ class ModifyAuthnProcessorData extends Modify<AuthnProcessorData>
 {
 	private String sessionID;
 	private String base64RequestURL;
-	private String requestDocument;
+	private byte[] requestDocument;
 
-	public ModifyAuthnProcessorData(String sessionID, String base64RequestURL, String requestDocument)
+	public ModifyAuthnProcessorData(String sessionID, String base64RequestURL, byte[] requestDocument)
 	{
 		this.sessionID = sessionID;
 		this.base64RequestURL = base64RequestURL;

@@ -126,5 +126,9 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		class="com.qut.middleware.esoemanager.pages.ConfigureServiceAuthorizationPolicyPage" scope="prototype">
 		<property name="configureServiceAuthorizationPolicyLogic" ref="configureServiceAuthorizationPolicyLogic" />
 	</bean>
+	
+	<bean id="com.qut.middleware.esoemanager.pages.ConfigureAttributePolicyPage"	class="com.qut.middleware.esoemanager.pages.ConfigureAttributePolicyPage" scope="prototype">
+		<property name="configureAttributePolicyLogic" ref="configureAttributePolicyLogic"/>
+	</bean>
 
 </beans>

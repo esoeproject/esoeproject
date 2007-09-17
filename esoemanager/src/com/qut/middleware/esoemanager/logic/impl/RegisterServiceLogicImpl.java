@@ -19,13 +19,10 @@
  */
 package com.qut.middleware.esoemanager.logic.impl;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyPair;
@@ -33,8 +30,10 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 
@@ -50,6 +49,7 @@ import com.qut.middleware.esoemanager.exception.SPEPDAOException;
 import com.qut.middleware.esoemanager.logic.RegisterServiceLogic;
 import com.qut.middleware.esoemanager.spep.sqlmap.SPEPDAO;
 import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.ProtocolConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
@@ -79,7 +79,7 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 	private String organizationDisplayName;
 	private String organizationURL;
 	private String activeFlag;
-	private String defaultPolicy;
+	private byte[] defaultPolicy;
 
 	private UtilityFunctions util;
 
@@ -151,35 +151,20 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 	
 	private void loadDefaultPolicy(File policyFile) throws IOException
 	{
-		String tmp;
-		StringBuffer inBuffer = null;
 		InputStream fileStream = null;
-		Reader reader = null;
-		BufferedReader in = null;
-
+		
 		try
 		{
-			inBuffer = new StringBuffer();
+			long length = policyFile.length();
+			byte[] byteArray = new byte[(int) length];
 			fileStream = new FileInputStream(policyFile);
-			reader = new InputStreamReader(fileStream, "UTF-16");
-			in = new BufferedReader(reader);
+			fileStream.read(byteArray);
+			fileStream.close();
 
-			while ((tmp = in.readLine()) != null)
-			{
-				inBuffer.append(tmp);
-				inBuffer.append(System.getProperty("line.separator"));
-			}
-
-			this.defaultPolicy = inBuffer.toString();
+			this.defaultPolicy = byteArray;
 		}
 		finally
 		{
-			if (in != null)
-				in.close();
-
-			if (reader != null)
-				reader.close();
-
 			if (fileStream != null)
 				fileStream.close();
 		}
@@ -190,7 +175,7 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 	 * 
 	 * @see com.qut.middleware.esoemanager.logic.RegisterServiceLogic#execute(com.qut.middleware.esoemanager.bean.ServiceBean)
 	 */
-	public String execute(ServiceBean bean) throws RegisterServiceException
+	public void execute(ServiceBean bean) throws RegisterServiceException
 	{
 		String keyStorePassphrase;
 		String keyPairName;
@@ -199,22 +184,21 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 		KeyPair spKeyPair;
 		KeyStore keyStore;
 		SPSSODescriptor spDescriptor;
-		String entityID, entityDescriptorID;
-		String spDescriptorXML;
+		byte[] spDescriptorXML;
 		byte[] keyStoreBytes;
 
 		try
 		{
-			entityID = (this.identifierGenerator.generateSAMLID());
-			entityDescriptorID = (this.identifierGenerator.generateSAMLID());
-			this.logger.debug("Creating service with EntityID of " + entityDescriptorID);
-
+			/* Get ID's for the new service */
+			bean.setEntID(this.spepDAO.getNextEntID());
+			bean.setDescID(this.spepDAO.getNextDescID());
+			
 			/* Register the service entity */
-			this.spepDAO.insertEntityDescriptor(entityID, organizationName, organizationDisplayName, organizationURL,
+			this.spepDAO.insertEntityDescriptor(bean.getEntID(), bean.getEntityID(), organizationName, organizationDisplayName, organizationURL,
 					activeFlag);
 
 			/* Register the service description */
-			this.spepDAO.insertServiceDescription(entityID, bean.getServiceName(), bean.getServiceURL(), bean
+			this.spepDAO.insertServiceDescription(bean.getEntID(), bean.getServiceName(), bean.getServiceURL(), bean
 					.getServiceDescription(), bean.getServiceAuthzFailureMsg());
 
 			for (ContactPersonBean contact : bean.getContacts())
@@ -225,7 +209,7 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 				/* Register the service contact points */
 				this.logger.info("Adding contact person with name" + contact.getGivenName() + " "
 						+ contact.getSurName() + " and generated id of " + contact.getContactID());
-				this.spepDAO.insertServiceContacts(entityID, contact.getContactID(), contact.getContactType(), contact
+				this.spepDAO.insertServiceContacts(bean.getEntID(), contact.getContactID(), contact.getContactType(), contact
 						.getCompany(), contact.getGivenName(), contact.getSurName(), contact.getEmailAddress(), contact
 						.getTelephoneNumber());
 			}
@@ -249,24 +233,31 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 			spDescriptorXML = this.spMarshaller.marshallUnSigned(spDescriptor);
 
 			/* Write SP Descriptor to data repostory */
-			this.spepDAO.insertDescriptor(entityID, spDescriptor.getID(), spDescriptorXML, util
+			this.spepDAO.insertDescriptor(bean.getEntID(), bean.getDescID(), spDescriptor.getID(), spDescriptorXML, util
 					.getRoleDescriptorTypeId(SPSSODescriptor.class.getCanonicalName()));
 
 			/* Wrtie service nodes to data repository */
 			for (ServiceNodeBean node : bean.getServiceNodes())
 			{
-				this.spepDAO.insertServiceNode(node.getNodeID(), spDescriptor.getID(), node.getNodeURL(), node
+				this.spepDAO.insertServiceNode(node.getNodeID(), bean.getDescID(), node.getNodeURL(), node
 						.getAssertionConsumerService(), node.getSingleLogoutService(), node.getCacheClearService());
 			}
 
+			/* Determine expiry date of PKI data */
+			Calendar expiryDate = Calendar.getInstance();
+			expiryDate.add(Calendar.YEAR, this.cryptoProcessor.getCertExpiryIntervalInYears());
+			
 			/* Commit PKI data to repository for future retrieval and audit */
-			this.spepDAO.insertPKIData(spDescriptor.getID(), new Date(), keyStoreBytes,
+			this.spepDAO.insertPublicKey(bean.getDescID(), expiryDate.getTime(), keyPairName, this.cryptoProcessor.convertPublicKeyByteArray(spKeyPair.getPublic()));
+			
+			this.spepDAO.insertPKIData(bean.getDescID(), expiryDate.getTime(), keyStoreBytes,
 					encryptPassphrase(keyStorePassphrase), keyPairName, encryptPassphrase(keyPairPassphrase));
 			
 			/* Setup default policy */
-			this.spepDAO.insertServiceAuthorizationPolicy(spDescriptor.getID(), this.defaultPolicy, new Date());
+			this.spepDAO.insertServiceAuthorizationPolicy(bean.getEntID(), "spep-0", this.defaultPolicy);
 			
-			return entityID;
+			/* We encode the entityID in base64 before returning */
+			bean.setEntityID(new String(Base64.encodeBase64(bean.getEntityID().getBytes())));
 		}
 		catch (CryptoException e)
 		{
@@ -290,7 +281,7 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 	}
 
 	private SPSSODescriptor createSPSSODescriptor(ServiceBean bean, RSAPublicKey pubKey, String keyPairName)
-			throws MarshallerException
+			throws MarshallerException, RegisterServiceException
 	{
 		/*
 		 * Determine how many SP records were submitted for ID generation for endpoints this will assimilate each SP
@@ -300,9 +291,13 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 		KeyDescriptor keyDescriptor;
 
 		spDescriptor.setID(this.identifierGenerator.generateSAMLID());
-		keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor(pubKey, keyPairName);
-		spDescriptor.getKeyDescriptors().add(keyDescriptor);
 
+		String serviceHost = bean.getServiceHost();  
+		if(serviceHost == null)
+		{
+			throw new RegisterServiceException("Unable to correctly establish value of service host from supplied data");
+		}
+		
 		for (ServiceNodeBean node : bean.getServiceNodes())
 		{
 			Extensions extensions;
@@ -312,10 +307,11 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 			node.setNodeID(this.util.generateID());
 			nodeID = new Integer(node.getNodeID());
 
-			/* Add the configured assertion consumer service */
+			/* Add the configured assertion consumer service - ACS is set to the service URL, this ensures load balanced services are handled correctly with the SAML POST profile
+			 * single node service should have identical service and node urls */
 			IndexedEndpointType assertionConsumerService = new IndexedEndpointType();
-			assertionConsumerService.setLocation(node.getNodeURL() + node.getAssertionConsumerService());
-			assertionConsumerService.setBinding(BindingConstants.soap);
+			assertionConsumerService.setLocation(serviceHost + node.getAssertionConsumerService());
+			assertionConsumerService.setBinding(BindingConstants.httpPost);
 			assertionConsumerService.setIndex(nodeID.intValue());
 			spDescriptor.getAssertionConsumerServices().add(assertionConsumerService);
 
@@ -344,6 +340,8 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 		spDescriptor.setAuthnRequestsSigned(true);
 		spDescriptor.setWantAssertionsSigned(true);
 		spDescriptor.getProtocolSupportEnumerations().add(ProtocolConstants.protocol);
+		spDescriptor.getNameIDFormats().add(NameIDFormatConstants.trans);
+		
 		return spDescriptor;
 	}
 
@@ -408,7 +406,7 @@ public class RegisterServiceLogicImpl implements RegisterServiceLogic
 	 * 
 	 * @param passphrase
 	 *            Clear text passphrase to operate on
-	 * @return An obscured passphrase for writing to data repository, not guarenteed safe to sophisticated attacks
+	 * @return An obscured passphrase for writing to data repository, not guarented safe to sophisticated attacks
 	 */
 	private String encryptPassphrase(String passphrase)
 	{

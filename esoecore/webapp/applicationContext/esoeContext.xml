@@ -39,14 +39,14 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<!-- Identity Resolver -->
 		<import resource="resources/sessions/identityResolver.xml"/>
 		
+		<!-- Metadata Resolver -->
+		<import resource="resources/metadata.xml"/>
+		
 		<!-- Session Configuration Data -->
 		<import resource="resources/sessions/sessionConfigurationData.xml"/>
 		
 		<!-- Sessions Processor -->
 		<import resource="resources/sessions.xml" />
-		
-		<!-- Metadata Resolver -->
-		<import resource="resources/metadata.xml"/>
 		
 		<!-- Policy Decision Point Processor -->
 		<import resource="resources/policyDecisionPoint.xml"/>

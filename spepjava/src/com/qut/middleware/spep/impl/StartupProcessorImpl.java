@@ -207,12 +207,12 @@ public class StartupProcessorImpl implements StartupProcessor
 			{
 				String samlID = this.identifierGenerator.generateSAMLID();
 				
-				String requestDocument = buildRequest(samlID);
+				byte[] requestDocument = buildRequest(samlID);
 				String endpoint = this.metadata.getSPEPStartupServiceEndpoint();
 				
 				this.logger.debug(MessageFormat.format(Messages.getString("StartupProcessorImpl.3"), endpoint) ); //$NON-NLS-1$
 				
-				String responseDocument = this.wsClient.spepStartup(requestDocument, endpoint);
+				byte[] responseDocument = this.wsClient.spepStartup(requestDocument, endpoint);
 				
 				this.logger.debug(Messages.getString("StartupProcessorImpl.4")); //$NON-NLS-1$
 
@@ -277,7 +277,7 @@ public class StartupProcessorImpl implements StartupProcessor
 	/* Builds a string representation of ValidateInitializationRequest using the given SAMLID.
 	 * 
 	 */
-	private String buildRequest(String samlID) throws MarshallerException
+	private byte[] buildRequest(String samlID) throws MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.spepIdentifier);
@@ -305,7 +305,7 @@ public class StartupProcessorImpl implements StartupProcessor
 	/* Process the string representation of the given ValidateInitliazationResponse object.
 	 * 
 	 */
-	private void processResponse(String responseDocument, String expectedSAMLID) throws SignatureValueException, ReferenceValueException, UnmarshallerException, SPEPInitializationException
+	private void processResponse(byte[] responseDocument, String expectedSAMLID) throws SignatureValueException, ReferenceValueException, UnmarshallerException, SPEPInitializationException
 	{
 		ValidateInitializationResponse validateInitializationResponse = this.validateInitializationResponseUnmarshaller.unMarshallSigned(responseDocument);
 

@@ -23,15 +23,15 @@ import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 
 public class AAProcessorDataImpl implements AAProcessorData
 {
-	private String requestDocument;
-	private String descriptorID;
+	private byte[] requestDocument;
+	private String issuerID;
 	private String subjectID;
-	private String responseDocument;
+	private byte[] responseDocument;
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#getRequestDocument()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -39,7 +39,7 @@ public class AAProcessorDataImpl implements AAProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#setRequestDocument(org.opensaml.saml2.core.Request)
 	 */
-	public void setRequestDocument(String requestDocument)
+	public void setRequestDocument(byte[] requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}
@@ -47,15 +47,15 @@ public class AAProcessorDataImpl implements AAProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#getDescriptorID()
 	 */
-	public String getDescriptorID()
+	public String getIssuerID()
 	{
-		return this.descriptorID;
+		return this.issuerID;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#getResponseDocument()
 	 */
-	public String getResponseDocument()
+	public byte[] getResponseDocument()
 	{
 		return this.responseDocument;
 	}
@@ -71,15 +71,15 @@ public class AAProcessorDataImpl implements AAProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#setDescriptorID(java.lang.String)
 	 */
-	public void setDescriptorID(String descriptorID)
+	public void setIssuerID(String issuerID)
 	{
-		this.descriptorID = descriptorID;
+		this.issuerID = issuerID;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#setResponseDocument(org.opensaml.saml2.core.Response)
 	 */
-	public void setResponseDocument(String responseDocument)
+	public void setResponseDocument(byte[] responseDocument)
 	{
 		this.responseDocument = responseDocument;
 	}

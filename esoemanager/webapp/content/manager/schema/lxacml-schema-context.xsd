@@ -22,6 +22,7 @@ Creation Date: 26/09/2006
 		<xsd:sequence>
 			<xsd:element ref="lxacml-context:Subject" />
 			<xsd:element ref="lxacml-context:Resource" />
+			<xsd:element ref="lxacml-context:Action" minOccurs="0"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -34,6 +35,13 @@ Creation Date: 26/09/2006
 
 	<xsd:element name="Resource" type="lxacml-context:ResourceType" />
 	<xsd:complexType name="ResourceType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml-context:Attribute" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="Action" type="lxacml-context:ActionType" />
+	<xsd:complexType name="ActionType">
 		<xsd:sequence>
 			<xsd:element ref="lxacml-context:Attribute" />
 		</xsd:sequence>

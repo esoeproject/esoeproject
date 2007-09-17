@@ -19,8 +19,8 @@
  */
 package com.qut.middleware.spep.ws.impl;
 
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -67,7 +67,7 @@ public class WSProcessorImpl implements WSProcessor
 	public OMElement authzCacheClear(OMElement request) throws AxisFault
 	{
 		MessageContext.getCurrentMessageContext().getAxisService();
-		String requestDocument = null, responseDocument = null;
+		byte[] requestDocument = null, responseDocument = null;
 		try
 		{
 			requestDocument = readRequest(request);
@@ -102,7 +102,7 @@ public class WSProcessorImpl implements WSProcessor
 	 */
 	public OMElement singleLogout(OMElement request) throws AxisFault
 	{
-		String requestDocument = null, responseDocument = null;
+		byte[] requestDocument = null, responseDocument = null;
 		try
 		{
 			requestDocument = readRequest(request);
@@ -166,24 +166,23 @@ public class WSProcessorImpl implements WSProcessor
 	}
 
 	/**
-	 * Reads Axis2 web requests and gets the raw Soap body as a String
+	 * Reads Axis2 web requests and gets the raw Soap body as a byte[]
 	 * 
 	 * @param requestDocument Axis 2 Axiom representation of the request
 	 * @return String representation of the request document
 	 */
-	private String readRequest(OMElement requestDocument) throws AxisFault
+	private byte[] readRequest(OMElement requestDocument) throws AxisFault
 	{
-		StringWriter writer;
+		ByteArrayOutputStream writer;
 		XMLStreamWriter xmlWriter;
 
 		try
 		{
-			writer = new StringWriter();
+			writer = new ByteArrayOutputStream();
 			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
 			requestDocument.serialize(xmlWriter);
-			writer.flush();
 
-			return writer.toString();
+			return writer.toByteArray();
 		}
 		catch (XMLStreamException e)
 		{
@@ -198,16 +197,16 @@ public class WSProcessorImpl implements WSProcessor
 	 *            String representation of the SAML document to respond with
 	 * @return The Axis2 representation of the document
 	 */
-	private OMElement generateResponse(String responseDocument) throws AxisFault
+	private OMElement generateResponse(byte[] responseDocument) throws AxisFault
 	{
 		XMLStreamReader xmlreader;
 		StAXOMBuilder builder;
 		OMElement response;
-		StringReader reader;
+		ByteArrayInputStream reader;
 
 		try
 		{
-			reader = new StringReader(responseDocument);
+			reader = new ByteArrayInputStream(responseDocument);
 			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
 			builder = new StAXOMBuilder(xmlreader);
 			response = builder.getDocumentElement();

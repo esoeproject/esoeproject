@@ -29,7 +29,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +42,7 @@ import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.junit.Before;
@@ -125,7 +125,7 @@ public class AuthnProcessorTest
 	private String[] logoutSchemas;
 	private String logoutPackages;
 	private Marshaller<LogoutRequest> logoutRequestMarshaller;
-	private Unmarshaller<Response> logoutResponseUnmarshaller;
+	private Unmarshaller<JAXBElement<StatusResponseType>> logoutResponseUnmarshaller;
 	private int assertionConsumerIndex;
 	private int attributeConsumingIndex;
 	private String assertionConsumerServiceLocation;
@@ -148,7 +148,7 @@ public class AuthnProcessorTest
 		this.logoutSchemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion};
 		this.logoutPackages = LogoutRequest.class.getPackage().getName();
 		this.logoutRequestMarshaller = new MarshallerImpl<LogoutRequest>(this.logoutPackages, this.logoutSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-		this.logoutResponseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver);
+		this.logoutResponseUnmarshaller = new UnmarshallerImpl<JAXBElement<StatusResponseType>>(StatusResponseType.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver);
 
 		this.inResponseTo = "a809238409128304912834-182305912038498320984";
 		
@@ -225,7 +225,7 @@ public class AuthnProcessorTest
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		String samlSessionIndex = idGenerator.generateSAMLSessionID();
 		
-		String responseDocument;
+		byte[] responseDocument;
 		
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, 2);
 		
@@ -272,7 +272,7 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		String responseDocument;
+		byte[] responseDocument;
 			
 		Response response = this.generateFailedAuthnResponse();
 		
@@ -304,7 +304,7 @@ public class AuthnProcessorTest
 
 		startMock();
 		
-		String responseDocument;
+		byte[] responseDocument;
 		
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(this.identifierCache);
 		String samlSessionID = idGenerator.generateSAMLSessionID();
@@ -338,7 +338,7 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		String responseDocument;
+		byte[] responseDocument;
 		
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(this.identifierCache);
 		String samlSessionID = idGenerator.generateSAMLSessionID();
@@ -371,7 +371,7 @@ public class AuthnProcessorTest
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		String samlSessionIndex = idGenerator.generateSAMLSessionID();
 		
-		String responseDocument;
+		byte[] responseDocument;
 		
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, -1);
 		
@@ -402,7 +402,7 @@ public class AuthnProcessorTest
 	public void testProcessAuthnResponse1e() throws Exception
 	{
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
-		String responseDocument;
+		byte[] responseDocument;
 		
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		
@@ -459,7 +459,7 @@ public class AuthnProcessorTest
 	public void testProcessAuthnResponse1f() throws Exception
 	{
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
-		String responseDocument;
+		byte[] responseDocument;
 		
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		
@@ -565,7 +565,7 @@ public class AuthnProcessorTest
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
 
 		this.authnProcessor.generateAuthnRequest(data);
-		String requestDocument = data.getRequestDocument();
+		byte[] requestDocument = data.getRequestDocument();
 		
 		//System.out.println(new PrettyXml("    ").makePretty(requestDocument));
 		
@@ -635,8 +635,8 @@ public class AuthnProcessorTest
 		
 		this.authnProcessor.logoutPrincipal(data);
 		
-		Response response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
-		assertTrue("Ensures the response document is generated in a success state", response.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
 		
 		endMock();
 	}
@@ -694,8 +694,8 @@ public class AuthnProcessorTest
 		
 		this.authnProcessor.logoutPrincipal(data);
 		
-		Response response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
-		assertTrue("Ensures the response document is generated in a success state", response.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
 		
 		endMock();
 	}
@@ -750,8 +750,8 @@ public class AuthnProcessorTest
 		
 		this.authnProcessor.logoutPrincipal(data);
 		
-		Response response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
-		assertTrue("Ensures the response document is generated in a success state", response.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
 		
 		
 		endMock();
@@ -798,8 +798,8 @@ public class AuthnProcessorTest
 			// We actually expect this
 		}
 		
-		Response response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
-		assertTrue("Ensures the response document is generated in a success state", response.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.unknownPrincipal));
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.unknownPrincipal));
 				
 		endMock();
 	}
@@ -865,7 +865,7 @@ public class AuthnProcessorTest
 	
 	
 	
-	private String generateLogoutRequest(String generatedSAMLID, List<String> sessionIndices, String nameID) throws MarshallerException
+	private byte[] generateLogoutRequest(String generatedSAMLID, List<String> sessionIndices, String nameID) throws MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.spepIdentifier);

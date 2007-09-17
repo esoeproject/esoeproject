@@ -22,19 +22,31 @@ package com.qut.middleware.esoemanager.metadata.sqlmap;
 import java.util.List;
 import java.util.Map;
 
+import com.qut.middleware.esoemanager.exception.MetadataDAOException;
+import com.qut.middleware.esoemanager.exception.SPEPDAOException;
+
 public interface MetadataDAO
 {
+	/**
+	 * Returns the entityID mapping from the data repository for a given entID
+	 * @param entID stored in data repository
+	 * @return The value for entityID for use in metadata generation
+	 * @throws SPEPDAOException
+	 */
+	public String getEntityID(Integer entID) throws MetadataDAOException;
 	
-	public List<String> queryActiveEntities();
+	public List<Integer> queryActiveEntities()  throws MetadataDAOException;
 	
-	public List<Map<String, String>> queryContacts(String entityID);
+	public List<Map<String, String>> queryContacts(Integer entID) throws MetadataDAOException;
 	
-	public List<Map<String, String>> queryIDPDescriptor(String entityID);
+	public List<Map<String, Object>> queryIDPDescriptor(Integer entID) throws MetadataDAOException;
 	
-	public List<Map<String, String>> querySPDescriptors(String entityID);
+	public List<Map<String, Object>> querySPDescriptors(Integer entID) throws MetadataDAOException;
 	
-	public List<Map<String, String>> queryAttributeAuthorityDescriptor(String entityID);
+	public List<Map<String, Object>> queryAttributeAuthorityDescriptor(Integer entID) throws MetadataDAOException;
 	
-	public List<Map<String, String>> queryLXACMLPDPDescriptor(String entityID);
+	public List<Map<String, Object>> queryLXACMLPDPDescriptor(Integer entID) throws MetadataDAOException;
+	
+	public List<Map<String, Object>> queryDescriptorActivePublicKeys(Integer descID) throws MetadataDAOException;
 	
 }

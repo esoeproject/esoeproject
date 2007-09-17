@@ -23,14 +23,9 @@ import java.util.Date;
 
 public interface AuthorizationPolicyBean
 {
+	public byte[] getLxacmlPolicy();
 
-	public Date getLastUpdated();
-
-	public void setLastUpdated(Date lastUpdated);
-
-	public String getLxacmlPolicy();
-
-	public void setLxacmlPolicy(String lxacmlPolicy);
+	public void setLxacmlPolicy(byte[] lxacmlPolicy);
 
 	public boolean isModified();
 

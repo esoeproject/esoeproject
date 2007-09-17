@@ -41,11 +41,5 @@ public class SAMLAuthnRequestValidatorImpl implements SAMLAuthnRequestValidator
 			this.logger.warn(Messages.getString("SAMLAuthnRequestValidatorImpl.0")); //$NON-NLS-1$
 			throw new InvalidSAMLRequestException(Messages.getString("SAMLAuthnRequestValidatorImpl.1")); //$NON-NLS-1$
 		}
-		
-		if (authnRequest.getAssertionConsumerServiceIndex() == null)
-		{
-			this.logger.warn(Messages.getString("SAMLAuthnRequestValidatorImpl.6")); //$NON-NLS-1$
-			throw new InvalidSAMLRequestException(Messages.getString("SAMLAuthnRequestValidatorImpl.7")); //$NON-NLS-1$
-		}
 	}
 }

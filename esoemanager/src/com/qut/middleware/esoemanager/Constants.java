@@ -50,14 +50,18 @@ public class Constants
 	public static final String ATTRIBUTE_AUTHORITY_DESCRIPTOR ="5";
 	
 	/* iBatis Field Names */
+	public static final String FIELD_ENT_ID = "ENT_ID";
 	public static final String FIELD_ENTITY_ID = "entityID";
+	public static final String FIELD_DESC_ID = "DESC_ID";
 	public static final String FIELD_DESCRIPTOR_ID = "descriptorID";
+	public static final String FIELD_POLICY_ID = "policyID";
 	public static final String FIELD_DESCRIPTOR_TYPE_ID = "descriptorTypeID";
 	public static final String FIELD_DESCRIPTOR_XML = "descriptorXML";
 	public static final String FIELD_ACTIVE_FLAG = "activeFlag";
 	public static final String FIELD_ORGANIZATION_NAME = "organizationName";
 	public static final String FIELD_ORGANIZATION_DISPLAY_NAME = "organizationDisplayName";
 	public static final String FIELD_ORGANIZATION_URL = "organizationURL";
+	public static final String FIELD_ATTRIBUTE_POLICY = "attribPolicy";
 		
 	public static final String FIELD_SERVICE_NAME = "serviceName";
 	public static final String FIELD_SERVICE_URL = "serviceURL";
@@ -72,6 +76,10 @@ public class Constants
 	public static final String FIELD_CONTACT_EMAIL_ADDRESS = "emailAddress";
 	public static final String FIELD_CONTACT_TELEPHONE_NUMBER = "telephoneNumber";
 	
+	public static final String FIELD_PK_EXPIRY_DATE = "expiryDate";
+	public static final String FIELD_PK_KEYPAIR_NAME = "keyName";
+	public static final String FIELD_PK_BINARY = "publicKey";
+	
 	public static final String FIELD_PKI_KEYPAIRNAME = "keyPairName"; //$NON-NLS-1$$
 	public static final String FIELD_PKI_EXPIRY_DATE = "expiryDate";
 	public static final String FIELD_PKI_KEYSTORE = "keyStore";
@@ -85,14 +93,19 @@ public class Constants
 	public static final String FIELD_ENDPOINT_CACHECLEAR = "cacheClearEndpoint";
 	
 	public static final String FIELD_LXACML_POLICY = "lxacmlPolicy";
-	public static final String FIELD_LXACML_DATE_LAST_UPDATED = "lxacmlDate";
+	public static final String FIELD_LXACML_POLICY_ID = "lxacmlPolicyID";
 	public static final String FIELD_LXACML_DATE_INSERTED = "lxacmlDate";
 	
 	/* iBatis field values */
 	public static final String FIELD_VALUE_SPEP_ACTIVE_AT_REGISTER = "y";
 	public static final String FIELD_VALUE_SPEP_NOT_ACTIVE_AT_REGISTER = "n";
 	
+	public static final String QUERY_NEXT_ENT_ID = "getNextEntID";
+	public static final String QUERY_NEXT_DESC_ID = "getNextDescID";
+	public static final String QUERY_ENT_ID = "getEntID";
+	public static final String QUERY_ENTITY_ID = "getEntityID";
 	public static final String QUERY_ENTITY_DESCRIPTORS = "getDescriptors";
+	public static final String QUERY_DESCRIPTOR_PUBLIC_KEYS = "getPublicKeyData";
 	public static final String QUERY_ACTIVE_ENTITY_LIST = "getActiveEntityIDList";
 	public static final String QUERY_ACTIVE_SERVICES_LIST = "getActiveServicesList";
 	public static final String QUERY_IDP_LIST = "getIDPList";
@@ -108,21 +121,27 @@ public class Constants
 	public static final String QUERY_SERVICE_NODES = "getServiceNodes";
 	public static final String QUERY_KEYSTORE_DETAILS = "getKeyStoreDetails";
 	public static final String QUERY_ACTIVE_AUTHORIZATION_POLICY = "getActiveAuthorizationPolicy";
+	public static final String QUERY_ACTIVE_ATTRIBUTE_POLICY = "getActiveAttributePolicy";
 	
 	public static final String INSERT_ENTITY_DESCRIPTOR = "insertEntityDescriptor";
 	public static final String INSERT_SERVICE_DESCRIPTION = "insertServiceDescription";
 	public static final String INSERT_SERVICE_CONTACTS = "insertServiceContacts";
 	public static final String INSERT_DESCRIPTOR = "insertDescriptor";
+	public static final String INSERT_DESCRIPTOR_PUBLIC_KEY = "insertDescriptorPublicKey";
 	public static final String INSERT_PKI_DATA = "insertPKIData";
+	public static final String INSERT_METADATA_PKI_DATA = "insertMetadataPKIData";
 	public static final String INSERT_SERVICE_NODE = "insertServiceNode";
 	public static final String INSERT_SERVICE_AUTHORIZATION_POLICY = "insertServiceAuthorizationPolicy";
+	public static final String INSERT_MANAGEMENT_AUTHORIZATION_POLICY = "insertManagementAuthorizationPolicy";
 	public static final String INSERT_SERVICE_AUTHORIZATION_SHUNTED_POLICY = "insertServiceAuthorizationShuntedPolicy";
 	public static final String INSERT_SERVICE_AUTHORIZATION_HISTORICAL_POLICY = "insertServiceAuthorizationHistoricalPolicy";
+	public static final String INSERT_ATTRIBUTE_POLICY = "insertAttributePolicy";
 	
 	public static final String UPDATE_SERVICE_CONTACT = "updateServiceContact";
 	public static final String UPDATE_SERVICE_ACTIVE_STATUS = "updateServiceActiveStatus";
 	public static final String UPDATE_SERVICE_DESCRIPTION = "updateServiceDescription";
 	public static final String UPDATE_SERVICE_AUTHORIZATION_POLICY = "updateServiceAuthorizationPolicy";
+	public static final String UPDATE_ATTRIBUTE_POLICY = "updateActiveAttributePolicy";
 	
 	public static final String DELETE_SERVICE_CONTACT = "deleteServiceContact";
 	

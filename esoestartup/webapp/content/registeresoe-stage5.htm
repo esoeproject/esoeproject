@@ -1,3 +1,31 @@
-<h3> ESOE Manager Details </h3>
-The ESOE manager allows administrators to create, update, enable and disable remote services as well as monitor various aspects of the ESOE itself. Please enter details about the location of your intended ESOE Manager deployment below
-$serviceDetails
+<h3> Add ESOE Contacts </h3>
+<div id="contactPersons">
+#if($esoeBean.getContacts())
+#if($esoeBean.getContacts().size() > 0)
+<br/>
+You have added the following contacts for the ESOE
+<br/>
+<table>
+<tr>
+<th>Name</th><th>Email</th><th>Type</th><th/><th/>
+</tr>
+#foreach( $contact in $esoeBean.getContacts() )
+<tr>
+<td>$contact.getGivenName() $contact.getSurName()</td>
+<td>$contact.getEmailAddress()</td>
+<td>$contact.getContactType()</td>
+<td><a href="registeresoe-stage5.htm?action=edit&ref=$velocityCount">edit</a></td>
+<td><a href="registeresoe-stage5.htm?action=delete&ref=$velocityCount">delete</a></td>
+</tr>
+#end
+</table>
+#end
+#end
+</div>
+<br/>
+<div id="createContact">
+<div id="createContactMessage">
+Please enter contact details for the ESOE below
+</div>
+$contactDetails
+</div>

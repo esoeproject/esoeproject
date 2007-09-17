@@ -77,8 +77,8 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
 		
 		
 		String resource1 = "/somepage.jsp";
@@ -124,8 +124,8 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
 		
 		
 		String resource1 = "/somepage.jsp";
@@ -171,9 +171,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.deny;
@@ -218,9 +218,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 		
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.permit;
@@ -266,9 +266,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.deny);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.deny);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 		
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.deny;
@@ -314,9 +314,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.deny);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.deny);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 		
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.permit;
@@ -362,9 +362,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, null);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 		
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.deny;
@@ -410,9 +410,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, null);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.permit;
@@ -458,9 +458,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 		
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.deny;
@@ -506,9 +506,9 @@ public class SessionGroupCacheTest
 		groupTargetMap.put(groupTarget3, authzTargets3);
 		this.sessionGroupCache.clearCache(groupTargetMap);
 		
-		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(principalSession, groupTarget3, authzTargets3, null, decision.permit);
 		
 		String resource1 = "/somepage.jsp";
 		decision decision1 = decision.permit;
@@ -560,9 +560,9 @@ public class SessionGroupCacheTest
 		PrincipalSession prin3 = new PrincipalSessionImpl();
 		prin3.setEsoeSessionID("123456");
 		
-		this.sessionGroupCache.updateCache(prin1, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(prin2, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(prin3, groupTarget1, authzTargets1, decision.permit);
+		this.sessionGroupCache.updateCache(prin1, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(prin2, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(prin3, groupTarget1, authzTargets1, null, decision.permit);
 		
 		this.sessionGroupCache.clearPrincipalSession(prin1);
 		

@@ -19,8 +19,9 @@
  */
 package com.qut.middleware.esoe.ws.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -115,15 +116,11 @@ public class WSProcessorImpl implements WSProcessor
 	public OMElement attributeAuthority(OMElement attributeQuery) throws AxisFault
 	{
 		AAProcessorData data = new AAProcessorDataImpl();
-		String attributeQueryString;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.3")); //$NON-NLS-1$
 		try
 		{
-			attributeQueryString = readRequest(attributeQuery);
-			this.logger.debug(Messages.getString("WSProcessorImpl.44") + attributeQueryString); //$NON-NLS-1$
-
-			data.setRequestDocument(attributeQueryString);
+			data.setRequestDocument(readRequest(attributeQuery));
 			this.attributeAuthorityProcessor.execute(data);
 
 			if (data.getResponseDocument() != null)
@@ -178,10 +175,8 @@ public class WSProcessorImpl implements WSProcessor
 		this.logger.debug(Messages.getString("WSProcessorImpl.12")); //$NON-NLS-1$
 		try
 		{
-			decisionRequestString = readRequest(decisionRequest);
-			this.logger.debug(Messages.getString("WSProcessorImpl.45") + decisionRequestString); //$NON-NLS-1$
 
-			data.setRequestDocument(decisionRequestString);
+			data.setRequestDocument(readRequest(decisionRequest));
 			this.authorizationProcessor.execute(data);
 
 			if (data.getResponseDocument() != null)
@@ -218,16 +213,11 @@ public class WSProcessorImpl implements WSProcessor
 	{
 
 		SPEPProcessorData data = new SPEPProcessorDataImpl();
-		String spepStartupString;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.18")); //$NON-NLS-1$
 		try
 		{
-
-			spepStartupString = readRequest(spepStartup);
-			this.logger.debug(Messages.getString("WSProcessorImpl.46") + spepStartupString); //$NON-NLS-1$
-
-			data.setRequestDocument(spepStartupString);
+			data.setRequestDocument(readRequest(spepStartup));
 
 			this.spepProcessor.getStartup().registerSPEPStartup(data);
 
@@ -302,7 +292,7 @@ public class WSProcessorImpl implements WSProcessor
 	public OMElement registerPrincipal(OMElement registerPrincipal) throws AxisFault
 	{
 		DelegatedAuthenticationData data = new DelegatedAuthenticationDataImpl();
-		String decisionRequestString;
+		byte[] decisionRequestString;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.47")); //$NON-NLS-1$
 
@@ -329,20 +319,19 @@ public class WSProcessorImpl implements WSProcessor
 	 *            Axis 2 Axiom representation of the request
 	 * @return String representation of the request document
 	 */
-	private String readRequest(OMElement requestDocument) throws AxisFault
+	private byte[] readRequest(OMElement requestDocument) throws AxisFault
 	{
-		StringWriter writer;
+		ByteArrayOutputStream request;
 		XMLStreamWriter xmlWriter;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.32")); //$NON-NLS-1$
 		try
 		{
-			writer = new StringWriter();
-			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
+			request = new ByteArrayOutputStream();
+			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(request);
 			requestDocument.serialize(xmlWriter);
-			writer.flush();
 
-			return writer.toString();
+			return request.toByteArray();
 		}
 		catch (XMLStreamException e)
 		{
@@ -359,19 +348,19 @@ public class WSProcessorImpl implements WSProcessor
 	 *            String representation of the SAML document to respond with
 	 * @return
 	 */
-	private OMElement generateResponse(String responseDocument) throws AxisFault
+	private OMElement generateResponse(byte[] responseDocument) throws AxisFault
 	{
 		XMLStreamReader xmlreader;
 		StAXOMBuilder builder;
 		OMElement response;
-		StringReader reader;
+		ByteArrayInputStream responseStream;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.34")); //$NON-NLS-1$
 		try
 		{
 
-			reader = new StringReader(responseDocument);
-			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
+			responseStream = new ByteArrayInputStream(responseDocument);
+			xmlreader = this.xmlInputFactory.createXMLStreamReader(responseStream);
 			builder = new StAXOMBuilder(xmlreader);
 			response = builder.getDocumentElement();
 

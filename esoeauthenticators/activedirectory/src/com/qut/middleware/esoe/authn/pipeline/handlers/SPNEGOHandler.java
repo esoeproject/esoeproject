@@ -27,13 +27,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.authn.bean.AuthnProcessorData;
 import com.qut.middleware.esoe.authn.exception.SessionCreationException;
 import com.qut.middleware.esoe.authn.pipeline.Authenticator;
 import com.qut.middleware.esoe.authn.pipeline.Handler;
 import com.qut.middleware.esoe.authn.pipeline.SPNEGOAuthenticator;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
@@ -52,6 +52,7 @@ public class SPNEGOHandler implements Handler
 	private String userAgentID;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
 
 	// Required headers for SPNEGO processing.
 	private final static String HEADER_WWW_AUTHENTICATE = Messages.getString("SPNEGOHandler.0"); //$NON-NLS-1$
@@ -185,7 +186,7 @@ public class SPNEGOHandler implements Handler
 
 			if (spnegoNegotiateData != null)
 			{
-				this.logger.log(InsaneLogLevel.INSANE, Messages.getString("SPNEGOHandler.24") + spnegoNegotiateData); //$NON-NLS-1$ 
+				this.logger.trace(Messages.getString("SPNEGOHandler.24") + spnegoNegotiateData); //$NON-NLS-1$ 
 
 				String authenticatedPrincipal = this.authenticator.authenticate(spnegoNegotiateData);
 
@@ -210,7 +211,8 @@ public class SPNEGOHandler implements Handler
 				Create.result result;
 
 				data.setSessionID(this.identifierGenerator.generateSessionID());
-
+				this.authnLogger.info("Successfully authenticated principal " + this.extractUid(authenticatedPrincipal) + " to underlying authentication mechanism identified by external ESOE ID of: " + data.getSessionID() + " using SPNEGO handler");
+				
 				try
 				{
 					// Create the session in the local session cache

@@ -51,20 +51,14 @@ public class RetrieveServiceKeyStoreDetailsLogicImpl implements RetrieveServiceK
 		this.spepDAO = spepDAO;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.logic.impl.RetrieveServiceNodes#execute(java.lang.String)
-	 */
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.logic.impl.RetrieveServiceKeyStoreLogic#execute(java.lang.String)
-	 */
-	public KeyStoreDetailsBean execute(String descriptorID) throws RetrieveServiceKeyStoreException
+	public KeyStoreDetailsBean execute(Integer descID) throws RetrieveServiceKeyStoreException
 	{
 		KeyStoreDetailsBean keyStoreDetails = new KeyStoreDetailsBeanImpl();
 		
 		List<Map<String, Object>> keyStoreDetailsMap;
 		try
 		{
-			keyStoreDetailsMap = this.spepDAO.queryKeyStoreDetails(descriptorID);
+			keyStoreDetailsMap = this.spepDAO.queryKeyStoreDetails(descID);
 		}
 		catch (SPEPDAOException e)
 		{
@@ -73,8 +67,8 @@ public class RetrieveServiceKeyStoreDetailsLogicImpl implements RetrieveServiceK
 		
 		if(keyStoreDetailsMap == null)
 		{
-			this.logger.info("No keystore details available for " + descriptorID);
-			throw new RetrieveServiceKeyStoreException("No keystore details available for " + descriptorID);
+			this.logger.info("No keystore details available for " + descID.toString());
+			throw new RetrieveServiceKeyStoreException("No keystore details available for " + descID);
 		}
 		
 		/* If more then one keystore was present for this descriptorID the last one returned in the map will have its details returned */

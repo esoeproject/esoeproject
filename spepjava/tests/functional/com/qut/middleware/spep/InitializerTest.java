@@ -49,6 +49,7 @@ public class InitializerTest
 	{
 		// for method coverage only
 		new Initializer();
+		System.setProperty("spep.data", "webapp" + File.separator + "descriptors" );
 	}
 
 	/**
@@ -65,8 +66,8 @@ public class InitializerTest
 		context.setAttribute((String)notNull(), capture(captureSPEP));
 		expectLastCall().anyTimes();
 		
-		InputStream configStream = new FileInputStream( "webapp" + File.separator + "descriptors" + File.separator + "spep.config");
-		expect(context.getResourceAsStream("/WEB-INF/spep.config")).andReturn(configStream).once();
+		
+		
 		
 		InputStream attributeConfigStream = new FileInputStream( "webapp" + File.separator + "descriptors" + File.separator + "attributeProcessor.xml");
 		expect(context.getResourceAsStream("/WEB-INF/attributeProcessor.xml")).andReturn(attributeConfigStream).once();

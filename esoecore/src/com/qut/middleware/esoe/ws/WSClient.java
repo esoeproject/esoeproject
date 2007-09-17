@@ -27,23 +27,23 @@ public interface WSClient
 {
 	/** Send an authzCacheClear Request to the specified endpoint.
 	 * 
-	 * @param request The string representation of the request to send.
+	 * @param request The byte representation of the request to send.
 	 * @param endpoint The string representation of the endpoint URL to send to.
 	 * 
 	 * @return The string representation of the Response sent back from the endpoint.
 	 * 
 	 * @throws WSClientException if the client cannot send the request.
 	 */
-	public String authzCacheClear(String request, String endpoint) throws WSClientException;
+	public byte[] authzCacheClear(byte[] request, String endpoint) throws WSClientException;
 	
 	/** Send an SingleLogoutRequest Request to the specified endpoint.
 	 * 
-	 * @param request The string representation of the request to send.
+	 * @param request The byte representation of the request to send.
 	 * @param endpoint The string representation of the endpoint URL to send to.
 	 * 
 	 * @return The string representation of the SingleLogoutResponse sent back from the endpoint.
 	 * 
 	 * @throws WSClientException if the client cannot send the request.
 	 */
-	public String singleLogout(String request, String endpoint) throws WSClientException;
+	public byte[] singleLogout(byte[] request, String endpoint) throws WSClientException;
 }

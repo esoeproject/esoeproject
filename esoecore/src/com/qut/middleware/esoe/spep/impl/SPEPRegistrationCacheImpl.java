@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.spep.Messages;
 import com.qut.middleware.esoe.spep.SPEPRegistrationCache;
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
@@ -80,8 +79,8 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 			this.logger.error(Messages.getString("SPEPRegistrationCacheImpl.0")); //$NON-NLS-1$
 			throw new InvalidRequestException(Messages.getString("SPEPRegistrationCacheImpl.0")); //$NON-NLS-1$
 		}
-		String requestDescriptorID = issuer.getValue();
-		if(requestDescriptorID == null || requestDescriptorID.length() == 0)
+		String issuerID = issuer.getValue();
+		if(issuerID == null || issuerID.length() == 0)
 		{
 			this.logger.error(Messages.getString("SPEPRegistrationCacheImpl.1")); //$NON-NLS-1$
 			throw new InvalidRequestException(Messages.getString("SPEPRegistrationCacheImpl.1")); //$NON-NLS-1$
@@ -131,26 +130,20 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 			this.logger.error(Messages.getString("SPEPRegistrationCacheImpl.24"));  //$NON-NLS-1$
 			throw new InvalidRequestException(Messages.getString("SPEPRegistrationCacheImpl.25")); //$NON-NLS-1$
 		}
+		
+		// Retrieve database mapping for current entity
+		Integer entID = this.spepRegistrationDao.getEntID(issuerID);
 
 		// Build the query data
 		SPEPRegistrationQueryData queryData = new SPEPRegistrationQueryData();
-		queryData.setDescriptorID(requestDescriptorID);
-		
-		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.11"), requestDescriptorID)); //$NON-NLS-1$
-		
-		// Check the SPEP exists in the database
-		Integer spepExists = this.spepRegistrationDao.querySPEPExists(queryData);
-		
-		if (spepExists.intValue() == 0)
-		{
-			this.logger.warn(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.12"), requestDescriptorID)); //$NON-NLS-1$
-			throw new DatabaseFailureNoSuchSPEPException();
-		}
+		queryData.setEntID(entID);
+
+		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.11"), issuerID)); //$NON-NLS-1$
 		
 		// Get the SPEP registration data
 		SPEPRegistrationData record = this.spepRegistrationDao.getSPEPRegistration(queryData);
 		
-		this.logger.log(InsaneLogLevel.INSANE, Messages.getString("SPEPRegistrationCacheImpl.13") ); //$NON-NLS-1$
+		this.logger.info(Messages.getString("SPEPRegistrationCacheImpl.13") ); //$NON-NLS-1$
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.26"), ipAddress, compileDate, compileSystem, environment, version, nodeID) ); //$NON-NLS-1$
 				
@@ -161,7 +154,7 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 			// Record does not exist, make a new one..
 			Date date = new Date();
 			record = new SPEPRegistrationData();
-			record.setDescriptorID(requestDescriptorID);
+			record.setEntID(entID);
 			record.setIpAddress(ipAddress);
 			record.setCompileDate(compileDate);
 			record.setCompileSystem(compileSystem);
@@ -174,7 +167,7 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 			// .. and insert it
 			this.spepRegistrationDao.insertSPEPRegistration(record);
 			
-			this.logger.info(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.20"), requestDescriptorID)); //$NON-NLS-1$
+			this.logger.info(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.20"), issuerID)); //$NON-NLS-1$
 		}
 		else
 		{
@@ -190,12 +183,13 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 				&&	record.getVersion().equals(version)
 				&&	record.getNodeID().equals(nodeID))
 			{
-				this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.21"), requestDescriptorID)); //$NON-NLS-1$
+				this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.21"), issuerID)); //$NON-NLS-1$
 				return;
 			}
 			
 			this.logger.debug(Messages.getString("SPEPRegistrationCacheImpl.30")); //$NON-NLS-1$
 			
+			record.setEntID(entID);
 			record.setIpAddress(ipAddress);
 			record.setCompileDate(compileDate);
 			record.setCompileSystem(compileSystem);
@@ -208,7 +202,7 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 			// Update as necessary
 			this.spepRegistrationDao.updateSPEPRegistration(record);
 			
-			this.logger.info(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.22"), requestDescriptorID)); //$NON-NLS-1$
+			this.logger.info(MessageFormat.format(Messages.getString("SPEPRegistrationCacheImpl.22"), issuerID)); //$NON-NLS-1$
 		}
 	}
 }

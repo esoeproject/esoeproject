@@ -276,22 +276,11 @@ public class MetadataTest
 		// add esoe and spep descriptors
 		entitiesDescriptor.getEntitiesDescriptorsAndEntityDescriptors().add(esoeEntityDescriptor);
 		entitiesDescriptor.getEntitiesDescriptorsAndEntityDescriptors().add(spepEntityDescriptor);
-		
-		OutputStream outStream = new FileOutputStream(tempFile);
-		PrintStream out = new PrintStream(outStream, true, "UTF-16");
-		
 			
 		this.schemas = new String[]{ConfigurationConstants.samlMetadata, ConfigurationConstants.lxacmlMetadata};
 		Marshaller<EntitiesDescriptor> entitiesDescriptorMarshaller = new MarshallerImpl<EntitiesDescriptor>(EntitiesDescriptor.class.getPackage().getName(), this.schemas, this.keyName, this.key);
 		
-		String metadataDocument = entitiesDescriptorMarshaller.marshallSigned(entitiesDescriptor);
-		
-		out.println(metadataDocument);
-		
-		//System.out.println(metadataDocument);
-		
-		out.close();
-		outStream.close();
+		byte[] metadataDocument = entitiesDescriptorMarshaller.marshallSigned(entitiesDescriptor);
 	}
 
 	/**

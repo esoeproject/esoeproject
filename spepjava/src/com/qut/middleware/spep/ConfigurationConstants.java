@@ -21,11 +21,17 @@
  */
 package com.qut.middleware.spep;
 
+import java.io.File;
+
 /** Holds constant values for the various modules in the SPEP that won't 
  * 		reasonably need to be changed at any client site, all fields must have 
  * 		associated comments indicating where they are used. */
 public class ConfigurationConstants
 {
+	/* Loggers */
+	public static final String authnLogger = "spep.authn";
+	public static final String authzLogger = "spep.authz";
+	
 	/* Schema constants, included across the project */
 	
 	/** SAML Protocol schema */
@@ -60,8 +66,13 @@ public class ConfigurationConstants
 	/** Timezone in use for the SPEP */
 	public static final String timeZone = "UTC"; //$NON-NLS-1$
 	
+	/** SPEP Path Java Property */
+	public static final String SPEP_PATH_PROP = "spep.data";
+	
+	/** SPEP local config filename */
+	public static final String SPEP_CONFIG_LOCAL = File.separatorChar + "WEB-INF" + File.separatorChar + "spepvars.config"; //$NON-NLS-1$
 	/** SPEP config filename */
-	public static final String SPEP_CONFIG = "/WEB-INF/spep.config"; //$NON-NLS-1$
+	public static final String SPEP_CONFIG = File.separatorChar + "config" + File.separatorChar + "spep.config"; //$NON-NLS-1$
 	/** SPEP compile time resource bundle */
 	public static final String SPEP_COMPILE_TIME = "com.qut.middleware.spep.compile"; //$NON-NLS-1$
 	/** SPEP web service name as defined in services.xml for axis2 */

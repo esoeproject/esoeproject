@@ -29,7 +29,7 @@ public class FailedLogoutImpl implements FailedLogout
 {
 
 	private String endPoint;
-	private String requestDocument;
+	private byte[] requestDocument;
 	private Date timeStamp;
 	
 	/*
@@ -47,7 +47,7 @@ public class FailedLogoutImpl implements FailedLogout
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.FailedLogout#getRequestDocument()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -67,7 +67,7 @@ public class FailedLogoutImpl implements FailedLogout
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.FailedLogout#setRequestDocument(java.lang.String)
 	 */
-	public void setRequestDocument(String requestDocument)
+	public void setRequestDocument(byte[] requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}

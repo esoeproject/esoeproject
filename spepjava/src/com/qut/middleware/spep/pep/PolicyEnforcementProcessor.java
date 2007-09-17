@@ -78,10 +78,19 @@ public interface PolicyEnforcementProcessor
 	public decision makeAuthzDecision(String sessionID, String resource);
 	
 	/**
+	 * Makes an authorization decision.
+	 * @param sessionID The session ID to evaluate the decision for.
+	 * @param resource The resource being accessed
+	 * @param action The action being undertaken on the resource
+	 * @return The decision made by or on behalf of the PDP
+	 */
+	public decision makeAuthzDecision(String sessionID, String resource, String action);
+	
+	/**
 	 * Clears the authorization cache.
 	 * @param requestDocument The request document.
 	 * @return The response document.
 	 * @throws MarshallerException 
 	 */
-	public String authzCacheClear(String requestDocument) throws MarshallerException;
+	public byte[] authzCacheClear(byte[] requestDocument) throws MarshallerException;
 }

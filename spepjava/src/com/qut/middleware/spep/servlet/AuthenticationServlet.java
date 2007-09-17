@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.nio.CharBuffer;
+import java.net.URL;
 import java.text.MessageFormat;
 
 import javax.servlet.ServletContext;
@@ -108,7 +108,7 @@ public class AuthenticationServlet extends HttpServlet
 		{
 			this.logger.debug(Messages.getString("AuthenticationServlet.18")); //$NON-NLS-1$
 
-			String document = buildAuthnRequestDocument(request.getParameter("redirectURL")); //$NON-NLS-1$
+			String document = buildAuthnRequestDocument(request.getParameter("redirectURL"), request, response); //$NON-NLS-1$
 			PrintStream out = new PrintStream(response.getOutputStream());
 			response.setStatus(HttpServletResponse.SC_OK);
 			response.setHeader("Content-Type", "text/html");
@@ -125,6 +125,7 @@ public class AuthenticationServlet extends HttpServlet
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
+		URL serviceURL;
 		initSPEP();
 
 		// Ensure SPEP startup.
@@ -143,10 +144,10 @@ public class AuthenticationServlet extends HttpServlet
 			throw new ServletException(Messages.getString("AuthenticationServlet.14")); //$NON-NLS-1$
 		}
 		
-		String samlDocument = new String(Base64.decodeBase64(base64SAMLDocument.getBytes("UTF-8"))); //$NON-NLS-1$
-		
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		data.setResponseDocument(samlDocument);
+		data.setRequest(request);
+		data.setResponse(response);
+		data.setResponseDocument(Base64.decodeBase64(base64SAMLDocument.getBytes()));
 		
 		this.logger.debug(Messages.getString("AuthenticationServlet.5")); //$NON-NLS-1$
 
@@ -168,7 +169,7 @@ public class AuthenticationServlet extends HttpServlet
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("AuthenticationServlet.20"), sessionID)); //$NON-NLS-1$
 		Cookie cookie = new Cookie(this.spep.getTokenName(), sessionID);
-		cookie.setDomain(this.spep.getTokenDomain());
+
 		cookie.setPath("/"); //$NON-NLS-1$
 		response.addCookie(cookie);
 		
@@ -191,16 +192,19 @@ public class AuthenticationServlet extends HttpServlet
 	 * authentication.
 	 * 
 	 */
-	private String buildAuthnRequestDocument(String requestedURL) throws IOException, AuthenticationException
+	private String buildAuthnRequestDocument(String requestedURL, HttpServletRequest request, HttpServletResponse response) throws IOException, AuthenticationException
 	{
+		byte[] samlRequestEncoded;
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
+		data.setRequest(request);
+		data.setResponse(response);
 		data.setRequestURL(requestedURL);
 		
 		this.spep.getAuthnProcessor().generateAuthnRequest(data);
 		
-		String requestDocument = data.getRequestDocument();
+		samlRequestEncoded = Base64.encodeBase64(data.getRequestDocument());
 
-		String base64SAMLDocument = new String(Base64.encodeBase64(requestDocument.getBytes("UTF-8"))); //$NON-NLS-1$
+		String base64SAMLDocument = new String(samlRequestEncoded); //$NON-NLS-1$
 		String ssoURL = this.spep.getMetadata().getSingleSignOnEndpoint();
 		
 		this.logger.debug(Messages.getString("AuthenticationServlet.10")); //$NON-NLS-1$
@@ -209,12 +213,12 @@ public class AuthenticationServlet extends HttpServlet
 		InputStreamReader in = new InputStreamReader(inputStream);
 		
 		StringBuffer stringBuffer = new StringBuffer();
-		CharBuffer charBuffer = CharBuffer.allocate(AuthenticationServlet.BUFFER_LEN);
-		while (in.read(charBuffer) >= 0)
+		char[] charBuffer = new char[AuthenticationServlet.BUFFER_LEN];
+		
+		while (in.read(charBuffer, 0, AuthenticationServlet.BUFFER_LEN) >= 0)
 		{
-			charBuffer.flip();
-			stringBuffer.append(charBuffer.toString());
-			charBuffer.clear();
+			stringBuffer.append(charBuffer);
+			charBuffer = new char[AuthenticationServlet.BUFFER_LEN];
 		}
 		
 		String document = MessageFormat.format(stringBuffer.toString(), new Object[]{ssoURL, base64SAMLDocument});

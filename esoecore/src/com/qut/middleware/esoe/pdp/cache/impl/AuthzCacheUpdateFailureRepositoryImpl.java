@@ -21,6 +21,8 @@ package com.qut.middleware.esoe.pdp.cache.impl;
 
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
 import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
@@ -29,6 +31,9 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 {
 
 	private List<FailedAuthzCacheUpdate> failures;
+	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+    private final Lock readLock = this.rwl.readLock();
+    private final Lock writeLock = this.rwl.writeLock();
 	
 	
     /** Initializes the internal failure repository to a 0 sized list.
@@ -49,8 +54,17 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 	 */
 	public void add(FailedAuthzCacheUpdate failure)
 	{
-		if(failure != null && !this.failures.contains(failure))
-			this.failures.add(failure);
+		try
+		{
+			this.writeLock.lock();
+		
+			if(failure != null && !this.failures.contains(failure))
+				this.failures.add(failure);				
+		}
+		finally
+		{
+			this.writeLock.unlock();
+		}
 	}
 
 	
@@ -59,16 +73,41 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 	 */
 	public void clearFailures()
 	{
-		this.failures.clear();
+		try
+		{
+			this.writeLock.lock();
+		
+			this.failures.clear();
+		}
+		finally
+		{
+			this.writeLock.unlock();
+		}
 	}
 
 	
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzCacheUpdateFailureRepository#getFailures()
+	 * 
+	 * NOTE: This method returns a clone of the unerlying list. Modifications to the list of failures should be
+	 * performed via add() and remove().
 	 */
 	public List<FailedAuthzCacheUpdate> getFailures()
 	{
-		return this.failures;
+		Vector<FailedAuthzCacheUpdate> clonedList = new Vector<FailedAuthzCacheUpdate>();
+		
+		try
+		{
+			this.readLock.lock();
+			
+			clonedList.addAll(this.failures);
+		}
+		finally
+		{
+			this.readLock.unlock();
+		}
+		
+		return (Vector<FailedAuthzCacheUpdate>)clonedList.clone();
 	}
 
 	
@@ -77,12 +116,30 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 	 */
 	public void remove(FailedAuthzCacheUpdate failure)
 	{
-		this.failures.remove(failure);
+		try
+		{
+			this.writeLock.lock();
+		
+			this.failures.remove(failure);
+		}
+		finally
+		{
+			this.writeLock.unlock();
+		}
 	}
 
 	
 	public int getSize()
 	{
-		return(this.failures == null ? 0 : this.failures.size() );
+		try
+		{
+			this.readLock.lock();
+
+			return(this.failures == null ? 0 : this.failures.size() );
+		}
+		finally
+		{
+			this.readLock.unlock();
+		}
 	}
 }

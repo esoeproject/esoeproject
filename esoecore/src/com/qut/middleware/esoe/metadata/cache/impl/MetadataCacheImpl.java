@@ -46,6 +46,23 @@ public class MetadataCacheImpl implements MetadataCache
 			this.readLock.unlock();
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.esoe.metadata.cache.MetadataCache#getAssertionConsumerServiceIdentifierTypes()
+	 */
+	public Map<String, List<String>> getAssertionConsumerServiceIdentifierTypes()
+	{
+		try
+		{
+			this.readLock.lock();
+			
+			return this.data.getAssertionConsumerServiceIdentifierTypes();
+		}
+		finally
+		{
+			this.readLock.unlock();
+		}
+	}
 
 	/*
 	 * (non-Javadoc)

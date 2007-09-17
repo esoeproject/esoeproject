@@ -1,16 +1,16 @@
 <h3> Add Service Nodes </h3>
 <div id="spepNodes">
-#if($serviceNodes)
-#if($serviceNodes.size() > 0)
+#if($serviceBean.getServiceNodes())
+#if($serviceBean.getServiceNodes().size() > 0)
 <br/>
 You have added the following nodes for this service
 <br/>
 <table>
 <tr>
-<td><b>Base Node URL</b></td><td><b>Assertion Consumer Service</b></td><td><b>Single Logout Service</b></td><td><b>Cache Clear Service</b></td><td/><td/>
+<th>Base Node URL</th><th>Assertion Consumer Service</th><th>Single Logout Service</th><th>Cache Clear Service</th><th/><th/>
 </tr>
 <tr>
-#foreach( $node in $serviceNodes )
+#foreach( $node in $serviceBean.getServiceNodes() )
 <td>$node.getNodeURL()</td>
 <td>$node.getAssertionConsumerService()</td>
 <td>$node.getSingleLogoutService()</td>

@@ -21,41 +21,44 @@ package com.qut.middleware.esoe.pdp.cache.bean;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Policy;
 
-/** */
+/** A global cache object used to store LXACML Policy objects retrieved from in an external data source. Implementations of this 
+ * Interface MUST ensure that all operations are thread safe.
+ *  */
 public interface AuthzPolicyCache
 {
+	public final static long SEQUENCE_UNINITIALIZED = -1647l;
+	
 	/**
 	 * Add a policy object to the cache.
 	 * 
-	 * @param descriptorID
-	 *            The descriptor ID that will be used to retrieve the policy set.
+	 * @param entityID
+	 *            The entity ID (value of <Issuer>) that will be used to retrieve the policy set.
 	 * @param policy
 	 *            The policy set to add.
 	 */
-	public void add(String descriptorID, Vector<Policy> policy);
+	public void add(String entityID, List<Policy> policy);
 
 	/**
 	 * Remove the requested policy set from the cache.
 	 * 
-	 * @param descriptorID
+	 * @param entityID
 	 *            The policy set to remove, as identified by the descriptor ID.
 	 * @return true if the descriptor exists and policy is removed, else false.
 	 */
-	public boolean remove(String descriptorID);
+	public boolean remove(String entityID);
 
 	/**
-	 * Retrieve the policies associated with the descriptor ID string. The implementation MUST ensure that the returned
+	 * Retrieve the policies associated with the entityID. The implementation MUST ensure that the returned
 	 * list is thread safe.
 	 * 
-	 * @param descriptorID
-	 *            The descriptor ID of the objects to retrieve.
+	 * @param entityID
+	 *            The entityID of the policies to retrieve.
 	 * @return The policy object if exists, else null.
 	 */
-	public List<Policy> getPolicies(String descriptorID);
+	public List<Policy> getPolicies(String entityID);
 
 	/**
 	 * Get the map representation of the cache. The cache object is a map of policy ID strings to the corresponding
@@ -64,7 +67,7 @@ public interface AuthzPolicyCache
 	 * 
 	 * @return The cache map.
 	 */
-	public Map<String, Vector<Policy>> getCache();
+	public Map<String, List<Policy>> getCache();
 
 	/**
 	 * Set the cache map object. The implementation of this method MUST ensure that only one thread can set the cache at
@@ -73,9 +76,20 @@ public interface AuthzPolicyCache
 	 * @pre newData != null
 	 * @param newData The cache to replace the existing cache.
 	 */
-	public void setCache(Map<String, Vector<Policy>> newData);
+	public void setCache(Map<String, List<Policy>> newData);
 	
+	/** Set the sequence number used to determine the latest build of the Policy cache.
+	 * 
+	 * @param sequenceId 
+	 */
+	public void setBuildSequenceId(long sequenceId);
 	
+	/** Set the sequence number used to determine the latest build of the Policy cache.
+	 *
+	 *@return the sequenceId as set by this.setBuildSequenceId if called, else the value
+	 * of SEQUENCE_UNINITIALIZED as initialized by the implementing constructor.  
+	 */
+	public long getBuildSequenceId();
 	/**
 	 *  Retrieve the number of PolicySet objects stored in the cache.
 	 *  

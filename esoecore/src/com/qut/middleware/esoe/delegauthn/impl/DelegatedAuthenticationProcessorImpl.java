@@ -30,7 +30,6 @@ import com.qut.middleware.esoe.crypto.KeyStoreResolver;
 import com.qut.middleware.esoe.delegauthn.DelegatedAuthenticationProcessor;
 import com.qut.middleware.esoe.delegauthn.bean.DelegatedAuthenticationData;
 import com.qut.middleware.esoe.delegauthn.exception.InvalidResponseException;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
@@ -319,12 +318,10 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 	 */
 	private void marshalResponse(DelegatedAuthenticationData processorData, RegisterPrincipalResponse response) throws InvalidResponseException
 	{
-		String responseDocument;
 		try
 		{
-			responseDocument = this.marshaller.marshallSigned(response);
-			processorData.setResponseDocument(responseDocument);
-			this.logger.log(InsaneLogLevel.INSANE, Messages.getString("AuthenticationAuthorityProcessor.56") + processorData.getResponseDocument()); //$NON-NLS-1$
+			processorData.setResponseDocument(this.marshaller.marshallSigned(response));
+			this.logger.trace(Messages.getString("AuthenticationAuthorityProcessor.56") + processorData.getResponseDocument()); //$NON-NLS-1$
 		}
 		catch (MarshallerException me)
 		{

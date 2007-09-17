@@ -41,35 +41,35 @@ public interface Unmarshaller<T>
 	 * Validates document against schema, validates xml signatures and Unmarshalls supplied document to JAXB compiled object instantiated as T.
 	 * Utilised where public key information is extracted from submitted document
 	 * 
-	 * @param document The document to unmarshall in UTF-16 format
+	 * @param document The document to unmarshall
 	 * @return The JAXB unmarshalled object or null if an error occurs.
 	 * @throws SignatureValueException if the signature cannot be decoded.
 	 * @throws ReferenceValueException if the reference cannot be decoded.
 	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
 	 */
-	public T unMarshallSigned( String document ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
+	public T unMarshallSigned( byte[] document ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
 	
 	/**
 	 * Validates document against schema, validates xml signatures and Unmarshalls supplied document to JAXB compiled object instantiated as T.
 	 * Utilised where public key to validate signature is explicity supplied
 	 * 
 	 * @param pk The public key of the entity generating the document to validate signatures
-	 * @param document The document to unmarshall in UTF-16 format
+	 * @param document The document to unmarshall
 	 * @return The JAXB unmarshalled object or null if an error occurs.
 	 * @throws SignatureValueException if the signature cannot be decoded.
 	 * @throws ReferenceValueException if the reference cannot be decoded.
 	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
 	 */
-	public T unMarshallSigned( PublicKey pk, String document ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
+	public T unMarshallSigned( PublicKey pk, byte[] document ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
 	
 	/**
 	 * Validates document against schema and Unmarshalls supplied document to JAXB compiled object instatiated as T.
 	 * 
-	 * @param document The document to unmarshall in UTF-16 format
+	 * @param document The document to unmarshall
 	 * @return The JAXB unmarshalled object or null if an error occurs.
 	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
 	 */
-	public T unMarshallUnSigned( String document ) throws UnmarshallerException;
+	public T unMarshallUnSigned( byte[] document ) throws UnmarshallerException;
 	
 	/**
 	 * Validates node against schema and Unmarshalls supplied node to JAXB compiled object instantiated as T.
@@ -85,12 +85,12 @@ public interface Unmarshaller<T>
 	 * all public keys stored in document and returns to caller for future use.
 	 * 
 	 * @param pk The public key to use when verifying the signature
-	 * @param document The document to unmarshall in UTF-16 format
+	 * @param document The document to unmarshall
 	 * @param keyList An initiated but empty Map<String, PublicKey> with which to fill with key values
 	 * @return The JAXB unmarshalled metadata object or null if an error occurs.
 	 * @throws SignatureValueException if the signature cannot be decoded.
 	 * @throws ReferenceValueException if the reference cannot be decoded.
 	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
 	 */
-	public T unMarshallMetadata( PublicKey pk, String document, Map<String, KeyData> keyList ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
+	public T unMarshallMetadata( PublicKey pk, byte[] document, Map<String, KeyData> keyList ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
 }

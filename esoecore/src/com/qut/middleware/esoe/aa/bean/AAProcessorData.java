@@ -24,18 +24,18 @@ import com.qut.middleware.esoe.bean.SAMLProcessorData;
 /** */
 public interface AAProcessorData extends SAMLProcessorData
 {
-	/** Accessor for descriptor ID. A descriptorID is used to identify SPEP configuration.
+	/** Accessor for issuer ID. A issuer ID is used to identify SPEP configuration.
 	 * 
-	 * @return String descriptor ID
+	 * @return String issuer ID
 	 */
-	public String getDescriptorID();
+	public String getIssuerID();
 	
 	
-	/** Mutator for descriptor ID
+	/** Mutator for issuer ID
 	 * 
-	 * @param descriptorID String descriptor ID. A descriptorID is used to identify SPEP configuration.
+	 * @param issuerID String issuer ID. An issuerID is used to identify SPEP configuration.
 	 */
-	public void setDescriptorID(String descriptorID);
+	public void setIssuerID(String issuerID);
 	/**
 	 * Accessor for subject ID
 	 * @return String subject ID

@@ -286,121 +286,16 @@ public class SAML2Test
 			AuthnRequest authnRequest = generateAuthnRequest();
 			String schema = "saml-schema-protocol-2.0.xsd";
 
-			String doc = marshaller.marshallSigned(authnRequest);
+			byte[] doc = marshaller.marshallSigned(authnRequest);
 
 			assertNotNull("Supplied XML document should not be null", doc);
-			assertTrue("Supplied XML document MUST have a signature", doc.contains("ds:SignatureValue"));
-			assertTrue("Supplied XML document MUST contain data from marshalled JAXB object", doc
-					.contains("<saml:Audience>spep-n1.qut.edu.au</saml:Audience>"));
 
-			byte[] base64 = Base64.encodeBase64(doc.getBytes("UTF-8"));
-			String encodedBase64 = new String(base64);
-			byte[] debase64 = Base64.decodeBase64(encodedBase64.getBytes());
-			String decodedBase64 = new String(debase64);
-			
-			AuthnRequest authnRequestDecoded = unmarshaller.unMarshallSigned(getPublicKey(), decodedBase64); //$NON-NLS-1$
-			
-			assertEquals("Expected Signature ID not supplied", "abe567de6-122wert67", authnRequestDecoded.getID());
-		}
-		catch (TransformerConfigurationException tce)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (InvalidAlgorithmParameterException iape)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (NoSuchAlgorithmException nsae)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (ClassNotFoundException cfe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (IllegalAccessException iae)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (InstantiationException cfe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (SAXException saxe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-	}
-
-	/*
-	 * Tests to ensure that a generated xml document can be signed, base64 encoded and base 64 decoded without
-	 * corruption when it itself contains base64 data (mimicks SAML browser post sso profile requirements).
-	 * 
-	 * This test actually embeds a base64 encoded string version of its own AuthnRequest (precomputed) into its
-	 * AudienceRestriction element to prove that the base64 encoding and transport of content by this library has no
-	 * adverse effects.
-	 * 
-     * 
-	 * If this test is failing and your on windows it will be because of the hebrew - be sure to carefully read http://java.sun.com/j2se/1.5.0/docs/guide/intl/encoding.doc.html
-	 * its most likely you have only the european version of the JVM installed
-	 */
-	@Test
-	public void testSAML2lib1a() throws Exception
-	{
-		Marshaller<AuthnRequest> marshaller;
-		Unmarshaller<AuthnRequest> unmarshaller;
-
-		String[] schemas = new String[] { "saml-schema-protocol-2.0.xsd", "saml-schema-assertion-2.0.xsd" };
-
-		/* Supplied private/public key will be in RSA format */
-		marshaller = new MarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), schemas, "myrsakey", getPrivateKey());
-		unmarshaller = new UnmarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), schemas);
-
-		try
-		{
-			AuthnRequest authnRequest = generateAuthnRequest();
-			String schema = "saml-schema-protocol-2.0.xsd";
-
-			AudienceRestriction audienceRestriction = new AudienceRestriction();
-			audienceRestriction
-					.getAudiences()
-					.add( "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTE2Ij8+PHNhbWxwOkF1dGhuUmVxdWVzdCB4bWxuczpzYW1scD0idXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOnByb3RvY29sIiB4bWxuczpkcz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyIgeG1sbnM6ZXNvZT0iaHR0cDovL3d3dy5xdXQuY29tL21pZGRsZXdhcmUvRVNPRVByb3RvY29sU2NoZW1hIiB4bWxuczpseGFjbWw9Imh0dHA6Ly93d3cucXV0LmNvbS9taWRkbGV3YXJlL2x4YWNtbFNjaGVtYSIgeG1sbnM6bHhhY21sLWNvbnRleHQ9Imh0dHA6Ly93d3cucXV0LmNvbS9taWRkbGV3YXJlL2x4YWNtbENvbnRleHRTY2hlbWEiIHhtbG5zOmx4YWNtbGE9Imh0dHA6Ly93d3cucXV0LmNvbS9taWRkbGV3YXJlL2x4YWNtbFNBTUxBc3NlcnRpb25TY2hlbWEiIHhtbG5zOmx4YWNtbHA9Imh0dHA6Ly93d3cucXV0LmNvbS9taWRkbGV3YXJlL2x4YWNtbFNBTUxQcm90b2NvbFNjaGVtYSIgeG1sbnM6bWQ9InVybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDptZXRhZGF0YSIgeG1sbnM6c2FtbD0idXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOmFzc2VydGlvbiIgeG1sbnM6eGVuYz0iaHR0cDovL3d3dy53My5vcmcvMjAwMS8wNC94bWxlbmMjIiBBc3NlcnRpb25Db25zdW1lclNlcnZpY2VVUkw9Imh0dHA6Ly9zcGVwLW4xLnF1dC5lZHUuYXUvc3NvL2FhIiBBdHRyaWJ1dGVDb25zdW1pbmdTZXJ2aWNlSW5kZXg9IjAiIEZvcmNlQXV0aG49ImZhbHNlIiBJRD0iYWJlNTY3ZGU2LTEyMndlcnQ2NyIgSXNzdWVJbnN0YW50PSIyMDA3LTAxLTAzVDA3OjI3OjQyLjczMloiIFByb3ZpZGVyTmFtZT0ic3BlcC1uMS1pdHNjYW5keS15b3UtbGlrZS1pdCIgVmVyc2lvbj0iMi4wIj48ZHM6U2lnbmF0dXJlPjxkczpTaWduZWRJbmZvPjxkczpDYW5vbmljYWxpemF0aW9uTWV0aG9kIEFsZ29yaXRobT0iaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMteG1sLWMxNG4tMjAwMTAzMTUjV2l0aENvbW1lbnRzIi8+PGRzOlNpZ25hdHVyZU1ldGhvZCBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNyc2Etc2hhMSIvPjxkczpSZWZlcmVuY2UgVVJJPSIjYWJlNTY3ZGU2LTEyMndlcnQ2NyI+PGRzOlRyYW5zZm9ybXM+PGRzOlRyYW5zZm9ybSBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNlbnZlbG9wZWQtc2lnbmF0dXJlIi8+PC9kczpUcmFuc2Zvcm1zPjxkczpEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwLzA5L3htbGRzaWcjc2hhMSIvPjxkczpEaWdlc3RWYWx1ZT5oYW1ONVFhYVMwZE81azAwbVl4MDdMUmNIU3c9PC9kczpEaWdlc3RWYWx1ZT48L2RzOlJlZmVyZW5jZT48L2RzOlNpZ25lZEluZm8+PGRzOlNpZ25hdHVyZVZhbHVlPmt4dzdNcE1RRGtXK3dnMG9UdGhYRVcyN0crVUhsQmZ5NytLc2hRN2lYVFp5M2dhcHByRTM3cjVOb2RBMnBjS2xjNEpIVHc2OTU5MkEKR3BMVTdkSTU2UGcvVldoZmVoWWhua1NyR2RBWlI5b2kyTUkyV0QraVJ1QTlmVTNQbExPZFA1S21HbURONmNNM3B5NUNDeVVYUmtTRgpxSklZRU84OUdlQ1dRaHU0NXNjPTwvZHM6U2lnbmF0dXJlVmFsdWU+PGRzOktleUluZm8+PGRzOktleU5hbWU+bXlyc2FrZXk8L2RzOktleU5hbWU+PC9kczpLZXlJbmZvPjwvZHM6U2lnbmF0dXJlPjxzYW1sOlN1YmplY3Q+PHNhbWw6TmFtZUlEIEZvcm1hdD0idXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOnNvbWV0aGluZyI+YmVkZG9lc0BxdXQuY29tPC9zYW1sOk5hbWVJRD48L3NhbWw6U3ViamVjdD48c2FtbDpDb25kaXRpb25zPjxzYW1sOkF1ZGllbmNlUmVzdHJpY3Rpb24+PHNhbWw6QXVkaWVuY2U+c3BlcC1uMS5xdXQuZWR1LmF1PC9zYW1sOkF1ZGllbmNlPjxzYW1sOkF1ZGllbmNlPnNwZXAtbjIucXV0LmVkdS5hdTwvc2FtbDpBdWRpZW5jZT48c2FtbDpBdWRpZW5jZT7Xkdeo16nXkNeZ16o8L3NhbWw6QXVkaWVuY2U+PC9zYW1sOkF1ZGllbmNlUmVzdHJpY3Rpb24+PC9zYW1sOkNvbmRpdGlvbnM+PC9zYW1scDpBdXRoblJlcXVlc3Q+" );
-							
-			/* We only want our audience base64 hack for this test */
-			authnRequest.getConditions().getConditionsAndOneTimeUsesAndAudienceRestrictions().clear();
-			authnRequest.getConditions().getConditionsAndOneTimeUsesAndAudienceRestrictions().add(audienceRestriction);
-
-			String doc = marshaller.marshallSigned(authnRequest);
-
-			assertNotNull("Supplied XML document should not be null", doc);
-			assertTrue("Supplied XML document MUST have a signature", doc.contains("ds:SignatureValue"));
-
-			byte[] base64 = Base64.encodeBase64(doc.getBytes("UTF-16"));
+			byte[] base64 = Base64.encodeBase64(doc);
 			byte[] debase64 = Base64.decodeBase64(base64);
-			String decodedbase64 = new String(debase64, "UTF-16");
-
-			AuthnRequest authnRequestDecoded = unmarshaller.unMarshallSigned(getPublicKey(), decodedbase64); //$NON-NLS-1$			
+		
+			AuthnRequest authnRequestDecoded = unmarshaller.unMarshallSigned(getPublicKey(), debase64); //$NON-NLS-1$
+			
 			assertEquals("Expected Signature ID not supplied", "abe567de6-122wert67", authnRequestDecoded.getID());
-
-			List<ConditionAbstractType> conditions = authnRequestDecoded.getConditions()
-					.getConditionsAndOneTimeUsesAndAudienceRestrictions();
-
-			for (ConditionAbstractType c : conditions)
-			{
-				if (c instanceof AudienceRestriction)
-				{
-					AudienceRestriction aud = (AudienceRestriction) c;
-					for (String a : aud.getAudiences())
-					{
-						byte[] debase642 = Base64.decodeBase64(a.getBytes("UTF-8"));
-						String decodedbase642 = new String(debase642);
-
-						AuthnRequest authnRequestDecoded2 = unmarshaller.unMarshallSigned(getPublicKey(), decodedbase642); //$NON-NLS-1$
-						assertEquals("Expected Signature ID not supplied", "abe567de6-122wert67", authnRequestDecoded2
-								.getID());
-					}
-				}
-			}
 		}
 		catch (TransformerConfigurationException tce)
 		{
@@ -453,10 +348,9 @@ public class SAML2Test
 			Response authnResponse = generateResponse();
 			String schema = "saml-schema-protocol-2.0.xsd";
 
-			String doc = marshaller.marshallSigned(authnResponse);
+			byte[] doc = marshaller.marshallSigned(authnResponse);
 
 			assertNotNull("Supplied XML document should not be null", doc);
-			assertTrue("Supplied XML document MUST have a signature", doc.contains("ds:SignatureValue"));
 
 			Response authnResponseDecoded = unmarshaller.unMarshallSigned(getPublicKey(), doc); //$NON-NLS-1$			
 		}

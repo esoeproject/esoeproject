@@ -14,8 +14,8 @@ public class SPEPProcessorDataTest {
 	private SPEPProcessorData data;
 	
 	private String descriptorID = "*847893ryfde76ft80247tgrfG*bo";
-	private String requestDoc = "<hello></hello>";
-	private String responseDoc = "<goodbye></goodbye>";
+	private byte[] requestDoc = new String("<hello></hello>").getBytes();
+	private byte[] responseDoc = new String("<goodbye></goodbye>").getBytes();
 	private int index = 1;
 	
 	@Before
@@ -36,9 +36,9 @@ public class SPEPProcessorDataTest {
 	@Test
 	public void testGetRequestDescriptorID()
 	{
-		this.data.setRequestDescriptorID(this.descriptorID);
+		this.data.setIssuerID(this.descriptorID);
 		
-		assertEquals(this.descriptorID, this.data.getRequestDescriptorID());
+		assertEquals(this.descriptorID, this.data.getIssuerID());
 	}
 		
 	@Test

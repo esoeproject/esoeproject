@@ -80,7 +80,9 @@ public class SSOLogoutServletTest {
 
 		data = new SSOProcessorDataImpl();
 		data.setSessionID(this.sessionID);
-		data.setResponseDocument("<saml>this is a really fake saml document which is fine to test with here</saml>");
+		data.setResponseDocument(new String("<saml>this is a really fake saml document which is fine to test with here</saml>").getBytes());
+		
+		System.setProperty("esoe.data", "tests/testdata");
 	}
 
 	private void setUpMock()
@@ -123,8 +125,8 @@ public class SSOLogoutServletTest {
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -175,8 +177,8 @@ public class SSOLogoutServletTest {
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -222,8 +224,8 @@ public class SSOLogoutServletTest {
 	{		
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -273,8 +275,8 @@ public class SSOLogoutServletTest {
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -328,8 +330,8 @@ public class SSOLogoutServletTest {
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -382,8 +384,8 @@ public class SSOLogoutServletTest {
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -408,8 +410,8 @@ public class SSOLogoutServletTest {
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))

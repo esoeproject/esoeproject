@@ -32,33 +32,41 @@ public interface Metadata extends ExternalKeyResolver
 	/** Resolve the assertion consumer service contained in the metadata for the given
 	 * endpoint, where an endpoint is the sum of the follwoing params:
 	 *  
-	 * @param descriptorID The unique ID of the SPEP service
+	 * @param entityID The unique ID of the SPEP service
 	 * @param index The index of the endpoint associated with the SPEP service
 	 * @return The Location of the assertion consumer service.
 	 * 
 	 * @throws InvalidMetadataEndpointException if the location cannot be resolved.
 	 */
-	public String resolveAssertionConsumerService(String descriptorID, int index) throws InvalidMetadataEndpointException;
+	public String resolveAssertionConsumerService(String entityID, int index) throws InvalidMetadataEndpointException;
+	
+	/** Resolve identifier types specified for an ACS (of which there may be none)
+	 * 
+	 * @param entityID The unique ID of the SPEP service
+	 * @param index The index of the endpoint associated with the SPEP service
+	 * @return Valid identifier types for this service or null if not resolvable
+	 */
+	public List<String> resolveAssertionConsumerServiceIdentifierTypes(String entityID, int index);
 	
 	/** Resolve all single logout services contained in the metadata for the given
 	 * SPEP service descriptorID.
 	 *  
-	 * @param descriptorID The unique ID of the SPEP service
+	 * @param entityID The unique ID of the SPEP service
 	 * @return List of all appropriate Locations of a single logout service.
 	 * 
 	 * @throws InvalidMetadataEndpointException if the locations cannot be resolved.
 	 */
-	public List<String> resolveSingleLogoutService(String descriptorID) throws InvalidMetadataEndpointException;
+	public List<String> resolveSingleLogoutService(String entityID) throws InvalidMetadataEndpointException;
 	
 	/** Resolve all single cache clear services contained in the metadata for the given
 	 * SPEP service descriptorID.
 	 * 
-	 * @param descriptorID The unique ID of the SPEP service
+	 * @param entityID The unique ID of the SPEP service
 	 * @return Map of appropriate Locations of a cache clear service, indexed by node index
 	 * 
 	 * @throws InvalidMetadataEndpointException if the locations cannot be resolved.
 	 */
-	public Map<Integer,String> resolveCacheClearService(String descriptorID) throws InvalidMetadataEndpointException;
+	public Map<Integer,String> resolveCacheClearService(String entityID) throws InvalidMetadataEndpointException;
 	
 	/** Accessor for current revision.
 	 * 
@@ -74,7 +82,7 @@ public interface Metadata extends ExternalKeyResolver
 	public PublicKey resolveKey(String keyName) throws KeyResolutionException;
 	
 	/**
-	 * @return The ESOE identifier String.
+	 * @return The ESOE entity identifier string used in metadata
 	 */
-	public String getESOEIdentifier();
+	public String getEsoeEntityID();
 }

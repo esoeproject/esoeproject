@@ -19,9 +19,9 @@
  */
 package com.qut.middleware.esoe.pdp.cache.sqlmap.impl;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 
@@ -36,35 +36,40 @@ public class PolicyCacheDaoImpl extends SqlMapClientDaoSupport implements Policy
 	 * @throws SQLException if an error occurs retrieving the data.
 	 */
 	@SuppressWarnings("nls")
-	public Date queryDateLastUpdated() throws SQLException
+	public long queryLastSequenceId() throws SQLException
 	{
-		Date lastUpdated = null;
+		long sequenceId = 0l;
 		
-		lastUpdated = (Date)this.getSqlMapClient().queryForObject("policyCacheQueryLatestUpdate", null); //$NON-NLS-1$
+		BigDecimal seq = (BigDecimal)(this.getSqlMapClient().queryForObject("policyCacheQueryLatestUpdate", null)); //$NON-NLS-1$
 		
-		return lastUpdated;
+		if(seq != null)
+			return seq.longValue();
+		else 
+			return sequenceId;
 	}
 	
 	/**
-	 * Retrieves policies based on a query. If the date in the query data is specified, only policies
-	 * updated after the given date/time are returned. If the queryData object does not contain a 
-	 * lastUpdated time stamp, ALL policies are retrieved. NOTE: inactive services are not returned. Ie:
-	 * where ENTITY_DESCRIPTORS.ACTIVEFLAG = 'N'.
+	 * Retrieves policies based on the data contained in the given query object. If the value of getSequenceId() in the query data
+	 * is greater or equal to 0, only policies that have a sequence ID greater than the retrieved value of getSequenceId() are returned. 
+	 * If the value of getSequenceId() is less or equal to 0, ALL policies are retrieved. <br>
 	 * 
-	 * @param queryData The query data to use when querying the policy cache
-	 * @return A Map of descriptorID -> PolicyCacheData objects for all active entities in the data source.
+	 * NOTE: Inactive services are not returned. Ie:  where ENTITY_DESCRIPTORS.ACTIVEFLAG = 'N'.
+	 * 
+	 * @param queryData The query data to use when querying the policy cache.
+	 * @return A List of PolicyCacheData objects for all active entities in the data source.
 	 * 
 	 * @throws SQLException if an error occurs retrieving the data.
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<String,PolicyCacheData> queryPolicyCache(PolicyCacheQueryData queryData) throws SQLException
+	public List<PolicyCacheData> queryPolicyCache(PolicyCacheQueryData queryData) throws SQLException
 	{
-		Map<String,PolicyCacheData> result = null;
+		List<PolicyCacheData> result = null;
 		
-		if(queryData != null && queryData.getDateLastUpdated() != null)
-			result = this.getSqlMapClient().queryForMap("updatedPoliciesCacheQuery", queryData, "descriptorID"); //$NON-NLS-1$ //$NON-NLS-2$
+		// sequence Id's in the data store must start at 0
+		if(queryData != null && queryData.getSequenceId().longValue() >= 0)
+			result = this.getSqlMapClient().queryForList("updatedPoliciesCacheQuery", queryData); //$NON-NLS-1$
 		else
-			result = this.getSqlMapClient().queryForMap("allPoliciesCacheQuery", null, "descriptorID"); //$NON-NLS-1$ //$NON-NLS-2$
+			result = this.getSqlMapClient().queryForList("allPoliciesCacheQuery", null); //$NON-NLS-1$ //
 	
 		return result;
 	}

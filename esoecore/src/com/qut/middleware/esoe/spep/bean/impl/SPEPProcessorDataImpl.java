@@ -26,9 +26,9 @@ public class SPEPProcessorDataImpl implements SPEPProcessorData
 {
 
 	private int authzCacheIndex;
-	private String requestEntityID;
-	private String requestDocument;
-	private String responseDocument;
+	private String issuerID;
+	private byte[] requestDocument;
+	private byte[] responseDocument;
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.spep.bean.SPEPProcessorData#getAuthzEndpointID()
@@ -41,9 +41,9 @@ public class SPEPProcessorDataImpl implements SPEPProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.spep.bean.SPEPProcessorData#getRequestEntityID()
 	 */
-	public String getRequestDescriptorID()
+	public String getIssuerID()
 	{
-		return this.requestEntityID;
+		return this.issuerID;
 	}
 
 	/* (non-Javadoc)
@@ -57,15 +57,15 @@ public class SPEPProcessorDataImpl implements SPEPProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.spep.bean.SPEPProcessorData#setRequestEntityID(java.lang.String)
 	 */
-	public void setRequestDescriptorID(String requestDescriptorID)
+	public void setIssuerID(String issuerID)
 	{
-		this.requestEntityID = requestDescriptorID;
+		this.issuerID = issuerID;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.bean.SAMLProcessorData#getRequestDocument()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -73,7 +73,7 @@ public class SPEPProcessorDataImpl implements SPEPProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.bean.SAMLProcessorData#getResponseDocument()
 	 */
-	public String getResponseDocument()
+	public byte[] getResponseDocument()
 	{
 		return this.responseDocument;
 	}
@@ -81,7 +81,7 @@ public class SPEPProcessorDataImpl implements SPEPProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.bean.SAMLProcessorData#setRequestDocument(java.lang.String)
 	 */
-	public void setRequestDocument(String requestDocument)
+	public void setRequestDocument(byte[] requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}
@@ -89,7 +89,7 @@ public class SPEPProcessorDataImpl implements SPEPProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.bean.SAMLProcessorData#setResponseDocument(java.lang.String)
 	 */
-	public void setResponseDocument(String responseDocument)
+	public void setResponseDocument(byte[] responseDocument)
 	{
 		this.responseDocument = responseDocument;
 	}

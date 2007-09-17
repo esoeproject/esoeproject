@@ -17,8 +17,12 @@
  */
 package com.qut.middleware.esoemanager.pages;
 
+import java.io.UnsupportedEncodingException;
+
 import net.sf.click.control.TextArea;
 import net.sf.click.util.ClickUtils;
+
+import org.apache.commons.codec.binary.Base64;
 
 import com.qut.middleware.esoemanager.bean.ServiceBean;
 import com.qut.middleware.esoemanager.exception.ViewServiceException;
@@ -27,7 +31,8 @@ import com.qut.middleware.esoemanager.logic.ViewServiceLogic;
 public class ViewServicePage extends BorderPage
 {
 	/* entityID is populated from name/value pair in the request */
-	public String entityID;
+	public String eid;
+	public String sid;
 	
 	public ServiceBean serviceDetails;
 	public String samlDescriptor;
@@ -47,14 +52,24 @@ public class ViewServicePage extends BorderPage
 		
 		this.saml = new TextArea(PageConstants.SAML_DESCRIPTOR_XML);
 		
-		if(this.entityID != null)
+		if(this.eid != null)
 		{
 			try
 			{
-				this.serviceDetails = this.logic.execute(entityID);
-				this.samlDescriptor = this.util.escapeHtml(this.serviceDetails.getDescriptorXML());
+				this.serviceDetails = this.logic.execute(new Integer(eid));
+				
+				if(this.serviceDetails != null)
+				{
+					this.samlDescriptor = this.util.escapeHtml(new String(this.serviceDetails.getDescriptorXML(), "UTF-16"));
+					sid = new String ( Base64.encodeBase64(this.serviceDetails.getEntityID().getBytes()) );
+				}
 			}
 			catch (ViewServiceException e)
+			{
+				this.serviceDetails = null;
+				this.samlDescriptor = null;
+			}
+			catch (UnsupportedEncodingException e)
 			{
 				this.serviceDetails = null;
 				this.samlDescriptor = null;

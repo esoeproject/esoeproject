@@ -25,14 +25,12 @@ package com.qut.middleware.esoe.sso.impl;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.MonitorThread;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.esoe.sso.SSOProcessor.result;
@@ -144,7 +142,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 		
 		this.logger.info(MessageFormat.format(Messages.getString("FailedLogoutMonitor.5"),  maxFailureAge) ); //$NON-NLS-1$
 	
-		this.setName("FailedLogout Monitor Thread {" + new Integer(new Random().nextInt()) + "}" ); //$NON-NLS-1$ //$NON-NLS-2$
+		this.setName("FailedLogout Monitor Thread"); //$NON-NLS-1$ 
 		
 		// start the thread (calls the run method)
 		this.setDaemon(true);
@@ -194,13 +192,13 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 	 * @param endPoint The endpoint to send the logout request to.
 	 * @return The result of the operation. Either LogoutSuccessfull or FailedLogout
 	 */
-	private result sendLogoutRequest(String logoutRequest, String endPoint)
+	private result sendLogoutRequest(byte[] logoutRequest, String endPoint)
 	{
-		String responseDocument;
+		byte[] responseDocument;
 
 		try
 		{
-			this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format( Messages.getString("FailedLogoutMonitor.13"), logoutRequest) ); //$NON-NLS-1$
+			this.logger.trace(MessageFormat.format( Messages.getString("FailedLogoutMonitor.13"), logoutRequest) ); //$NON-NLS-1$
 			
 			// attempt to send logout request
 			responseDocument = this.wsClient.singleLogout(logoutRequest, endPoint);
@@ -218,7 +216,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 		catch (SignatureValueException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.6"));  //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.INSANE, e);
+			this.logger.debug (e);
 
 			return result.LogoutRequestFailed;
 		}
@@ -263,7 +261,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 	{		
 		SSOProcessor.result result = SSOProcessor.result.LogoutRequestFailed;
 		
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("FailedLogoutMonitor.18"), this.updateFailures.getSize()) );  //$NON-NLS-1$
+		this.logger.warn(MessageFormat.format(Messages.getString("FailedLogoutMonitor.18"), this.updateFailures.getSize()) );  //$NON-NLS-1$
 		
 		Iterator<FailedLogout> iter = this.updateFailures.getFailures().iterator();
 
@@ -302,7 +300,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 			// we have to regenerate the original request with updated timestamps and sigs before sending
 			// because the allowed time skew will more than likely have expired.
 			
-			String newDocument = this.regenerateDocument(failure.getRequestDocument());
+			byte[] newDocument = this.regenerateDocument(failure.getRequestDocument());
 			
 			if(newDocument != null)
 			{
@@ -344,11 +342,11 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 	 * SAML ID's and signatures. If an error occurs diring the process, null is returned.
 	 * 
 	 */
-	private String regenerateDocument(String oldDocument)
+	private byte[] regenerateDocument(byte[] oldDocument)
 	{
-		this.logger.log(InsaneLogLevel.INSANE, Messages.getString("FailedLogoutMonitor.21")); //$NON-NLS-1$
+		this.logger.debug(Messages.getString("FailedLogoutMonitor.21")); //$NON-NLS-1$
 		
-		String newDoc = null;
+		byte[] newDoc = null;
 		LogoutRequest request = null;
 		
 		// unmarshall the original failure request for modification

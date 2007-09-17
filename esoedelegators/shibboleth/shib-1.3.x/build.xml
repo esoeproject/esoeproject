@@ -29,15 +29,23 @@
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="${artifacts.dev}/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 
 	<target name="dev-release-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev-release" />
-		<ivy:retrieve pattern="${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
-		<ivy:report conf="dev-release" graph="false" todir="${artifacts.dev-release}" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
+		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
+	</target>
+	
+	<target name="dev-publish">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:publish resolver="local-resolver" forcedeliver="true">
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
+		</ivy:publish>
 	</target>
 
 	<!-- 
@@ -45,9 +53,7 @@
 	 -->
 
 	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the delegator">
-		<mkdir dir="${output.dev}/${output.dev.tar}/war" />
-		<unwar src="${output.dev}/${output.dev.war}" dest="${output.dev}/${output.dev.tar}/war" />
-		<delete dir="${output.dev}/${output.dev.tar}/war/META-INF" />
+		<copy file="${output.dev}/${output.dev.war}" todir="${output.dev}/${output.dev.tar}" />
 		<copy file="${annotatedconfig}" todir="${output.dev}/${output.dev.tar}" />
 		<copy file="${output.dev}/${output.dev.jar.installer}.jar" todir="${output.dev}/${output.dev.tar}" />
 
@@ -106,17 +112,23 @@
 	</target>
 
 	<target name="dev-build" depends="setup" description="Compiles ESOE code base">
-		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
-		<javac source="1.5" target="1.5" destdir="${output.dev.build.installer}" srcdir="${src.installer}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build.installer}" srcdir="${src.installer}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -156,7 +168,7 @@
 	</target>
 
 	<target name="junit-regression-build" depends="dev-jar" description="Compiles ESOE regression tests code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
 					<include name="**/*.jar" />
@@ -208,7 +220,7 @@
 	</target>
 
 	<target name="junit-functional-build" depends="dev-jar" description="Compiles ESOE functional test code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
 					<include name="**/*.jar" />

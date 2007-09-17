@@ -48,6 +48,7 @@
 	<xsd:complexType name="TargetType">
 		<xsd:sequence>
 			<xsd:element ref="lxacml:Resources" />
+			<xsd:element ref="lxacml:Actions" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -57,9 +58,23 @@
 			<xsd:element ref="lxacml:Resource" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:element name="Actions" type="lxacml:ActionsType" />
+	<xsd:complexType name="ActionsType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Action" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:element name="Resource" type="lxacml:ResourceType" />
 	<xsd:complexType name="ResourceType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:AttributeValue" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="Action" type="lxacml:ActionType" />
+	<xsd:complexType name="ActionType">
 		<xsd:sequence>
 			<xsd:element ref="lxacml:AttributeValue" />
 		</xsd:sequence>

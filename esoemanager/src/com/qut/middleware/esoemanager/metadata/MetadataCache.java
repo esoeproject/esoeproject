@@ -33,12 +33,12 @@ public interface MetadataCache
 	 * cache is at least read locked while the get is occcurring.
 	 * 
 	 */
-	public String getCacheData();
+	public byte[] getCacheData();
 	
 	/** Set the internal data of the cache. The implementation MUST ensure that the entire
 	 * cache is locked while the update is occcurring.
 	 * 
 	 */
-	public void setCacheData(String cachedata);
+	public void setCacheData(byte[] cachedata);
 	
 }

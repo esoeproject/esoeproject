@@ -22,23 +22,23 @@ package com.qut.middleware.esoe.spep.sqlmap.impl;
 /** */
 public class SPEPRegistrationQueryData
 {
-	private String descriptorID;
+	private Integer entID;
 	private String nodeID;
 	
 	/**
 	 * @return the descriptorID
 	 */
-	public String getDescriptorID()
+	public Integer getEntID()
 	{
-		return this.descriptorID;
+		return this.entID;
 	}
 	
 	/**
 	 * @param descriptorID the descriptorID to set
 	 */
-	public void setDescriptorID(String descriptorID)
+	public void setEntID(Integer entID)
 	{
-		this.descriptorID = descriptorID;
+		this.entID = entID;
 	}
 	
 	/**

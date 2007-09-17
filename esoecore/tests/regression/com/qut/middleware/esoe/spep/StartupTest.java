@@ -110,7 +110,7 @@ public class StartupTest
 		PublicKey publicKey = this.keyStoreResolver.getPublicKey();
 		
 		expect(this.metadata.resolveKey("esoeprimary")).andReturn(publicKey);
-		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
+		expect(this.metadata.getEsoeEntityID()).andReturn(this.esoeID).anyTimes();
 		
 		this.keyName = "esoeprimary";
 		this.key = this.keyStoreResolver.getPrivateKey();
@@ -154,7 +154,7 @@ public class StartupTest
 		request.setSignature(new Signature());
 		request.setNodeId("nodeID:74834");
 		
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		try
 		{
 			requestDocument = this.requestMarshaller.marshallSigned(request);

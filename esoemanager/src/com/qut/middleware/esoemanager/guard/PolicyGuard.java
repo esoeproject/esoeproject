@@ -23,5 +23,5 @@ import com.qut.middleware.esoemanager.exception.PolicyGuardException;
 
 public interface PolicyGuard
 {
-	public void validatePolicy(String submittedPolicy) throws PolicyGuardException;
+	public void validatePolicy(byte[] submittedPolicy) throws PolicyGuardException;
 }

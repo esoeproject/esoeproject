@@ -27,6 +27,8 @@ public interface ServiceBean
 	public Vector<ContactPersonBean> getContacts();
 
 	public void setContacts(Vector<ContactPersonBean> contacts);
+	
+	public String getServiceHost();
 
 	public String getServiceURL();
 
@@ -55,6 +57,14 @@ public interface ServiceBean
 	public String getServiceAuthzFailureMsg();
 
 	public void setServiceAuthzFailureMsg(String serviceAuthzFailureMsg);
+	
+	public Integer getEntID();
+	
+	public void setEntID(Integer entID);
+	
+	public Integer getDescID();
+	
+	public void setDescID(Integer descID);
 
 	public void setEntityID(String entityID);
 
@@ -68,7 +78,7 @@ public interface ServiceBean
 
 	public void setActiveFlag(String activeFlag);
 	
-	public void setDescriptorXML(String descriptorXML);
+	public void setDescriptorXML(byte[] descriptorXML);
 	
-	public String getDescriptorXML();
+	public byte[] getDescriptorXML();
 }

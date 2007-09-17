@@ -19,10 +19,13 @@
  */
 package com.qut.middleware.crypto.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -31,6 +34,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.SignatureException;
@@ -357,7 +361,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 
 		/* Set the start of valid period to now - a few seconds for time skew. */
 		Calendar before = new GregorianCalendar();
-		before.add(Calendar.DAY_OF_MONTH, 1);
+		before.add(Calendar.DAY_OF_MONTH, -1);
 		cert.setNotBefore(before.getTime());
 
 		/* Set the certificate expiry date to current time plus configured interval for expiry. */
@@ -472,6 +476,81 @@ public class CryptoProcessorImpl implements CryptoProcessor
 					this.logger.debug(e);
 					throw new CryptoException(e.getLocalizedMessage(), e);
 				}
+			}
+		}
+	}
+	
+	public PublicKey convertByteArrayPublicKey(byte[] rawKey) throws CryptoException
+	{
+		ByteArrayInputStream inputStream = null; 
+		ObjectInputStream objectInputStream = null;
+		PublicKey key;
+		
+		try
+		{
+			inputStream = new ByteArrayInputStream(rawKey);
+			objectInputStream = new ObjectInputStream(inputStream);
+			key = (PublicKey) objectInputStream.readObject();
+			
+			return key;
+		}
+		catch (IOException e)
+		{
+			throw new CryptoException("Exception when attempting to unserialize PublicKey", e);
+		}
+		catch (ClassNotFoundException e)
+		{
+			throw new CryptoException("Exception when attempting to unserialize PublicKey", e);
+		}
+		finally
+		{
+			try
+			{
+				if(objectInputStream != null)
+					objectInputStream.close();
+				
+				if(inputStream != null)
+					inputStream.close();
+			}
+			catch (IOException e)
+			{
+				throw new CryptoException("Exception when attempting to unserialize PublicKey (stream close failed)", e);
+			}
+		}
+	}
+	
+	public byte[] convertPublicKeyByteArray(PublicKey key) throws CryptoException
+	{
+		byte[] serializedPK;
+		ByteArrayOutputStream outputStream = null;
+		ObjectOutputStream objectOutputStream = null;
+		
+		try
+		{
+			 outputStream = new ByteArrayOutputStream();
+			 objectOutputStream = new ObjectOutputStream(outputStream);
+			objectOutputStream.writeObject(key);
+			serializedPK = outputStream.toByteArray();
+			
+			return serializedPK;
+		}
+		catch (IOException e)
+		{
+			throw new CryptoException("Exception when attempting to serialize PublicKey", e);
+		}
+		finally
+		{
+			try
+			{
+				if(objectOutputStream != null)
+					objectOutputStream.close();
+				
+				if(outputStream != null)
+					outputStream.close();
+			}
+			catch (IOException e)
+			{
+				throw new CryptoException("Exception when attempting to serialize PublicKey (stream close failed)", e);
 			}
 		}
 	}

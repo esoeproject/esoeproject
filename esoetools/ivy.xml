@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
 
-	<info organisation="esoeproject" module="esoetools" revision="0.2">
+	<info organisation="esoeproject" module="esoetools" revision="${esoe.version}">
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"

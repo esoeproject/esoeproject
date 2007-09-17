@@ -27,12 +27,15 @@ import net.sf.click.control.Submit;
 import com.qut.middleware.esoemanager.bean.ServiceNodeBean;
 import com.qut.middleware.esoemanager.pages.SPEPPage;
 import com.qut.middleware.esoemanager.pages.forms.impl.SPEPForm;
+import com.qut.middleware.esoestartup.bean.ESOEBean;
 
 public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 {
 	public String defaultSingleLogoutService;
 	public String defaultAssertionConsumerService;
 	public String defaultCacheClearService;
+
+	public ESOEBean esoeBean;
 
 	public RegisterESOEManagerServiceNodesPage()
 	{
@@ -42,6 +45,8 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 	public void onInit()
 	{
 		super.onInit();
+
+		this.esoeBean = (ESOEBean) this.retrieveSession(ESOEBean.class.getName());
 
 		/* No need to choose type we know its java */
 		this.spepDetails.remove(this.spepDetails.getField(PageConstants.SERVICE_TYPE));
@@ -57,7 +62,27 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 	@Override
 	public void onPost()
 	{
-		super.onPost();
+		/* Ensure session data is correctly available */
+		if (this.esoeBean == null)
+		{
+			previousClick();
+			return;
+		}
+
+		/* Determine if the submitted form for new spep node is valid */
+		if (this.spepDetails.isFormSubmission())
+		{
+			try
+			{
+				URL validHost = new URL(this.spepDetails.getFieldValue(PageConstants.SPEP_NODE_URL));
+				createOrUpdateSPEP(this.esoeBean);
+			}
+			catch (MalformedURLException e)
+			{
+				// TODO Log4j here
+				this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setError("Malformed server address submitted");
+			}
+		}
 
 		if (this.spepDetails.isValid())
 		{
@@ -70,8 +95,15 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 	@Override
 	public void onGet()
 	{
+		/* Ensure session data is correctly available */
+		if (this.esoeBean == null)
+		{
+			previousClick();
+			return;
+		}
+
 		/* Check if previous registration stage completed */
-		Boolean status = (Boolean) this.retrieveSession(PageConstants.STAGE5_RES);
+		Boolean status = (Boolean) this.retrieveSession(PageConstants.STAGE6_RES);
 		if (status == null || status.booleanValue() != true)
 		{
 			previousClick();
@@ -79,22 +111,26 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 
 		if (this.action != null)
 		{
-			super.onGet();
+			if (this.action.equals(PageConstants.EDIT))
+			{
+				editSPEP(this.esoeBean);
+			}
+			if (this.action.equals(PageConstants.DELETE))
+			{
+				deleteSPEP(this.esoeBean);
+			}
 		}
 		else
 		{
 			/* Set the default NodeURL as the service URL */
 			try
 			{
-				String node = (String) this.retrieveSession(PageConstants.STORED_SERVICE_URL);
+				String node = (String) this.esoeBean.getServiceURL();
 				URL nodeURL = new URL(node);
-				if (nodeURL.getPort() != -1 )
-					this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setValue(
-							nodeURL.getProtocol() + PageConstants.PROTOCOL_SEPERATOR + nodeURL.getHost()
-									+ PageConstants.PORT_SEPERATOR + nodeURL.getPort());
+				if (nodeURL.getPort() != -1)
+					this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setValue(nodeURL.getProtocol() + PageConstants.PROTOCOL_SEPERATOR + nodeURL.getHost() + PageConstants.PORT_SEPERATOR + nodeURL.getPort());
 				else
-					this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setValue(
-							nodeURL.getProtocol() + PageConstants.PROTOCOL_SEPERATOR + nodeURL.getHost());
+					this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setValue(nodeURL.getProtocol() + PageConstants.PROTOCOL_SEPERATOR + nodeURL.getHost());
 			}
 			catch (MalformedURLException e)
 			{
@@ -102,8 +138,7 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 			}
 
 			/* Setup the default values for service endpoints dependend on technology selected */
-			this.spepDetails.getField(PageConstants.ASSERTION_CONSUMER_SERVICE).setValue(
-					this.defaultAssertionConsumerService);
+			this.spepDetails.getField(PageConstants.ASSERTION_CONSUMER_SERVICE).setValue(this.defaultAssertionConsumerService);
 			this.spepDetails.getField(PageConstants.SINGLE_LOGOUT_SERVICE).setValue(this.defaultSingleLogoutService);
 			this.spepDetails.getField(PageConstants.CACHE_CLEAR_SERVICE).setValue(this.defaultCacheClearService);
 		}
@@ -111,8 +146,15 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 
 	public boolean nextClick()
 	{
+		/* Ensure session data is correctly available */
+		if (this.esoeBean == null)
+		{
+			previousClick();
+			return false;
+		}
+
 		String redirectPath;
-		this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+		this.serviceNodes = (Vector<ServiceNodeBean>) this.esoeBean.getServiceNodes();
 
 		/* Attempt to save the incoming data as user has clicked next instead of save in all likely hood */
 		if (this.serviceNodes == null || this.serviceNodes.size() == 0)
@@ -122,21 +164,18 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 				try
 				{
 					URL validHost = new URL(this.spepDetails.getFieldValue(PageConstants.SPEP_NODE_URL));
-					this.createOrUpdateSPEP();
+					this.createOrUpdateSPEP(this.esoeBean);
 				}
 				catch (MalformedURLException e)
 				{
-					// TODO Log4j here
-					this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setError(
-							"Malformed server address submitted");
+					this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setError("Malformed server address submitted");
 					return true;
 				}
 
-				/* Attempting to create submittied node failed */
+				/* Attempting to create submitted node failed */
 				if (!this.spepDetails.isValid())
 				{
-					this.serviceNodes = (Vector<ServiceNodeBean>) this
-							.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+					this.serviceNodes = (Vector<ServiceNodeBean>) this.esoeBean.getServiceNodes();
 				}
 			}
 			else
@@ -146,7 +185,7 @@ public class RegisterESOEManagerServiceNodesPage extends SPEPPage
 		}
 
 		/* This stage completed correctly */
-		this.storeSession(PageConstants.STAGE6_RES, new Boolean(true));
+		this.storeSession(PageConstants.STAGE7_RES, new Boolean(true));
 
 		/* Move client to add speps for this service */
 		redirectPath = getContext().getPagePath(RegisterESOECryptoPage.class);

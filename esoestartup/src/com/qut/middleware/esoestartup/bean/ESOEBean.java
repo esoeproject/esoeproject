@@ -28,10 +28,15 @@ import java.util.Vector;
 
 import com.qut.middleware.esoemanager.bean.ContactPersonBean;
 import com.qut.middleware.esoemanager.bean.ServiceNodeBean;
+import com.qut.middleware.esoemanager.bean.impl.ServiceBeanImpl;
 import com.qut.middleware.esoestartup.Constants;
 
-public class ESOEBean
+public class ESOEBean extends ServiceBeanImpl
 {
+	private String esoeDataDirectory;
+	private String esoemanagerDataDirectory;
+	private String spepDataDirectory;
+
 	private Constants.DatabaseDrivers databaseDriver;
 	private String databaseURL;
 	private String databaseUsername;
@@ -46,20 +51,19 @@ public class ESOEBean
 	private String esoeOrganizationURL;
 	private String certIssuerDN;
 	private String certIssuerEmailAddress;
-	
-	private String idpEntityID;
-	private String spEntityID;
-	private String spDescriptorID;
-	private String idpDescriptorXML;
-	private String aaDescriptorXML;
-	private String pdpDescriptorXML;
-	private String spDescriptorXML;
-	
-	private String managerServiceName;
-	private String managerServiceURL;
-	private String managerServiceDescription;
-	private String managerServiceAuthzFail;
-	
+	private String commonDomain;
+
+	private String esoeEntityID;
+	private Integer esoeEntID;
+
+	private Integer esoeIdpDescID;
+	private Integer esoeAADescID;
+	private Integer esoeLxacmlDescID;
+
+	private byte[] idpDescriptorXML;
+	private byte[] aaDescriptorXML;
+	private byte[] pdpDescriptorXML;
+
 	private String ldapURL;
 	private String ldapServerPort;
 	private String ldapServerBaseDN;
@@ -68,54 +72,51 @@ public class ESOEBean
 	private String ldapDisableSSL;
 	private String ldapAdminUserDN;
 	private String ldapAdminPassword;
-	
-	private String writeableDirectory;
-	
+
 	private byte[] esoeKeystore;
 	private String esoeKeyStorePassphrase;
 	private KeyPair esoeKeyPair;
 	private String esoeKeyPairName;
 	private String esoeKeyPairPassphrase;
-	
+
 	private byte[] esoeManagerKeystore;
 	private String esoeManagerKeyStorePassphrase;
 	private KeyPair esoeManagerKeyPair;
 	private String esoeManagerKeyPairName;
 	private String esoeManagerKeyPairPassphrase;
-	
+
 	private byte[] esoeMetadataKeystore;
 	private String esoeMetadataKeyStorePassphrase;
 	private String esoeMetadataKeyPairName;
 	private String esoeMetadataKeyPairPassphrase;
-	
+
 	private String metadataIssuerDN;
-	
+
 	private String tomcatWebappPath;
-	
+
 	private Vector<ContactPersonBean> contacts;
-	private Vector<ServiceNodeBean> managerServiceNodes;
-	
-	public String getDatbaseDriverString()
+
+	public String getDatabaseDriverString()
 	{
-		if(this.databaseDriver == Constants.DatabaseDrivers.mysql)
+		if (this.databaseDriver == Constants.DatabaseDrivers.mysql)
 			return Constants.MYSQL_DRIVER;
-		
-		if(this.databaseDriver == Constants.DatabaseDrivers.oracle)
+
+		if (this.databaseDriver == Constants.DatabaseDrivers.oracle)
 			return Constants.ORACLE_DRIVER;
-		
+
 		return Constants.MYSQL_DRIVER;
 	}
-	
+
 	public String getLdapServer()
 	{
 		String[] ldapServer = ldapURL.split("://");
-		
+
 		if (ldapServer != null & ldapServer.length > 1)
 			return ldapServer[1];
-	
+
 		return null;
 	}
-	
+
 	public String getEsoeCookieDomain()
 	{
 		URL domain;
@@ -128,24 +129,24 @@ public class ESOEBean
 		{
 			return "URL Fault";
 		}
-		
+
 	}
-	
+
 	public String getEsoeManagerCookieDomain()
 	{
 		URL domain;
 		try
 		{
-			domain = new URL(this.managerServiceURL);
+			domain = new URL(this.getServiceURL());
 			return domain.getHost();
 		}
 		catch (MalformedURLException e)
 		{
 			return "URL Fault";
 		}
-		
+
 	}
-	
+
 	public String getEsoeManagerIP()
 	{
 		try
@@ -158,387 +159,418 @@ public class ESOEBean
 			return "127.0.0.1";
 		}
 	}
-	
-	public Vector<ServiceNodeBean> getManagerServiceNodes()
+
+	public String getEsoeManagerHost()
 	{
-		return managerServiceNodes;
+		try
+		{
+			URL serviceURL = new URL(this.getServiceURL());
+			if (serviceURL.getPort() == -1)
+				return serviceURL.getProtocol() + "://" + serviceURL.getHost();
+			else
+				return serviceURL.getProtocol() + "://" + serviceURL.getHost() + ":" + serviceURL.getPort();
+		}
+		catch (MalformedURLException e)
+		{
+			return "INVALID ESOE MANAGER URL";
+		}
 	}
-	public void setManagerServiceNodes(Vector<ServiceNodeBean> nodes)
-	{
-		this.managerServiceNodes = nodes;
-	}
-	public String getAaDescriptorXML()
+
+	public byte[] getAaDescriptorXML()
 	{
 		return aaDescriptorXML;
 	}
-	public void setAaDescriptorXML(String aaDescriptorXML)
+
+	public void setAaDescriptorXML(byte[] aaDescriptorXML)
 	{
 		this.aaDescriptorXML = aaDescriptorXML;
 	}
+
 	public String getIdpEntityID()
 	{
-		return idpEntityID;
+		return esoeEntityID;
 	}
+
 	public void setIdpEntityID(String idpEntityID)
 	{
-		this.idpEntityID = idpEntityID;
+		this.esoeEntityID = idpEntityID;
 	}
-	public String getSpEntityID()
-	{
-		return spEntityID;
-	}
-	public void setSpEntityID(String spEntityID)
-	{
-		this.spEntityID = spEntityID;
-	}
-	public String getIdpDescriptorXML()
+
+	public byte[] getIdpDescriptorXML()
 	{
 		return idpDescriptorXML;
 	}
-	public void setIdpDescriptorXML(String idpDescriptorXML)
+
+	public void setIdpDescriptorXML(byte[] idpDescriptorXML)
 	{
 		this.idpDescriptorXML = idpDescriptorXML;
 	}
-	public String getPdpDescriptorXML()
+
+	public byte[] getPdpDescriptorXML()
 	{
 		return pdpDescriptorXML;
 	}
-	public void setPdpDescriptorXML(String pdpDescriptorXML)
+
+	public void setPdpDescriptorXML(byte[] pdpDescriptorXML)
 	{
 		this.pdpDescriptorXML = pdpDescriptorXML;
 	}
+
 	public Vector<ContactPersonBean> getContacts()
 	{
 		return contacts;
 	}
+
 	public void setContacts(Vector<ContactPersonBean> contacts)
 	{
 		this.contacts = contacts;
 	}
+
 	public Constants.DatabaseDrivers getDatabaseDriver()
 	{
 		return databaseDriver;
 	}
+
 	public void setDatabaseDriver(Constants.DatabaseDrivers databaseDriver)
 	{
 		this.databaseDriver = databaseDriver;
 	}
+
 	public String getDatabasePassword()
 	{
 		return databasePassword;
 	}
+
 	public void setDatabasePassword(String databasePassword)
 	{
 		this.databasePassword = databasePassword;
 	}
+
 	public String getDatabaseURL()
 	{
 		return databaseURL;
 	}
+
 	public void setDatabaseURL(String databaseURL)
 	{
 		this.databaseURL = databaseURL;
 	}
+
 	public String getDatabaseUsername()
 	{
 		return databaseUsername;
 	}
+
 	public void setDatabaseUsername(String databaseUsername)
 	{
 		this.databaseUsername = databaseUsername;
 	}
+
 	public String getEsoeAttributeService()
 	{
 		return esoeAttributeService;
 	}
+
 	public void setEsoeAttributeService(String esoeAttributeService)
 	{
 		this.esoeAttributeService = esoeAttributeService;
 	}
+
 	public String getEsoeLxacmlService()
 	{
 		return esoeLxacmlService;
 	}
+
 	public void setEsoeLxacmlService(String esoeLxacmlService)
 	{
 		this.esoeLxacmlService = esoeLxacmlService;
 	}
+
 	public String getEsoeNodeURL()
 	{
 		return esoeNodeURL;
 	}
+
 	public void setEsoeNodeURL(String esoeNodeURL)
 	{
 		this.esoeNodeURL = esoeNodeURL;
 	}
+
 	public String getEsoeSingleSignOn()
 	{
 		return esoeSingleSignOn;
 	}
+
 	public void setEsoeSingleSignOn(String esoeSingleSignOn)
 	{
 		this.esoeSingleSignOn = esoeSingleSignOn;
 	}
+
 	public String getEsoeSPEPStartupService()
 	{
 		return esoeSPEPStartupService;
 	}
+
 	public void setEsoeSPEPStartupService(String esoeSPEPStartupService)
 	{
 		this.esoeSPEPStartupService = esoeSPEPStartupService;
 	}
+
 	public String getCertIssuerDN()
 	{
 		return certIssuerDN;
 	}
+
 	public void setCertIssuerDN(String certIssuerDN)
 	{
 		this.certIssuerDN = certIssuerDN;
 	}
+
 	public String getCertIssuerEmailAddress()
 	{
 		return certIssuerEmailAddress;
 	}
+
 	public void setCertIssuerEmailAddress(String certIssuerEmailAddress)
 	{
 		this.certIssuerEmailAddress = certIssuerEmailAddress;
 	}
+
 	public String getEsoeOrganizationDisplayName()
 	{
 		return esoeOrganizationDisplayName;
 	}
+
 	public void setEsoeOrganizationDisplayName(String esoeOrganizationDisplayName)
 	{
 		this.esoeOrganizationDisplayName = esoeOrganizationDisplayName;
 	}
+
 	public String getEsoeOrganizationName()
 	{
 		return esoeOrganizationName;
 	}
+
 	public void setEsoeOrganizationName(String esoeOrganizationName)
 	{
 		this.esoeOrganizationName = esoeOrganizationName;
 	}
+
 	public String getEsoeOrganizationURL()
 	{
 		return esoeOrganizationURL;
 	}
+
 	public void setEsoeOrganizationURL(String esoeOrganizationURL)
 	{
 		this.esoeOrganizationURL = esoeOrganizationURL;
 	}
+
 	public String getEsoeKeyPairName()
 	{
 		return esoeKeyPairName;
 	}
+
 	public void setEsoeKeyPairName(String esoeKeyPairName)
 	{
 		this.esoeKeyPairName = esoeKeyPairName;
 	}
+
 	public String getEsoeKeyPairPassphrase()
 	{
 		return esoeKeyPairPassphrase;
 	}
+
 	public void setEsoeKeyPairPassphrase(String esoeKeyPairPassphrase)
 	{
 		this.esoeKeyPairPassphrase = esoeKeyPairPassphrase;
 	}
+
 	public String getEsoeKeyStorePassphrase()
 	{
 		return esoeKeyStorePassphrase;
 	}
+
 	public void setEsoeKeyStorePassphrase(String esoeKeyStorePassphrase)
 	{
 		this.esoeKeyStorePassphrase = esoeKeyStorePassphrase;
 	}
+
 	public String getEsoeManagerKeyPairName()
 	{
 		return esoeManagerKeyPairName;
 	}
+
 	public void setEsoeManagerKeyPairName(String esoeManagerKeyPairName)
 	{
 		this.esoeManagerKeyPairName = esoeManagerKeyPairName;
 	}
+
 	public String getEsoeManagerKeyPairPassphrase()
 	{
 		return esoeManagerKeyPairPassphrase;
 	}
+
 	public void setEsoeManagerKeyPairPassphrase(String esoeManagerKeyPairPassphrase)
 	{
 		this.esoeManagerKeyPairPassphrase = esoeManagerKeyPairPassphrase;
 	}
+
 	public String getEsoeManagerKeyStorePassphrase()
 	{
 		return esoeManagerKeyStorePassphrase;
 	}
+
 	public void setEsoeManagerKeyStorePassphrase(String esoeManagerKeyStorePassphrase)
 	{
 		this.esoeManagerKeyStorePassphrase = esoeManagerKeyStorePassphrase;
 	}
+
 	public String getEsoeMetadataKeyPairName()
 	{
 		return esoeMetadataKeyPairName;
 	}
+
 	public void setEsoeMetadataKeyPairName(String esoeMetadataKeyPairName)
 	{
 		this.esoeMetadataKeyPairName = esoeMetadataKeyPairName;
 	}
+
 	public String getEsoeMetadataKeyPairPassphrase()
 	{
 		return esoeMetadataKeyPairPassphrase;
 	}
+
 	public void setEsoeMetadataKeyPairPassphrase(String esoeMetadataKeyPairPassphrase)
 	{
 		this.esoeMetadataKeyPairPassphrase = esoeMetadataKeyPairPassphrase;
 	}
+
 	public String getEsoeMetadataKeyStorePassphrase()
 	{
 		return esoeMetadataKeyStorePassphrase;
 	}
+
 	public void setEsoeMetadataKeyStorePassphrase(String esoeMetadataKeyStorePassphrase)
 	{
 		this.esoeMetadataKeyStorePassphrase = esoeMetadataKeyStorePassphrase;
 	}
-	public String getSpDescriptorXML()
-	{
-		return spDescriptorXML;
-	}
-	public void setSpDescriptorXML(String spDescriptorXML)
-	{
-		this.spDescriptorXML = spDescriptorXML;
-	}
+
 	public void setEsoeKeystore(byte[] esoeKeystore)
 	{
 		this.esoeKeystore = esoeKeystore;
 	}
+
 	public void setEsoeManagerKeystore(byte[] esoeManagerKeystore)
 	{
 		this.esoeManagerKeystore = esoeManagerKeystore;
 	}
+
 	public void setEsoeMetadataKeystore(byte[] esoeMetadataKeystore)
 	{
 		this.esoeMetadataKeystore = esoeMetadataKeystore;
 	}
-	public String getWriteableDirectory()
-	{
-		return writeableDirectory;
-	}
-	public void setWriteableDirectory(String writeableDirectory)
-	{
-		this.writeableDirectory = writeableDirectory;
-	}
+
 	public byte[] getEsoeKeystore()
 	{
 		return esoeKeystore;
 	}
+
 	public byte[] getEsoeManagerKeystore()
 	{
 		return esoeManagerKeystore;
 	}
+
 	public byte[] getEsoeMetadataKeystore()
 	{
 		return esoeMetadataKeystore;
 	}
+
 	public String getMetadataIssuerDN()
 	{
 		return metadataIssuerDN;
 	}
+
 	public void setMetadataIssuerDN(String metadataIssuerDN)
 	{
 		this.metadataIssuerDN = metadataIssuerDN;
 	}
-	public String getManagerServiceAuthzFail()
-	{
-		return managerServiceAuthzFail;
-	}
-	public void setManagerServiceAuthzFail(String managerServiceAuthzFail)
-	{
-		this.managerServiceAuthzFail = managerServiceAuthzFail;
-	}
-	public String getManagerServiceDescription()
-	{
-		return managerServiceDescription;
-	}
-	public void setManagerServiceDescription(String managerServiceDescription)
-	{
-		this.managerServiceDescription = managerServiceDescription;
-	}
-	public String getManagerServiceName()
-	{
-		return managerServiceName;
-	}
-	public void setManagerServiceName(String managerServiceName)
-	{
-		this.managerServiceName = managerServiceName;
-	}
-	public String getManagerServiceURL()
-	{
-		return managerServiceURL;
-	}
-	public void setManagerServiceURL(String managerServiceURL)
-	{
-		this.managerServiceURL = managerServiceURL;
-	}
+
 	public String getLdapAdminPassword()
 	{
 		return ldapAdminPassword;
 	}
+
 	public void setLdapAdminPassword(String ldapAdminPassword)
 	{
 		this.ldapAdminPassword = ldapAdminPassword;
 	}
+
 	public String getLdapAdminUserDN()
 	{
 		return ldapAdminUserDN;
 	}
+
 	public void setLdapAdminUserDN(String ldapAdminUserDN)
 	{
 		this.ldapAdminUserDN = ldapAdminUserDN;
 	}
+
 	public String getLdapDisableSSL()
 	{
 		return ldapDisableSSL;
 	}
+
 	public void setLdapDisableSSL(String ldapDisableSSL)
 	{
 		this.ldapDisableSSL = ldapDisableSSL;
 	}
+
 	public String getLdapIdentifier()
 	{
 		return ldapIdentifier;
 	}
+
 	public void setLdapIdentifier(String ldapIdentifier)
 	{
 		this.ldapIdentifier = ldapIdentifier;
 	}
+
 	public String getLdapRecursive()
 	{
 		return ldapRecursive;
 	}
+
 	public void setLdapRecursive(String ldapRecursive)
 	{
 		this.ldapRecursive = ldapRecursive;
 	}
+
 	public String getLdapServerBaseDN()
 	{
 		return ldapServerBaseDN;
 	}
+
 	public void setLdapServerBaseDN(String ldapServerBaseDN)
 	{
 		this.ldapServerBaseDN = ldapServerBaseDN;
 	}
+
 	public String getLdapServerPort()
 	{
 		return ldapServerPort;
 	}
+
 	public void setLdapServerPort(String ldapServerPort)
 	{
 		this.ldapServerPort = ldapServerPort;
 	}
+
 	public String getLdapURL()
 	{
 		return ldapURL;
 	}
+
 	public void setLdapURL(String ldapURL)
 	{
 		this.ldapURL = ldapURL;
@@ -574,13 +606,93 @@ public class ESOEBean
 		this.esoeManagerKeyPair = esoeManagerKeyPair;
 	}
 
-	public String getSpDescriptorID()
+	public String getEsoeDataDirectory()
 	{
-		return spDescriptorID;
+		return esoeDataDirectory;
 	}
 
-	public void setSpDescriptorID(String spDescriptorID)
+	public void setEsoeDataDirectory(String esoeData)
 	{
-		this.spDescriptorID = spDescriptorID;
+		this.esoeDataDirectory = esoeData;
+	}
+
+	public String getEsoemanagerDataDirectory()
+	{
+		return esoemanagerDataDirectory;
+	}
+
+	public void setEsoemanagerDataDirectory(String esoemanagerData)
+	{
+		this.esoemanagerDataDirectory = esoemanagerData;
+	}
+
+	public String getSpepDataDirectory()
+	{
+		return spepDataDirectory;
+	}
+
+	public void setSpepDataDirectory(String spepData)
+	{
+		this.spepDataDirectory = spepData;
+	}
+
+	public String getCommonDomain()
+	{
+		return commonDomain;
+	}
+
+	public void setCommonDomain(String commonDomain)
+	{
+		this.commonDomain = commonDomain;
+	}
+
+	public String getEsoeEntityID()
+	{
+		return esoeEntityID;
+	}
+
+	public void setEsoeEntityID(String esoeEntityID)
+	{
+		this.esoeEntityID = esoeEntityID;
+	}
+
+	public Integer getEsoeEntID()
+	{
+		return esoeEntID;
+	}
+
+	public void setEsoeEntID(Integer esoeEntID)
+	{
+		this.esoeEntID = esoeEntID;
+	}
+
+	public Integer getEsoeIdpDescID()
+	{
+		return esoeIdpDescID;
+	}
+
+	public void setEsoeIdpDescID(Integer esoeDescID)
+	{
+		this.esoeIdpDescID = esoeDescID;
+	}
+
+	public Integer getEsoeAADescID()
+	{
+		return esoeAADescID;
+	}
+
+	public void setEsoeAADescID(Integer esoeAADescID)
+	{
+		this.esoeAADescID = esoeAADescID;
+	}
+
+	public Integer getEsoeLxacmlDescID()
+	{
+		return esoeLxacmlDescID;
+	}
+
+	public void setEsoeLxacmlDescID(Integer esoeLxacmlDescID)
+	{
+		this.esoeLxacmlDescID = esoeLxacmlDescID;
 	}
 }

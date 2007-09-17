@@ -29,12 +29,12 @@ public interface WSClient
 {
 	/** Send an authzCacheClear Request to the specified endpoint.
 	 * 
-	 * @param request The string representation of the request to send.
+	 * @param request The byte representation of the request to send.
 	 * @param endpoint The string representation of the endpoint URL to send to.
 	 * 
 	 * @return The string representation of the Response sent back from the endpoint.
 	 * 
 	 * @throws WSClientException if the client cannot send the request.
 	 */
-	public String registerPrincipal(String request, String endpoint) throws WSClientException;
+	public byte[] registerPrincipal(byte[] request, String endpoint) throws WSClientException;
 }

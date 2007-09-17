@@ -31,7 +31,7 @@ public class MetadataCacheImpl implements MetadataCache
     private final Lock readLock = this.rwl.readLock();
     private final Lock writeLock = this.rwl.writeLock();
     
-    private String cacheData;
+    private byte[] cacheData;
 	
 	
 	/** Initlializes this object with a null value for cached metadata
@@ -67,7 +67,7 @@ public class MetadataCacheImpl implements MetadataCache
 	 *
 	 * @pre cachedata != null
 	 */
-	public void setCacheData(String cachedata)
+	public void setCacheData(byte[] cachedata)
 	{
 		try
 		{
@@ -86,7 +86,7 @@ public class MetadataCacheImpl implements MetadataCache
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.metadata.MetadataCache#getCacheData()
 	 */
-	public String getCacheData()
+	public byte[] getCacheData()
 	{
 		try
 		{

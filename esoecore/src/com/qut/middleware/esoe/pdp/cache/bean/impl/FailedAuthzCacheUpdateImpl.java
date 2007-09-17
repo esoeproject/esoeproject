@@ -29,7 +29,7 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 
 	private String endPoint;
 	
-	private String request;
+	private byte[] request;
 	
 	private Date timeAttempted;
 
@@ -45,7 +45,7 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate#getRequestDocument()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.request;
 	}
@@ -69,7 +69,7 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate#setRequestDocument(com.qut.middleware.esoe.xml.lxacml.protocol.LXACMLAuthzDecisionQueryType)
 	 */
-	public void setRequestDocument(String request)
+	public void setRequestDocument(byte[] request)
 	{
 		this.request = request;
 	}

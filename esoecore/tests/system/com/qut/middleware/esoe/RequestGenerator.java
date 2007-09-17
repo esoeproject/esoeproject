@@ -1,11 +1,9 @@
 package com.qut.middleware.esoe;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -77,9 +75,9 @@ public class RequestGenerator
 	}
 	
 	
-	public String generateAuthzDecisionQuery() throws Exception
+	public byte[] generateAuthzDecisionQuery() throws Exception
 	{
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		String esoeSessionIndex = "fake-esoe-session-index";
 		
 		// The resource being accessed by the client
@@ -135,7 +133,7 @@ public class RequestGenerator
 	}
 	
 	
-	public String generateAttributeQuery() throws Exception
+	public byte[] generateAttributeQuery() throws Exception
 	{
 		com.qut.middleware.saml2.schemas.assertion.Subject subject = new com.qut.middleware.saml2.schemas.assertion.Subject();
 		NameIDType subjectNameID = new NameIDType();
@@ -159,7 +157,7 @@ public class RequestGenerator
 		List<AttributeType> attributes = new Vector<AttributeType>();
 		attributeQuery.getAttributes().addAll(attributes);
 		
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		
 		InputStream ksStream = new FileInputStream(this.keyStore);
 		KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -181,7 +179,7 @@ public class RequestGenerator
 		return requestDocument;
 	}
 	
-	public String generateAuthnRequest() throws Exception
+	public byte[] generateAuthnRequest() throws Exception
 	{		
 		AuthnRequest authnRequest = new AuthnRequest();
 		
@@ -208,7 +206,7 @@ public class RequestGenerator
 		issuer.setValue(this.spepID);
 		authnRequest.setIssuer(issuer);
 				
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		
 		InputStream ksStream = new FileInputStream(this.keyStore);
 		KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -253,8 +251,9 @@ public class RequestGenerator
 	
 	public static void main(String[] args) throws Exception
 	{
-		String result = null;
+		byte[] result = null;
 		String filename = null;
+		FileOutputStream fstream;
 		
 		if(args.length != 5)
 		{
@@ -267,31 +266,21 @@ public class RequestGenerator
 		
 		result =  generator.generateAuthzDecisionQuery();
 		filename = "tests/generated_data/AuthzDecisionQuery.xml";
-		//System.out.println("Generating file: " + filename);
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(filename), "UTF-16");
-		BufferedWriter buffWriter = new BufferedWriter(writer);
-		buffWriter.write(result);
-		buffWriter.flush();
+		fstream = new FileOutputStream(filename);
+		fstream.write(result);
+		fstream.close();
 				
 		result =  generator.generateAttributeQuery();
 		filename = "tests" + File.separator + "generated_data" + File.separator +  "AttributeQuery.xml";
-		//System.out.println("Generating file: " + filename);
-		writer = new OutputStreamWriter(new FileOutputStream(filename), "UTF-16");
-		buffWriter = new BufferedWriter(writer);
-		buffWriter.write(result);
-		buffWriter.flush();
+		fstream = new FileOutputStream(filename);
+		fstream.write(result);
+		fstream.close();
 		
 		
 		result =  generator.generateAuthnRequest();
 		filename = "tests" + File.separator + "generated_data" + File.separator +  "AuthnRequest.xml";
-		//System.out.println("Generating file: " + filename);
-		writer = new OutputStreamWriter(new FileOutputStream(filename), "UTF-16");
-		buffWriter = new BufferedWriter(writer);
-		buffWriter.write(result);
-		buffWriter.flush();
-		
-		//System.out.println("Done.");
-		
-		buffWriter.close();
+		fstream = new FileOutputStream(filename);
+		fstream.write(result);
+		fstream.close();
 	}
 }

@@ -20,6 +20,7 @@
 package com.qut.middleware.esoe.spep.sqlmap;
 
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
+import com.qut.middleware.esoe.spep.exception.DatabaseFailureNoSuchSPEPException;
 import com.qut.middleware.esoe.spep.exception.SPEPCacheUpdateException;
 import com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationData;
 import com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationQueryData;
@@ -28,13 +29,13 @@ import com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationQueryData;
 
 public interface SPEPRegistrationDao
 {
-	/** Query the underlying data source to see if an SPEP registration exists.
-	 * 
-	 * @param queryData The query data to be used to find the SPEP
-	 * @return Integer number of SPEPs found. Should be 1 or 0 indicating success/failure
-	 * @throws DatabaseFailureException
+	/**
+	 * Get data repository mapping for the supplied entityID
+	 * @param entityID Service EntityID from metadata
+	 * @return entID to use when communicating with data repository
+	 * @throws SPEPRegistrationDAOException
 	 */
-	public Integer querySPEPExists (SPEPRegistrationQueryData queryData) throws DatabaseFailureException;
+	public Integer getEntID(String entityID) throws DatabaseFailureNoSuchSPEPException;
 	
 	
 	/** Retrieve the data for an SPEP and map into returned data type.

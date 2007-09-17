@@ -18,7 +18,6 @@
  */
 package com.qut.middleware.esoe.sessions.impl;
 
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -29,8 +28,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
-import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
@@ -93,12 +90,12 @@ public class PrincipalImpl implements Principal
 	 * 
 	 * @see com.qut.middleware.esoe.sessions.Principal#addActiveEntity(java.lang.String)
 	 */
-	public void addActiveDescriptor(String descriptorID)
+	public void addActiveDescriptor(String entityID)
 	{
-		this.entities.add(descriptorID);
-		this.entitySessionIdentifiers.put(descriptorID, new Vector<String>(0, 1));
+		this.entities.add(entityID);
+		this.entitySessionIdentifiers.put(entityID, new Vector<String>(0, 1));
 		
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("PrincipalImpl.0"), this.principalAuthnIdentifier, descriptorID)); //$NON-NLS-1$
+		//this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("PrincipalImpl.0"), this.principalAuthnIdentifier, descriptorID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -117,7 +114,7 @@ public class PrincipalImpl implements Principal
 
 		entitySessions.add(descriptorSessionID);
 		
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("PrincipalImpl.1"), this.principalAuthnIdentifier, descriptorID, descriptorSessionID)); //$NON-NLS-1$
+		//this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("PrincipalImpl.1"), this.principalAuthnIdentifier, descriptorID, descriptorSessionID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -166,7 +163,7 @@ public class PrincipalImpl implements Principal
 		List<String> entitySessions = this.entitySessionIdentifiers.get(descriptorID);
 		if (entitySessions == null)
 		{
-			this.logger.warn(MessageFormat.format(Messages.getString("PrincipalImpl.2"), descriptorID)); //$NON-NLS-1$
+		//	this.logger.warn(MessageFormat.format(Messages.getString("PrincipalImpl.2"), descriptorID)); //$NON-NLS-1$
 			throw new InvalidDescriptorIdentifierException();
 		}
 

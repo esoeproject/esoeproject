@@ -25,9 +25,9 @@ import com.qut.middleware.esoemanager.exception.EditServiceDetailsException;
 public interface EditServiceDescriptionLogic
 {
 
-	public abstract ServiceBean getServiceDetails(String entityID) throws EditServiceDetailsException;
+	public abstract ServiceBean getServiceDetails(Integer entID) throws EditServiceDetailsException;
 
-	public abstract void updateServiceDetails(String entityID, ServiceBean serviceDetails)
+	public abstract void updateServiceDetails(Integer entID, ServiceBean serviceDetails)
 			throws EditServiceDetailsException;
 
 }

@@ -55,13 +55,13 @@ import com.qut.middleware.spep.metadata.Metadata;
 public class MetadataImpl implements Metadata
 {
 	protected static int BUFFER_LEN = 4096;
-	
+
 	protected String metadataUrl;
 	protected String currentRevision;
 	private String spepIdentifier;
 	private String esoeIdentifier;
 	private int nodeID;
-	
+
 	// This could be done better with a different kind of lock.
 	protected ReentrantLock lock;
 	private AtomicBoolean hasData;
@@ -73,7 +73,7 @@ public class MetadataImpl implements Metadata
 	private List<String> authzServiceEndpoints;
 	private List<String> spepStartupServiceEndpoints;
 	private EndpointType assertionConsumerServiceLocation;
-	
+
 	private SecureRandom secureRandom;
 	private String[] extensionSchemas;
 	private Unmarshaller<LXACMLPDPDescriptor> lxacmlPDPDescriptorUnmarshaller;
@@ -81,59 +81,65 @@ public class MetadataImpl implements Metadata
 	private Unmarshaller<SPEPStartupService> spepStartupServiceUnmarshaller;
 	private Thread metadataThread;
 	protected PublicKey metadataPublicKey;
-	
+
 	private final String UNMAR_PKGNAMES = LXACMLPDPDescriptor.class.getPackage().getName();
 	private final String UNMAR_PKGNAMES2 = SPEPStartupService.class.getPackage().getName();
-	
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(MetadataImpl.class.getName());
 
 	/**
 	 * Constructor
-	 * @param spepIdentifier The SPEP's identifier in the metadata.
-	 * @param esoeIdentifier The ESOE's identifier in the metadata.
-	 * @param metadataUrl The URL from which to retrieve metadata.
-	 * @param metadataPublicKey The public key for validating the metadata document.
-	 * @param interval The interval (seconds) on which to re-read the metadata.
+	 * 
+	 * @param spepIdentifier
+	 *            The SPEP's identifier in the metadata.
+	 * @param esoeIdentifier
+	 *            The ESOE's identifier in the metadata.
+	 * @param metadataUrl
+	 *            The URL from which to retrieve metadata.
+	 * @param metadataPublicKey
+	 *            The public key for validating the metadata document.
+	 * @param interval
+	 *            The interval (seconds) on which to re-read the metadata.
 	 */
 	public MetadataImpl(String spepIdentifier, String esoeIdentifier, String metadataUrl, PublicKey metadataPublicKey, int nodeID, int interval)
 	{
-		if(spepIdentifier == null)
+		if (spepIdentifier == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("MetadataImpl.20"));  //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MetadataImpl.20")); //$NON-NLS-1$
 		}
-		if(esoeIdentifier == null)
+		if (esoeIdentifier == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("MetadataImpl.21"));  //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MetadataImpl.21")); //$NON-NLS-1$
 		}
-		if(metadataUrl == null)
+		if (metadataUrl == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("MetadataImpl.22"));  //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MetadataImpl.22")); //$NON-NLS-1$
 		}
-		if(metadataPublicKey == null)
+		if (metadataPublicKey == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("MetadataImpl.23"));  //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MetadataImpl.23")); //$NON-NLS-1$
 		}
-		if(interval <= 0 || interval > Long.MAX_VALUE/1000)
+		if (interval <= 0 || interval > Long.MAX_VALUE / 1000)
 		{
-			throw new IllegalArgumentException(Messages.getString("MetadataImpl.24") + Integer.MAX_VALUE);  //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MetadataImpl.24") + Integer.MAX_VALUE); //$NON-NLS-1$
 		}
-		if(nodeID < 0 || nodeID > Integer.MAX_VALUE)
+		if (nodeID < 0 || nodeID > Integer.MAX_VALUE)
 			throw new IllegalArgumentException("nodeID must be between 0 and " + Integer.MAX_VALUE);
-		
+
 		this.esoeIdentifier = esoeIdentifier;
 		this.spepIdentifier = spepIdentifier;
 		this.metadataUrl = metadataUrl;
 		this.metadataPublicKey = metadataPublicKey;
 		this.nodeID = nodeID;
-		
+
 		this.secureRandom = new SecureRandom();
-		
+
 		this.lock = new ReentrantLock();
 		this.hasData = new AtomicBoolean(false);
 		this.hasError = new AtomicBoolean(false);
-				
-		this.extensionSchemas = new String[]{ConfigurationConstants.lxacmlMetadata, ConfigurationConstants.samlMetadata};
+
+		this.extensionSchemas = new String[] { ConfigurationConstants.lxacmlMetadata, ConfigurationConstants.samlMetadata };
 		try
 		{
 			this.lxacmlPDPDescriptorUnmarshaller = new UnmarshallerImpl<LXACMLPDPDescriptor>(this.UNMAR_PKGNAMES, this.extensionSchemas);
@@ -143,8 +149,8 @@ public class MetadataImpl implements Metadata
 			this.logger.error(Messages.getString("MetadataImpl.0")); //$NON-NLS-1$
 			throw new UnsupportedOperationException(Messages.getString("MetadataImpl.1"), e); //$NON-NLS-1$
 		}
-		
-		this.spepStartupSchemas = new String[]{ConfigurationConstants.spepStartupService};
+
+		this.spepStartupSchemas = new String[] { ConfigurationConstants.spepStartupService };
 
 		try
 		{
@@ -155,26 +161,27 @@ public class MetadataImpl implements Metadata
 			this.logger.error(Messages.getString("MetadataImpl.0")); //$NON-NLS-1$
 			throw new UnsupportedOperationException(Messages.getString("MetadataImpl.1"), e); //$NON-NLS-1$
 		}
-		
+
 		this.metadataThread = new MetadataThread(this, interval);
 		this.logger.debug(Messages.getString("MetadataImpl.17")); //$NON-NLS-1$
 		this.metadataThread.start();
-		
+
 		this.logger.info(MessageFormat.format(Messages.getString("MetadataImpl.18"), spepIdentifier, esoeIdentifier, metadataUrl, Integer.toString(interval))); //$NON-NLS-1$
 	}
 
-	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getSPEPIdentifier()
 	 */
 	public String getSPEPIdentifier()
 	{
 		return this.spepIdentifier;
 	}
-	
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getESOEIdentifier()
 	 */
 	public String getESOEIdentifier()
@@ -182,8 +189,9 @@ public class MetadataImpl implements Metadata
 		return this.esoeIdentifier;
 	}
 
-	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.saml2.ExternalKeyResolver#resolveKey(java.lang.String)
 	 */
 	public PublicKey resolveKey(String keyName)
@@ -193,12 +201,12 @@ public class MetadataImpl implements Metadata
 		try
 		{
 			KeyData keyData = this.keyMap.get(keyName);
-			
-			if(keyData == null)
+
+			if (keyData == null)
 			{
 				return null;
 			}
-			
+
 			return keyData.getPk();
 		}
 		finally
@@ -206,25 +214,28 @@ public class MetadataImpl implements Metadata
 			this.unlock();
 		}
 	}
-	
-	/* Lock the internal metadata cache object.
+
+	/*
+	 * Lock the internal metadata cache object.
 	 * 
 	 */
 	protected void lock()
 	{
 		this.lock.lock();
 	}
-	
-	/* Unlock the internal metadata cache object.
+
+	/*
+	 * Unlock the internal metadata cache object.
 	 * 
 	 */
 	protected void unlock()
 	{
 		this.lock.unlock();
 	}
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getSingleSignOnEndpoint()
 	 */
 	public String getSingleSignOnEndpoint()
@@ -234,7 +245,7 @@ public class MetadataImpl implements Metadata
 		try
 		{
 			int size = this.singleSignOnEndpoints.size();
-			if (size == 1) 
+			if (size == 1)
 			{
 				return this.singleSignOnEndpoints.get(0);
 			}
@@ -245,18 +256,20 @@ public class MetadataImpl implements Metadata
 			this.unlock();
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getSingleLogoutEndpoint()
 	 */
 	public String getSingleLogoutEndpoint()
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getAttributeServiceEndpoint()
 	 */
 	public String getAttributeServiceEndpoint()
@@ -266,7 +279,7 @@ public class MetadataImpl implements Metadata
 		try
 		{
 			int size = this.attributeServiceEndpoints.size();
-			if (size == 1) 
+			if (size == 1)
 			{
 				return this.attributeServiceEndpoints.get(0);
 			}
@@ -277,9 +290,10 @@ public class MetadataImpl implements Metadata
 			this.unlock();
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getAuthzServiceEndpoint()
 	 */
 	public String getAuthzServiceEndpoint()
@@ -289,7 +303,7 @@ public class MetadataImpl implements Metadata
 		try
 		{
 			int size = this.authzServiceEndpoints.size();
-			if (size == 1) 
+			if (size == 1)
 			{
 				return this.authzServiceEndpoints.get(0);
 			}
@@ -303,6 +317,7 @@ public class MetadataImpl implements Metadata
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getSPEPStartupServiceEndpoint()
 	 */
 	public String getSPEPStartupServiceEndpoint()
@@ -312,7 +327,7 @@ public class MetadataImpl implements Metadata
 		try
 		{
 			int size = this.spepStartupServiceEndpoints.size();
-			if (size == 1) 
+			if (size == 1)
 			{
 				return this.spepStartupServiceEndpoints.get(0);
 			}
@@ -323,13 +338,13 @@ public class MetadataImpl implements Metadata
 			this.unlock();
 		}
 	}
-	
-		
+
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.metadata.Metadata#getassertionConsumerServiceLocation()
 	 */
-	public String getSPEPAssertionConsumerLocation() 
+	public String getSPEPAssertionConsumerLocation()
 	{
 		waitForData();
 		this.lock();
@@ -343,13 +358,13 @@ public class MetadataImpl implements Metadata
 		}
 	}
 
-
-	/* Wait until there is metadata. 
+	/*
+	 * Wait until there is metadata.
 	 * 
 	 */
 	private void waitForData()
 	{
-		while(!this.hasData.get() && !this.hasError.get())
+		while (!this.hasData.get() && !this.hasError.get())
 		{
 			try
 			{
@@ -366,25 +381,26 @@ public class MetadataImpl implements Metadata
 		}
 	}
 
-	/* Rebuild the metadata cache with the given values.
+	/*
+	 * Rebuild the metadata cache with the given values.
 	 * 
 	 */
 	protected void rebuildCache(EntitiesDescriptor entitiesDescriptor, String hashValue, Map<String, KeyData> newKeyMap) throws InvalidSAMLDataException, UnmarshallerException
 	{
 		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.15"), hashValue)); //$NON-NLS-1$
-		
-		List<String> newSingleSignOnEndpoints = new Vector<String>(0,1);
-		List<String> newSingleLogoutEndpoints = new Vector<String>(0,1);
-		List<String> newAttributeServiceEndpoints = new Vector<String>(0,1);
-		List<String> newAuthzServiceEndpoints = new Vector<String>(0,1);
-		List<String> newSPEPStartupServiceEndpoints = new Vector<String>(0,1);
+
+		List<String> newSingleSignOnEndpoints = new Vector<String>(0, 1);
+		List<String> newSingleLogoutEndpoints = new Vector<String>(0, 1);
+		List<String> newAttributeServiceEndpoints = new Vector<String>(0, 1);
+		List<String> newAuthzServiceEndpoints = new Vector<String>(0, 1);
+		List<String> newSPEPStartupServiceEndpoints = new Vector<String>(0, 1);
 		EndpointType newSPEPAssertionConsumerLocation = null;
-		
+
 		ESOERoles esoeRoles = new ESOERoles();
 		SPEPRoles spepRoles = new SPEPRoles();
-		
+
 		buildCacheRecurse(entitiesDescriptor, esoeRoles, spepRoles);
-		
+
 		for (EndpointType endpoint : esoeRoles.idpSSODescriptor.getSingleSignOnServices())
 		{
 			newSingleSignOnEndpoints.add(endpoint.getLocation());
@@ -402,8 +418,8 @@ public class MetadataImpl implements Metadata
 			newAuthzServiceEndpoints.add(endpoint.getLocation());
 		}
 
-		newSPEPAssertionConsumerLocation = spepRoles.assertionConsumerLocation;		
-		
+		newSPEPAssertionConsumerLocation = spepRoles.assertionConsumerLocation;
+
 		Extensions idpExtensions = esoeRoles.idpSSODescriptor.getExtensions();
 		if (idpExtensions != null)
 		{
@@ -416,7 +432,7 @@ public class MetadataImpl implements Metadata
 				}
 			}
 		}
-		
+
 		boolean error = false;
 		if (newSingleSignOnEndpoints.size() == 0)
 		{
@@ -443,12 +459,12 @@ public class MetadataImpl implements Metadata
 			this.logger.error(Messages.getString("MetadataImpl.25")); //$NON-NLS-1$
 			error = true;
 		}
-		
+
 		if (error)
 		{
 			throw new InvalidSAMLDataException(Messages.getString("MetadataImpl.7")); //$NON-NLS-1$
 		}
-		
+
 		this.lock.lock();
 		try
 		{
@@ -467,98 +483,103 @@ public class MetadataImpl implements Metadata
 			this.lock.unlock();
 		}
 	}
-	
+
 	private void buildCacheRecurse(EntitiesDescriptor entitiesDescriptor, ESOERoles esoeRoles, SPEPRoles spepRoles) throws InvalidSAMLDataException, UnmarshallerException
 	{
 		List<Object> descriptorList = entitiesDescriptor.getEntitiesDescriptorsAndEntityDescriptors();
 
 		// Go through the list of descriptors
-		// We will encounter both <EntityDescriptor> and <EntitiesDescriptor> objects. We will recurse for the latter. 
+		// We will encounter both <EntityDescriptor> and <EntitiesDescriptor> objects. We will recurse for the latter.
 		for (Object descriptor : descriptorList)
-		{			
+		{
 			if (descriptor instanceof EntityDescriptor)
 			{
 				EntityDescriptor entityDescriptor = (EntityDescriptor) descriptor;
-				
-				this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.26"), this.esoeIdentifier, entityDescriptor.getEntityID()) ); //$NON-NLS-1$
-				
+
+				this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.26"), this.esoeIdentifier, entityDescriptor.getEntityID())); //$NON-NLS-1$
+
 				List<RoleDescriptorType> roleDescriptorList = entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors();
 
 				// Go through the RoleDescriptors. This includes IDP and SSO descriptors
 				for (RoleDescriptorType roleDescriptor : roleDescriptorList)
 				{
-					
+
 					// only check the entity that matches the ESOE this SPEP wishes to use.
 					if (entityDescriptor.getEntityID().equals(this.esoeIdentifier))
-					{					
-							if (roleDescriptor instanceof IDPSSODescriptor)
-							{
-								esoeRoles.idpSSODescriptor = (IDPSSODescriptor)roleDescriptor;
-								this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.27"), esoeRoles.idpSSODescriptor)); //$NON-NLS-1$
-							}
-							else if (roleDescriptor instanceof AttributeAuthorityDescriptor)
-							{
-								esoeRoles.attributeAuthorityDescriptor = (AttributeAuthorityDescriptor)roleDescriptor;
-							}
-							else if (roleDescriptor instanceof LXACMLPDPDescriptor)
-							{
-								esoeRoles.lxacmlPDPDescriptor = (LXACMLPDPDescriptor)roleDescriptor;
-							}	
-							
-							Extensions extensions = entityDescriptor.getExtensions();
-							if (extensions != null)
-							{
-								for (Element extensionElement : extensions.getImplementedExtensions())
-								{
-									if (extensionElement.getLocalName().equals("LXACMLPDPDescriptor")) //$NON-NLS-1$
-									{
-										try
-										{
-											esoeRoles.lxacmlPDPDescriptor = this.lxacmlPDPDescriptorUnmarshaller.unMarshallUnSigned(extensionElement);
-										}
-										catch(Exception e)
-										{
-											e.printStackTrace();
-										}
-									}
-									
-								}
-							}
-					}					
-					else // if the entity has roles for this SPEP, gather required service locations
-					{	
-						// we also need to know the assertionConsumer and attributeConsumer service locations for this SPEP
-						if(roleDescriptor instanceof SPSSODescriptor)
+					{
+						if (roleDescriptor instanceof IDPSSODescriptor)
 						{
-							SPSSODescriptor spepDescriptor = (SPSSODescriptor)roleDescriptor;
-							
-							this.logger.debug(Messages.getString("MetadataImpl.28") + roleDescriptor.getID()); //$NON-NLS-1$
-							
-							if(roleDescriptor.getID().equals(this.spepIdentifier))
+							esoeRoles.idpSSODescriptor = (IDPSSODescriptor) roleDescriptor;
+							this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.27"), esoeRoles.idpSSODescriptor)); //$NON-NLS-1$
+						}
+						else
+							if (roleDescriptor instanceof AttributeAuthorityDescriptor)
 							{
-								this.logger.debug(Messages.getString("MetadataImpl.29")); //$NON-NLS-1$
-							
-								// find the endpoint index that matches this spep node ID
-								List<IndexedEndpointType> endpoints = spepDescriptor.getAssertionConsumerServices();
-								
-								for(IndexedEndpointType endpoint : endpoints)
+								esoeRoles.attributeAuthorityDescriptor = (AttributeAuthorityDescriptor) roleDescriptor;
+							}
+							else
+								if (roleDescriptor instanceof LXACMLPDPDescriptor)
 								{
-									if(endpoint.getIndex() == this.nodeID)
-										spepRoles.assertionConsumerLocation = endpoint;											
+									esoeRoles.lxacmlPDPDescriptor = (LXACMLPDPDescriptor) roleDescriptor;
 								}
-								
+
+						Extensions extensions = entityDescriptor.getExtensions();
+						if (extensions != null)
+						{
+							for (Element extensionElement : extensions.getImplementedExtensions())
+							{
+								if (extensionElement.getLocalName().equals("LXACMLPDPDescriptor")) //$NON-NLS-1$
+								{
+									try
+									{
+										esoeRoles.lxacmlPDPDescriptor = this.lxacmlPDPDescriptorUnmarshaller.unMarshallUnSigned(extensionElement);
+									}
+									catch (Exception e)
+									{
+										e.printStackTrace();
+									}
+								}
+
 							}
 						}
 					}
-				}				
-				
+					else
+					// if the entity has roles for this SPEP, gather required service locations
+					{
+						if (entityDescriptor.getEntityID().equals(this.spepIdentifier))
+						{
+							// we also need to know the assertionConsumer and attributeConsumer service locations for
+							// this SPEP
+							if (roleDescriptor instanceof SPSSODescriptor)
+							{
+								SPSSODescriptor spepDescriptor = (SPSSODescriptor) roleDescriptor;
+
+								this.logger.debug(Messages.getString("MetadataImpl.28") + roleDescriptor.getID()); //$NON-NLS-1$
+
+								this.logger.debug(Messages.getString("MetadataImpl.29")); //$NON-NLS-1$
+
+								// find the endpoint index that matches this spep node ID
+								List<IndexedEndpointType> endpoints = spepDescriptor.getAssertionConsumerServices();
+
+								for (IndexedEndpointType endpoint : endpoints)
+								{
+									if (endpoint.getIndex() == this.nodeID)
+										spepRoles.assertionConsumerLocation = endpoint;
+								}
+
+							}
+						}
+					}
+				}
+
 			}
-			else if (descriptor instanceof EntitiesDescriptor)
-			{
-				buildCacheRecurse(entitiesDescriptor, esoeRoles, spepRoles);
-			}
+			else
+				if (descriptor instanceof EntitiesDescriptor)
+				{
+					buildCacheRecurse(entitiesDescriptor, esoeRoles, spepRoles);
+				}
 		}
-		
+
 		boolean error = false;
 		if (esoeRoles.idpSSODescriptor == null)
 		{
@@ -579,26 +600,26 @@ public class MetadataImpl implements Metadata
 		{
 			throw new InvalidSAMLDataException(Messages.getString("MetadataImpl.13")); //$NON-NLS-1$
 		}
-		
+
 		return;
 	}
-	
+
 	private class ESOERoles
 	{
 		IDPSSODescriptor idpSSODescriptor = null;
 		AttributeAuthorityDescriptor attributeAuthorityDescriptor = null;
 		LXACMLPDPDescriptor lxacmlPDPDescriptor = null;
-		
+
 		protected ESOERoles()
 		{
 			// Explicitly definining this for visibility reasons
 		}
 	}
-	
+
 	private class SPEPRoles
 	{
 		IndexedEndpointType assertionConsumerLocation = null;
-		
+
 		protected SPEPRoles()
 		{
 			// Explicitly definining this for visibility reasons

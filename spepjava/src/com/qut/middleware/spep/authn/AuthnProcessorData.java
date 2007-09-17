@@ -20,6 +20,9 @@
  */
 package com.qut.middleware.spep.authn;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 
 /** Interface for storing intermediate Authentication data while the session
  * 		is being established.*/
@@ -41,14 +44,14 @@ public interface AuthnProcessorData
 	 * 
 	 * @return The request document
 	 */
-	public String getRequestDocument();
+	public byte[] getRequestDocument();
 	
 	
 	/** Set the string representation of an AuthnRequest to be used to authenticate the Principal.
 	 * 
 	 * @param requestDocument The request document.
 	 */
-	public void setRequestDocument(String requestDocument);
+	public void setRequestDocument(byte[] requestDocument);
 	
 	
 	/** Get the string representation of the SAML Response sent from the ESOE in response to an 
@@ -56,14 +59,14 @@ public interface AuthnProcessorData
 	 * 
 	 * @return The response document.
 	 */
-	public String getResponseDocument();
+	public byte[] getResponseDocument();
 	
 	/** Set the string representation of the SAML Response sent from the ESOE in response to an 
 	 * AuthnRequest.
 	 * 
 	 * @param responseDocument The response document.
 	 */
-	public void setResponseDocument(String responseDocument);
+	public void setResponseDocument(byte[] responseDocument);
 	
 	/** Get the client session ID used in authenticated sessions.
 	 * 
@@ -76,4 +79,12 @@ public interface AuthnProcessorData
 	 * @param sessionID The session ID
 	 */
 	public void setSessionID(String sessionID);
+	
+	public HttpServletRequest getRequest();
+
+	public void setRequest(HttpServletRequest request);
+
+	public HttpServletResponse getResponse();
+
+	public void setResponse(HttpServletResponse response);
 }

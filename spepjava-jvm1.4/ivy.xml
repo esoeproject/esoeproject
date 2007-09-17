@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="spep-jvm14" revision="${esoe.version}">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Bradley Beddoes"
+			url="http://intient.com/roller/beddoes" />
+		<repository name="intient-ivy"
+			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+	</info>
+
+	<configurations>
+		<conf name="dev" />
+		
+		<conf name="dev-release" />
+		<conf name="dev-release-shared" />
+		<conf name="dev-release-endorsed" />
+	</configurations>
+
+	<dependencies>
+		<!-- Development release JDK endorsed dependencies (excluded below) -->
+	    <dependency org="apache" name="xalan" rev="latest.integration" conf="dev-release-endorsed->default"/>
+	    <dependency org="apache" name="xerces" rev="latest.integration" conf="dev-release-endorsed->default"/>
+	    <dependency org="retrotranslator" name="retrotranslator" rev="latest.integration" conf="dev-release-endorsed->default"/>
+		
+		<!-- Development release shared dependencies (excluded below) -->
+        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release-shared->default"/>
+        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release-shared->default"/>
+        <dependency org="apache" name="xmlsec" rev="latest.integration" conf="dev-release-shared->default"/>
+        
+        <dependency org="sun" name="fastinfoset" rev="latest.integration" conf="dev-release-shared->default"/>
+        
+        <!-- Development dependencies -->
+        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev->default"/>
+        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="apache" name="xerces" rev="latest.integration" conf="dev->default"/> 
+        
+        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/>
+        
+        <dependency org="sun" name="fastinfoset" rev="latest.integration" conf="dev->default"/>
+         	 	
+	</dependencies>
+
+</ivy-module>

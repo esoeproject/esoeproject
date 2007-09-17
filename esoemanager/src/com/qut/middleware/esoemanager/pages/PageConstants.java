@@ -19,15 +19,6 @@ package com.qut.middleware.esoemanager.pages;
 
 public class PageConstants
 {
-	/** Session Data * */
-	public final static String STORED_SERVICE_NAME = "session-name";
-	public final static String STORED_SERVICE_URL = "session-url";
-	public final static String STORED_SERVICE_DESC = "session-description";
-	public final static String STORED_SERVICE_AUTHZ_MSG = "session-authz-failure-msg";
-	public final static String STORED_SERVICE_NODES = "session-service-nodes";
-	public final static String STORED_CONTACTS = "session-contacts";
-	public final static String STORED_ENTITY_ID = "session-identifier";
-	
 	public final static String STAGE1_RES = "stage1-status";
 	public final static String STAGE2_RES = "stage2-status";
 	public final static String STAGE3_RES = "stage3-status";
@@ -40,8 +31,8 @@ public class PageConstants
 	public final static String CONFIRMED = "confirmed";
 	public final static String COMPLETED = "completed";
 	public final static String ERROR = "error";
-	public final static String ENTITYID = "entityID";
-	public final static String DESCRIPTORID = "descriptorID";
+	public final static String EID = "eid";
+	public final static String DID = "did";
 	public final static String SERVICE_ACTIVE = "activate";
 	public final static String SERVICE_INACTIVE = "deactivate";
 
@@ -58,6 +49,7 @@ public class PageConstants
 
 	/* Services */
 	public final static String SERVICE_NAME = "ServiceName";
+	public final static String SERVICE_IDENTIFIER = "ServiceIdentifier";
 	public final static String SERVICE_URL = "ServiceURL";
 	public final static String SERVICE_DESCRIPTION = "ServiceDescription";
 	public final static String SERVICE_AUTHZ_FAILURE_MESSAGE = "ServiceAuthzFailure";
@@ -94,6 +86,9 @@ public class PageConstants
 	
 	/* Policy */
 	public final static String LXACML_POLICY = "lxacmlPolicy";
+	
+	/* Attributes */
+	public final static String ATTRIBUTE_POLICY = "attributePolicy";
 	
 	public final static String SAVE_NODE = "Save Node";
 

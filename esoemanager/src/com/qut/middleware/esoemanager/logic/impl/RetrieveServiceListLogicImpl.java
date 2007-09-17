@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.Constants;
@@ -62,32 +63,33 @@ public class RetrieveServiceListLogicImpl implements RetrieveServiceListLogic
 		try
 		{
 			List<ServiceBean> services = new ArrayList<ServiceBean>();
-			List<String> activeServices = this.spepDAO.queryActiveServices();
+			List<Integer> activeServices = this.spepDAO.queryActiveServices();
 			
-			for(String entityID : activeServices)
+			for(Integer entityID : activeServices)
 			{
 				ServiceBean bean = new ServiceBeanImpl();
 				Vector<ContactPersonBean> contactPersons = new Vector<ContactPersonBean>();
 				Vector<ServiceNodeBean> serviceNodes = new Vector<ServiceNodeBean>();
 				
 				/* Get the core system data for this service */
-				List<Map<String, String>> serviceDetails = this.spepDAO.queryServiceDetails(entityID);
-				for(Map<String, String> service : serviceDetails)
+				List<Map<String, Object>> serviceDetails = this.spepDAO.queryServiceDetails(entityID);
+				for(Map<String, Object> service : serviceDetails)
 				{
-					/* There should only be one, if there is multiple results the last one returned will be displayed */
-					bean.setEntityID(service.get(Constants.FIELD_ENTITY_ID));
-					bean.setActiveFlag(service.get(Constants.FIELD_ACTIVE_FLAG));
+					bean.setEntID((Integer) service.get(Constants.FIELD_ENT_ID));
+					bean.setEntityID((String) service.get(Constants.FIELD_ENTITY_ID));
+					
+					bean.setActiveFlag((String)service.get(Constants.FIELD_ACTIVE_FLAG));
 				}
 				
 				/* Get descriptive detail about the service */
-				List<Map<String, String>> serviceDescription = this.spepDAO.queryServiceDescription(entityID);
-				for(Map<String, String> description : serviceDescription)
+				List<Map<String, Object>> serviceDescription = this.spepDAO.queryServiceDescription(entityID);
+				for(Map<String, Object> description : serviceDescription)
 				{
 					/* There should only be one, if there is multiple results the last one returned will be displayed */
-					bean.setServiceName(description.get(Constants.FIELD_SERVICE_NAME));
-					bean.setServiceURL(description.get(Constants.FIELD_SERVICE_URL));
-					bean.setServiceDescription(description.get(Constants.FIELD_SERVICE_DESC));
-					bean.setServiceAuthzFailureMsg(description.get(Constants.FIELD_SERVICE_AUTHZ_FAIL));
+					bean.setServiceName((String)description.get(Constants.FIELD_SERVICE_NAME));
+					bean.setServiceURL((String)description.get(Constants.FIELD_SERVICE_URL));
+					bean.setServiceDescription((String)description.get(Constants.FIELD_SERVICE_DESC));
+					bean.setServiceAuthzFailureMsg((String)description.get(Constants.FIELD_SERVICE_AUTHZ_FAIL));
 				}
 				
 				services.add(bean);

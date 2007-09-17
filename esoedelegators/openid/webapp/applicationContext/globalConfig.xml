@@ -25,7 +25,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		====================================================================== -->
 	<bean id="globalConfig"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="/WEB-INF/openiddelegator.config" />
+		<property name="location" value="file://${openiddeleg.data}/config/openiddelegator.config" />
 	</bean>
 
 </beans>

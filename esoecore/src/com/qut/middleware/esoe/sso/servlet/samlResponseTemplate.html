@@ -6,7 +6,8 @@
 <body onLoad="document.samlResponse.submit()">
 <form method="post" action="{0}" name="samlResponse">
 	<input type = "hidden" name="SAMLResponse" value="{1}"/>
-	If you are not automatically redirected, please click below to begin using this service
+	<input type = "hidden" name="RelayState" value="{2}"/>
+	If you are not automatically redirected, please click continue to begin using this service
 	<input type="submit" value="Continue" />
 </form>
 </body>

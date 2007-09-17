@@ -23,9 +23,17 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Date: 20/11/2006                                                        
 		Purpose: Defines spring integration for
 		====================================================================== -->
+		
+	<!--  ESOE data access layer -->
+	<bean name="sessionsDAO"
+		class="com.qut.middleware.esoe.sessions.sqlmap.impl.SessionsDAOImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
 	<!-- Session configuration data -->
 	<bean id="sessionConfigData"
 		class="com.qut.middleware.esoe.sessions.bean.impl.SessionConfigDataImpl">
-		<constructor-arg type="java.io.File" value="${sessionconfigdata.configfile}" />
+		<constructor-arg index="0" ref="sessionsDAO"/>
+		<constructor-arg index="1" ref="metadata" />
 	</bean>
 </beans>

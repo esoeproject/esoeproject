@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
+import com.qut.middleware.saml2.schemas.esoe.lxacml.Action;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.AttributeValueType;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligation;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligations;
@@ -42,7 +43,7 @@ public class PolicyEvaluator
 	/** Extract all resources from resources contained within the given policy.
 	 * 
 	 * @param policy The policy to find resources for.
-	 * @return A mapping of resource -> list of rules/policy id's that contain the resource
+	 * @return A list of resources specified for the policy
 	 */
 	public static List<String> getPolicyTargetResources(Policy policy)
 	{
@@ -67,8 +68,36 @@ public class PolicyEvaluator
 		return resources;
 	}
 	
-	
-	
+	/** Extract all actions from actions contained within the given policy.
+	 * 
+	 * @param policy The policy to find actions for.
+	 * @return A list of actions specified for the policy, may be NULL if no actions exist
+	 */
+	public static List<String> getPolicyTargetActions(Policy policy)
+	{
+		List<String> resources = new Vector<String>();
+		
+		// Add any rule defined resources
+		Target target = policy.getTarget();
+		
+		List<String> targetActions = getTargetActions(target);
+		
+		if(targetActions == null)
+			return null;
+		
+		Iterator<String> iter = targetActions.iterator();
+		while(iter.hasNext())
+		{
+			String resourceKey = iter.next();
+			
+			if( !resources.contains(resourceKey) )
+			{
+				resources.add(resourceKey);
+			}	
+		}
+		
+		return resources;
+	}
 	
 	/** Get the string respresentations of all resources defined in the given rule. The resources are
 	 * defined within the target, which is in turn defined within the given rule.
@@ -85,9 +114,61 @@ public class PolicyEvaluator
 			// Add any rule defined resources
 			Target target = rule.getTarget();
 			
+			if(target == null)
+				return null;
+			
 			List<String> targetResources = getTargetResources(target);
 			
+			// Check for and remove any duplicates
 			Iterator<String> iter = targetResources.iterator();
+			while(iter.hasNext())
+			{
+				String resourceKey = iter.next();
+				
+				if( !resources.contains(resourceKey) )
+				{
+					resources.add(resourceKey);
+				}	
+			}
+		}
+		// some may view the handling of NPE runtime as bad form .. however, in this case since the
+		// presence of ANY null values in the tree for the given object will result in not being able
+		// to return the necessary data, we're going to make an exception. We also do not want to
+		// reduce performance by checking for null values, as they should not exist in the first place
+		// if the schema is enforced.
+		catch(NullPointerException e)
+		{
+			return null;
+		}
+		
+		return resources;
+	}
+	
+	/** Get the string representations of all actions defined in the given rule. The actions are
+	 * defined within the target, which is in turn defined within the given rule.
+	 * 
+	 * @param rule The rule to interrogate.
+	 * @return A list of action strings as extracted from the given rule, else NULL if no resources exist.
+	 */
+	public static List<String> getRuleTargetActions(Rule rule)
+	{
+		List<String> resources = new Vector<String>();
+		
+		try
+		{
+			// Add any rule defined resources
+			Target target = rule.getTarget();
+			
+			if(target == null)
+				return null;
+			
+			List<String> targetActions = getTargetActions(target);
+			
+			if(targetActions == null)
+				return null;
+			
+			// Check for and remove any duplicates
+			Iterator<String> iter = targetActions.iterator();
 			while(iter.hasNext())
 			{
 				String resourceKey = iter.next();
@@ -162,7 +243,7 @@ public class PolicyEvaluator
 					{						
 						String ruleResource = ruleResources.next();
 
-						if( !authzTargets.contains(ruleResource) && (ruleResource.equals(targetMatcher) || ruleResource.matches(targetMatcher)) )
+						if( !authzTargets.contains(ruleResource) )
 							authzTargets.add(ruleResource);								
 		
 					}
@@ -173,6 +254,51 @@ public class PolicyEvaluator
 		}	
 
 		return groupTarget;
+	}
+	
+	/** Extract all action strings from actions contained within the given target.
+	 * 
+	 * @param target A Target as obtained from a Policy object
+	 * 
+	 */
+	private static List<String> getTargetActions(Target target)
+	{
+		List<String> resources = new Vector<String>();
+
+		try
+		{
+			// get all the resources within the target
+			if(target.getActions() == null)
+				return null;
+				
+			Iterator<Action> actionIter = target.getActions().getActions().iterator();
+		
+			while(actionIter.hasNext())
+			{			
+				Action current = actionIter.next();
+				
+				AttributeValueType attributes = current.getAttributeValue();
+				List<Object> valueList = attributes.getContent();
+				Iterator<Object> attIter = valueList.iterator();
+				while(attIter.hasNext())
+				{
+					String res = attIter.next().toString().trim();
+					resources.add(res);
+				}			
+				
+			}
+		}
+		// some may view the handling of NPE runtime as bad form .. however, in this case since the
+		// presence of ANY null values in the tree for the given object will result in not being able
+		// to return the necessary data, we're going to make an exception. We also do not want to
+		// reduce performance by checking for null values, as they should not exist in the first place
+		// if the schema is enforced.
+		catch(NullPointerException e)
+		{
+			return null;
+		}
+		
+		return resources;
 	}
 	
 	/** Extract all resource strings from resources contained within the given target.

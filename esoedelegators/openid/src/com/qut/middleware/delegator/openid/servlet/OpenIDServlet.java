@@ -19,9 +19,9 @@
  */
 package com.qut.middleware.delegator.openid.servlet;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Properties;
 
 import javax.servlet.ServletConfig;
@@ -78,15 +78,16 @@ public class OpenIDServlet extends HttpServlet
 	{
 		super.init(servletConfig);
 
-		URL configFile;
+		FileInputStream configFile;
 		Properties props;
 		WebApplicationContext webAppContext;
 
 		try
 		{
-			configFile = this.getServletContext().getResource(ConfigurationConstants.DELEGATOR_CONFIG);
+			configFile = new FileInputStream(System.getProperty("openiddeleg.data") + ConfigurationConstants.DELEGATOR_CONFIG);
+			
 			props = new java.util.Properties();
-			props.load(configFile.openStream());
+			props.load(configFile);
 
 			/* Spring integration to make our servlet aware of IoC */
 			webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this.getServletContext());

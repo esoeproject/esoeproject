@@ -29,7 +29,6 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
@@ -196,7 +195,7 @@ public class SessionCacheImpl implements SessionCache
 					long now = System.currentTimeMillis();
 					long expire = (entry.getValue().getLastAccessed() + age);
 
-					this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format("Comparing entry expiry time of {0} against current time of {1}.", expire, now) ); //$NON-NLS-1$
+					this.logger.trace(MessageFormat.format("Comparing entry expiry time of {0} against current time of {1}.", expire, now) ); //$NON-NLS-1$
 					
 					if (expire < now)
 					{

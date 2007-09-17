@@ -278,14 +278,14 @@ public class PolicyEnforcementProcessorTest
 		obligation1.getAttributeAssignments().add(attributeAssignment);
 		obligations.getObligations().add(obligation1);
 		
-		String responseDocument = generateResponse(decision.permit, obligations);
+		byte[] responseDocument = generateResponse(decision.permit, obligations);
 
 		//expect(this.principalSession.getSessionID()).andReturn(this.sessionID).anyTimes();
-		expect(this.wsClient.policyDecisionPoint((String)notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
 		startMock();
 		
-		String authzCacheClearResponseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] authzCacheClearResponseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(authzCacheClearResponseDocument);
 
 		// Need to run decision 4 first, as running 1 first would cause incorrect behaviour, since the LXACMLAuthzDecisionStatement indicates
@@ -334,15 +334,15 @@ public class PolicyEnforcementProcessorTest
 		decision decision4 = decision.error;
 		
 		
-		expect(this.wsClient.policyDecisionPoint((String)notNull(), (String)notNull())).andReturn("<lol/>").anyTimes();
+		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -389,15 +389,15 @@ public class PolicyEnforcementProcessorTest
 		decision decision4 = decision.error;
 		
 		
-		expect(this.wsClient.policyDecisionPoint((String)notNull(), (String)notNull())).andReturn("<lol/>").anyTimes();
+		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
 
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -445,12 +445,12 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -498,12 +498,12 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -552,12 +552,12 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.deny);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.deny);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -606,12 +606,12 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.deny);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.deny);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -658,15 +658,15 @@ public class PolicyEnforcementProcessorTest
 		String resource4 = "/admin/secure/icon.gif";
 		decision decision4 = decision.permit;
 		
-		expect(this.wsClient.policyDecisionPoint((String)notNull(), (String)notNull())).andReturn("<lol/>").anyTimes();
+		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
 
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -714,15 +714,15 @@ public class PolicyEnforcementProcessorTest
 		decision decision4 = decision.permit;
 		
 		
-		expect(this.wsClient.policyDecisionPoint((String)notNull(), (String)notNull())).andReturn("<lol/>").anyTimes();
+		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
 
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -771,12 +771,12 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -825,12 +825,12 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		String responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, decision.deny);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, decision.permit);
-		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
+		this.sessionGroupCache.updateCache(this.principalSession, groupTarget3, authzTargets3, null, decision.permit);
 
 		assertEquals("Decision 1 was incorrect", decision1, this.processor.makeAuthzDecision(this.sessionID, resource1));
 		assertEquals("Decision 2 was incorrect", decision2, this.processor.makeAuthzDecision(this.sessionID, resource2));
@@ -840,7 +840,7 @@ public class PolicyEnforcementProcessorTest
 		endMock();
 	}
 	
-	protected String generateClearAuthzCacheRequest(Map<String,List<String>> groupTargetMap) throws MarshallerException
+	protected byte[] generateClearAuthzCacheRequest(Map<String,List<String>> groupTargetMap) throws MarshallerException
 	{
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		NameIDType issuer = new NameIDType();
@@ -869,21 +869,21 @@ public class PolicyEnforcementProcessorTest
 		
 		extensions.getAnies().addAll(groupTargetList);
 		
-		String requestXml = this.clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		byte[] requestXml = this.clearAuthzCacheRequestMarshaller.marshallSigned(request);
 		
 		System.out.println(requestXml);
 		
 		return requestXml;
 	}
 	
-	protected void validateClearAuthzCacheResponse(String responseDocument) throws SignatureValueException, ReferenceValueException, UnmarshallerException
+	protected void validateClearAuthzCacheResponse(byte[] responseDocument) throws SignatureValueException, ReferenceValueException, UnmarshallerException
 	{
 		ClearAuthzCacheResponse response = this.clearAuthzCacheResponseUnmarshaller.unMarshallSigned(responseDocument);
 		
 		assertEquals("Clear authz cache response was invalid", StatusCodeConstants.success, response.getStatus().getStatusCode().getValue());
 	}
 	
-	protected String generateResponse(decision desiredDecision, Obligations obligations) throws MarshallerException
+	protected byte[] generateResponse(decision desiredDecision, Obligations obligations) throws MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue("issuer");
@@ -967,7 +967,7 @@ public class PolicyEnforcementProcessorTest
 			response.getEncryptedAssertionsAndAssertions().add(assertion);
 		}
 		
-		String responseDocument = this.responseMarshaller.marshallSigned(response);
+		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
 		
 		return responseDocument;
 	}

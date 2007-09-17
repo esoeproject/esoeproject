@@ -34,11 +34,7 @@ public class FinalizeForm extends Form implements BaseForm
 		TextField tomcatLocation = new TextField(PageConstants.TOMCAT_WEBAPPS_DIRECTORY, true);
 		tomcatLocation.setSize(PageConstants.URL_FIELD_WIDTH);
 		
-		TextField diskLocation = new TextField(PageConstants.WRITEABLE_DIRECTORY, true);
-		diskLocation.setSize(PageConstants.URL_FIELD_WIDTH);
-		
 		this.add(tomcatLocation);
-		this.add(diskLocation);
 	}
 	
 }

@@ -26,7 +26,6 @@ import org.w3._2000._09.xmldsig_.Signature;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor;
 import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor.result;
@@ -135,14 +134,14 @@ public class StartupImpl implements Startup
 	{
 		ValidateInitializationResponse validateInitializationResponse = null;
 		
-		this.logger.debug(Messages.getString("StartupImpl.6")); //$NON-NLS-1$
+		this.logger.info(MessageFormat.format(Messages.getString("StartupImpl.6") ,data.getIssuerID()) ); //$NON-NLS-1$
 		
 		String requestSAMLID = null;
 		
 		try
 		{
-			String requestDocument = data.getRequestDocument();
-			this.logger.log(InsaneLogLevel.INSANE, requestDocument);
+			byte[] requestDocument = data.getRequestDocument();
+			this.logger.trace( requestDocument);
 			
 			ValidateInitializationRequest request = null;
 
@@ -153,9 +152,9 @@ public class StartupImpl implements Startup
 			catch (UnmarshallerException e)
 			{
 				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null);
-				this.logger.error(MessageFormat.format(Messages.getString("StartupImpl.0"), data.getRequestDescriptorID())); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("StartupImpl.0"), data.getIssuerID())); //$NON-NLS-1$
 				this.logger.debug(e.getLocalizedMessage(), e);
-				throw new InvalidRequestException(MessageFormat.format(Messages.getString("StartupImpl.0"), data.getRequestDescriptorID()) ); //$NON-NLS-1$
+				throw new InvalidRequestException(MessageFormat.format(Messages.getString("StartupImpl.0"), data.getIssuerID()) ); //$NON-NLS-1$
 			}
 			catch (SignatureValueException e)
 			{
@@ -196,7 +195,7 @@ public class StartupImpl implements Startup
 			String requestEntityID = request.getIssuer().getValue();
 			int authzCacheIndex = request.getAuthzCacheIndex();			
 			
-			data.setRequestDescriptorID(requestEntityID);
+			data.setIssuerID(requestEntityID);
 			data.setAuthzCacheIndex(authzCacheIndex);
 
 			this.logger.debug(MessageFormat.format(Messages.getString("StartupImpl.9"), requestEntityID, requestSAMLID)); //$NON-NLS-1$
@@ -204,15 +203,21 @@ public class StartupImpl implements Startup
 			// iBatis query..
 			this.spepRegistrationCache.registerSPEP(request);			
 
-			this.logger.debug(MessageFormat.format(Messages.getString("StartupImpl.10"), requestEntityID, requestSAMLID)); //$NON-NLS-1$
+			this.logger.info(MessageFormat.format(Messages.getString("StartupImpl.10"), requestEntityID)); //$NON-NLS-1$
 
 			result spepStartingResult = this.policyCacheProcessor.spepStartingNotification(requestEntityID, authzCacheIndex);
-			if (spepStartingResult.equals(result.Success))
+			
+			// if startup request fails, set appropriate response
+			if (!spepStartingResult.equals(result.Success))
 			{
+				this.logger.error("PolicyCacheProcessor returned failure result for SPEP Startup Request. Setting Response status to " + StatusCodeConstants.requester);
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, requestSAMLID);
+			}
+			else
+			{
+				this.logger.debug("PolicyCacheProcessor returned success result for SPEP Startup Request. Setting Response status to " + StatusCodeConstants.success);
 				validateInitializationResponse = generateResponse(StatusCodeConstants.success, requestSAMLID);
 			}
-			
-			validateInitializationResponse = generateResponse(StatusCodeConstants.success, requestSAMLID);
 		}
 		finally
 		{
@@ -225,7 +230,7 @@ public class StartupImpl implements Startup
 			{
 				data.setResponseDocument(this.statusResponseTypeMarshaller.marshallSigned(validateInitializationResponse));
 				
-				this.logger.log(InsaneLogLevel.INSANE, data.getResponseDocument());
+				this.logger.trace( data.getResponseDocument());
 			}
 			catch (MarshallerException e)
 			{
@@ -257,7 +262,7 @@ public class StartupImpl implements Startup
 		status.setStatusCode(statusCode);
 		
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getESOEIdentifier());
+		issuer.setValue(this.metadata.getEsoeEntityID());
 
 		validateInitializationResponse.setStatus(status);
 		validateInitializationResponse.setIssuer(issuer);

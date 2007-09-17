@@ -73,6 +73,12 @@ public interface MetadataCache
 	 */
 	public Map<String, String>  getAssertionConsumerServices();
 	
+	/** Returns a list of acceptable identifier types for this SP to be used in generation of responses
+	 * 
+	 * @return List of acceptable NameID format identifiers
+	 */
+	public Map<String, List<String>> getAssertionConsumerServiceIdentifierTypes();
+	
 	
 	/** Get the list of logout services contained in the cache.
 	 * 

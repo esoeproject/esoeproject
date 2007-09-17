@@ -19,21 +19,46 @@
  */
 package com.qut.middleware.spep.authn.impl;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.qut.middleware.spep.authn.AuthnProcessorData;
 
 /** Implements the AuthnProcessorData interface. Not thread safe. */
 public class AuthnProcessorDataImpl implements AuthnProcessorData
 {
 
-	private String requestDocument;
+	private byte[] requestDocument;
 	private String requestURL;
-	private String responseDocument;
+	private byte[] responseDocument;
 	private String sessionID;
+	private HttpServletRequest request;
+	private HttpServletResponse response;
+
+	public HttpServletRequest getRequest()
+	{
+		return request;
+	}
+
+	public void setRequest(HttpServletRequest request)
+	{
+		this.request = request;
+	}
+
+	public HttpServletResponse getResponse()
+	{
+		return response;
+	}
+
+	public void setResponse(HttpServletResponse response)
+	{
+		this.response = response;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#getRequestDocument()
 	 */
-	public String getRequestDocument()
+	public byte[] getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -49,7 +74,7 @@ public class AuthnProcessorDataImpl implements AuthnProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#getResponseDocument()
 	 */
-	public String getResponseDocument()
+	public byte[] getResponseDocument()
 	{
 		return this.responseDocument;
 	}
@@ -65,7 +90,7 @@ public class AuthnProcessorDataImpl implements AuthnProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#setRequestDocument(java.lang.String)
 	 */
-	public void setRequestDocument(String requestDocument)
+	public void setRequestDocument(byte[] requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}
@@ -81,7 +106,7 @@ public class AuthnProcessorDataImpl implements AuthnProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#setResponseDocument(java.lang.String)
 	 */
-	public void setResponseDocument(String responseDocument)
+	public void setResponseDocument(byte[] responseDocument)
 	{
 		this.responseDocument = responseDocument;
 	}

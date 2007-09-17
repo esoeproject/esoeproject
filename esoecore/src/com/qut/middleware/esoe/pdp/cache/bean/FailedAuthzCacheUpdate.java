@@ -32,7 +32,7 @@ public interface FailedAuthzCacheUpdate
 	 * 
 	 * @param request A string representing a valid, opensaml 2.0 compliant request.
 	 */
-	public void setRequestDocument(String request);
+	public void setRequestDocument(byte[] request);
 	
 
 	/**
@@ -42,7 +42,7 @@ public interface FailedAuthzCacheUpdate
 	 * @return The opensaml 2.0 request document as set by setRequestDocument, else null if not exists.
 	 *        
 	 */
-	public String getRequestDocument();	
+	public byte[] getRequestDocument();	
 	
 
 	/** Set the string representation of the end point URL that the update was attempted against. 

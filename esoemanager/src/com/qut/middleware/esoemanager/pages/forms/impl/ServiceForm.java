@@ -18,6 +18,7 @@
 package com.qut.middleware.esoemanager.pages.forms.impl;
 
 import net.sf.click.control.Form;
+import net.sf.click.control.HiddenField;
 import net.sf.click.control.TextArea;
 import net.sf.click.control.TextField;
 
@@ -37,6 +38,12 @@ public class ServiceForm extends Form implements BaseForm
 		this.setColumns(1);
 		this.setValidate(true);
 		this.setErrorsPosition(Form.POSITION_TOP);
+		
+		HiddenField eid = new HiddenField(PageConstants.EID, String.class);
+		
+		TextField serviceIdentifier = new TextField(PageConstants.SERVICE_IDENTIFIER, true);
+		serviceIdentifier.setLabel("Service Identifier <a href=\"help.htm#servicedetails\" target=\"_blank\">?</a>");
+		serviceIdentifier.setSize(PageConstants.URL_FIELD_WIDTH);
 	
 		TextField serviceName = new TextField(PageConstants.SERVICE_NAME, true);
 		TextField serviceURL = new TextField(PageConstants.SERVICE_URL, true);
@@ -54,8 +61,10 @@ public class ServiceForm extends Form implements BaseForm
 		
 		serviceURL.setValue(PageConstants.DEFAULT_PROTOCOL);
 		
+		this.add(eid);
 		this.add(serviceName);
 		this.add(serviceURL);
+		this.add(serviceIdentifier);
 		this.add(serviceDescription);
 		this.add(serviceAuthzFailureMessage);
 	}

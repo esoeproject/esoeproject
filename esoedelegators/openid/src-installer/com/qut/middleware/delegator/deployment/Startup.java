@@ -23,14 +23,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import com.qut.middleware.crypto.CryptoProcessor;
@@ -40,7 +39,6 @@ import com.qut.middleware.crypto.impl.KeyStoreResolverImpl;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
-import com.qut.middleware.tools.war.bean.AdditionalContent;
 import com.qut.middleware.tools.war.logic.GenerateWarLogic;
 
 public class Startup
@@ -120,7 +118,7 @@ public class Startup
 
 		System.out.print("Please enter the ESOE keystore location ");
 		if (this.configBean.getEsoeKeystore() == null)
-			System.out.print("(eg: /var/tomcat5/webapps/ROOT/WEB-INF/esoeKeystore.ks): ");
+			System.out.print("(eg: ${esoe.data}/config/esoeKeystore.ks): ");
 		else
 			System.out.print("[" + this.configBean.getEsoeKeystore() + "] :");
 		tmp = br.readLine();
@@ -129,7 +127,7 @@ public class Startup
 
 		System.out.print("Please enter the ESOE configuration file location ");
 		if (this.configBean.getEsoeConfig() == null)
-			System.out.print("(eg: /var/tomcat5/webapps/ROOT/WEB-INF/esoe.config): ");
+			System.out.print("(eg: ${esoe.data}/config/esoe.config): ");
 		else
 			System.out.print("[" + this.configBean.getEsoeConfig() + "] :");
 		tmp = br.readLine();
@@ -217,24 +215,15 @@ public class Startup
 		System.out.println("*** Rendered config...");
 		renderedConfig = renderer.generateConfig(new File(this.configBean.getExtractedFiles() + this.CONFIG_TEMPLATE_PATH), this.configBean);
 		
-		/* Store the new OpenID Delegator KeyStore in the created WAR */
-		AdditionalContent oidKeyStoreContent = new AdditionalContent();
-		oidKeyStoreContent.setPath(this.WEBINF + File.separatorChar + this.OPENID_DELEGATOR_KEYSTORE_NAME);
-		oidKeyStoreContent.setFileContent(this.cryptoProcessor.convertKeystoreByteArray(this.configBean.getKeyStore(), this.configBean.getOidKeyStorePassphrase()));
+		/* Store the new openid delegator KeyStore */
+		this.cryptoProcessor.serializeKeyStore(this.configBean.getKeyStore(), this.configBean.getOidKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + this.OPENID_DELEGATOR_KEYSTORE_NAME);
 				
-		/* Store the rendered OpenID Delegator config in the created WAR */
-		AdditionalContent oidConfigContent = new AdditionalContent();
-		oidConfigContent.setPath(this.WEBINF + File.separatorChar + this.CONFIG_TEMPLATE);
-		oidConfigContent.setFileContent(renderedConfig.getBytes());
+		/* Store the rendered openid delegator config */
+		FileOutputStream output = new FileOutputStream( this.configBean.getOutputDirectory() + File.separatorChar + this.CONFIG_TEMPLATE );
+		output.write(renderedConfig.getBytes());
+		output.close();
 		
-		List<AdditionalContent> additionalContent = new ArrayList<AdditionalContent>();
-		additionalContent.add(oidKeyStoreContent);
-		additionalContent.add(oidConfigContent);
-
-		System.out.println("*** Generating openiddeleg.war");
-		logic.generateWar(additionalContent, new File(this.configBean.getExtractedFiles() + this.WARFILES), new File(this.configBean.getOutputDirectory() + this.WARFILES), new File(this.configBean.getOutputDirectory() + File.separator + "openiddelegator.war"));
-		
-		System.out.println("Completed, files written to " + this.configBean.getOutputDirectory() + ". Copy openiddeleg.war to your tomcat instance and after backing up your current esoeKeystore.ks replace with the newly generated version.");
+		System.out.println("Completed, files written to " + this.configBean.getOutputDirectory() + ". Copy openiddeleg.war to your tomcat instance, copy created files to ${openiddeleg.data}/config and after backing up your current esoeKeystore.ks replace with the newly generated version.");
 	}
 
 	private void createKeystores() throws Exception

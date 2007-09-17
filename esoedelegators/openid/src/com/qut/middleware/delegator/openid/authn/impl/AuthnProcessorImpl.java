@@ -260,7 +260,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 */
 	public result execute(AuthnProcessorData processorData)
 	{
-		String response;
+		byte[] response;
 		RegisterPrincipalResponse responseObj;
 		List<AttributeType> esoeAttributes = new ArrayList<AttributeType>();
 
@@ -321,7 +321,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			esoeAttributes.add(esoeDefaultAttribute);
 		}
 
-		String request = generateRegisterPrincipalRequest(esoeAttributes);
+		byte[] request = generateRegisterPrincipalRequest(esoeAttributes);
 		if (request == null)
 		{
 			this.logger.warn("Failed attempting to marshall register principal request");
@@ -359,10 +359,10 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		return result.Completed;
 	}
 
-	private String generateRegisterPrincipalRequest(List<AttributeType> attributes)
+	private byte[] generateRegisterPrincipalRequest(List<AttributeType> attributes)
 	{
 		RegisterPrincipalRequest request = new RegisterPrincipalRequest();
-		String document;
+		byte[] document;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.issuerID);
@@ -389,7 +389,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		return document;
 	}
 
-	private RegisterPrincipalResponse validateResponse(String response)
+	private RegisterPrincipalResponse validateResponse(byte[] response)
 	{
 		try
 		{

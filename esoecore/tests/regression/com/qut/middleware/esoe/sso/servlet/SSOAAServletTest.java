@@ -29,14 +29,10 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.List;
-import java.util.Vector;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -57,6 +53,7 @@ import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.test.Modify;
 
 @SuppressWarnings(value = { "unqualified-field-access", "nls" })
 public class SSOAAServletTest
@@ -76,6 +73,8 @@ public class SSOAAServletTest
 	private ServletConfig servletConfig;
 	private ServletContext servletContext;
 	private PrintWriter writer;
+	
+	private String SAML_REQUEST="//48AD8AeABtAGwAIAB2AGUAcgBzAGkAbwBuAD0AIgAxAC4AMAAiACAAZQBuAGMAbwBkAGkAbgBnAD0AIgBVAFQARgAtADEANgAiACAAcwB0AGEAbgBkAGEAbABvAG4AZQA9ACIAeQBlAHMAIgAgAD8APgA8AEEAdQB0AGgAbgBSAGUAcQB1AGUAcwB0ACAAeABtAGwAbgBzAD0AIgB1AHIAbgA6AG8AYQBzAGkAcwA6AG4AYQBtAGUAcwA6AHQAYwA6AFMAQQBNAEwAOgAyAC4AMAA6AHAAcgBvAHQAbwBjAG8AbAAiACAAQQBzAHMAZQByAHQAaQBvAG4AQwBvAG4AcwB1AG0AZQByAFMAZQByAHYAaQBjAGUASQBuAGQAZQB4AD0AIgAwACIAIABBAHQAdAByAGkAYgB1AHQAZQBDAG8AbgBzAHUAbQBpAG4AZwBTAGUAcgB2AGkAYwBlAEkAbgBkAGUAeAA9ACIAMAAiACAARgBvAHIAYwBlAEEAdQB0AGgAbgA9ACIAZgBhAGwAcwBlACIAIABJAEQAPQAiAF8ANABkAGUAMgAzADcAYQAyADAANwBkADAAYgA3ADIANgAwADgANgAwADUAMgBiADIANwA2AGEAMgAxADEAZAAxAGMAOQBkADcAYgBjADIANAAtAGMAOQAxADMAZAAwADQANABkADYAMgA4ADAAMAA1AGYAMwA0ADgANwBmADcANAA0ADYAOQBjADMAOABjAGYAMQAiACAASQBzAFAAYQBzAHMAaQB2AGUAPQAiAGYAYQBsAHMAZQAiACAASQBzAHMAdQBlAEkAbgBzAHQAYQBuAHQAPQAiADIAMAAwADcALQAwADcALQAwADkAVAAwADUAOgAxADQAOgAxADQALgAyADUANQA2ADgAOQBaACIAIABWAGUAcgBzAGkAbwBuAD0AIgAyAC4AMAAiACAAeABtAGwAbgBzADoAYwBsAGUAYQByAD0AIgBoAHQAdABwADoALwAvAHcAdwB3AC4AcQB1AHQALgBjAG8AbQAvAG0AaQBkAGQAbABlAHcAYQByAGUALwBjAGEAYwBoAGUAQwBsAGUAYQByAFMAZQByAHYAaQBjAGUAUwBjAGgAZQBtAGEAIgAgAHgAbQBsAG4AcwA6AGQAcwA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHcAMwAuAG8AcgBnAC8AMgAwADAAMAAvADAAOQAvAHgAbQBsAGQAcwBpAGcAIwAiACAAeABtAGwAbgBzADoAZQBzAG8AZQA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHEAdQB0AC4AYwBvAG0ALwBtAGkAZABkAGwAZQB3AGEAcgBlAC8ARQBTAE8ARQBQAHIAbwB0AG8AYwBvAGwAUwBjAGgAZQBtAGEAIgAgAHgAbQBsAG4AcwA6AGcAcgBvAHUAcAA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHEAdQB0AC4AYwBvAG0ALwBtAGkAZABkAGwAZQB3AGEAcgBlAC8AbAB4AGEAYwBtAGwARwByAG8AdQBwAFQAYQByAGcAZQB0AFMAYwBoAGUAbQBhACIAIAB4AG0AbABuAHMAOgBsAHgAYQBjAG0AbAA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHEAdQB0AC4AYwBvAG0ALwBtAGkAZABkAGwAZQB3AGEAcgBlAC8AbAB4AGEAYwBtAGwAUwBjAGgAZQBtAGEAIgAgAHgAbQBsAG4AcwA6AGwAeABhAGMAbQBsAC0AYwBvAG4AdABlAHgAdAA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHEAdQB0AC4AYwBvAG0ALwBtAGkAZABkAGwAZQB3AGEAcgBlAC8AbAB4AGEAYwBtAGwAQwBvAG4AdABlAHgAdABTAGMAaABlAG0AYQAiACAAeABtAGwAbgBzADoAbAB4AGEAYwBtAGwALQBtAGQAPQAiAGgAdAB0AHAAOgAvAC8AdwB3AHcALgBxAHUAdAAuAGMAbwBtAC8AbQBpAGQAZABsAGUAdwBhAHIAZQAvAGwAeABhAGMAbQBsAFAARABQAFMAYwBoAGUAbQBhACIAIAB4AG0AbABuAHMAOgBsAHgAYQBjAG0AbABhAD0AIgBoAHQAdABwADoALwAvAHcAdwB3AC4AcQB1AHQALgBjAG8AbQAvAG0AaQBkAGQAbABlAHcAYQByAGUALwBsAHgAYQBjAG0AbABTAEEATQBMAEEAcwBzAGUAcgB0AGkAbwBuAFMAYwBoAGUAbQBhACIAIAB4AG0AbABuAHMAOgBsAHgAYQBjAG0AbABwAD0AIgBoAHQAdABwADoALwAvAHcAdwB3AC4AcQB1AHQALgBjAG8AbQAvAG0AaQBkAGQAbABlAHcAYQByAGUALwBsAHgAYQBjAG0AbABTAEEATQBMAFAAcgBvAHQAbwBjAG8AbABTAGMAaABlAG0AYQAiACAAeABtAGwAbgBzADoAbQBkAD0AIgB1AHIAbgA6AG8AYQBzAGkAcwA6AG4AYQBtAGUAcwA6AHQAYwA6AFMAQQBNAEwAOgAyAC4AMAA6AG0AZQB0AGEAZABhAHQAYQAiACAAeABtAGwAbgBzADoAcwBhAG0AbAA9ACIAdQByAG4AOgBvAGEAcwBpAHMAOgBuAGEAbQBlAHMAOgB0AGMAOgBTAEEATQBMADoAMgAuADAAOgBhAHMAcwBlAHIAdABpAG8AbgAiACAAeABtAGwAbgBzADoAcwBhAG0AbABwAD0AIgB1AHIAbgA6AG8AYQBzAGkAcwA6AG4AYQBtAGUAcwA6AHQAYwA6AFMAQQBNAEwAOgAyAC4AMAA6AHAAcgBvAHQAbwBjAG8AbAAiACAAeABtAGwAbgBzADoAcwBlAHMAcwBpAG8AbgA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHEAdQB0AC4AYwBvAG0ALwBtAGkAZABkAGwAZQB3AGEAcgBlAC8AUwBlAHMAcwBpAG8AbgBEAGEAdABhAFMAYwBoAGUAbQBhACIAIAB4AG0AbABuAHMAOgBzAHAAZQBwAD0AIgBoAHQAdABwADoALwAvAHcAdwB3AC4AcQB1AHQALgBjAG8AbQAvAG0AaQBkAGQAbABlAHcAYQByAGUALwBzAHAAZQBwAFMAdABhAHIAdAB1AHAAUwBlAHIAdgBpAGMAZQBTAGMAaABlAG0AYQAiACAAeABtAGwAbgBzADoAeABlAG4AYwA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHcAMwAuAG8AcgBnAC8AMgAwADAAMQAvADAANAAvAHgAbQBsAGUAbgBjACMAIgAgAHgAbQBsAG4AcwA6AHgAcwA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHcAMwAuAG8AcgBnAC8AMgAwADAAMQAvAFgATQBMAFMAYwBoAGUAbQBhACIAIAB4AG0AbABuAHMAOgB4AHMAaQA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHcAMwAuAG8AcgBnAC8AMgAwADAAMQAvAFgATQBMAFMAYwBoAGUAbQBhAC0AaQBuAHMAdABhAG4AYwBlACIAPgA8AHMAYQBtAGwAOgBJAHMAcwB1AGUAcgA+AF8ANQAyAGIAZgBiAGMAMgBlADcAYQBmADEAMAAwAGEAMAAxADgAMQBjADEAYgA4ADAAYwA2ADEANwBjAGIANAA1AGIAYQBhADIANABmAGIAYwAtAGMAZQA0AGYAZAA4ADQAMgBkADkAZQBjADgANgAwAGEAZAAyAGUANAAwAGYAMgBkADcAZQBlADMAYwA4AGYAMgA8AC8AcwBhAG0AbAA6AEkAcwBzAHUAZQByAD4APABkAHMAOgBTAGkAZwBuAGEAdAB1AHIAZQAgAHgAbQBsAG4AcwA6AGQAcwA9ACIAaAB0AHQAcAA6AC8ALwB3AHcAdwAuAHcAMwAuAG8AcgBnAC8AMgAwADAAMAAvADAAOQAvAHgAbQBsAGQAcwBpAGcAIwAiAD4APABkAHMAOgBTAGk";
 	
 	//	 use this as esoe config file
 	String configTestFile = "tests/testdata/test.config";
@@ -97,7 +96,9 @@ public class SSOAAServletTest
 		webApplicationContext = createMock(WebApplicationContext.class);
 
 		data = new SSOProcessorDataImpl();
-		data.setResponseDocument("<saml>this is a really fake saml document which is fine to test with here</saml>");
+		data.setResponseDocument(new String("<saml>this is a really fake saml document which is fine to test with here</saml>").getBytes());
+		
+		System.setProperty("esoe.data", "tests/testdata");
 	}
 
 	private void setUpMock()
@@ -145,8 +146,6 @@ public class SSOAAServletTest
 		try
 		{
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -187,8 +186,7 @@ public class SSOAAServletTest
 		cookies = new Cookie[] { esoeSession };
 		
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
@@ -232,8 +230,6 @@ public class SSOAAServletTest
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -279,8 +275,6 @@ public class SSOAAServletTest
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -325,9 +319,6 @@ public class SSOAAServletTest
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -381,21 +372,19 @@ public class SSOAAServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
+		expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
+		
 		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());
 
 		expect(request.getSession()).andReturn(session).anyTimes();
 		response.addCookie((Cookie)notNull());
 		
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
 		expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andReturn(SSOProcessor.result.ForceAuthn);
 		response.sendRedirect(matches("https://esoe-dev.qut.edu.au:8443/signin.*"));
@@ -432,9 +421,6 @@ public class SSOAAServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -443,8 +429,7 @@ public class SSOAAServletTest
 				
 		expect(request.getSession()).andReturn(session).anyTimes();
 		
-		// here wel will return  null datatypes for force the error response
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(null);
+		// here we'll will return null datatypes for force the error response
 		expect(request.getParameter("SAMLRequest")).andReturn(null).anyTimes();
 					
 		response.sendError(eq(500), (String)notNull());
@@ -467,6 +452,14 @@ public class SSOAAServletTest
 	@Test
 	public void testDoPost2() throws IOException, ServletException
 	{
+		
+		Modify<SSOProcessorData> modifyProcessorData = new Modify<SSOProcessorData>(){
+			  public void operate(SSOProcessorData obj)
+			  {
+			     obj.setResponseDocument(new String("RESPONSE_DOCUMENT").getBytes());
+			  }
+			};
+		
 		Cookie[] cookies = new Cookie[5];
 
 		Cookie random = new Cookie("RadomCookie", "itscandyireallyreallylikeit");
@@ -477,9 +470,6 @@ public class SSOAAServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -489,11 +479,10 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
 			session.removeAttribute(SSOProcessorData.SESSION_NAME);
 			expect(request.getCookies()).andReturn(cookies).anyTimes();
-			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andReturn(
-					SSOProcessor.result.SSOGenerationSuccessful);
+			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andReturn(SSOProcessor.result.SSOGenerationSuccessful);
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -521,11 +510,15 @@ public class SSOAAServletTest
 	@Test
 	public void testDoPost2a() throws IOException, ServletException
 	{
+		Modify<SSOProcessorData> modifyProcessorData = new Modify<SSOProcessorData>(){
+			  public void operate(SSOProcessorData obj)
+			  {
+			     obj.setResponseDocument(new String("RESPONSE_DOCUMENT").getBytes());
+			  }
+			};
+			
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -535,10 +528,10 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
 			session.removeAttribute(SSOProcessorData.SESSION_NAME);
 			expect(request.getCookies()).andReturn(null).anyTimes();
-			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andReturn(
+			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andReturn(
 					SSOProcessor.result.ForcePassiveAuthn);
 			expect(response.getWriter()).andReturn(writer);
 			response.addCookie((Cookie)notNull());
@@ -569,11 +562,15 @@ public class SSOAAServletTest
 	@Test
 	public void testDoPost3() throws IOException, ServletException
 	{
+		Modify<SSOProcessorData> modifyProcessorData = new Modify<SSOProcessorData>(){
+			  public void operate(SSOProcessorData obj)
+			  {
+			     obj.setResponseDocument(new String("RESPONSE_DOCUMENT").getBytes());
+			  }
+			};
+			
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -583,9 +580,9 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
 			expect(request.getCookies()).andReturn(null).anyTimes();
-			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andThrow(
+			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andThrow(
 					new InvalidSessionIdentifierException("mock"));
 			expect(response.getWriter()).andReturn(writer);
 			response.addCookie((Cookie)notNull());
@@ -616,11 +613,15 @@ public class SSOAAServletTest
 	@Test
 	public void testDoPost3a() throws IOException, ServletException
 	{
+		Modify<SSOProcessorData> modifyProcessorData = new Modify<SSOProcessorData>(){
+			  public void operate(SSOProcessorData obj)
+			  {
+			     obj.setResponseDocument(new String("RESPONSE_DOCUMENT").getBytes());
+			  }
+			};
+			
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:" + System.getProperty("user.dir") + File.separator + "tests" + File.separator
-						+ "testdata" + File.separator + "test.config"));
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
@@ -630,9 +631,9 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
 			expect(request.getCookies()).andReturn(null).anyTimes();
-			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andThrow(
+			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andThrow(
 					new InvalidRequestException("mock"));
 			response.addCookie((Cookie)notNull());
 			expect(response.getWriter()).andReturn(writer);

@@ -69,7 +69,6 @@ import com.qut.middleware.saml2.schemas.protocol.Status;
 import com.qut.middleware.saml2.schemas.protocol.StatusCode;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.spep.ConfigurationConstants;
-import com.qut.middleware.spep.log4j.AuthzLogLevel;
 import com.qut.middleware.spep.metadata.KeyStoreResolver;
 import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.spep.pep.Messages;
@@ -99,16 +98,15 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	private Unmarshaller<GroupTarget> groupTargetUnmarshaller;
 	private SessionCache sessionCache;
 
-	private final String UNMAR_PKGNAMES = Response.class.getPackage().getName()
-			+ ":" + GroupTarget.class.getPackage().getName() + ":" + LXACMLAuthzDecisionStatement.class.getPackage().getName(); //$NON-NLS-1$
+	private final String UNMAR_PKGNAMES = Response.class.getPackage().getName() + ":" + GroupTarget.class.getPackage().getName() + ":" + LXACMLAuthzDecisionStatement.class.getPackage().getName(); //$NON-NLS-1$
 	private final String UNMAR_PKGNAMES2 = ClearAuthzCacheRequest.class.getPackage().getName();
 	private final String UNMAR_PKGNAMES3 = GroupTarget.class.getPackage().getName();
 	private final String MAR_PKGNAMES = LXACMLAuthzDecisionQuery.class.getPackage().getName();
-	private final String MAR_PKGNAMES2 = ClearAuthzCacheRequest.class.getPackage().getName()
-			+ ":" + Request.class.getPackage().getName(); //$NON-NLS-1$
-	
+	private final String MAR_PKGNAMES2 = ClearAuthzCacheRequest.class.getPackage().getName() + ":" + Request.class.getPackage().getName(); //$NON-NLS-1$
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(PolicyEnforcementProcessorImpl.class.getName());
+	private Logger authzLogger = Logger.getLogger(ConfigurationConstants.authzLogger);
 
 	/**
 	 * @param reportingProcessor
@@ -132,10 +130,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 * @throws UnmarshallerException
 	 *             if the unmarshaller canot be created.
 	 */
-	public PolicyEnforcementProcessorImpl(SessionCache sessionCache,
-			SessionGroupCache sessionGroupCache, WSClient wsClient, IdentifierGenerator identifierGenerator,
-			Metadata metadata, KeyStoreResolver keyStoreResolver, SAMLValidator samlValidator)
-			throws MarshallerException, UnmarshallerException
+	public PolicyEnforcementProcessorImpl(SessionCache sessionCache, SessionGroupCache sessionGroupCache, WSClient wsClient, IdentifierGenerator identifierGenerator, Metadata metadata, KeyStoreResolver keyStoreResolver, SAMLValidator samlValidator) throws MarshallerException, UnmarshallerException
 	{
 		if (sessionCache == null)
 		{
@@ -173,21 +168,15 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		this.metadata = metadata;
 		this.samlValidator = samlValidator;
 
-		String[] authzDecisionSchemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion,
-				ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.samlProtocol };
-		this.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(this.MAR_PKGNAMES,
-				authzDecisionSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, authzDecisionSchemas,
-				this.metadata);
+		String[] authzDecisionSchemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.samlProtocol };
+		this.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(this.MAR_PKGNAMES, authzDecisionSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, authzDecisionSchemas, this.metadata);
 
-		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol,
-				ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
+		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
 
 		// create marshallers/unmarshallers
-		this.clearAuthzCacheRequestUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheRequest>(this.UNMAR_PKGNAMES2,
-				clearAuthzCacheSchemas, this.metadata);
-		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(this.MAR_PKGNAMES2,
-				clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.clearAuthzCacheRequestUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheRequest>(this.UNMAR_PKGNAMES2, clearAuthzCacheSchemas, this.metadata);
+		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(this.MAR_PKGNAMES2, clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
 
 		String[] groupTargetSchemas = new String[] { ConfigurationConstants.lxacmlGroupTarget };
 		this.groupTargetUnmarshaller = new UnmarshallerImpl<GroupTarget>(this.UNMAR_PKGNAMES3, groupTargetSchemas);
@@ -200,7 +189,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 * 
 	 * @see com.qut.middleware.spep.pep.PolicyEnforcementProcessor#authzCacheClear(java.lang.String)
 	 */
-	public String authzCacheClear(String requestDocument) throws MarshallerException
+	public byte[] authzCacheClear(byte[] requestDocument) throws MarshallerException
 	{
 		String id = null, statusCodeValue = null, statusMessage = null;
 		PrincipalSession principal;
@@ -208,8 +197,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		try
 		{
 			this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.0")); //$NON-NLS-1$
-			ClearAuthzCacheRequest clearAuthzCacheRequest = this.clearAuthzCacheRequestUnmarshaller
-					.unMarshallSigned(requestDocument);
+			ClearAuthzCacheRequest clearAuthzCacheRequest = this.clearAuthzCacheRequestUnmarshaller.unMarshallSigned(requestDocument);
 			id = clearAuthzCacheRequest.getID();
 
 			this.samlValidator.getRequestValidator().validate(clearAuthzCacheRequest);
@@ -238,35 +226,36 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 			this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.1")); //$NON-NLS-1$
 			Extensions extensions = clearAuthzCacheRequest.getExtensions();
-			
+
 			// GroupTargets are stored in extensions, therefore no extensions, or empty extensions means that the policy
 			// set has no policies defined (because the GroupTarget is required in a Policy so it would not be valid
-			// according to schema if a Policy existed and had no Targets). Clear the cache and continue. The PEP 
-			// should not send an Authz query in the case of an empty PolicySet, but fall through to default policy decision.			
+			// according to schema if a Policy existed and had no Targets). Clear the cache and continue. The PEP
+			// should not send an Authz query in the case of an empty PolicySet, but fall through to default policy
+			// decision.
 			Map<String, List<String>> groupTargets = new HashMap<String, List<String>>();
-						
-			if (extensions == null || extensions.getAnies() == null )
+
+			if (extensions == null || extensions.getAnies() == null)
 			{
 				this.logger.warn(Messages.getString("PolicyEnforcementProcessorImpl.2"));
 			}
 			else
-			{				
+			{
 				for (Element element : extensions.getAnies())
 				{
 					if (element.getLocalName().equals(Messages.getString("PolicyEnforcementProcessorImpl.3"))) //$NON-NLS-1$
 					{
 						GroupTarget groupTarget = this.groupTargetUnmarshaller.unMarshallUnSigned(element);
-	
+
 						String groupTargetID = groupTarget.getGroupTargetID();
 						List<String> authzTargets = groupTarget.getAuthzTargets();
-	
+
 						this.logger.debug(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.4"), new Object[] { groupTargetID, Integer.toString(authzTargets.size()) })); //$NON-NLS-1$
-	
+
 						groupTargets.put(groupTargetID, authzTargets);
 					}
 				}
 			}
-			
+
 			// success response
 			this.sessionGroupCache.clearCache(groupTargets);
 
@@ -279,8 +268,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		catch (SignatureValueException e)
 		{
 			statusCodeValue = StatusCodeConstants.requester;
-			statusMessage = MessageFormat.format(
-					Messages.getString("PolicyEnforcementProcessorImpl.6"), new Object[] { e.getMessage() }); //$NON-NLS-1$
+			statusMessage = MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.6"), new Object[] { e.getMessage() }); //$NON-NLS-1$
 			this.logger.error(statusMessage);
 
 			return buildResponse(id, statusMessage, statusCodeValue);
@@ -288,8 +276,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		catch (ReferenceValueException e)
 		{
 			statusCodeValue = StatusCodeConstants.requester;
-			statusMessage = MessageFormat.format(
-					Messages.getString("PolicyEnforcementProcessorImpl.7"), new Object[] { e.getMessage() }); //$NON-NLS-1$
+			statusMessage = MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.7"), new Object[] { e.getMessage() }); //$NON-NLS-1$
 			this.logger.error(statusMessage);
 
 			return buildResponse(id, statusMessage, statusCodeValue);
@@ -297,8 +284,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		catch (UnmarshallerException e)
 		{
 			statusCodeValue = StatusCodeConstants.requester;
-			statusMessage = MessageFormat.format(
-					Messages.getString("PolicyEnforcementProcessorImpl.8"), new Object[] { e.getMessage() }); //$NON-NLS-1$
+			statusMessage = MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.8"), new Object[] { e.getMessage() }); //$NON-NLS-1$
 			this.logger.error(statusMessage);
 
 			return buildResponse(id, statusMessage, statusCodeValue);
@@ -306,8 +292,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		catch (InvalidSAMLRequestException e)
 		{
 			statusCodeValue = StatusCodeConstants.requester;
-			statusMessage = MessageFormat.format(
-					Messages.getString("PolicyEnforcementProcessorImpl.9"), new Object[] { e.getMessage() }); //$NON-NLS-1$
+			statusMessage = MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.9"), new Object[] { e.getMessage() }); //$NON-NLS-1$
 			this.logger.error(statusMessage);
 
 			return buildResponse(id, statusMessage, statusCodeValue);
@@ -318,10 +303,9 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 * Builds a ClearAuthzCacheResponse to be sent back to ESOE when a cacheClear request has been recieved.
 	 * 
 	 */
-	private String buildResponse(String inResponseTo, String statusMessage, String statusCodeValue)
-			throws MarshallerException
+	private byte[] buildResponse(String inResponseTo, String statusMessage, String statusCodeValue) throws MarshallerException
 	{
-		String responseDocument = null;
+		byte[] responseDocument = null;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		NameIDType issuer = new NameIDType();
@@ -356,21 +340,29 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 */
 	public decision makeAuthzDecision(String sessionID, String resource)
 	{
+		return makeAuthzDecision(sessionID, resource, null);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.pep.PolicyEnforcementProcessor#makeAuthzDecision(java.lang.String, java.lang.String)
+	 */
+	public decision makeAuthzDecision(String sessionID, String resource, String action)
+	{
 		PrincipalSession principalSession = this.sessionCache.getPrincipalSession(sessionID);
 		if (principalSession == null)
 			return decision.error;
 
-		return makeAuthzDecision(principalSession, resource);
+		return makeAuthzDecision(principalSession, resource, action);
 	}
 
 	/*
 	 * Make an authorization decision for the requested resource based on cached authz group targets.
 	 * 
 	 */
-	private decision makeAuthzDecision(PrincipalSession principalSession, String resource)
+	private decision makeAuthzDecision(PrincipalSession principalSession, String resource, String action)
 	{
 		// Evaluate from cache
-		decision policyDecision = this.sessionGroupCache.makeCachedAuthzDecision(principalSession, resource);
+		decision policyDecision = this.sessionGroupCache.makeCachedAuthzDecision(principalSession, resource, action);
 
 		// If the cache gave an authoritative answer return it.
 		if (policyDecision.equals(decision.permit) || policyDecision.equals(decision.deny))
@@ -381,7 +373,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		// Need more information. Query the PDP.
 		if (policyDecision.equals(decision.notcached))
 		{
-			String decisionRequest;
+			byte[] decisionRequest;
 			try
 			{
 				// Generate a query based on the session and resource being requested.
@@ -389,45 +381,40 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 			}
 			catch (MarshallerException e)
 			{
-				this.logger.error(MessageFormat.format(Messages
-						.getString("PolicyEnforcementProcessorImpl.11"), new Object[] { e.getMessage() })); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.11"), new Object[] { e.getMessage() })); //$NON-NLS-1$
 				return decision.error;
 			}
 
 			// Make the web service call.. could be a lengthy process
 			String endpoint = this.metadata.getAuthzServiceEndpoint();
-			String responseDocument;
+			byte[] responseDocument;
 			try
 			{
 				responseDocument = this.wsClient.policyDecisionPoint(decisionRequest, endpoint);
 			}
 			catch (WSClientException e)
 			{
-				this.logger.error(MessageFormat.format(Messages
-						.getString("PolicyEnforcementProcessorImpl.12"), new Object[] { e.getMessage() })); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.12"), new Object[] { e.getMessage() })); //$NON-NLS-1$
 				return decision.error;
 			}
 
 			try
 			{
-				policyDecision = processAuthzDecisionStatement(principalSession, responseDocument, resource);
+				policyDecision = processAuthzDecisionStatement(principalSession, responseDocument, resource, action);
 			}
 			catch (SignatureValueException e)
 			{
-				this.logger.error(MessageFormat.format(Messages
-						.getString("PolicyEnforcementProcessorImpl.13"), new Object[] { e.getMessage() })); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.13"), new Object[] { e.getMessage() })); //$NON-NLS-1$
 				return decision.error;
 			}
 			catch (ReferenceValueException e)
 			{
-				this.logger.error(MessageFormat.format(Messages
-						.getString("PolicyEnforcementProcessorImpl.14"), new Object[] { e.getMessage() })); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.14"), new Object[] { e.getMessage() })); //$NON-NLS-1$
 				return decision.error;
 			}
 			catch (UnmarshallerException e)
 			{
-				this.logger.error(MessageFormat.format(Messages
-						.getString("PolicyEnforcementProcessorImpl.15"), new Object[] { e.getMessage() })); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.15"), new Object[] { e.getMessage() })); //$NON-NLS-1$
 				return decision.error;
 			}
 
@@ -446,8 +433,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		return decision.error;
 	}
 
-	private decision processAuthzDecisionStatement(PrincipalSession principalSession, String responseDocument,
-			String resource) throws SignatureValueException, ReferenceValueException, UnmarshallerException
+	private decision processAuthzDecisionStatement(PrincipalSession principalSession, byte[] responseDocument, String resource, String action) throws SignatureValueException, ReferenceValueException, UnmarshallerException
 	{
 		decision policyDecision = null;
 
@@ -456,11 +442,11 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 		Response response = this.responseUnmarshaller.unMarshallSigned(responseDocument);
 
-		// if authz failed then the likely scenario is that the princpals session has been deleted from
+		// if authz failed then the likely scenario is that the principals session has been deleted from
 		// the ESOE. In any case we want to purge the client session to force them back to authn
 		if (response.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.authnFailed))
 		{
-			this.logger.log(AuthzLogLevel.Authz, Messages.getString("PolicyEnforcementProcessorImpl.46")); //$NON-NLS-1$
+			this.authzLogger.error(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.46"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
 			this.sessionCache.terminatePrincipalSession(principalSession);
 			return decision.deny;
 		}
@@ -502,8 +488,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 					if (confirmationData == null)
 					{
-						this.logger.error(Messages
-								.getString("PolicyEnforcementProcessorImpl.44")); //$NON-NLS-1$
+						this.logger.error(Messages.getString("PolicyEnforcementProcessorImpl.44")); //$NON-NLS-1$
 						policyDecision = decision.deny;
 					}
 
@@ -513,7 +498,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 					XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
 					GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
-					
+
 					if (thisCal.after(notOnOrAfterCal))
 					{
 						this.logger.debug(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.47"), thisCal.getTimeInMillis(), notOnOrAfterCal.getTimeInMillis())); //$NON-NLS-1$
@@ -525,40 +510,37 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 				}
 
 				// Check all statements in the assertion, and find LXACMLAuthzDecisionStatements
-				for (StatementAbstractType statement : assertion
-						.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements())
+				for (StatementAbstractType statement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements())
 				{
 					if (statement instanceof LXACMLAuthzDecisionStatement)
 					{
 						LXACMLAuthzDecisionStatement lxacmlAuthzDecisionStatement = (LXACMLAuthzDecisionStatement) statement;
 
-						this.logger.debug(Messages
-								.getString("PolicyEnforcementProcessorImpl.20")); //$NON-NLS-1$
+						this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.20")); //$NON-NLS-1$
 
-						com.qut.middleware.saml2.schemas.esoe.lxacml.context.Response lxacmlResponse = lxacmlAuthzDecisionStatement
-								.getResponse();
+						com.qut.middleware.saml2.schemas.esoe.lxacml.context.Response lxacmlResponse = lxacmlAuthzDecisionStatement.getResponse();
 						Result result = lxacmlResponse.getResult();
 
 						// Find out if the decision was a permit or a deny and set the policy decision appropriately
 						DecisionType lxacmlDecision = result.getDecision();
 						if (lxacmlDecision.equals(DecisionType.DENY))
 						{
-							this.logger.log(AuthzLogLevel.Authz, MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.21"), new Object[] { principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
+							this.authzLogger.info(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.21"), new Object[] { principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
 							policyDecision = decision.deny;
 						}
 						else
 							if (lxacmlDecision.equals(DecisionType.PERMIT))
 							{
-								this.logger.log(AuthzLogLevel.Authz, MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.22"), new Object[] { principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
+								this.authzLogger.info(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.22"), new Object[] { principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
 								policyDecision = decision.permit;
 							}
 							else
 							{
-								this.logger.log(AuthzLogLevel.Authz, MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.23"), new Object[] { principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
+								this.authzLogger.info(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.23"), new Object[] { principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
 								policyDecision = decision.error;
 							}
 
-						processObligations(principalSession, result.getObligations(), policyDecision, resource);
+						processObligations(principalSession, result.getObligations(), policyDecision, resource, action);
 
 						return policyDecision;
 					}
@@ -569,10 +551,9 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		return decision.error;
 	}
 
-	private void processObligations(PrincipalSession principalSession, Obligations obligations, decision decision,
-			String resource)
+	private void processObligations(PrincipalSession principalSession, Obligations obligations, decision decision, String resource, String action)
 	{
-		this.logger.info(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.24"), new Object[] { decision.value(), principalSession.getEsoeSessionID(), resource })); //$NON-NLS-1$
+		this.logger.info(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.24"), new Object[] { decision.value(), principalSession.getEsoeSessionID(), resource, action })); //$NON-NLS-1$
 
 		for (Obligation obligation : obligations.getObligations())
 		{
@@ -595,8 +576,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 									String groupTargetID = groupTarget.getGroupTargetID();
 									this.logger.debug(MessageFormat.format(Messages.getString("PolicyEnforcementProcessorImpl.25"), new Object[] { Integer.toString(groupTarget.getAuthzTargets().size()), principalSession.getEsoeSessionID(), groupTargetID })); //$NON-NLS-1$
-									this.sessionGroupCache.updateCache(principalSession, groupTargetID, groupTarget
-											.getAuthzTargets(), decision);
+									this.sessionGroupCache.updateCache(principalSession, groupTargetID, groupTarget.getAuthzTargets(), action, decision);
 								}
 								else
 									if (content instanceof String)
@@ -623,11 +603,10 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		}
 	}
 
-	private String generateAuthzDecisionQuery(PrincipalSession principalSession, String resourceString)
-			throws MarshallerException
+	private byte[] generateAuthzDecisionQuery(PrincipalSession principalSession, String resourceString) throws MarshallerException
 	{
 		this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.30")); //$NON-NLS-1$
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		String esoeSessionIndex = principalSession.getEsoeSessionID();
 
 		// The resource being accessed by the client

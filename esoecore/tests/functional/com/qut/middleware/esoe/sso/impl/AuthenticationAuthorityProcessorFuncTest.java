@@ -17,6 +17,7 @@
  * 
  * Purpose: Functional tests for AuthenticationAuthorityProcessorImpl
  */
+
 package com.qut.middleware.esoe.sso.impl;
 
 import static org.easymock.EasyMock.createMock;
@@ -132,7 +133,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	 * be set to 0. Any variations should cause SAML validation to reject the document.
 	 * @return String containing SAML AuthnRequest
 	 */
-	private String generateValidRequest(boolean allowCreation, int tzOffset)
+	private byte[] generateValidRequest(boolean allowCreation, int tzOffset)
 	{
 		try
 		{
@@ -144,7 +145,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			Subject subject = new Subject();
 			Signature signature = new Signature();
 			AuthnRequest authnRequest = new AuthnRequest();
-			String result;
+			byte[] result;
 
 			/* GMT timezone */
 			SimpleTimeZone gmt = new SimpleTimeZone(tzOffset, ConfigurationConstants.timeZone);
@@ -180,11 +181,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			authnRequest.setIssuer(issuer);
 
 			result = marshaller.marshallSigned(authnRequest);
-			
-			String tmp = new String(Base64.encodeBase64(result.getBytes()));
-				
-			////System.out.println(result); 
-			////System.out.println("\n\n"+tmp);
+
 			SAMLValidator validator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 100);
 			
 			validator.getRequestValidator().validate(authnRequest);
@@ -205,7 +202,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	 * 
 	 * @return String containing SAML AuthnRequest
 	 */
-	private String generateInvalidRequest()
+	private byte[] generateInvalidRequest()
 	{
 		try
 		{
@@ -217,7 +214,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			Subject subject = new Subject();
 			Signature signature = new Signature();
 			AuthnRequest authnRequest = new AuthnRequest();
-			String result;
+			byte[] result;
 
 			/* GMT timezone */
 			SimpleTimeZone gmt = new SimpleTimeZone(0, "GMT+10");
@@ -388,7 +385,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
-			data.setDescriptorID("12345-12345");
+			data.setIssuerID("12345-12345");
 		
 			data.setRequestDocument(generateValidRequest(true, 0));
 
@@ -423,7 +420,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getESOEIdentifier()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -532,7 +529,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getESOEIdentifier()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567-samlid").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234568-samlid").anyTimes();
 
@@ -633,7 +630,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getESOEIdentifier()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -692,7 +689,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			expect(query.queryAuthnSession("1234567890")).andReturn(principal).atLeastOnce();
 			
 			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn("http://spep.url/assertions");
-			expect(metadata.getESOEIdentifier()).andReturn("esoe").atLeastOnce();
+			expect(metadata.getEsoeEntityID()).andReturn("esoe").atLeastOnce();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 
 			setUpMock();
@@ -817,7 +814,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			}
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getESOEIdentifier()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -897,7 +894,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 			data.setSessionID("1234567890");
 
 			/* Modify document after signing to get invalid state */
-			data.setRequestDocument(generateValidRequest(true, 0) + "a");
+			byte[] doc = generateValidRequest(true, 0);
+			doc [10] = '~';
+			data.setRequestDocument(doc);
 
 			expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();

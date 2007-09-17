@@ -21,6 +21,7 @@ package com.qut.middleware.crypto;
 
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 
@@ -68,5 +69,9 @@ public interface CryptoProcessor
 	public void setLocalResolver(KeyStoreResolver localResolver);
 	
 	public void serializeKeyStore(KeyStore keyStore, String keyStorePassphrase, String filename) throws CryptoException;
+	
+	public PublicKey convertByteArrayPublicKey(byte[] rawKey) throws CryptoException;
+	
+	public byte[] convertPublicKeyByteArray(PublicKey key) throws CryptoException;
 
 }

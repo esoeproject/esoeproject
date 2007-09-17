@@ -22,19 +22,21 @@ public class DelegAuthenticationDataTest {
 	@Test
 	public void testGetRequestDocument()
 	{
+		byte[] doc = new String("<request></request>").getBytes();
 		// tests get and set
-		this.data.setRequestDocument("<request></request>");
+		this.data.setRequestDocument(doc);
 		
-		assertEquals("<request></request>", this.data.getRequestDocument());
+		assertEquals(doc, this.data.getRequestDocument());
 	}
 
 	@Test
 	public void testGetResponseDocument()
 	{
+		byte[] doc = new String("<request></request>").getBytes();
 		// tests get and set
-		this.data.setResponseDocument("<request></request>");
+		this.data.setResponseDocument(doc);
 		
-		assertEquals("<request></request>", this.data.getResponseDocument());
+		assertEquals(doc, this.data.getResponseDocument());
 	}
 	
 	@Test

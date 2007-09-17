@@ -44,8 +44,8 @@ public class EsoeconfigURLConnection extends URLConnection
 		StringBuilder contentBuilder = new StringBuilder();
 		
 		contentBuilder.append(ConfigurationConstants.AUTHN_DYNAMIC_URL_PARAM).append('=').append(CompleteESOETest.AUTHN_DYNAMIC_URL_PARAM).append('\n');
-		contentBuilder.append(ConfigurationConstants.SESSION_TOKEN_NAME).append('=').append(CompleteESOETest.SESSION_TOKEN_NAME).append('\n');
-		contentBuilder.append(ConfigurationConstants.COOKIE_SESSION_DOMAIN).append('=').append(CompleteESOETest.COOKIE_SESSION_DOMAIN).append('\n');
+		contentBuilder.append(ConfigurationConstants.ESOE_SESSION_TOKEN_NAME).append('=').append(CompleteESOETest.SESSION_TOKEN_NAME).append('\n');
+		contentBuilder.append(ConfigurationConstants.ESOE_SESSION_DOMAIN).append('=').append(CompleteESOETest.COOKIE_SESSION_DOMAIN).append('\n');
 		contentBuilder.append(ConfigurationConstants.DISABLE_SSO_TOKEN_NAME).append('=').append(CompleteESOETest.DISABLE_SSO_TOKEN_NAME).append('\n');
 		contentBuilder.append(ConfigurationConstants.AUTHN_REDIRECT_URL).append('=').append(CompleteESOETest.AUTHN_REDIRECT_URL).append('\n');
 		contentBuilder.append(ConfigurationConstants.SSO_URL).append('=').append(CompleteESOETest.SSO_URL).append('\n');

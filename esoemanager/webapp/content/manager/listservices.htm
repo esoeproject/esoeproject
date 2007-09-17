@@ -5,7 +5,7 @@ The services which your currently able to view and modify are listed below, if y
 
 <table>
 <tr>
-<td><b>Service Name</b></td><td><b>Service URL</b></td><td><b>Service Description</b></td><td><b>Status</b></td><td/><td/>
+<th>Service Name</th><th>Service URL</th><th>Service Description</th><th>Status</th><th/><th/>
 </tr>
 #foreach( $serviceDetails in $services )
 <tr>
@@ -14,12 +14,12 @@ The services which your currently able to view and modify are listed below, if y
 <td>$serviceDetails.getServiceDescription()</td>
 <td>
 #if($serviceDetails.getActiveFlag().equals("y"))
-active (<a href="modifyservicestate.htm?entityID=$serviceDetails.getEntityID()&state=deactivate">deactivate</a>)
+active (<a href="modifyservicestate.htm?eid=$serviceDetails.getEntID()&state=deactivate">deactivate</a>)
 #else
-inactive (<a href="modifyservicestate.htm?entityID=$serviceDetails.getEntityID()&state=activate">activate</a>)
+inactive (<a href="modifyservicestate.htm?eid=$serviceDetails.getEntID()&state=activate">activate</a>)
 #end
 </td>
-<td><a href="viewservice.htm?entityID=$serviceDetails.getEntityID()">view extended details</a></td>
+<td><a href="viewservice.htm?eid=$serviceDetails.getEntID()">view extended details</a></td>
 </tr>
 #end
 </table>

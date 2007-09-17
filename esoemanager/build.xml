@@ -27,22 +27,26 @@
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="lib/dev/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 	
 	<target name="dev-release-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev-release" />
-		<ivy:retrieve pattern="${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
-		<ivy:report conf="dev-release" graph="false" todir="${artifacts.dev-release}" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
+		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
+		
+		<ivy:resolve file="ivy.xml" conf="dev-release-shared" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release.shared}/[artifact].[ext]" conf="dev-release-shared" />
+		<ivy:report conf="dev-release-shared" graph="false" todir="${basedir}/${artifacts.dev-release.shared}" />
 	</target>
 
 	<target name="dev-publish">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
 		<ivy:publish resolver="local-resolver" forcedeliver="true">
-			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
 		</ivy:publish>
 	</target>
 		
@@ -50,10 +54,14 @@
 		ESOEManager development environment compilation and war creation
 	-->
 	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the ESOE (generally utilised by ESOE Startup)">
-		<mkdir dir="${output.dev}/${output.dev.tar}"/>
-		<unwar src="${output.dev}/${output.dev.war}" dest="${output.dev}/${output.dev.tar}"/>
-		<delete file="${output.dev}/${output.dev.tar}/META-INF/MANIFEST.MF" />
-		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" basedir="${output.dev}/${output.dev.tar}" compression="gzip"/>
+		<copy file="${output.dev}/${output.dev.war}" todir="${output.dev}/${output.dev.tar}"/>
+		
+		<tar destfile="${output.dev}/${output.dev.shared.tar}.tar.gz" basedir="${artifacts.dev-release.shared}" compression="gzip" />
+		
+		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" basedir="${output.dev}/${output.dev.tar}" compression="gzip" >
+			<include name="**/*.war"/>
+			<include name="**/*.tar.gz"/>
+		</tar>
 	</target>
 			
 	<target name="dev-war" depends="dev-jar, dev-release-resolve" description="Assembles ESOEManager development war">
@@ -92,10 +100,13 @@
 	</target>
 
 	<target name="dev-build" depends="setup" description="Compiles ESOEManager code base">
-		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -138,7 +149,7 @@
 
 	<target name="junit-regression-build" depends="dev-jar"
 		description="Compiles ESOEManager regression tests code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.regression.build}"
+		<javac destdir="${output.test.regression.build}"
 			srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
@@ -195,7 +206,7 @@
 
 	<target name="junit-functional-build" depends="dev-jar"
 		description="Compiles ESOEManager functional test code base">
-		<javac source="1.5" target="1.5" destdir="${output.test.functional.build}"
+		<javac destdir="${output.test.functional.build}"
 			srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
@@ -280,25 +291,28 @@
 	<target name="setup" depends="clean">
 		<mkdir dir="${output.dev.build}" />
 		<mkdir dir="${output.dev}" />
-
 		<mkdir dir="${output.test.regression.build}" />
 		<mkdir dir="${output.test.functional.build}" />
-
 		<mkdir dir="${output.dev.coverage.dir}" />
 		<mkdir dir="${output.dev.coverage.functional.dir}" />
 		<mkdir dir="${output.dev.coverage.regression.dir}" />
+		<mkdir dir="${output.dev}" />
+		<mkdir dir="${artifacts.dev-release.shared}" />
+		<mkdir dir="${artifacts.dev-release}" />
+		<mkdir dir="${output.dev}/${output.dev.tar}" />
 	</target>
 
 	<target name="clean" description="clean up binaries and api doc">
 		<delete dir="${output.dev.build}" />
 		<delete dir="${output.dev}" />
-
 		<delete dir="${output.test.regression.build}" />
 		<delete dir="${output.test.functional.build}" />
-
 		<delete dir="${output.dev.coverage.dir}" />
 		<delete dir="${output.dev.coverage.functional.dir}" />
 		<delete dir="${output.dev.coverage.regression.dir}" />
+		<delete dir="${artifacts.dev-release.shared}" />
+		<delete dir="${artifacts.dev-release}" />
+		<delete dir="${output.dev}/${output.dev.tar}" />
 	</target>
 
 </project>

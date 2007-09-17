@@ -24,9 +24,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
-import com.qut.middleware.esoe.log4j.AuthnLogLevel;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
@@ -57,6 +56,7 @@ public class CreateImpl implements Create
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(CreateImpl.class.getName());
+	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
 	 * Constructor
@@ -128,7 +128,7 @@ public class CreateImpl implements Create
 
 		identityData.setCurrentHandler(null);
 
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("CreateImpl.3"), sessionID)); //$NON-NLS-1$
+		this.logger.info(MessageFormat.format(Messages.getString("CreateImpl.3"), sessionID)); //$NON-NLS-1$
 
 		// Create the principal
 		Principal principal = new PrincipalImpl(identityData, this.sessionLength);
@@ -140,10 +140,7 @@ public class CreateImpl implements Create
 
 		SAMLAuthnID = this.identifierGenerator.generateSAMLAuthnID();
 		principal.setSAMLAuthnIdentifier(SAMLAuthnID);
-		this.logger
-				.log(
-						AuthnLogLevel.AUTHN,
-						Messages.getString("CreateImpl.8") + principal.getPrincipalAuthnIdentifier() + Messages.getString("CreateImpl.9") + SAMLAuthnID); //$NON-NLS-1$ //$NON-NLS-2$
+		this.authnLogger.info(Messages.getString("CreateImpl.8") + principal.getPrincipalAuthnIdentifier() + Messages.getString("CreateImpl.9") + SAMLAuthnID); //$NON-NLS-1$ //$NON-NLS-2$
 
 		/*
 		 * Principal is created and identity information setup from backend stores, add dynamically specified data from
@@ -223,7 +220,7 @@ public class CreateImpl implements Create
 
 		String SAMLAuthnID = this.identifierGenerator.generateSAMLAuthnID();
 		principal.setSAMLAuthnIdentifier(SAMLAuthnID);
-		this.logger.log(AuthnLogLevel.AUTHN, "SSO identifier established for REMOTE PRINCIPAL: " + principal.getPrincipalAuthnIdentifier() + Messages.getString("CreateImpl.9") + SAMLAuthnID); //$NON-NLS-2$
+		this.authnLogger.info("SSO identifier established for REMOTE principal " + principal.getPrincipalAuthnIdentifier() + Messages.getString("CreateImpl.9") + SAMLAuthnID); //$NON-NLS-2$
 		
 		for(AttributeType attrib : principalAttributes)
 		{

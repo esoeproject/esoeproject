@@ -37,7 +37,7 @@ public interface Marshaller<T>
 	 * @return Valid  XML document if no errors occur.
 	 * @throws MarshallerException if an error occurs marshalling the document.
 	 */
-	public String marshallSigned( T xmlObj )  throws MarshallerException;
+	public byte[] marshallSigned( T xmlObj )  throws MarshallerException;
 	
 	/**
 	 * Marshalls content that does not require any signing in the final generated XML document.
@@ -49,7 +49,7 @@ public interface Marshaller<T>
 	 * @return A marshalled XML document if no errors occur.
 	 * @throws MarshallerException  if an error occurs marshalling the document.
 	 */
-	public String marshallUnSigned( T xmlObj )  throws MarshallerException;
+	public byte[] marshallUnSigned( T xmlObj )  throws MarshallerException;
 	
 	/**
 	 * Marshalls content that does not require any signing in the final generated XML node.
@@ -62,4 +62,39 @@ public interface Marshaller<T>
 	 * @throws MarshallerException if an error occurs marshalling the document.
 	 */
 	public Element marshallUnSignedElement( T xmlObj )  throws MarshallerException;
+	
+	/**
+	 * Marshalls content that requires enveloped XML signature creation and requires a certain type of charset encoding on this call
+	 * 
+	 * This marshaller will validate the supplied object to schema, the final document will include enveloped digital signatures for the elemets listed
+	 * 
+	 * @param xmlObj JAXB object of type to be marshalled, MUST contain an empty <ds:Signature/> element
+	 * @return Valid  XML document if no errors occur.
+	 * @throws MarshallerException if an error occurs marshalling the document.
+	 */
+	public byte[] marshallSigned( T xmlObj, String encoding )  throws MarshallerException;
+	
+	/**
+	 * Marshalls content that does not require any signing in the final generated XML document and requires a certain type of charset encoding on this call.
+	 * 
+	 * This marshaller does not undertake any validation of schema, it is assumed that the supplied object for xmlObj has been supplied with all
+	 * required data for generating a valid XML document. 
+	 * 
+	 * @param xmlObj JAXB created implementation of some defined schema object
+	 * @return A marshalled XML document if no errors occur.
+	 * @throws MarshallerException  if an error occurs marshalling the document.
+	 */
+	public byte[] marshallUnSigned( T xmlObj, String encoding )  throws MarshallerException;
+	
+	/**
+	 * Marshalls content that does not require any signing in the final generated XML node and requires a certain type of charset encoding on this call.
+	 * 
+	 * This marshaller does not undertake any validation of schema, it is assumed that the supplied object for xmlObj has been supplied with all
+	 * required data for generating a valid XML element. 
+	 * 
+	 * @param xmlObj JAXB created implementation of some defined schema object
+	 * @return A marshalled  XML document if no errors occur.
+	 * @throws MarshallerException if an error occurs marshalling the document.
+	 */
+	public Element marshallUnSignedElement( T xmlObj, String encoding )  throws MarshallerException;
 }

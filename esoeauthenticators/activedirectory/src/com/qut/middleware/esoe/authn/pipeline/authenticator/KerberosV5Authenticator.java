@@ -36,7 +36,6 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.Oid;
 
 import com.qut.middleware.esoe.authn.pipeline.SPNEGOAuthenticator;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 
 public class KerberosV5Authenticator implements SPNEGOAuthenticator
 {
@@ -133,14 +132,14 @@ public class KerberosV5Authenticator implements SPNEGOAuthenticator
 			// Create a LoginContext 
 			context = new LoginContext(loginContextName, null, null, this.config);
 
-			this.logger.log(InsaneLogLevel.DEBUG, Messages.getString("KerberosV5Authenticator.7") + loginContextName); //$NON-NLS-1$
+			this.logger.trace(Messages.getString("KerberosV5Authenticator.7") + loginContextName); //$NON-NLS-1$
 			
 			// Perform server authentication
 			context.login();
 			
 			Subject subject = context.getSubject();
-			this.logger.log(InsaneLogLevel.INSANE, subject.toString());
-			this.logger.log(InsaneLogLevel.DEBUG, Messages.getString("KerberosV5Authenticator.8") + subject.getPrincipals()); //$NON-NLS-1$
+			this.logger.trace(subject.toString());
+			this.logger.trace(Messages.getString("KerberosV5Authenticator.8") + subject.getPrincipals()); //$NON-NLS-1$
 					
 			// perform kerberos validation
 			return (String)(Subject.doAs(subject, actionToPerform));
@@ -148,22 +147,22 @@ public class KerberosV5Authenticator implements SPNEGOAuthenticator
 		} 
 		catch (LoginException e)
 		{		
-			this.logger.log(InsaneLogLevel.WARN, Messages.getString("KerberosV5Authenticator.9")); //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.TRACE, e.getLocalizedMessage(), e);
+			this.logger.warn(Messages.getString("KerberosV5Authenticator.9")); //$NON-NLS-1$
+			this.logger.trace(e.getLocalizedMessage(), e);
 
 			return null;
 		}
 		catch(PrivilegedActionException e)
 		{	
-			this.logger.log(InsaneLogLevel.TRACE, e.getLocalizedMessage(), e);
-			this.logger.log(InsaneLogLevel.DEBUG, Messages.getString("KerberosV5Authenticator.10") + e.getCause().getMessage()); //$NON-NLS-1$
+			this.logger.trace(e.getLocalizedMessage(), e);
+			this.logger.trace(Messages.getString("KerberosV5Authenticator.10") + e.getCause().getMessage()); //$NON-NLS-1$
 		
 			return null;
 		}
 		catch(Exception e)
 		{
 			this.logger.debug(Messages.getString("KerberosV5Authenticator.11") + e.getCause().getMessage()); //$NON-NLS-1$
-			this.logger.log(InsaneLogLevel.TRACE, e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 			
 			return null;
 		}		
@@ -195,16 +194,16 @@ public class KerberosV5Authenticator implements SPNEGOAuthenticator
 			 */
 			GSSContext context = manager.createContext((GSSCredential) serverCreds);
 			
-			KerberosV5Authenticator.this.logger.log(InsaneLogLevel.INSANE, Messages.getString("KerberosV5Authenticator.12") + this.spnegoToken.length +Messages.getString("KerberosV5Authenticator.13") + getHexBytes(this.spnegoToken, 0, this.spnegoToken.length)); //$NON-NLS-1$ //$NON-NLS-2$
+			KerberosV5Authenticator.this.logger.trace(Messages.getString("KerberosV5Authenticator.12") + this.spnegoToken.length +Messages.getString("KerberosV5Authenticator.13") + getHexBytes(this.spnegoToken, 0, this.spnegoToken.length)); //$NON-NLS-1$ //$NON-NLS-2$
 						
 			// we wont return the token at this stage
 			@SuppressWarnings("unused")
 			byte[] token = context.acceptSecContext(this.spnegoToken, 0, this.spnegoToken.length);
 			
-			KerberosV5Authenticator.this.logger.log(InsaneLogLevel.DEBUG, "Context established."); //$NON-NLS-1$
-			KerberosV5Authenticator.this.logger.log(InsaneLogLevel.DEBUG, Messages.getString("KerberosV5Authenticator.14") + context.getCredDelegState()); //$NON-NLS-1$
-			KerberosV5Authenticator.this.logger.log(InsaneLogLevel.DEBUG, Messages.getString("KerberosV5Authenticator.15") + context.getSrcName()); //$NON-NLS-1$
-			KerberosV5Authenticator.this.logger.log(InsaneLogLevel.DEBUG, Messages.getString("KerberosV5Authenticator.16") + context.getTargName()); //$NON-NLS-1$
+			KerberosV5Authenticator.this.logger.trace("Context established."); //$NON-NLS-1$
+			KerberosV5Authenticator.this.logger.trace(Messages.getString("KerberosV5Authenticator.14") + context.getCredDelegState()); //$NON-NLS-1$
+			KerberosV5Authenticator.this.logger.trace(Messages.getString("KerberosV5Authenticator.15") + context.getSrcName()); //$NON-NLS-1$
+			KerberosV5Authenticator.this.logger.trace(Messages.getString("KerberosV5Authenticator.16") + context.getTargName()); //$NON-NLS-1$
 			
 			String authenticatedPrincipal = null;
 			

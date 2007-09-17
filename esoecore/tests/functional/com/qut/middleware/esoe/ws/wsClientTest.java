@@ -25,7 +25,7 @@ public class wsClientTest {
 	@Test
 	public void testAuthzCacheClear() 
 	{
-		String authzCacheClearReq = "<hello></hello>";
+		byte[] authzCacheClearReq = new String("<hello></hello>").getBytes();
 		String endpoint = "https://spep-linux.esoe-dev.qut.edu.au:8443/spep/services/spep/authzCacheClear";
 		
 		try
@@ -41,7 +41,7 @@ public class wsClientTest {
 	//@Test
 	public void testSingleLogout() 
 	{
-		String logoutReq = "<hello></hello>";
+		byte[] logoutReq = new String("<hello></hello>").getBytes();
 		String endpoint = "https://spep-linux.esoe-dev.qut.edu.au:8443/spep/services/spep/singleLogout";
 		
 		try

@@ -26,24 +26,24 @@ public interface SAMLProcessorData
 	 * 
 	 * @return request document for this processor data bean
 	 */
-	public String getRequestDocument();
+	public byte[] getRequestDocument();
 	
 	/**
 	 * Mutator for SAML 2.0 request document.
 	 * 
 	 * @param requestDocument The SAML request to store in this processor data bean
 	 */
-	public void setRequestDocument(String requestDocument);
+	public void setRequestDocument(byte[] requestDocument);
 	
 	/** Accessor for SAML 2.0 response document.
 	 *  
 	 * @return response document for this processor data bean
 	 */
-	public String getResponseDocument();
+	public byte[] getResponseDocument();
 	
 	/** Mutator for SAML 2.0 response document.
 	 * 
 	 * @param responseDocument The SAML response to store in this processor data bean
 	 */
-	public void setResponseDocument(String responseDocument);
+	public void setResponseDocument(byte[] responseDocument);
 }

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== 
+	Author: Bradley Beddoes
+	Date: 20/11/2006                                                        
+	Purpose: Builds the SPEP Filter for java for JVM 1.4
+	
+	====================================================================== -->
+
+<project name="spepjavafilter-jvm1.4" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property file="build.properties" />
+
+	<description>
+		Builds the Service Provider Enforcement Point Filter for JVM 1.4
+	</description>
+
+	<taskdef name="retrotranslator" classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
+		<classpath>
+			<pathelement location="${ant.retrotranslator_concurrent}" />
+			<pathelement location="${ant.retrotranslator_runtime}" />
+			<pathelement location="${ant.retrotranslator_transformer}" />
+		</classpath>
+	</taskdef>
+
+	<!-- 
+		Integration with apache ivy for dependency resolution in the development environment, this is a standalone target and should be run manually before invoking other
+		ant operations associated with SAML2 lib for Java
+	-->
+	<target name="dev-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
+	</target>
+
+	<!-- 
+		SPEP Filter Development environment compilation and release creation
+	-->
+	<target name="dev-release" depends="dev-jar" description="Builds a release tar ball for the filter">
+		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" compression="gzip">
+			<tarfileset file="${output.dev}/${output.dev.jar}.jar" />
+		</tar>
+	</target>
+
+	<target name="dev-jar" depends="translate-spepfilter" description="Assembles SPEP filter jar">
+		<jar destfile="${output.dev}/${output.dev.jar}.jar">
+			<fileset dir="${output.dev.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="translate-spepfilter" depends="setup, dev-resolve">
+		<retrotranslator destdir="${output.dev.build}" verify="true">
+			<jarfileset dir="../spepjavafilter/${output.dev}" includes="**/*.jar" />
+			<classpath location="${java142.home}/jre/lib/rt.jar" />
+			<classpath>
+				<pathelement location="${ant.retrotranslator_concurrent}" />
+				<pathelement location="${ant.retrotranslator_runtime}" />
+				<pathelement location="${ant.retrotranslator_transformer}" />
+				<fileset dir="${artifacts}/dev">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="../spepjava-jvm1.4/${output.dev}/">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</retrotranslator>
+	</target>
+
+	<!-- 
+		General operations to setup and cleanup environment 
+	-->
+	<target name="setup" depends="clean" description="Creates base directories">
+		<mkdir dir="${output.dev.build}" />
+		<mkdir dir="${output.dev}" />
+	</target>
+
+	<target name="clean" description="Removes base directories">
+		<delete dir="${output.dev.build}" />
+		<delete dir="${output.dev}" />
+	</target>
+
+	<target name="javadoc" description="Create Javadocs">
+		<mkdir dir="${output.javadoc}" />
+		<javadoc destdir="${output.javadoc}" sourcepath="${src}">
+			<classpath>
+				<fileset dir="${artifacts}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javadoc>
+	</target>
+
+</project>

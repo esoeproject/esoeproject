@@ -24,8 +24,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Update;
@@ -44,6 +44,7 @@ public class UpdateImpl implements Update
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(UpdateImpl.class.getName());
+	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
 	 * Constructor.
@@ -67,14 +68,13 @@ public class UpdateImpl implements Update
 	 * 
 	 * @see com.qut.middleware.esoe.sessions.Update#updateEntityList(java.lang.String, java.lang.String)
 	 */
-	public void updateDescriptorList(String sessionID, String descriptorID) throws InvalidSessionIdentifierException
+	public void updateDescriptorList(String sessionID, String entityID) throws InvalidSessionIdentifierException
 	{
 		Principal principal = this.getPrincipal(sessionID);
 
-		principal.addActiveDescriptor(descriptorID);
+		principal.addActiveDescriptor(entityID);
 
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(
-				Messages.getString("UpdateImpl.1"), descriptorID, sessionID)); //$NON-NLS-1$
+		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.1"), entityID, sessionID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -83,15 +83,14 @@ public class UpdateImpl implements Update
 	 * @see com.qut.middleware.esoe.sessions.Update#updateEntitySessionIdentifierList(java.lang.String,
 	 *      java.lang.String, java.lang.String)
 	 */
-	public void updateDescriptorSessionIdentifierList(String sessionID, String descriptorID, String descriptorSessionID)
+	public void updateDescriptorSessionIdentifierList(String sessionID, String entityID, String descriptorSessionID)
 			throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException
 	{
 		Principal principal = this.getPrincipal(sessionID);
 
-		principal.addDescriptorSessionIdentifier(descriptorID, descriptorSessionID);
+		principal.addDescriptorSessionIdentifier(entityID, descriptorSessionID);
 
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(
-				Messages.getString("UpdateImpl.2"), descriptorSessionID, descriptorID, sessionID)); //$NON-NLS-1$
+		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.2"), descriptorSessionID, entityID, sessionID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -99,8 +98,7 @@ public class UpdateImpl implements Update
 	 * 
 	 * @see com.qut.middleware.esoe.sessions.Update#updateSAMLAuthnIdentifier(java.lang.String, java.lang.String)
 	 */
-	public void updateSAMLAuthnIdentifier(String sessionID, String samlID) throws DuplicateSessionException,
-			InvalidSessionIdentifierException
+	public void updateSAMLAuthnIdentifier(String sessionID, String samlID) throws DuplicateSessionException, InvalidSessionIdentifierException
 	{
 		Principal principal = this.getPrincipal(sessionID);
 
@@ -108,17 +106,18 @@ public class UpdateImpl implements Update
 
 		this.cache.updateSessionSAMLID(principal);
 
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(
-				Messages.getString("UpdateImpl.3"), sessionID, samlID)); //$NON-NLS-1$
+		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.3"), sessionID, samlID)); //$NON-NLS-1$
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.esoe.sessions.Update#updatePrincipalAttributes(java.lang.String, java.util.List)
 	 */
 	public void updatePrincipalAttributes(String sessionID, List<AuthnIdentityAttribute> authnIdentityAttributes) throws InvalidSessionIdentifierException
 	{
 		Principal principal = this.getPrincipal(sessionID);
-		
+
 		if (authnIdentityAttributes != null)
 		{
 			for (AuthnIdentityAttribute attrib : authnIdentityAttributes)
@@ -174,8 +173,7 @@ public class UpdateImpl implements Update
 			throw new InvalidSessionIdentifierException();
 		}
 
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(
-				Messages.getString("UpdateImpl.5"), principal.getPrincipalAuthnIdentifier(), sessionID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("UpdateImpl.5"), principal.getPrincipalAuthnIdentifier(), sessionID)); //$NON-NLS-1$
 		return principal;
 	}
 }

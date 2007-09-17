@@ -21,8 +21,7 @@ package com.qut.middleware.esoe.pdp.cache.sqlmap;
 
 
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.Map;
+import java.util.List;
 
 import com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheData;
 import com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheQueryData;
@@ -30,22 +29,21 @@ import com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheQueryData;
 public interface PolicyCacheDao 
 {
 
-	/**
-	 * @return The date/time the policy cache was last updated
-	 * @throws SQLException
+	/** Query the sequence id value for policies stored in the data store.
+	 * 
+	 * @return The highest value sequenceId in the data source, representing the latest updated Policy.
+	 * @throws SQLException if an error occurs communicating with the data store.
 	 */
-	public Date queryDateLastUpdated() throws SQLException;
+	public long queryLastSequenceId() throws SQLException;
 	
 	
 	/**
-	 * Retrieves policies based on a query. If the date in the query data is specified, only policies
-	 * updated after the given date/time are returned. If the date is not specified, all policies are
-	 * returned.
-	 * @param queryData The query data to use when querying the policy cache
-	 * @return The policies matching the query
-	 * @throws SQLException
+	 * Retrieves policies based on the data contained in the given query data object. 
+	 * 
+	 * @param queryData The query data to use when querying the policy cache.
+	 * @return The Policy data of Policies matching the query.
+	 * @throws SQLException if an error occurs communicating with the data store.
 	 */
-	@SuppressWarnings("unchecked")
-	public Map<String,PolicyCacheData> queryPolicyCache(PolicyCacheQueryData queryData) throws SQLException;
+	public List<PolicyCacheData> queryPolicyCache(PolicyCacheQueryData queryData) throws SQLException;
 	
 }

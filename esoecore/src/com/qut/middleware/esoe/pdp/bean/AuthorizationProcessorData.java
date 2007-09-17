@@ -27,21 +27,21 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 {
 
 	/**
-	 * Sets the descriptor identifier of the authorization data. The descriptor ID is used to identify
+	 * Sets the issuer identifier of the authorization request. The issuer ID is used to identify
 	 * a service authorization policy. See ESOE specification <a href=https://wiki.qut.
 	 * edu.au/display/ICC/ESOE+Design#ESOEDesign-AuthorizationProcessor> LXACMLSchema </a>.
 	 * 
-	 * @param ID The descriptor identifier.
+	 * @param issuerID The issuer identifier.
 	 */
-	public void setDescriptorID(String ID);
+	public void setIssuerID(String issuerID);
 	
 
 	/**
-	 * Gets the descriptor identifier of the authorization data. The descriptor ID is used to identify a 
+	 * Gets the issuer identifier of the authorization request. The issuer ID is used to identify a 
 	 * lxacml authorization policy.
 	 * @return The descriptor identifier
 	 */
-	public String getDescriptorID();
+	public String getIssuerID();
 	
 
 	/** Set the subject ID string for the authorization data. The subjectID is used to identify
@@ -63,9 +63,9 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	/**
 	 * Set the opensaml 2.0 compliant request document associated with this authorization data.
 	 * 
-	 * @param request A valid, opensaml 2.0 compliant xml request string containing request data.
+	 * @param request A valid, opensaml 2.0 compliant xml request containing request data.
 	 */
-	public void setRequestDocument(String request);
+	public void setRequestDocument(byte[] request);
 	
 	
 	/**
@@ -73,7 +73,7 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	 * 
 	 * @param response A valid, opensaml 2.0 compliant xml response containing response data.
 	 */
-	public void setResponseDocument(String response);
+	public void setResponseDocument(byte[] response);
 	
 	
 	/**
@@ -81,7 +81,7 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	 * 
 	 * @return The opensaml 2.0 response document as set by setResponseDocument, else null if not exists.
 	 */
-	public String getResponseDocument();
+	public byte[] getResponseDocument();
 	
 	
 	
@@ -91,6 +91,6 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	 * @return The opensaml 2.0 request document as set by setRequestDocument, else null if not exists.
 	 *        
 	 */
-	public String getRequestDocument();
+	public byte[] getRequestDocument();
 
 }

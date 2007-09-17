@@ -1,0 +1,169 @@
+#if($error)
+<h2>Error</h2>
+While attempting to register the ESOE an error has occured, preliminary details are listed below. For more information ensure logging is set to debug and check your log files.
+<br/><br/>
+<div id="error">
+$errorMessage
+</div>
+<br/><br/>
+<a href="registeresoe-stage9.htm">Attempt to register again</a>
+#else
+
+<h2> Verify Registration </h2>
+You have entered the following details about your ESOE environment, please validate that the below is correct.
+<br/><br/>
+Once it is please enter the full path to the servers tomcat webapps directory, <strong>i.e. /var/tomcat5/webapps</strong> and press complete.
+
+<div id="finalizeform">
+$finalizeForm
+</div>
+
+Should you wish to correct anything please navigate back using the previous button.
+
+<div id="content">
+<h3>Content Directories</h3>
+<table>
+<tr>
+<th>esoe.data</th><td>$esoeBean.getEsoeDataDirectory()</td>
+</tr>
+<tr>
+<th>esoemanager.data</th><td>$esoeBean.getEsoemanagerDataDirectory()</td>
+</tr>
+<tr>
+<th>spep.data</th><td>$esoeBean.getSpepDataDirectory()</td>
+</tr>
+</table>
+</div>
+
+<div id="database">
+<h3> Database Details </h3>
+<table>
+<tr>
+<th>URL</th><td>$esoeBean.getDatabaseURL()</td>
+</tr>
+<tr>
+<th>Database username</th><td>$esoeBean.getDatabaseUsername()</td>
+</tr>
+<tr>
+<th>Database password</th><td>$esoeBean.getDatabasePassword()</td>
+</tr>
+</table>
+</div>
+
+<div id="esoe">
+<h3> ESOE Details </h3>
+<table>
+<tr>
+<th>Organization Name</th><td>$esoeBean.getEsoeOrganizationName()</td>
+</tr>
+<tr>
+<th>Organization Display Name</th><td>$esoeBean.getEsoeOrganizationDisplayName()</td>
+</tr>
+<tr>
+<th>Organization URL</th><td>$esoeBean.getEsoeOrganizationURL()</td>
+</tr>
+<tr>
+<th>URL</th><td>$esoeBean.getEsoeNodeURL()</td>
+</tr>
+<tr>
+<th>Identifier</th><td>$esoeBean.getIdpEntityID()</td>
+</tr>
+<tr>
+<th>Single Sign On Service</th><td>$esoeBean.getEsoeSingleSignOn()</td>
+</tr>
+<tr>
+<th>Attribute Service</th><td>$esoeBean.getEsoeAttributeService()</td>
+</tr>
+<tr>
+<th>LXACML Service</th><td>$esoeBean.getEsoeLxacmlService()</td>
+</tr>
+<tr>
+<th>SPEP Startup Service</th><td>$esoeBean.getEsoeSPEPStartupService()</td>
+</tr>
+</table>
+</div>
+
+<div id="contactPersons">
+<h3> Contacts </h3>
+You have added the following contacts for the ESOE
+<br/>
+<table>
+<tr>
+<th>Name</th><th>Email</th><th>Type</th>
+</tr>
+#foreach( $contact in $esoeBean.getContacts() )
+<tr>
+<td>$contact.getGivenName() $contact.getSurName()</td>
+<td>$contact.getEmailAddress()</td>
+<td>$contact.getContactType()</td>
+</tr>
+#end
+</table>
+</div>
+
+<div id="manager">
+<h3> ESOE Manager configuration </h3>
+<table>
+<tr>
+<th>URL</th><td>$esoeBean.getServiceURL()</td>
+</tr>
+<tr>
+<th>Identifier</th><td>$esoeBean.getEntityID()</td>
+</tr>
+<tr>
+<th>Description</th><td>$esoeBean.getServiceDescription()</td>
+</tr>
+<tr>
+<th>Authz Failure Message</th><td>$esoeBean.getServiceAuthzFailureMsg()</td>
+</tr>
+</table>
+
+<div id="managerNodes">
+<h3> Manager Nodes </h3>
+#if($esoeBean.getServiceNodes() )
+#if($esoeBean.getServiceNodes().size() > 0)
+<br/>
+You have added the following nodes for the ESOE Manager
+<br/>
+<table>
+<tr>
+<th>Base Node URL</th><th>Assertion Consumer Service</th><th>Single Logout Service</th><th>Cache Clear Service</th><th/><th/>
+</tr>
+<tr>
+#foreach( $node in $esoeBean.getServiceNodes() )
+<td>$node.getNodeURL()</td>
+<td>$node.getAssertionConsumerService()</td>
+<td>$node.getSingleLogoutService()</td>
+<td>$node.getCacheClearService()</td>
+<td><a href="registeresoe-stage6.htm?action=edit&ref=$velocityCount">edit</a></td>
+<td><a href="registeresoe-stage6.htm?action=delete&ref=$velocityCount">delete</a></td>
+</tr>
+#end
+</table>
+#end
+#end
+</div>
+
+<div id="crypto">
+<h3> Crypto </h3>
+<table>
+<tr>
+<td><th>Certificate Issuer DN</th></td><td>$esoeBean.getCertIssuerDN()</td>
+</tr>
+<tr>
+<td><th>Certificate Issuer Email</th></td><td>$esoeBean.getCertIssuerEmailAddress()</td>
+</tr>
+</table>
+</div>
+#end
+
+
+
+
+
+
+
+
+
+
+

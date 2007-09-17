@@ -50,9 +50,9 @@ public interface Principal
 	 * Mutator for list of active entities. An active descriptor is an SPEP for which the user has
 	 * been authenticated.
 	 * 
-	 * @param descriptorID Descriptor to add to list.
+	 * @param entityID Descriptor to add to list.
 	 */
-	public void addActiveDescriptor(String descriptorID);
+	public void addActiveDescriptor(String entityID);
 
 	/**
 	 * Adds a session identifier to the list of identifiers associated with an SPEP.

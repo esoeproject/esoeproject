@@ -23,8 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
@@ -91,7 +89,6 @@ import com.qut.middleware.saml2.resolver.SchemaResolver;
 public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marshaller<T>
 {
 	private TransformerFactory transFac;
-	private Properties properties;
 
 	private ResourceResolver resourceResolver;
 
@@ -103,6 +100,8 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 
 	private String keyPairName;
 	private PrivateKey pk;
+
+	private String defaultCharset = "UTF-16";
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(MarshallerImpl.class.getName());
@@ -150,8 +149,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				{
 					this.logger.fatal(Messages.getString("UnmarshallerImpl.49") + schemaList[i] //$NON-NLS-1$
 							+ Messages.getString("UnmarshallerImpl.50")); //$NON-NLS-1$
-					throw new IllegalArgumentException(
-							Messages.getString("UnmarshallerImpl.26") + schemaList[i] + Messages.getString("UnmarshallerImpl.27")); //$NON-NLS-1$//$NON-NLS-2$
+					throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.26") + schemaList[i] + Messages.getString("UnmarshallerImpl.27")); //$NON-NLS-1$//$NON-NLS-2$
 				}
 
 				schemaSource[i] = new StreamSource(location.openStream());
@@ -209,8 +207,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	 * @throws MarshallerException
 	 *             if an error occurs creating the marshaller.
 	 */
-	public MarshallerImpl(String packageName, String[] schemaList, String keyPairName, PrivateKey pk)
-			throws MarshallerException
+	public MarshallerImpl(String packageName, String[] schemaList, String keyPairName, PrivateKey pk) throws MarshallerException
 	{
 		if ((packageName == null) || (packageName.length() <= 0))
 		{
@@ -240,7 +237,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		try
 		{
 			this.resourceResolver = new ResourceResolver();
-			this.properties = new Properties();
+
 			Source[] schemaSource = new Source[schemaList.length];
 
 			/* Prepare all schemas requested by caller to be used in validation */
@@ -251,8 +248,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				{
 					this.logger.fatal(Messages.getString("UnmarshallerImpl.49") + schemaList[i] //$NON-NLS-1$
 							+ Messages.getString("UnmarshallerImpl.50")); //$NON-NLS-1$
-					throw new IllegalArgumentException(
-							Messages.getString("UnmarshallerImpl.26") + schemaList[i] + Messages.getString("UnmarshallerImpl.27")); //$NON-NLS-1$//$NON-NLS-2$
+					throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.26") + schemaList[i] + Messages.getString("UnmarshallerImpl.27")); //$NON-NLS-1$//$NON-NLS-2$
 				}
 
 				schemaSource[i] = new StreamSource(location.openStream());
@@ -264,7 +260,6 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			this.schemaFactory.setResourceResolver(this.resourceResolver);
 			this.schema = this.schemaFactory.newSchema(schemaSource);
 
-			this.properties.setProperty(OutputKeys.ENCODING, "UTF-16"); //$NON-NLS-1$
 			this.transFac = TransformerFactory.newInstance();
 
 			this.validationHandler = new MarshallerValidationHandler();
@@ -300,13 +295,19 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallSigned(java.lang.String, java.lang.String,
-	 *      java.security.PrivateKey, java.lang.String[], java.lang.Object)
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallSigned(java.lang.Object)
 	 */
-	public String marshallSigned(T xmlObj) throws MarshallerException
+	public byte[] marshallSigned(T xmlObj) throws MarshallerException
+	{
+		return this.marshallSigned(xmlObj, this.defaultCharset);
+	}
+	
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallSigned(java.lang.Object, java.lang.String)
+	 */
+	public byte[] marshallSigned(T xmlObj, String encoding) throws MarshallerException
 	{
 		this.logger.debug(Messages.getString("MarshallerImpl.40")); //$NON-NLS-1$
 
@@ -323,29 +324,26 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 
 		ByteArrayInputStream byteArrayInputStream;
-		String xml = marshallUnSigned(xmlObj);
+		byte[] xml = marshallUnSigned(xmlObj, encoding);
 
-		try
-		{
-			byteArrayInputStream = new ByteArrayInputStream(xml.getBytes("UTF-16")); //$NON-NLS-1$
-			xml = sign(byteArrayInputStream);
+		byteArrayInputStream = new ByteArrayInputStream(xml); //$NON-NLS-1$
+		xml = sign(byteArrayInputStream, encoding);
 
-			return xml;
-		}
-		catch (UnsupportedEncodingException uee)
-		{
-			this.logger.warn(Messages.getString("MarshallerImpl.41")); //$NON-NLS-1$
-			this.logger.debug(uee.getLocalizedMessage(), uee);
-			throw new MarshallerException(uee.getLocalizedMessage(), uee);
-		}
+		return xml;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallUnSigned(java.lang.String, java.lang.Object)
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallUnSigned(java.lang.Object)
 	 */
-	public String marshallUnSigned(T xmlObj) throws MarshallerException
+	public byte[] marshallUnSigned(T xmlObj) throws MarshallerException
+	{
+		return this.marshallUnSigned(xmlObj, this.defaultCharset);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallUnSigned(java.lang.Object, java.lang.String)
+	 */
+	public byte[] marshallUnSigned(T xmlObj, String encoding) throws MarshallerException
 	{
 		this.logger.debug(Messages.getString("MarshallerImpl.42")); //$NON-NLS-1$
 
@@ -356,13 +354,13 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 
 		Marshaller marshaller;
-		StringWriter stringWriter = new StringWriter();
-		StreamResult streamResult = new StreamResult(stringWriter);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		StreamResult streamResult = new StreamResult(outputStream);
 
 		try
 		{
 			marshaller = jaxbContext.createMarshaller();
-			marshaller.setProperty("jaxb.encoding", "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
+			marshaller.setProperty("jaxb.encoding", encoding); //$NON-NLS-1$ //$NON-NLS-2$
 
 			/* Setup the configured prefix mapper to make our saml easy for human consumption */
 			try
@@ -377,7 +375,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			}
 			marshaller.marshal(xmlObj, streamResult);
 
-			return stringWriter.toString();
+			return outputStream.toByteArray();
 		}
 		catch (JAXBException je)
 		{
@@ -387,12 +385,20 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallUnSignedElement(java.lang.Object)
+	 */
+	public Element marshallUnSignedElement(T xmlObj) throws MarshallerException
+	{
+		return this.marshallUnSignedElement(xmlObj, this.defaultCharset);
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallUnSignedNode(java.lang.String, java.lang.Object)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallUnSignedNode(java.lang.Object, java.lang.String)
 	 */
-	public Element marshallUnSignedElement(T xmlObj) throws MarshallerException
+	public Element marshallUnSignedElement(T xmlObj, String encoding) throws MarshallerException
 	{
 		this.logger.debug(Messages.getString("MarshallerImpl.45")); //$NON-NLS-1$
 
@@ -416,7 +422,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			doc = docBuilder.newDocument();
 
 			marshaller = jaxbContext.createMarshaller();
-			marshaller.setProperty("jaxb.encoding", "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
+			marshaller.setProperty("jaxb.encoding", encoding); //$NON-NLS-1$ //$NON-NLS-2$
 
 			/* Setup the configured prefix mapper to make our SAML xml output easy for human consumption */
 			try
@@ -447,7 +453,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			throw new MarshallerException(pce.getMessage(), pce);
 		}
 	}
-
+	
 	/**
 	 * Validates, Signs and creates XML content.
 	 * 
@@ -461,13 +467,14 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	 *            The validated xml content to be signed
 	 * @return A string representation of the completed document
 	 */
-	private String sign(InputStream document) throws MarshallerException
+	private byte[] sign(InputStream document, String encoding) throws MarshallerException
 	{
 		XMLSignatureFactory xmlSigFac;
 		DigestMethod digestMethod;
 		CanonicalizationMethod canocMeth;
 		SignatureMethod sigMeth;
 		Transformer trans;
+		Properties properties;
 
 		ArrayList<Transform> transformList;
 		Document doc;
@@ -490,12 +497,9 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		try
 		{
 			/* XMLSignatureFactory instances are not thread safe outside static functions so create in local scope */
-			xmlSigFac = XMLSignatureFactory
-					.getInstance(
-							Constants.DOM_FACTORY, (Provider) Class.forName(System.getProperty(Constants.JSR_MECHANISM, Constants.JSR_PROVIDER)).newInstance()); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+			xmlSigFac = XMLSignatureFactory.getInstance(Constants.DOM_FACTORY, (Provider) Class.forName(System.getProperty(Constants.JSR_MECHANISM, Constants.JSR_PROVIDER)).newInstance()); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 			digestMethod = xmlSigFac.newDigestMethod(DigestMethod.SHA1, null);
-			canocMeth = xmlSigFac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE,
-					(ExcC14NParameterSpec) null);
+			canocMeth = xmlSigFac.newCanonicalizationMethod(CanonicalizationMethod.EXCLUSIVE, (ExcC14NParameterSpec) null);
 
 			if (this.pk.getAlgorithm().equals(Constants.RSA_KEY)) //$NON-NLS-1$
 			{
@@ -519,8 +523,11 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			doc = validate(document);
 
 			/* Create Transformer */
+			properties = new Properties();
+			properties.setProperty(OutputKeys.ENCODING, encoding); //$NON-NLS-1$
+
 			trans = this.transFac.newTransformer();
-			trans.setOutputProperties(this.properties);
+			trans.setOutputProperties(properties);
 
 			/* Locate all the empty Signature elements we wish to populate */
 			nodeList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, Constants.SIGNATURE_ELEMENT);
@@ -538,10 +545,8 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				transformList = new ArrayList<Transform>();
 				TransformParameterSpec transformSpec = null;
 
-				Transform exc14nTransform = xmlSigFac.newTransform(
-						Constants.EXC14NTRANS, transformSpec); //$NON-NLS-1$
-				Transform envTransform = xmlSigFac.newTransform(
-						Constants.ENVTRANS, transformSpec); //$NON-NLS-1$
+				Transform exc14nTransform = xmlSigFac.newTransform(Constants.EXC14NTRANS, transformSpec); //$NON-NLS-1$
+				Transform envTransform = xmlSigFac.newTransform(Constants.ENVTRANS, transformSpec); //$NON-NLS-1$
 
 				transformList.add(envTransform);
 				transformList.add(exc14nTransform);
@@ -564,17 +569,14 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				ref = xmlSigFac.newReference("#" + id, digestMethod, transformList, null, null); //$NON-NLS-1$
 				signedInfo = xmlSigFac.newSignedInfo(canocMeth, sigMeth, Collections.singletonList(ref));
 
-				factory = KeyInfoFactory
-						.getInstance(
-								Constants.DOM_FACTORY, (Provider) Class.forName(System.getProperty(Constants.JSR_MECHANISM, Constants.JSR_PROVIDER)).newInstance()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				factory = KeyInfoFactory.getInstance(Constants.DOM_FACTORY, (Provider) Class.forName(System.getProperty(Constants.JSR_MECHANISM, Constants.JSR_PROVIDER)).newInstance()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				keyName = factory.newKeyName(this.keyPairName);
 
 				/* Future additions to the KeyInfo block should be extended here */
 				keyInfo = factory.newKeyInfo(Collections.singletonList(keyName));
 
 				/* Skip text nodes here (handles human generated xml correctly) */
-				if ((signatureElement.getNextSibling() != null)
-						&& (signatureElement.getNextSibling().getNodeType() == Node.TEXT_NODE))
+				if ((signatureElement.getNextSibling() != null) && (signatureElement.getNextSibling().getNodeType() == Node.TEXT_NODE))
 				{
 					postSignature = (Element) signatureElement.getNextSibling().getNextSibling();
 				}
@@ -584,8 +586,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				}
 
 				/* Strip away any additional textnodes that are located (handles human generated xml correctly) */
-				if ((signatureElement.getPreviousSibling() != null)
-						&& (signatureElement.getPreviousSibling().getNodeType() == Node.TEXT_NODE))
+				if ((signatureElement.getPreviousSibling() != null) && (signatureElement.getPreviousSibling().getNodeType() == Node.TEXT_NODE))
 				{
 					signatureParent.removeChild(signatureElement.getPreviousSibling());
 				}
@@ -609,7 +610,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			streamResult = new StreamResult(bytes);
 			trans.transform(new DOMSource(doc), streamResult);
 
-			return bytes.toString("UTF-16"); //$NON-NLS-1$
+			return bytes.toByteArray(); //$NON-NLS-1$
 		}
 		catch (InvalidAlgorithmParameterException iape)
 		{

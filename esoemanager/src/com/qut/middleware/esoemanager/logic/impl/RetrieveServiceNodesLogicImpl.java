@@ -54,28 +54,28 @@ public class RetrieveServiceNodesLogicImpl implements RetrieveServiceNodesLogic
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.logic.impl.RetrieveServiceNodes#execute(java.lang.String)
 	 */
-	public List<ServiceNodeBean> execute(String descriptorID) throws RetrieveServiceNodesException
+	public List<ServiceNodeBean> execute(Integer descID) throws RetrieveServiceNodesException
 	{
 		List<ServiceNodeBean> nodes = new ArrayList<ServiceNodeBean>();
 
-		List<Map<String, String>> nodeDetails;
+		List<Map<String, Object>> nodeDetails;
 		try
 		{
-			nodeDetails = this.spepDAO.queryServiceNodes(descriptorID);
+			nodeDetails = this.spepDAO.queryServiceNodes(descID);
 		}
 		catch (SPEPDAOException e)
 		{
 			throw new RetrieveServiceNodesException("Exception when attempting to retrieve service nodes", e);
 		}
 		
-		for(Map<String, String> nodeDetail : nodeDetails)
+		for(Map<String, Object> nodeDetail : nodeDetails)
 		{
 			ServiceNodeBean node = new ServiceNodeBeanImpl();
-			node.setNodeID(nodeDetail.get(Constants.FIELD_ENDPOINT_ID));
-			node.setNodeURL(nodeDetail.get(Constants.FIELD_ENDPOINT_NODEURL));
-			node.setAssertionConsumerService(nodeDetail.get(Constants.FIELD_ENDPOINT_ASSERTIONCONSUMER));
-			node.setSingleLogoutService(nodeDetail.get(Constants.FIELD_ENDPOINT_SINGLELOGOUT));
-			node.setCacheClearService(nodeDetail.get(Constants.FIELD_ENDPOINT_CACHECLEAR));
+			node.setNodeID((String)nodeDetail.get(Constants.FIELD_ENDPOINT_ID));
+			node.setNodeURL((String)nodeDetail.get(Constants.FIELD_ENDPOINT_NODEURL));
+			node.setAssertionConsumerService((String)nodeDetail.get(Constants.FIELD_ENDPOINT_ASSERTIONCONSUMER));
+			node.setSingleLogoutService((String)nodeDetail.get(Constants.FIELD_ENDPOINT_SINGLELOGOUT));
+			node.setCacheClearService((String)nodeDetail.get(Constants.FIELD_ENDPOINT_CACHECLEAR));
 			
 			nodes.add(node);
 		}

@@ -13,6 +13,7 @@ public class CacheDataImpl implements CacheData
 	private Map<String, String> assertionConsumerServices;
 	private Map<String,Map<Integer,String>> cacheClearServices;
 	private Map<String, KeyData> keyData;
+	private Map<String, List<String>> assertionConsumerServiceIdentifierTypes;
 	private String currentRevision;
 	private State state;
 	
@@ -124,5 +125,13 @@ public class CacheDataImpl implements CacheData
 		this.state = state;
 	}
 	
-	
+	public Map<String, List<String>> getAssertionConsumerServiceIdentifierTypes()
+	{
+		return assertionConsumerServiceIdentifierTypes;
+	}
+
+	public void setAssertionConsumerServiceIdentifierTypes(Map<String, List<String>> assertionConsumerServiceIdentifierTypes)
+	{
+		this.assertionConsumerServiceIdentifierTypes = assertionConsumerServiceIdentifierTypes;
+	}	
 }

@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
+import com.qut.middleware.esoe.spep.exception.DatabaseFailureNoSuchSPEPException;
 import com.qut.middleware.esoe.spep.exception.SPEPCacheUpdateException;
 import com.qut.middleware.esoe.spep.sqlmap.SPEPRegistrationDao;
 
@@ -33,6 +34,29 @@ import com.qut.middleware.esoe.spep.sqlmap.SPEPRegistrationDao;
 public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements SPEPRegistrationDao
 {
 	private Logger logger = Logger.getLogger(SPEPRegistrationDaoImpl.class);
+	
+	public Integer getEntID(String entityID) throws DatabaseFailureNoSuchSPEPException
+	{
+		try
+		{
+			Integer result = (Integer) this.getSqlMapClient().queryForObject("getEntID", entityID);
+			if (result != null)
+			{
+				return result;
+			}
+			else
+			{
+				throw new DatabaseFailureNoSuchSPEPException("No value for ENT_ID mapping for supplied entityID of " + entityID + " could be established");
+			}
+
+		}
+		catch (SQLException e)
+		{
+			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
+			this.logger.debug(e);
+			throw new DatabaseFailureNoSuchSPEPException(e.getLocalizedMessage(), e);
+		}
+	}
 	
 	/** Query the underlying data source to see if an SPEP registration exists.
 	 * 
@@ -42,23 +66,23 @@ public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements S
 	 */
 	public Integer querySPEPExists (SPEPRegistrationQueryData queryData) throws DatabaseFailureException
 	{
-		if (queryData == null || queryData.getDescriptorID() == null || queryData.getDescriptorID().length() <= 0)
+		if (queryData == null || queryData.getEntID() == null)
 		{
-			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.0"), queryData.getDescriptorID()); //$NON-NLS-1$
+			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.0"), queryData.getEntID()); //$NON-NLS-1$
 			this.logger.error(message);
 			throw new DatabaseFailureException(message);
 		}
-		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.1"), queryData.getDescriptorID())); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.1"), queryData.getEntID())); //$NON-NLS-1$
 		Integer spepExists = null;
 		try
 		{
 			spepExists = (Integer)this.getSqlMapClient().queryForObject("spepConfirmExists", queryData); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.2"), queryData.getDescriptorID(), spepExists)); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.2"), queryData.getEntID(), spepExists)); //$NON-NLS-1$
 		}
 		catch (SQLException e)
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.3"), queryData.getDescriptorID(), e.getMessage())); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.4"), queryData.getDescriptorID()), e); //$NON-NLS-1$
+			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.3"), queryData.getEntID(), e.getMessage())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.4"), queryData.getEntID()), e); //$NON-NLS-1$
 			throw new DatabaseFailureException(Messages.getString("SPEPRegistrationDaoImpl.5"), e); //$NON-NLS-1$
 		}
 		
@@ -75,22 +99,22 @@ public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements S
 	{
 		SPEPRegistrationData record;		
 		
-		if (queryData == null || queryData.getDescriptorID() == null || queryData.getDescriptorID().length() <= 0)
+		if (queryData == null || queryData.getEntID() == null)
 		{
-			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.6"), queryData.getDescriptorID()); //$NON-NLS-1$
+			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.6"), queryData.getEntID()); //$NON-NLS-1$
 			this.logger.error(message);
 			throw new DatabaseFailureException(message);
 		}
-		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.7"), queryData.getDescriptorID())); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.7"), queryData.getEntID())); //$NON-NLS-1$
 		try
 		{
 			record = (SPEPRegistrationData)this.getSqlMapClient().queryForObject("getSPEPRegistration", queryData); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.8"), queryData.getDescriptorID())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.8"), queryData.getEntID())); //$NON-NLS-1$
 		}
 		catch (SQLException e)
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.9"), queryData.getDescriptorID(), e.getMessage())); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.10"), queryData.getDescriptorID()), e); //$NON-NLS-1$
+			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.9"), queryData.getEntID(), e.getMessage())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.10"), queryData.getEntID()), e); //$NON-NLS-1$
 			throw new DatabaseFailureException(Messages.getString("SPEPRegistrationDaoImpl.11"), e); //$NON-NLS-1$
 		}
 		
@@ -104,25 +128,22 @@ public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements S
 	 */
 	public void insertSPEPRegistration(SPEPRegistrationData record) throws SPEPCacheUpdateException
 	{
-		if (record == null || record.getDescriptorID() == null || record.getDescriptorID().length() <= 0)
+		if (record == null || record.getEntID() == null)
 		{
-			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.12"), record.getDescriptorID()); //$NON-NLS-1$
+			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.12"), record.getEntID()); //$NON-NLS-1$
 			this.logger.error(message);
 			throw new SPEPCacheUpdateException(message);
 		}
-		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.13"), record.getDescriptorID())); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.13"), record.getEntID())); //$NON-NLS-1$
 		try
 		{
-			// If inserting into history fails for some reason it's going to fail anyway, 
-			// so no point putting it in the active spep registrations table
-			this.getSqlMapClient().insert("insertSPEPRegistrationHistory", record); //$NON-NLS-1$
 			this.getSqlMapClient().insert("insertSPEPRegistration", record); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.14"), record.getDescriptorID())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.14"), record.getEntID())); //$NON-NLS-1$
 		}
 		catch (SQLException e)
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.15"), record.getDescriptorID(), e.getMessage())); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.16"), record.getDescriptorID()), e); //$NON-NLS-1$
+			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.15"), record.getEntID(), e.getMessage())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.16"), record.getEntID()), e); //$NON-NLS-1$
 			throw new SPEPCacheUpdateException(Messages.getString("SPEPRegistrationDaoImpl.17"), e); //$NON-NLS-1$
 		}
 	}
@@ -134,25 +155,22 @@ public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements S
 	 */
 	public void updateSPEPRegistration(SPEPRegistrationData record) throws SPEPCacheUpdateException
 	{
-		if (record == null || record.getDescriptorID() == null || record.getDescriptorID().length() <= 0)
+		if (record == null || record.getEntID() == null)
 		{
-			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.18"), record.getDescriptorID()); //$NON-NLS-1$
+			String message = MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.18"), record.getEntID()); //$NON-NLS-1$
 			this.logger.error(message);
 			throw new SPEPCacheUpdateException(message);
 		}
-		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.19"), record.getDescriptorID())); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.19"), record.getEntID())); //$NON-NLS-1$
 		try
 		{
-			// If inserting into history fails for some reason it's going to fail anyway, 
-			// so no point putting it in the active spep registrations table
-			this.getSqlMapClient().insert("insertSPEPRegistrationHistory", record); //$NON-NLS-1$
 			this.getSqlMapClient().update("updateSPEPRegistration", record); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.20"), record.getDescriptorID())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.20"), record.getEntID())); //$NON-NLS-1$
 		}
 		catch (SQLException e)
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.21"), record.getDescriptorID(), e.getMessage())); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.22"), record.getDescriptorID()), e); //$NON-NLS-1$
+			this.logger.error(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.21"), record.getEntID(), e.getMessage())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("SPEPRegistrationDaoImpl.22"), record.getEntID()), e); //$NON-NLS-1$
 			throw new SPEPCacheUpdateException(Messages.getString("SPEPRegistrationDaoImpl.23"), e); //$NON-NLS-1$
 		}
 	}

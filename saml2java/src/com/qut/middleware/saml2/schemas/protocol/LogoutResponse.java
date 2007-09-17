@@ -27,13 +27,11 @@ public class LogoutResponse extends JAXBElement<StatusResponseType>
 {
 	private static final long serialVersionUID = 1544432603412619896L;
 
-	private static final String qName = "samlp:LogoutResponse"; //$NON-NLS-1$
-
 	/**
 	 * @param value The name of this key to be stored in XML
 	 */
 	public LogoutResponse(StatusResponseType value)
 	{
-		super(new QName(qName), StatusResponseType.class, value);
+		super(new QName("urn:oasis:names:tc:SAML:2.0:protocol", "LogoutResponse"), StatusResponseType.class, value);
 	}
 }

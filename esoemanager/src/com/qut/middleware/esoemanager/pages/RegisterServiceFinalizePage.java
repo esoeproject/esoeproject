@@ -17,17 +17,12 @@
  */
 package com.qut.middleware.esoemanager.pages;
 
-import java.util.Vector;
-
 import net.sf.click.control.Form;
 import net.sf.click.control.Submit;
 
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.esoemanager.bean.ContactPersonBean;
 import com.qut.middleware.esoemanager.bean.ServiceBean;
-import com.qut.middleware.esoemanager.bean.ServiceNodeBean;
-import com.qut.middleware.esoemanager.bean.impl.ServiceBeanImpl;
 import com.qut.middleware.esoemanager.exception.RegisterServiceException;
 import com.qut.middleware.esoemanager.logic.RegisterServiceLogic;
 
@@ -40,13 +35,8 @@ public class RegisterServiceFinalizePage extends BorderPage
 	public Boolean status1;
 	public Boolean status2;
 	public Boolean status3;
-	
-	public String serviceName;
-	public String serviceURL;
-	public String serviceDescription;
-	public String serviceAuthzFailureMsg;
-	public Vector<ContactPersonBean> contacts;
-	public Vector<ServiceNodeBean> serviceNodes;
+
+	public ServiceBean serviceBean;
 	
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(RegisterServiceFinalizePage.class.getName());
@@ -72,42 +62,39 @@ public class RegisterServiceFinalizePage extends BorderPage
 	@Override
 	public void onInit()
 	{
-		super.onInit();
-		
-		this.serviceName = (String) this.retrieveSession(PageConstants.STORED_SERVICE_NAME);
-		this.serviceURL = (String) this.retrieveSession(PageConstants.STORED_SERVICE_URL);
-		this.serviceDescription = (String)this.retrieveSession(PageConstants.STORED_SERVICE_DESC);
-		this.serviceAuthzFailureMsg = (String)this.retrieveSession(PageConstants.STORED_SERVICE_AUTHZ_MSG);
-		this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-		this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+		serviceBean = (ServiceBean)this.retrieveSession(ServiceBean.class.getName());
 	}
 	
 	@Override
 	public void onGet()
 	{
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
 		/* Determine if what is presented is valid */
 		if(!validateStatus())
 			return;
 	}
 	
 	public boolean completeClick()
-	{
-		ServiceBean bean = new ServiceBeanImpl();
-		String registeredServiceID;
+	{	
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return false;
+		}
 		
 		/* Ensure everything is submitted */
 		if(validateStatus())
-		{
-			bean.setServiceName(this.serviceName);
-			bean.setServiceURL(this.serviceURL);
-			bean.setServiceDescription(this.serviceDescription);
-			bean.setServiceAuthzFailureMsg(this.serviceAuthzFailureMsg);
-			bean.setContacts(this.contacts);
-			bean.setServiceNodes(this.serviceNodes);
-			
+		{		
 			try
 			{
-				registeredServiceID = this.logic.execute(bean);
+				this.logic.execute(serviceBean);
 			}
 			catch (RegisterServiceException e)
 			{
@@ -125,7 +112,7 @@ public class RegisterServiceFinalizePage extends BorderPage
 			
 			/* Process was completed successfully, move client to success page */
 			String redirectPath = getContext().getPagePath(RegisterServiceCompletePage.class);
-			setForward(redirectPath + "?" + PageConstants.ENTITYID + "=" + registeredServiceID);
+			setForward(redirectPath + "?" + PageConstants.EID + "=" + serviceBean.getEntID());
 			
 			cleanSession();
 			return false;
@@ -147,15 +134,7 @@ public class RegisterServiceFinalizePage extends BorderPage
 	{
 		/* Cleanup session data
 		 */
-		this.removeSession(PageConstants.STORED_SERVICE_NAME);
-		this.removeSession(PageConstants.STORED_SERVICE_URL);
-		this.removeSession(PageConstants.STORED_CONTACTS);
-		this.removeSession(PageConstants.STORED_SERVICE_NODES);
-		this.removeSession(PageConstants.STAGE1_RES);
-		this.removeSession(PageConstants.STAGE2_RES);
-		this.removeSession(PageConstants.STAGE3_RES);
-		this.removeSession(PageConstants.STORED_SERVICE_DESC);
-		this.removeSession(PageConstants.STORED_SERVICE_AUTHZ_MSG);
+		this.removeSession(ServiceBean.class.getName());
 	}
 	
 	private boolean validateStatus()
@@ -175,28 +154,6 @@ public class RegisterServiceFinalizePage extends BorderPage
 		}
 		if(this.status3 == null || this.status3.booleanValue() != true)
 		{
-			return false;
-		}
-		
-		/* Stages have all indicated success ensure all data is actually valid */
-		if(this.serviceName == null || this.serviceURL == null || this.serviceDescription == null || this.serviceAuthzFailureMsg == null)
-		{
-			this.status1 = false;
-			this.storeSession(PageConstants.STAGE1_RES, new Boolean(false));
-			return false;
-		}
-		
-		if(this.contacts == null || this.contacts.size() == 0)
-		{
-			this.status2 = false;
-			this.storeSession(PageConstants.STAGE2_RES, new Boolean(false));
-			return false;
-		}
-		
-		if(this.serviceNodes == null || this.serviceNodes.size() == 0)
-		{
-			this.status3 = false;
-			this.storeSession(PageConstants.STAGE3_RES, new Boolean(false));
 			return false;
 		}
 		

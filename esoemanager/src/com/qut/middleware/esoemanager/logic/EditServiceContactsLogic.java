@@ -26,10 +26,10 @@ import com.qut.middleware.esoemanager.exception.EditServiceContactException;
 
 public interface EditServiceContactsLogic
 {
-	public Vector<ContactPersonBean> getServiceContacts(String entityID) throws EditServiceContactException;
+	public Vector<ContactPersonBean> getServiceContacts(Integer entID) throws EditServiceContactException;
 
-	public void updateServiceContacts(String entityID, Vector<ContactPersonBean> contacts)
+	public void updateServiceContacts(Integer entID, Vector<ContactPersonBean> contacts)
 			throws EditServiceContactException;
 
-	public void deleteServiceContact(String entityDescriptorID, String contactID) throws EditServiceContactException;
+	public void deleteServiceContact(Integer entID, String contactID) throws EditServiceContactException;
 }

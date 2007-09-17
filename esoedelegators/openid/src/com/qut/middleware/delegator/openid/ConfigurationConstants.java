@@ -1,5 +1,7 @@
 package com.qut.middleware.delegator.openid;
 
+import java.io.File;
+
 /** */
 @SuppressWarnings("nls")
 public class ConfigurationConstants
@@ -41,7 +43,7 @@ public class ConfigurationConstants
 	public static final String OPENID_IDENTIFIER_ATTRIBUTE = "openid_identifier";
 
 	/** Spring IoC Integration */
-	public static final String DELEGATOR_CONFIG = "/WEB-INF/openiddelegator.config";
+	public static final String DELEGATOR_CONFIG = File.separatorChar + "config" + File.separatorChar + "openiddelegator.config";
 	public static final String AUTHN_PROCESSOR = "authnProcessor";
 	public static final String AUTHN_AUTHORITY_PROCESSOR = "authnAuthorityProcessor";
 	public static final String SESSION_TOKEN_NAME = "sessionTokenName";

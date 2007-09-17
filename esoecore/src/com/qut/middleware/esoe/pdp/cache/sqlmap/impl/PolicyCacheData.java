@@ -19,56 +19,72 @@
  */
 package com.qut.middleware.esoe.pdp.cache.sqlmap.impl;
 
-import java.util.Date;
+import java.math.BigDecimal;
+
 
 /** Represents a row in the SERVICE_POLICIES database. **/
 public class PolicyCacheData
 {
-	private String descriptorID = null;
-	private String xacmlPolicy = null;
-	private Date dateLastUpdated = null;
+	private String entityID = null;
+	private byte[] xacmlPolicy = null;
+	private BigDecimal sequenceId = null;
+	private String pollAction;
+	private String policyId;
+	
+	
+	/** Default constructor. Initializes all internal types to zero size objects.
+	 * 
+	 */
+	public PolicyCacheData()
+	{
+		this.entityID = "";
+		this.xacmlPolicy = new byte[]{};
+		this.sequenceId = new BigDecimal(0l);
+		this.policyId = "";
+		this.pollAction = "";
+	}
 	
 	/** Get the date the cache data was last updated.
 	 * 
 	 * @return the dateLastUpdated
 	 */
-	public Date getDateLastUpdated()
+	public BigDecimal getSequenceId()
 	{
-		return this.dateLastUpdated;
+		return this.sequenceId;
 	}
 	
 	/** Set the date the cache data was last updated.
 	 *  
 	 * @param dateLastUpdated the dateLastUpdated to set
 	 */
-	public void setDateLastUpdated(Date dateLastUpdated)
+	public void setSequenceId(BigDecimal sequenceId)
 	{
-		this.dateLastUpdated = dateLastUpdated;
+		this.sequenceId = sequenceId;
 	}
 	
-	/** Get the descriptorID of the the SPEP that the policies belong to.
+	/** Get the entityID of the the SPEP that the policies belong to.
 	 * 
-	 * @return the descriptorID
+	 * @return the entityID
 	 */
-	public String getDescriptorID()
+	public String getEntityID()
 	{
-		return this.descriptorID;
+		return this.entityID;
 	}
 	
-	/** Set the descriptorID of the the SPEP that the policies belong to.
+	/** Set the entityID of the the SPEP that the policies belong to.
 	 * 
-	 * @param descriptorID the descriptorID to set
+	 * @param entityID the entitID to set
 	 */
-	public void setDescriptorID(String descriptorID)
+	public void setEntityID(String entityID)
 	{
-		this.descriptorID = descriptorID;
+		this.entityID = entityID;
 	}
 	
 	/** Get the string representation of the lxacml policy belonging to the SPEP. 
 	 * 
 	 * @return the xacmlPolicy
 	 */
-	public String getLxacmlPolicy()
+	public byte[] getLxacmlPolicy()
 	{
 		return this.xacmlPolicy;
 	}
@@ -77,8 +93,37 @@ public class PolicyCacheData
 	 * 
 	 * @param lxacmlPolicy the xacmlPolicy to set.
 	 */
-	public void setLxacmlPolicy(String lxacmlPolicy)
+	public void setLxacmlPolicy(byte[] lxacmlPolicy)
 	{
 		this.xacmlPolicy = lxacmlPolicy;
 	}
+	
+	/** Get the action to perform on the policy object when a poll is made
+	 * 
+	 * @return String representation of the poll action to perform. May return a 0 sized string.
+	 */
+	public String getPollAction()
+	{
+		return this.pollAction;
+	}
+	
+	/** Set the action to perform on the policy object when a poll is made
+	 * 
+	 * @paramThe action to perform.
+	 */
+	public void setPollAction(String  pollAction)
+	{
+		this.pollAction = pollAction;
+	}
+	
+	public String getPolicyId()
+	{
+		return this.policyId;
+	}
+
+	public void setPolicyId(String policyId)
+	{
+		this.policyId = policyId;
+	}
+
 }

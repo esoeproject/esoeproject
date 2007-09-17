@@ -21,6 +21,7 @@ package com.qut.middleware.esoe.pdp.cache.bean.impl;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
@@ -32,36 +33,43 @@ import com.qut.middleware.saml2.schemas.esoe.lxacml.Policy;
 
 public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 {	
-
-	private Map<String, Vector<Policy>> cache;
+	private Map<String, List<Policy>> cache;
 	
 	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
     private final Lock readLock = this.rwl.readLock();
     private final Lock writeLock = this.rwl.writeLock();
-	
+	private long sequenceId;
     
 	/**
 	 * Default constructor
 	 */
 	public AuthzPolicyCacheImpl()
-	{
-		this.cache = Collections.synchronizedMap(new HashMap<String, Vector<Policy>>());
+	{		
+		this.cache = Collections.synchronizedMap(new HashMap<String, List<Policy>>());
+		this.sequenceId = SEQUENCE_UNINITIALIZED;
 	}
 	
 	
-	/* Internal cache is stored as a map of (String) policyID -> (Policy) policy objects
-	 * So we index then via policy ID for faster retrieval.
+	/* Internal cache is stored as a map of (String) descriptorID -> List of Policy objects. NOTE: The List of policies 
+	 * stored is a clone of the given list.<br>
+	 * 
+	 * PRE: policies is not null.
 	 * 
 	 * 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#add(com.qut.middleware.esoe.xml.lxacml.Policy)
 	 */
-	public void add(String descriptorID, Vector<Policy> policies)
+	public void add(String entityID, List<Policy> policies)
 	{
 		try
 		{
 			this.writeLock.lock();
 						
-			this.cache.put(descriptorID, policies);
+			Vector<Policy> clonedList = new Vector<Policy>();
+			
+			if(policies != null)
+				clonedList.addAll(policies);
+			
+			this.cache.put(entityID, (Vector<Policy>)clonedList.clone());
 		}
 		finally
 		{
@@ -74,7 +82,7 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 * (non-Javadoc)
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#getCache()
 	 */
-	public Map<String, Vector<Policy>> getCache()
+	public Map<String, List<Policy>> getCache()
 	{
 		try
 		{
@@ -92,13 +100,19 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	/*
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#getPolicy(java.lang.String)
 	 */
-	public Vector<Policy> getPolicies(String descriptorID)
+	public List<Policy> getPolicies(String entityID)
 	{		
 		try
 		{
 			this.readLock.lock();
 			
-			return this.cache.get(descriptorID);
+			Vector<Policy> clonedList = new Vector<Policy>();
+			List<Policy>policies = this.cache.get(entityID);
+		
+			if(policies != null)
+				clonedList.addAll(policies);
+			
+			return (Vector<Policy>)clonedList.clone();						
 		}
 		finally
 		{
@@ -111,13 +125,13 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#remove(com.qut.middleware.esoe.xml.lxacml.Policy)
 	 */
-	public boolean remove(String descriptorID)
+	public boolean remove(String entityID)
 	{
 		try
 		{
 			this.writeLock.lock();
 			
-			return (this.cache.remove(descriptorID) != null);
+			return (this.cache.remove(entityID) != null);
 		}
 		finally
 		{
@@ -129,7 +143,7 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	/* 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#setCache(com.qut.middleware.esoe.xml.lxacml.Policy)
 	 */
-	public void setCache(Map<String, Vector<Policy>> newData)
+	public void setCache(Map<String, List<Policy>> newData)
 	{
 		try
 		{
@@ -145,6 +159,43 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 		
 	}
 
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#getBuildSequenceId()
+	 */
+	public long getBuildSequenceId()
+	{
+		try
+		{
+			this.readLock.lock();
+		
+			return this.sequenceId;
+		}
+		finally
+		{
+			this.readLock.unlock();
+		}
+		
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache#setBuildSequenceId(long)
+	 */
+	public void setBuildSequenceId(long sequenceId)
+	{
+		try
+		{
+			this.writeLock.lock();
+		
+			this.sequenceId = sequenceId;
+		}
+		finally
+		{
+			this.writeLock.unlock();
+		}
+	}
 
 	/*
 	 * (non-Javadoc)

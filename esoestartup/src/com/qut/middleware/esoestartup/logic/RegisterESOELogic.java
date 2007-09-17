@@ -19,15 +19,12 @@
  */
 package com.qut.middleware.esoestartup.logic;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyPair;
@@ -36,18 +33,12 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.log4j.Logger;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.CryptoProcessor;
@@ -58,12 +49,13 @@ import com.qut.middleware.esoemanager.bean.ServiceNodeBean;
 import com.qut.middleware.esoemanager.exception.RenderConfigException;
 import com.qut.middleware.esoestartup.Constants;
 import com.qut.middleware.esoestartup.bean.ESOEBean;
-import com.qut.middleware.esoestartup.esoe.sqlmap.ESOEDAO;
 import com.qut.middleware.esoestartup.exception.ESOEDAOException;
 import com.qut.middleware.esoestartup.exception.RegisterESOEException;
 import com.qut.middleware.esoestartup.processor.CryptoProcessorESOEImpl;
+import com.qut.middleware.esoestartup.sqlmap.ESOEDAO;
 import com.qut.middleware.saml2.AttributeFormatConstants;
 import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.ProtocolConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
@@ -74,13 +66,10 @@ import com.qut.middleware.saml2.schemas.metadata.EndpointType;
 import com.qut.middleware.saml2.schemas.metadata.Extensions;
 import com.qut.middleware.saml2.schemas.metadata.IDPSSODescriptor;
 import com.qut.middleware.saml2.schemas.metadata.IndexedEndpointType;
-import com.qut.middleware.saml2.schemas.metadata.KeyDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.SPSSODescriptor;
 import com.qut.middleware.saml2.schemas.metadata.extensions.CacheClearService;
 import com.qut.middleware.saml2.schemas.metadata.extensions.SPEPStartupService;
 import com.qut.middleware.saml2.schemas.metadata.lxacml.LXACMLPDPDescriptor;
-import com.qut.middleware.tools.war.bean.AdditionalContent;
-import com.qut.middleware.tools.war.exception.GenerateWarException;
 import com.qut.middleware.tools.war.logic.GenerateWarLogic;
 
 public class RegisterESOELogic
@@ -91,14 +80,16 @@ public class RegisterESOELogic
 	private CryptoProcessor cryptoProcessor;
 	private IdentifierGenerator identifierGenerator;
 
-	private JdbcTemplate jdbcTemplate;
 	private BasicDataSource dataSource;
 
 	private ESOEDAO esoeDAO;
-	private Map<String, File> generationSQL;
 	private UtilityFunctions util;
 
-	private String defaultPolicy;
+	private byte[] defaultPolicyData;
+	private byte[] defaultManagementPolicyData;
+	private byte[] defaultAttributePolicyData;
+	private String defaultPolicyID;
+	private String defaultManagementPolicyID;
 
 	private Marshaller<IDPSSODescriptor> idpMarshaller;
 	private Marshaller<SPEPStartupService> spsMarshaller;
@@ -119,19 +110,20 @@ public class RegisterESOELogic
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(RegisterESOELogic.class.getName());
 
-	public RegisterESOELogic(GenerateWarLogic generateWarLogic, RenderESOEConfigLogic renderESOEConfigLogic, IdentifierGenerator identifierGenerator, ESOEDAO esoeDAO, BasicDataSource dataSource, Map<String, File> generationSQL, File policyFile) throws MarshallerException, IOException
+	public RegisterESOELogic(GenerateWarLogic generateWarLogic, RenderESOEConfigLogic renderESOEConfigLogic, IdentifierGenerator identifierGenerator, ESOEDAO esoeDAO, BasicDataSource dataSource, File policyFile, File managementPolicyFile, File attributePolicyFile) throws MarshallerException, IOException
 	{
 		this.generateWarLogic = generateWarLogic;
 		this.renderESOEConfigLogic = renderESOEConfigLogic;
 		this.identifierGenerator = identifierGenerator;
 		this.esoeDAO = esoeDAO;
 		this.dataSource = dataSource;
-		this.generationSQL = generationSQL;
 
 		this.util = new UtilityFunctions();
 		this.cryptoProcessor = new CryptoProcessorESOEImpl();
 
 		this.loadDefaultPolicy(policyFile);
+		this.loadDefaultManagementPolicy(managementPolicyFile);
+		this.loadDefaultAttributePolicy(attributePolicyFile);
 
 		this.idpMarshaller = new MarshallerImpl<IDPSSODescriptor>(IDPSSODescriptor.class.getPackage().getName(), this.idpSchemas);
 		this.spsMarshaller = new MarshallerImpl<SPEPStartupService>(SPEPStartupService.class.getPackage().getName(), this.spsSchemas);
@@ -141,7 +133,7 @@ public class RegisterESOELogic
 		this.cacheClearMarshaller = new MarshallerImpl<CacheClearService>(CacheClearService.class.getPackage().getName(), this.ccSchemas);
 	}
 
-	private void configureDataLayer(ESOEBean bean) throws Exception
+	private void configureDataLayer(ESOEBean bean) throws RegisterESOEException
 	{
 		switch (bean.getDatabaseDriver())
 		{
@@ -161,52 +153,6 @@ public class RegisterESOELogic
 			dataSource.setUrl(bean.getDatabaseURL());
 			dataSource.setUsername(bean.getDatabaseUsername());
 			dataSource.setPassword(bean.getDatabasePassword());
-
-			this.jdbcTemplate = new JdbcTemplate(dataSource);
-
-			/* Setup Crypto Processor with additional details */
-			this.cryptoProcessor.setCertIssuerDN(bean.getCertIssuerDN());
-			this.cryptoProcessor.setCertIssuerEmail(bean.getCertIssuerEmailAddress());
-
-		}
-		catch (DataAccessException e)
-		{
-			this.logger.error("Unable to connect with database " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new RegisterESOEException(e.getLocalizedMessage(), e);
-		}
-	}
-
-	private void setupRawDatabase(ESOEBean bean) throws RegisterESOEException, IOException
-	{
-		try
-		{
-			Vector<String> sqlCommands;
-			switch (bean.getDatabaseDriver())
-			{
-				case mysql:
-					sqlCommands = this.loadDatabaseCreationSQL(this.generationSQL.get(Constants.MYSQL));
-					break;
-				case oracle:
-					sqlCommands = this.loadDatabaseCreationSQL(this.generationSQL.get(Constants.ORACLE));
-					break;
-				/* Attempt to connect to mysql source if not submitted */
-				default:
-					sqlCommands = this.loadDatabaseCreationSQL(this.generationSQL.get(Constants.MYSQL));
-			}
-
-			/* Execute each statement in the supplied sql file */
-			for (String statement : sqlCommands)
-			{
-				/*
-				 * Ensure this is not a comment or blank line before attempting insertion
-				 */
-				if (statement.length() > 1 && !statement.startsWith("#"))
-				{
-					this.logger.debug("Executing database creation SQL command: " + statement);
-					this.jdbcTemplate.execute(statement);
-				}
-			}
 		}
 		catch (DataAccessException e)
 		{
@@ -218,24 +164,11 @@ public class RegisterESOELogic
 
 	public void execute(ESOEBean bean) throws RegisterESOEException
 	{
-		String entityID;
+		configureDataLayer(bean);
 
-		KeyDescriptor keyDescriptor;
-
-		try
-		{
-			configureDataLayer(bean);
-			setupRawDatabase(bean);
-		}
-		catch (Exception e)
-		{
-			/*
-			 * The way we use spring here requires catch of exception, not totally elegent...
-			 */
-			this.logger.error("Exception when attempting to setup database " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new RegisterESOEException("Exception when attempting to setup database connectivity" + e.getLocalizedMessage());
-		}
+		/* Setup Crypto Processor with additional details */
+		this.cryptoProcessor.setCertIssuerDN(bean.getCertIssuerDN());
+		this.cryptoProcessor.setCertIssuerEmail(bean.getCertIssuerEmailAddress());
 
 		try
 		{
@@ -249,137 +182,228 @@ public class RegisterESOELogic
 			createKeyStores(bean);
 
 			/* Create XML descriptors for ESOE and ESOE Manager webapp */
-			createESOEDescriptors(bean, bean.getEsoeKeyPair(), bean.getEsoeKeyPairName());
-			createESOEManagerDescriptors(bean, bean.getEsoeManagerKeyPair(), bean.getEsoeManagerKeyPairName());
+			createESOEDescriptors(bean);
+			createESOEManagerDescriptors(bean);
+			
+			/* Set expiry date of PKI data */
+			Calendar expiryDate = Calendar.getInstance();
+			expiryDate.add(Calendar.YEAR, this.cryptoProcessor.getCertExpiryIntervalInYears());
+			
+			/* Store all crypto in data repository */
+			
+			/* ESOE */
+			this.esoeDAO.insertPKIData(bean.getEsoeIdpDescID(), expiryDate.getTime(), bean.getEsoeKeystore(), bean.getEsoeKeyStorePassphrase(), bean.getEsoeKeyPairName(), bean.getEsoeKeyPairPassphrase());
+			this.esoeDAO.insertPKIData(bean.getEsoeAADescID(), expiryDate.getTime(), bean.getEsoeKeystore(), bean.getEsoeKeyStorePassphrase(), bean.getEsoeKeyPairName(), bean.getEsoeKeyPairPassphrase());
+			this.esoeDAO.insertPKIData(bean.getEsoeLxacmlDescID(), expiryDate.getTime(), bean.getEsoeKeystore(), bean.getEsoeKeyStorePassphrase(), bean.getEsoeKeyPairName(), bean.getEsoeKeyPairPassphrase());
+			
+			this.esoeDAO.insertPublicKey(bean.getEsoeIdpDescID(), expiryDate.getTime(), bean.getEsoeKeyPairName(), this.cryptoProcessor.convertPublicKeyByteArray(bean.getEsoeKeyPair().getPublic()));
+			this.esoeDAO.insertPublicKey(bean.getEsoeAADescID(), expiryDate.getTime(), bean.getEsoeKeyPairName(), this.cryptoProcessor.convertPublicKeyByteArray(bean.getEsoeKeyPair().getPublic()));
+			this.esoeDAO.insertPublicKey(bean.getEsoeLxacmlDescID(), expiryDate.getTime(), bean.getEsoeKeyPairName(), this.cryptoProcessor.convertPublicKeyByteArray(bean.getEsoeKeyPair().getPublic()));
+			
+			/* ESOE Manager SPEP */
+			this.esoeDAO.insertPKIData(bean.getDescID(), expiryDate.getTime(), bean.getEsoeManagerKeystore(), bean.getEsoeManagerKeyStorePassphrase(), bean.getEsoeManagerKeyPairName(), bean.getEsoeManagerKeyPairPassphrase());
+			this.esoeDAO.insertPublicKey(bean.getDescID(), expiryDate.getTime(), bean.getEsoeManagerKeyPairName(), this.cryptoProcessor.convertPublicKeyByteArray(bean.getEsoeManagerKeyPair().getPublic()));
 
+			/* Authentication network Metadata crypto */
+			this.esoeDAO.insertMetadataPKIData(expiryDate.getTime(), bean.getEsoeMetadataKeystore(), bean.getEsoeMetadataKeyStorePassphrase(), bean.getEsoeMetadataKeyPairName(), bean.getEsoeMetadataKeyPairPassphrase());
+			
+			
 			/*
-			 * Dynamically create WAR files for user deployments so they dont need to do manual config, nice chaps
-			 * aren't we
+			 * Dynamically create config files for user deployments so they dont need to do manual config, nice chaps
+			 * aren't we.
 			 */
-			createESOEWar(bean);
-			createESOEManagerSPEPWar(bean);
-			createESOEManagerWar(bean);
+			writeESOEContent(bean);
+			writeESOEManagerContent(bean);
+			writeSPEPContent(bean);
 
 		}
 		catch (FileNotFoundException e)
 		{
-			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.error("FileNotFoundException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
-			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			throw new RegisterESOEException("FileNotFoundException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (KeyStoreException e)
 		{
-			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.error("KeyStoreException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
-			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			throw new RegisterESOEException("KeyStoreException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (NoSuchAlgorithmException e)
 		{
-			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.error("NoSuchAlgorithmException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
-			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			throw new RegisterESOEException("NoSuchAlgorithmException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (CertificateException e)
 		{
-			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.error("CertificateException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
-			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			throw new RegisterESOEException("CertificateException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (CryptoException e)
 		{
-			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.error("CryptoException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
-			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			throw new RegisterESOEException("CryptoException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (IOException e)
 		{
-			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.error("IOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
-			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			throw new RegisterESOEException("IOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (RenderConfigException e)
 		{
+			this.logger.error("RenderConfigException when attempting to configure ESOE details " + e.getLocalizedMessage());
+			this.logger.debug(e);
+			throw new RegisterESOEException("RenderConfigException when attempting to configure ESOE details " + e.getLocalizedMessage());
+		}
+		catch (ESOEDAOException e)
+		{
 			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 			this.logger.debug(e);
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
-		catch (GenerateWarException e)
-		{
-			this.logger.error("GenerateWarException when attempting to create ESOE WAR " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new RegisterESOEException("GenerateWarException when attempting to create ESOE WAR " + e.getLocalizedMessage());
-		}
-
 	}
-
-	private void createESOEWar(ESOEBean bean) throws RenderConfigException, GenerateWarException
+	
+	private void writeESOEContent(ESOEBean bean) throws FileNotFoundException, RenderConfigException, IOException
 	{
-		/* Create the ESOE WAR File */
-		AdditionalContent keyStore = new AdditionalContent();
-		keyStore.setPath(Constants.WEBINF + File.separator + Constants.ESOE_KEYSTORE_NAME);
-		keyStore.setFileContent(bean.getEsoeKeystore());
-
-		AdditionalContent esoeConfig = new AdditionalContent();
-		esoeConfig.setPath(Constants.WEBINF + File.separator + Constants.ESOECONFIG);
-		esoeConfig.setFileContent(this.renderESOEConfigLogic.renderESOEConfig(bean, 0).getBytes());
-
-		List<AdditionalContent> additionalContent = new ArrayList<AdditionalContent>();
-		additionalContent.add(keyStore);
-		additionalContent.add(esoeConfig);
-
-		this.generateWarLogic.generateWar(additionalContent, new File(bean.getTomcatWebappPath() + File.separator + Constants.WEBAPP_NAME + File.separator + Constants.ESOE_EXPLODED_DIR), new File(bean.getWriteableDirectory() + File.separator + Constants.ESOE_EXPLODED_DIR), new File(bean.getWriteableDirectory() + File.separator + Constants.ESOE_WAR_NAME));
-	}
-
-	private void createESOEManagerSPEPWar(ESOEBean bean) throws RenderConfigException, GenerateWarException
-	{
-		/* Create the ESOE Manager SPEP WAR File */
-		AdditionalContent keyStore = new AdditionalContent();
-		keyStore.setPath(Constants.WEBINF + File.separator + Constants.ESOE_MANAGER_SPEP_KEYSTORE_NAME);
-		keyStore.setFileContent(bean.getEsoeManagerKeystore());
-
-		for (ServiceNodeBean service : bean.getManagerServiceNodes())
-		{
-			Integer nodeID = new Integer(service.getNodeID());
-			AdditionalContent esoeManagerConfig = new AdditionalContent();
-			esoeManagerConfig.setPath(Constants.WEBINF + File.separator + Constants.ESOEMANAGERSPEPCONFIG);
-			esoeManagerConfig.setFileContent(this.renderESOEConfigLogic.renderESOEManagerSPEPConfig(bean, nodeID.intValue()).getBytes());
-
-			List<AdditionalContent> additionalContent = new ArrayList<AdditionalContent>();
-			additionalContent.add(keyStore);
-			additionalContent.add(esoeManagerConfig);
-
-			this.generateWarLogic.generateWar(additionalContent, new File(bean.getTomcatWebappPath() + File.separator + Constants.WEBAPP_NAME + File.separator + Constants.ESOE_MANAGER_SPEP_EXPLODED_DIR), new File(bean.getWriteableDirectory() + File.separator + Constants.ESOE_MANAGER_SPEP_EXPLODED_DIR), new File(bean.getWriteableDirectory() + File.separator + Constants.ESOE_MANAGER_SPEP_WAR_NAME + "." + nodeID.toString()));
-		}
-	}
-
-	private void createESOEManagerWar(ESOEBean bean) throws RenderConfigException, GenerateWarException
-	{
-		/* Create the ESOE Manager WAR File */
-		AdditionalContent keyStore = new AdditionalContent();
-		keyStore.setPath(Constants.WEBINF + File.separator + Constants.METADATA_KEYSTORE_NAME);
-		keyStore.setFileContent(bean.getEsoeMetadataKeystore());
-
-		AdditionalContent esoeManagerConfig = new AdditionalContent();
-		esoeManagerConfig.setPath(Constants.WEBINF + File.separator + Constants.ESOEMANAGERCONFIG);
-		esoeManagerConfig.setFileContent(this.renderESOEConfigLogic.renderESOEManagerConfig(bean, 0).getBytes());
-
-		List<AdditionalContent> additionalContent = new ArrayList<AdditionalContent>();
-		additionalContent.add(keyStore);
-		additionalContent.add(esoeManagerConfig);
-
-		this.generateWarLogic.generateWar(additionalContent, new File(bean.getTomcatWebappPath() + File.separator + Constants.WEBAPP_NAME + File.separator + Constants.ESOE_MANAGER_EXPLODED_DIR), new File(bean.getWriteableDirectory() + File.separator + Constants.ESOE_MANAGER_EXPLODED_DIR), new File(bean.getWriteableDirectory() + File.separator + Constants.ESOE_MANAGER_WAR_NAME));
-	}
-
-	private void createESOEDescriptors(ESOEBean bean, KeyPair esoeKeyPair, String esoeKeyPairName) throws RegisterESOEException
-	{
-		String entityID;
-		KeyDescriptor keyDescriptor;
+		FileOutputStream configOutput = null; 
+		FileOutputStream keystoreOutput = null;
+		
+		File configDir = new File(bean.getEsoeDataDirectory()+ Constants.CONFIG_DIR);
+		
+		if(!configDir.exists() && !configDir.mkdir())
+			throw new IOException ("Unable to create config directory, structure not writeable");
+		
+		File loggingDir = new File(bean.getEsoeDataDirectory()+ Constants.LOGGING_DIR);
+		
+		if(!loggingDir.exists() && !loggingDir.mkdir())
+			throw new IOException ("Unable to create config directory, structure not writeable");
+		
 		try
 		{
-			entityID = (this.identifierGenerator.generateSAMLID());
-			bean.setIdpEntityID(entityID);
+			/* Write config file */
+			configOutput = new FileOutputStream(bean.getEsoeDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.ESOECONFIG);
+			configOutput.write(this.renderESOEConfigLogic.renderESOEConfig(bean, 0).getBytes());
+			configOutput.flush();
+			
+			/* Write ESOE keystore file */
+			keystoreOutput = new FileOutputStream(bean.getEsoeDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.ESOE_KEYSTORE_NAME);
+			keystoreOutput.write(bean.getEsoeKeystore());
+			keystoreOutput.flush();
+			
+		}
+		finally
+		{
+			if(configOutput != null)
+				configOutput.close();
+			
+			if(keystoreOutput != null)
+				keystoreOutput.close();
+		}
+	}
+	
+	private void writeESOEManagerContent(ESOEBean bean) throws FileNotFoundException, RenderConfigException, IOException
+	{
+		FileOutputStream configOutput = null;
+		FileOutputStream keystoreOutput = null;
+		
+		File configDir = new File(bean.getEsoemanagerDataDirectory()+ Constants.CONFIG_DIR);
+		if(!configDir.exists() && !configDir.mkdir())
+			throw new IOException ("Unable to create config directory, structure not writeable");
+		
+		File metadataHistoryDir = new File(bean.getEsoemanagerDataDirectory()+ Constants.MD_HISTORICAL_DIR);
+		if((!metadataHistoryDir.exists()) && (!metadataHistoryDir.mkdir()) )
+		{
+			throw new IOException ("Unable to create metadata history directory, structure not writeable for " + metadataHistoryDir.getPath());
+		}
+		
+		File loggingDir = new File(bean.getEsoemanagerDataDirectory()+ Constants.LOGGING_DIR);
+		if(!loggingDir.exists() && !loggingDir.mkdir())
+			throw new IOException ("Unable to create config directory, structure not writeable");
+		
+		try
+		{
+			/* Write config file */
+			configOutput = new FileOutputStream(bean.getEsoemanagerDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.ESOEMANAGERCONFIG);
+			configOutput.write(this.renderESOEConfigLogic.renderESOEManagerConfig(bean, 0).getBytes());
+			configOutput.flush();
+			
+			/* Write Metadata Keystore */
+			keystoreOutput = new FileOutputStream(bean.getEsoemanagerDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.METADATA_KEYSTORE_NAME);
+			keystoreOutput.write(bean.getEsoeMetadataKeystore());
+			keystoreOutput.flush();
+			
+		}
+		finally
+		{
+			if(configOutput != null)
+				configOutput.close();
+			
+			if(keystoreOutput != null)
+				keystoreOutput.close();
+		}
+	}
+	
+	private void writeSPEPContent(ESOEBean bean) throws FileNotFoundException, RenderConfigException, IOException
+	{
+		FileOutputStream configOutput = null; 
+		FileOutputStream keystoreOutput = null;
+		
+		File configDir = new File(bean.getSpepDataDirectory()+ Constants.CONFIG_DIR);
+		
+		if(!configDir.exists() && !configDir.mkdir())
+			throw new IOException ("Unable to create config directory, structure not writeable");
+		
+		File loggingDir = new File(bean.getSpepDataDirectory()+ Constants.LOGGING_DIR);
+		if(!loggingDir.exists() && !loggingDir.mkdir())
+			throw new IOException ("Unable to create config directory, structure not writeable");
+		
+		try
+		{
+			/* Write config file(s) */	
+			int x = 0;
+			for (ServiceNodeBean service : bean.getServiceNodes())
+			{
+				Integer nodeID = new Integer(service.getNodeID());
+				if(x == 0)
+					configOutput = new FileOutputStream(bean.getSpepDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.ESOEMANAGERSPEPCONFIG);
+				else
+					configOutput = new FileOutputStream(bean.getSpepDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.ESOEMANAGERSPEPCONFIG + "." + x);
+				
+				configOutput.write(this.renderESOEConfigLogic.renderESOEManagerSPEPConfig(bean, nodeID.intValue()).getBytes());
+				configOutput.flush();
+				configOutput.close();
+				x++;
+			}
+			
+			/* Write SPEP keystore file */
+			keystoreOutput = new FileOutputStream(bean.getSpepDataDirectory() + Constants.CONFIG_DIR + File.separatorChar + Constants.ESOE_MANAGER_SPEP_KEYSTORE_NAME);
+			keystoreOutput.write(bean.getEsoeManagerKeystore());
+			keystoreOutput.flush();
+			
+		}
+		finally
+		{
+			if(configOutput != null)
+				configOutput.close();
+			
+			if(keystoreOutput != null)
+				keystoreOutput.close();
+		}
+	}
 
-			this.esoeDAO.insertEntityDescriptor(entityID, bean.getEsoeOrganizationName(), bean.getEsoeOrganizationDisplayName(), bean.getEsoeOrganizationURL(), Constants.ENTITY_ACTIVE);
+	private void createESOEDescriptors(ESOEBean bean) throws RegisterESOEException
+	{
+		try
+		{
+			bean.setEsoeEntID(this.esoeDAO.getNextEntID());
+			bean.setEsoeIdpDescID(this.esoeDAO.getNextDescID());
+			bean.setEsoeAADescID(this.esoeDAO.getNextDescID());
+			bean.setEsoeLxacmlDescID(this.esoeDAO.getNextDescID());
+			this.esoeDAO.insertEntityDescriptor(bean.getEsoeEntID(), bean.getIdpEntityID(), bean.getEsoeOrganizationName(), bean.getEsoeOrganizationDisplayName(), bean.getEsoeOrganizationURL(), Constants.ENTITY_ACTIVE);
 		}
 		catch (ESOEDAOException e)
 		{
@@ -388,20 +412,16 @@ public class RegisterESOELogic
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 
-		setContacts(entityID, bean);
+		setContacts(bean.getEsoeEntID(), bean);
 
 		try
 		{
-			/* Setup keyDescriptor */
-			keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor((RSAPublicKey) esoeKeyPair.getPublic(), esoeKeyPairName);
-
-			/*
-			 * We consider each of these components part of the single ESOE system therefore they each use the same key
-			 * details
-			 */
-			createIDPDescriptor(bean, keyDescriptor);
-			createAtributeAuthorityDescriptor(bean, keyDescriptor);
-			createLXACMLPDPDescriptor(bean, keyDescriptor);
+			createIDPDescriptor(bean);
+			createAtributeAuthorityDescriptor(bean);
+			createLXACMLPDPDescriptor(bean);
+			
+			/* Setup attribute release for this ESOE Instance */
+			this.esoeDAO.insertAttributePolicy(bean.getEsoeEntID(), this.defaultAttributePolicyData);
 		}
 		catch (MarshallerException e)
 		{
@@ -417,17 +437,14 @@ public class RegisterESOELogic
 		}
 	}
 
-	private void createESOEManagerDescriptors(ESOEBean bean, KeyPair esoeManagerKeyPair, String esoeManagerKeyPairName) throws RegisterESOEException
+	private void createESOEManagerDescriptors(ESOEBean bean) throws RegisterESOEException
 	{
-		String entityID;
-		KeyDescriptor keyDescriptor;
 		try
 		{
-			entityID = (this.identifierGenerator.generateSAMLID());
-			bean.setSpEntityID(entityID);
-
-			this.esoeDAO.insertEntityDescriptor(entityID, bean.getEsoeOrganizationName(), bean.getEsoeOrganizationDisplayName(), bean.getEsoeOrganizationURL(), Constants.ENTITY_ACTIVE);
-			this.esoeDAO.insertServiceDescription(entityID, bean.getManagerServiceName(), bean.getManagerServiceURL(), bean.getManagerServiceDescription(), bean.getManagerServiceAuthzFail());
+			bean.setEntID(this.esoeDAO.getNextEntID());
+			bean.setDescID(this.esoeDAO.getNextDescID());
+			this.esoeDAO.insertEntityDescriptor(bean.getEntID(), bean.getEntityID(), bean.getEsoeOrganizationName(), bean.getEsoeOrganizationDisplayName(), bean.getEsoeOrganizationURL(), Constants.ENTITY_ACTIVE);
+			this.esoeDAO.insertServiceDescription(bean.getEntID(), bean.getServiceName(), bean.getServiceURL(), bean.getServiceDescription(), bean.getServiceAuthzFailureMsg());
 		}
 		catch (ESOEDAOException e)
 		{
@@ -436,18 +453,11 @@ public class RegisterESOELogic
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 
-		setContacts(entityID, bean);
+		setContacts(bean.getEntID(), bean);
 
 		try
 		{
-			/* Setup keyDescriptor */
-			keyDescriptor = this.cryptoProcessor.createSigningKeyDescriptor((RSAPublicKey) esoeManagerKeyPair.getPublic(), esoeManagerKeyPairName);
-
-			/*
-			 * We consider each of these components part of the single ESOE system therefore they each use the same key
-			 * details
-			 */
-			createSPDescriptor(bean, keyDescriptor);
+			createSPDescriptor(bean);
 		}
 		catch (MarshallerException e)
 		{
@@ -463,7 +473,7 @@ public class RegisterESOELogic
 		}
 	}
 
-	private void setContacts(String entityID, ESOEBean bean) throws RegisterESOEException
+	private void setContacts(Integer entID, ESOEBean bean) throws RegisterESOEException
 	{
 		for (ContactPersonBean contact : bean.getContacts())
 		{
@@ -474,7 +484,7 @@ public class RegisterESOELogic
 			this.logger.info("Adding contact person with name" + contact.getGivenName() + " " + contact.getSurName() + " and generated id of " + contact.getContactID());
 			try
 			{
-				this.esoeDAO.insertServiceContacts(entityID, contact.getContactID(), contact.getContactType(), contact.getCompany(), contact.getGivenName(), contact.getSurName(), contact.getEmailAddress(), contact.getTelephoneNumber());
+				this.esoeDAO.insertServiceContacts(entID, contact.getContactID(), contact.getContactType(), contact.getCompany(), contact.getGivenName(), contact.getSurName(), contact.getEmailAddress(), contact.getTelephoneNumber());
 			}
 			catch (ESOEDAOException e)
 			{
@@ -485,12 +495,12 @@ public class RegisterESOELogic
 		}
 	}
 
-	private void createIDPDescriptor(ESOEBean bean, KeyDescriptor keyDescriptor) throws MarshallerException, ESOEDAOException
+	private void createIDPDescriptor(ESOEBean bean) throws MarshallerException, ESOEDAOException
 	{
 		IDPSSODescriptor idpDescriptor = new IDPSSODescriptor();
 		SPEPStartupService spepStartupService = new SPEPStartupService();
 		Element spepStartupServiceXML;
-		String idpDescriptorXML;
+		byte[] idpDescriptorXML;
 
 		/* Setup SPEP Startup Service */
 		spepStartupService.setBinding(BindingConstants.soap);
@@ -510,27 +520,27 @@ public class RegisterESOELogic
 		idpDescriptor.getProtocolSupportEnumerations().add(ProtocolConstants.protocol);
 		idpDescriptor.getSingleSignOnServices().add(singleSignOnEndpoint);
 		idpDescriptor.setExtensions(extenstions);
-		idpDescriptor.getKeyDescriptors().add(keyDescriptor);
+		idpDescriptor.getNameIDFormats().add(NameIDFormatConstants.trans);
 
 		idpDescriptorXML = this.idpMarshaller.marshallUnSigned(idpDescriptor);
-		this.esoeDAO.insertDescriptor(bean.getIdpEntityID(), idpDescriptor.getID(), idpDescriptorXML, this.util.getRoleDescriptorTypeId(IDPSSODescriptor.class.getCanonicalName()));
+		this.esoeDAO.insertDescriptor(bean.getEsoeEntID(), bean.getEsoeIdpDescID(), idpDescriptor.getID(), idpDescriptorXML, this.util.getRoleDescriptorTypeId(IDPSSODescriptor.class.getCanonicalName()));
 
 		bean.setIdpDescriptorXML(idpDescriptorXML);
 	}
 
-	private void createSPDescriptor(ESOEBean bean, KeyDescriptor keyDescriptor) throws MarshallerException, ESOEDAOException
+	private void createSPDescriptor(ESOEBean bean) throws MarshallerException, ESOEDAOException
 	{
 		/*
 		 * Determine how many SP records were submitted for ID generation for endpoints this will assimilate each SP
 		 * created into a single record per metadata design
 		 */
 		SPSSODescriptor spDescriptor = new SPSSODescriptor();
-		String spDescriptorXML;
+		byte[] spDescriptorXML;
 
 		spDescriptor.setID(this.identifierGenerator.generateSAMLID());
-		bean.setSpDescriptorID(spDescriptor.getID());
+		bean.setDescriptorID(spDescriptor.getID());
 
-		for (ServiceNodeBean node : bean.getManagerServiceNodes())
+		for (ServiceNodeBean node : bean.getServiceNodes())
 		{
 			Extensions extensions;
 			Integer nodeID;
@@ -538,11 +548,12 @@ public class RegisterESOELogic
 			/* Setup node endpoint ID for indexed services and bean */
 			node.setNodeID(this.util.generateID());
 			nodeID = new Integer(node.getNodeID());
-
-			/* Add the configured assertion consumer service */
+			
+			/* Add the configured assertion consumer service - ACS is set to the service URL, this ensures load balanced services are handled correctly with the SAML POST profile
+			 * single node service should have identical service and node urls */
 			IndexedEndpointType assertionConsumerService = new IndexedEndpointType();
-			assertionConsumerService.setLocation(node.getNodeURL() + node.getAssertionConsumerService());
-			assertionConsumerService.setBinding(BindingConstants.soap);
+			assertionConsumerService.setLocation(bean.getEsoeManagerHost() + node.getAssertionConsumerService());
+			assertionConsumerService.setBinding(BindingConstants.httpPost);
 			assertionConsumerService.setIndex(nodeID.intValue());
 			spDescriptor.getAssertionConsumerServices().add(assertionConsumerService);
 
@@ -570,31 +581,32 @@ public class RegisterESOELogic
 		spDescriptor.setAuthnRequestsSigned(true);
 		spDescriptor.setWantAssertionsSigned(true);
 		spDescriptor.getProtocolSupportEnumerations().add(ProtocolConstants.protocol);
-		spDescriptor.getKeyDescriptors().add(keyDescriptor);
+		spDescriptor.getNameIDFormats().add(NameIDFormatConstants.trans);
 
 		spDescriptorXML = this.spMarshaller.marshallUnSigned(spDescriptor);
 
-		this.esoeDAO.insertDescriptor(bean.getSpEntityID(), spDescriptor.getID(), spDescriptorXML, this.util.getRoleDescriptorTypeId(SPSSODescriptor.class.getCanonicalName()));
+		this.esoeDAO.insertDescriptor(bean.getEntID(), bean.getDescID(), spDescriptor.getID(), spDescriptorXML, this.util.getRoleDescriptorTypeId(SPSSODescriptor.class.getCanonicalName()));
 
-		for (ServiceNodeBean node : bean.getManagerServiceNodes())
+		for (ServiceNodeBean node : bean.getServiceNodes())
 		{
 			/* Write service node to data repository */
-			this.esoeDAO.insertServiceNode(node.getNodeID(), spDescriptor.getID(), node.getNodeURL(), node.getAssertionConsumerService(), node.getSingleLogoutService(), node.getCacheClearService());
+			this.esoeDAO.insertServiceNode(node.getNodeID(), bean.getDescID(), node.getNodeURL(), node.getAssertionConsumerService(), node.getSingleLogoutService(), node.getCacheClearService());
 		}
 
 		/*
-		 * Set default policy for ESOEManager, generally this will be an allow all until admins correct using
-		 * ESOEManager
+		 * Set default policy for ESOEManager, generally this will be an allow all until administrators correct using
+		 * ESOEManager, by default the policyID is 0
 		 */
-		this.esoeDAO.insertServiceAuthorizationPolicy(spDescriptor.getID(), this.defaultPolicy, new Date());
+		this.esoeDAO.insertServiceAuthorizationPolicy(bean.getEntID(), this.defaultPolicyID, this.defaultPolicyData);
+		this.esoeDAO.insertServiceAuthorizationPolicy(bean.getEntID(), this.defaultManagementPolicyID, this.defaultManagementPolicyData);
 
-		bean.setSpDescriptorXML(spDescriptorXML);
+		bean.setDescriptorXML(spDescriptorXML);
 	}
 
-	private void createAtributeAuthorityDescriptor(ESOEBean bean, KeyDescriptor keyDescriptor) throws MarshallerException, ESOEDAOException
+	private void createAtributeAuthorityDescriptor(ESOEBean bean) throws MarshallerException, ESOEDAOException
 	{
 		AttributeAuthorityDescriptor aaDescriptor = new AttributeAuthorityDescriptor();
-		String aaDescriptorXML;
+		byte[] aaDescriptorXML;
 
 		EndpointType attributeService = new EndpointType();
 		attributeService.setBinding(BindingConstants.soap);
@@ -603,19 +615,18 @@ public class RegisterESOELogic
 		aaDescriptor.setID(this.identifierGenerator.generateSAMLID());
 		aaDescriptor.getProtocolSupportEnumerations().add(ProtocolConstants.protocol);
 		aaDescriptor.getAttributeServices().add(attributeService);
-		aaDescriptor.getKeyDescriptors().add(keyDescriptor);
 
 		aaDescriptorXML = this.aaMarshaller.marshallUnSigned(aaDescriptor);
 
-		this.esoeDAO.insertDescriptor(bean.getIdpEntityID(), aaDescriptor.getID(), aaDescriptorXML, this.util.getRoleDescriptorTypeId(AttributeAuthorityDescriptor.class.getCanonicalName()));
+		this.esoeDAO.insertDescriptor(bean.getEsoeEntID(), bean.getEsoeAADescID(), aaDescriptor.getID(), aaDescriptorXML, this.util.getRoleDescriptorTypeId(AttributeAuthorityDescriptor.class.getCanonicalName()));
 
 		bean.setAaDescriptorXML(aaDescriptorXML);
 	}
 
-	private void createLXACMLPDPDescriptor(ESOEBean bean, KeyDescriptor keyDescriptor) throws MarshallerException, ESOEDAOException
+	private void createLXACMLPDPDescriptor(ESOEBean bean) throws MarshallerException, ESOEDAOException
 	{
 		LXACMLPDPDescriptor pdpDescriptor = new LXACMLPDPDescriptor();
-		String pdpDescriptorXML;
+		byte[] pdpDescriptorXML;
 
 		EndpointType authzService = new EndpointType();
 		authzService.setBinding(BindingConstants.soap);
@@ -624,11 +635,10 @@ public class RegisterESOELogic
 		pdpDescriptor.setID(this.identifierGenerator.generateSAMLID());
 		pdpDescriptor.getProtocolSupportEnumerations().add(ProtocolConstants.protocol);
 		pdpDescriptor.getAuthzServices().add(authzService);
-		pdpDescriptor.getKeyDescriptors().add(keyDescriptor);
 
 		pdpDescriptorXML = this.pdpMarshaller.marshallUnSigned(pdpDescriptor);
 
-		this.esoeDAO.insertDescriptor(bean.getIdpEntityID(), pdpDescriptor.getID(), pdpDescriptorXML, this.util.getRoleDescriptorTypeId(LXACMLPDPDescriptor.class.getCanonicalName()));
+		this.esoeDAO.insertDescriptor(bean.getEsoeEntID(), bean.getEsoeLxacmlDescID(), pdpDescriptor.getID(), pdpDescriptorXML, this.util.getRoleDescriptorTypeId(LXACMLPDPDescriptor.class.getCanonicalName()));
 
 		bean.setPdpDescriptorXML(pdpDescriptorXML);
 	}
@@ -659,8 +669,6 @@ public class RegisterESOELogic
 		mdKeyPair = this.cryptoProcessor.generateKeyPair();
 		this.cryptoProcessor.addKeyPair(metadataKeyStore, mdKeyStorePassphrase, mdKeyPair, mdKeyPairName, mdKeyPairPassphrase, bean.getMetadataIssuerDN());
 
-		serializeKeyStore(metadataKeyStore, mdKeyStorePassphrase, bean.getWriteableDirectory() + File.separatorChar + Constants.METADATA_KEYSTORE_NAME);
-
 		bean.setEsoeMetadataKeystore(this.cryptoProcessor.convertKeystoreByteArray(metadataKeyStore, mdKeyStorePassphrase));
 
 		/*
@@ -682,8 +690,6 @@ public class RegisterESOELogic
 		this.cryptoProcessor.addKeyPair(esoeKeyStore, esoeKeyStorePassphrase, esoeKeyPair, esoeKeyPairName, esoeKeyPairPassphrase, this.generateSubjectDN(bean.getEsoeNodeURL()));
 		this.cryptoProcessor.addPublicKey(esoeKeyStore, mdKeyPair, mdKeyPairName, bean.getMetadataIssuerDN());
 
-		serializeKeyStore(esoeKeyStore, esoeKeyStorePassphrase, bean.getWriteableDirectory() + File.separatorChar + Constants.ESOE_KEYSTORE_NAME);
-
 		bean.setEsoeKeystore(this.cryptoProcessor.convertKeystoreByteArray(esoeKeyStore, esoeKeyStorePassphrase));
 
 		/*
@@ -701,10 +707,8 @@ public class RegisterESOELogic
 		esoeManagerKeyStore = this.cryptoProcessor.generateKeyStore();
 		esoeManagerKeyPair = this.cryptoProcessor.generateKeyPair();
 		bean.setEsoeManagerKeyPair(esoeManagerKeyPair);
-		this.cryptoProcessor.addKeyPair(esoeManagerKeyStore, esoeManagerKeyStorePassphrase, esoeManagerKeyPair, esoeManagerKeyPairName, esoeManagerKeyPairPassphrase, this.generateSubjectDN(bean.getManagerServiceURL()));
+		this.cryptoProcessor.addKeyPair(esoeManagerKeyStore, esoeManagerKeyStorePassphrase, esoeManagerKeyPair, esoeManagerKeyPairName, esoeManagerKeyPairPassphrase, this.generateSubjectDN(bean.getServiceURL()));
 		this.cryptoProcessor.addPublicKey(esoeManagerKeyStore, mdKeyPair, mdKeyPairName, bean.getMetadataIssuerDN());
-
-		serializeKeyStore(esoeManagerKeyStore, esoeManagerKeyStorePassphrase, bean.getWriteableDirectory() + File.separatorChar + Constants.ESOE_MANAGER_SPEP_KEYSTORE_NAME);
 
 		bean.setEsoeManagerKeystore(this.cryptoProcessor.convertKeystoreByteArray(esoeManagerKeyStore, esoeManagerKeyStorePassphrase));
 	}
@@ -764,89 +768,77 @@ public class RegisterESOELogic
 		return passphrase;
 	}
 
-	private void serializeKeyStore(KeyStore keyStore, String keyStorePassphrase, String filename) throws FileNotFoundException, KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException
-	{
-		FileOutputStream fos = null;
-		try
-		{
-			fos = new FileOutputStream(filename);
-			keyStore.store(fos, keyStorePassphrase.toCharArray());
-		}
-		finally
-		{
-			if (fos != null)
-			{
-				fos.flush();
-				fos.close();
-			}
-		}
-	}
-
 	private void loadDefaultPolicy(File policyFile) throws IOException
 	{
-		String tmp;
-		StringBuffer inBuffer = null;
 		InputStream fileStream = null;
-		Reader reader = null;
-		BufferedReader in = null;
 
 		try
 		{
-			inBuffer = new StringBuffer();
+			long length = policyFile.length();
+			byte[] byteArray = new byte[(int) length];
+
 			fileStream = new FileInputStream(policyFile);
-			reader = new InputStreamReader(fileStream, "UTF-16");
-			in = new BufferedReader(reader);
+			fileStream.read(byteArray);
+			fileStream.close();
 
-			while ((tmp = in.readLine()) != null)
-			{
-				inBuffer.append(tmp);
-				inBuffer.append(System.getProperty("line.separator"));
-			}
-
-			this.defaultPolicy = inBuffer.toString();
+			/*
+			 * The default policy is assigned ID 0 on disk, should this need to change for some reason the below
+			 * assignment must be modified.
+			 */
+			this.defaultPolicyData = byteArray;
+			this.defaultPolicyID = "spep-0";
 		}
 		finally
 		{
-			if (in != null)
-				in.close();
+			if (fileStream != null)
+				fileStream.close();
+		}
+	}
+	
+	private void loadDefaultAttributePolicy(File attribPolicyFile) throws IOException
+	{
+		InputStream fileStream = null;
 
-			if (reader != null)
-				reader.close();
+		try
+		{
+			long length = attribPolicyFile.length();
+			byte[] byteArray = new byte[(int) length];
 
+			fileStream = new FileInputStream(attribPolicyFile);
+			fileStream.read(byteArray);
+			fileStream.close();
+			
+			this.defaultAttributePolicyData = byteArray;
+		}
+		finally
+		{
 			if (fileStream != null)
 				fileStream.close();
 		}
 	}
 
-	private Vector<String> loadDatabaseCreationSQL(File generationSQL) throws IOException
+	private void loadDefaultManagementPolicy(File policyFile) throws IOException
 	{
-		/* Load database creation sql */
-		Vector<String> result = new Vector<String>();
-		String tmp;
 		InputStream fileStream = null;
-		Reader reader = null;
-		BufferedReader in = null;
+
 		try
 		{
-			fileStream = new FileInputStream(generationSQL);
-			reader = new InputStreamReader(fileStream);
-			in = new BufferedReader(reader);
+			long length = policyFile.length();
+			byte[] byteArray = new byte[(int) length];
 
-			while ((tmp = in.readLine()) != null)
-			{
-				result.add(tmp);
-			}
+			fileStream = new FileInputStream(policyFile);
+			fileStream.read(byteArray);
+			fileStream.close();
 
-			return result;
+			/*
+			 * The default policy is assigned ID 0 on disk, should this need to change for some reason the below
+			 * assignment must be modified.
+			 */
+			this.defaultManagementPolicyData = byteArray;
+			this.defaultManagementPolicyID = "manager-0";
 		}
 		finally
 		{
-			if (in != null)
-				in.close();
-
-			if (reader != null)
-				reader.close();
-
 			if (fileStream != null)
 				fileStream.close();
 		}

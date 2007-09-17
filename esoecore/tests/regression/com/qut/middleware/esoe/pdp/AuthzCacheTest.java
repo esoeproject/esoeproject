@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -102,8 +104,6 @@ public class AuthzCacheTest
 		
 	}
 
-	
-	
 	@Test
 	public void testGetCache()
 	{
@@ -127,14 +127,126 @@ public class AuthzCacheTest
 		test3.setPolicyId("3");
 		test3.setDescription("Test policy 3, yeah");
 		
-		newCache.put(test1.getPolicyId(), test1);
-		newCache.put("2", test2);
-		newCache.put(test3.getPolicyId(), test3);
+		Vector policies = new Vector();
+		policies.add(test1);
+		policies.add(test2);
+		policies.add(test3);
 		
-		this.testCache.setCache(newCache);
+		newCache.put("1", policies);
+			
+		this.testCache.setCache(newCache);		
+	}
+
+
+	@Test
+	public void testConcurrency() throws Exception 
+	{
+		this.testSetCache();
+	
+		new WriteThread(this.testCache);	
 		
+		new ReadThread(this.testCache);
 		
+		Thread.sleep(1000);
+		
+		// make sure the policy we are checking is as expected
+		assertTrue("Modified policy ID not encountered", this.testCache.getPolicies("1").get(2).getPolicyId().equals("200"));
 		
 	}
+	
+	class ReadThread extends Thread
+	{
+		private AuthzPolicyCache cache;
+		boolean running = true;
+		
+		public ReadThread(AuthzPolicyCache cache)
+		{
+			this.cache = cache;
+			this.start();
+		}
+		
+		public void run()
+		{
+			while(running)
+			{
+				this.testIterateModifiedPolicy();
+			}
+		}
+	
+		private void testIterateModifiedPolicy()
+		{
+			Iterator<Policy> iter = this.cache.getPolicies("1").iterator();
+			while(iter.hasNext())
+			{
+				Policy next = iter.next();
+				//System.out.println("Reading policy desc : " + next.getDescription() );
+			}
+		}
+	}
+	
+	
+	class WriteThread extends Thread
+	{
+		private AuthzPolicyCache cache;
+		boolean running = true;
+		
+		public WriteThread(AuthzPolicyCache cache)
+		{
+			this.cache = cache;
+			this.start();
+		}
+		
+		public void run()
+		{
+			int count = 0;
+			while(running)
+			{
+				count ++;
+				
+				this.testModifyPolicyIterator(count);
+				
+				try
+				{
+					//this.sleep(1000);
+				}
+				catch(Exception e)
+				{
+					//
+				}
+			}
+		}
+		
+	
+		private void testModifyPolicyIterator(int count)
+		{
+			Policy test1 = new Policy();
+			test1.setPolicyId("200");
+			
+			boolean replacedPolId = false;
+			
+			List<Policy> policies = this.cache.getPolicies("1");
+			Iterator<Policy> iter = policies.iterator();
+			while(iter.hasNext())
+			{
+				Policy next = iter.next();
+				if( next.getPolicyId().equals("1"))
+				{
+					iter.remove();
+					replacedPolId  = true;
+				}
+				
+			//	System.out.println("Modified policy " + next.getDescription());
+				next.setDescription("Test policy modified " + count + " times");
+			}
+			
+			if(replacedPolId)
+				policies.add(test1) ;
+			
+			// replace cache policy list
+			this.cache.add("1", policies );
+			
+		}
+	}
+	
 
 }

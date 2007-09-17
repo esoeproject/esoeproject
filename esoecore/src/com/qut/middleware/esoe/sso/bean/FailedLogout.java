@@ -32,7 +32,7 @@ public interface FailedLogout
 	/**
 	 * @return The original request document that was issued
 	 */
-	public String getRequestDocument();
+	public byte[] getRequestDocument();
 
 	/**
 	 * Sets the endPoint
@@ -44,7 +44,7 @@ public interface FailedLogout
 	 * Sets the Request Document
 	 * @param requestDocument the Request Document
 	 */
-	public void setRequestDocument(String requestDocument);
+	public void setRequestDocument(byte[] requestDocument);
 	
 	
 	/** Set the timestamp when the failure occured

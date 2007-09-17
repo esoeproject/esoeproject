@@ -26,11 +26,14 @@ import net.sf.click.control.Submit;
 
 import com.qut.middleware.esoemanager.bean.ContactPersonBean;
 import com.qut.middleware.esoemanager.pages.ContactPersonPage;
+import com.qut.middleware.esoestartup.bean.ESOEBean;
 
 public class RegisterESOEContactPersonPage extends ContactPersonPage
 {
 	public String action;
 	public Integer ref;
+	
+	public ESOEBean esoeBean;
 	
 	public RegisterESOEContactPersonPage()
 	{
@@ -41,6 +44,8 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 	public void onInit()
 	{
 		super.onInit();
+		
+		this.esoeBean = (ESOEBean) this.retrieveSession(ESOEBean.class.getName());
 	
 		Submit nextButton = new Submit(PageConstants.NAV_NEXT_LABEL, this, PageConstants.NAV_NEXT_FUNC);
 		Submit backButton = new Submit(PageConstants.NAV_PREV_LABEL, this, PageConstants.NAV_PREV_FUNC);
@@ -53,7 +58,14 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 	@Override
 	public void onPost()
 	{
-		super.onPost();
+		/* Ensure session data is correctly available */
+		if(this.esoeBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
+		super.createOrUpdateContact(esoeBean);
 		
 		if(this.contactDetails.isValid())
 		{
@@ -68,8 +80,22 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 	@Override
 	public void onGet()
 	{
+		/* Ensure session data is correctly available */
+		if(this.esoeBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
+		/* Ensure session data is correctly available */
+		if(this.esoeBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
 		/* Check if previous registration stage completed */
-		Boolean status = (Boolean)this.retrieveSession(PageConstants.STAGE3_RES);
+		Boolean status = (Boolean)this.retrieveSession(PageConstants.STAGE4_RES);
 		if(status == null || status.booleanValue() != true)
 		{
 			previousClick();
@@ -90,8 +116,8 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 	
 	protected void deleteContact()
 	{
-		this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-		if (this.contacts != null)
+		Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) this.esoeBean.getContacts();
+		if (contacts != null)
 		{
 			if (this.ref != null)
 			{
@@ -99,8 +125,8 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 				 * Submitted value for contact ID will be the current position of the contact in the contacts vector - 1
 				 * as listed by velocity when writing the response
 				 */
-				this.contacts.remove(this.ref - 1);
-				this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
+				contacts.remove(this.ref - 1);
+				this.esoeBean.setContacts(contacts);
 			}
 
 		}
@@ -108,8 +134,8 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 
 	protected void editContact()
 	{
-		this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-		if (this.contacts != null)
+		Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) this.esoeBean.getContacts();
+		if (contacts != null)
 		{
 			if (ref != null)
 			{
@@ -117,9 +143,9 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 				 * Submitted value for contact ID will be the current position of the contact in the contacts vector - 1
 				 * as listed by velocity when writing the response
 				 */
-				ContactPersonBean contact = this.contacts.get(this.ref - 1);
-				this.contacts.remove(this.ref - 1);
-				this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
+				ContactPersonBean contact = contacts.get(this.ref - 1);
+				contacts.remove(this.ref - 1);
+				this.esoeBean.setContacts(contacts);
 
 				translateDetails(contact);
 			}
@@ -129,6 +155,13 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 	
 	public boolean nextClick()
 	{
+		/* Ensure session data is correctly available */
+		if(this.esoeBean == null)
+		{
+			previousClick();
+			return false;
+		}
+		
 		/* Determine if the user is clicking next with a fresh submission (as opposed to saving) if so
 		 * attempt to add that contact to the list
 		 */
@@ -140,7 +173,7 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 			{
 				if(this.contactDetails.isValid())
 				{
-					this.createOrUpdateContact();
+					this.createOrUpdateContact(this.esoeBean);
 					
 					/* Attempting to create submittied contact failed */
 					if(!this.contactDetails.isValid())
@@ -153,7 +186,7 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 			}
 		}
 		
-		contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
+		Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) this.esoeBean.getContacts();
 		
 		if(contacts == null || contacts.size() == 0)
 		{
@@ -165,7 +198,7 @@ public class RegisterESOEContactPersonPage extends ContactPersonPage
 		}
 		
 		/* This stage completed correctly */
-		this.storeSession(PageConstants.STAGE4_RES, new Boolean(true));
+		this.storeSession(PageConstants.STAGE5_RES, new Boolean(true));
 		
 		/* Move client to add crypto details for this service */
 		String path = getContext().getPagePath(RegisterESOEManagerServicePage.class);

@@ -26,7 +26,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 				<ref bean="shibMail" />
 			</list>
 		</constructor-arg>
-		<constructor-arg index="4" value="${authnprocessor.userIdentifier}" />
+		<constructor-arg index="8" value="${authnprocessor.userIdentifier}" />
 	</bean>
 
 </beans>

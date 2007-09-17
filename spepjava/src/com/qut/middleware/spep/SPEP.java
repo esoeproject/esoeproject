@@ -32,6 +32,7 @@ import com.qut.middleware.spep.pep.SessionGroupCache;
 /** Interface for filters and other implementations of the SPEP to use this library.*/
 public interface SPEP
 {
+	public enum defaultAction {Permit, Deny};
 	
 	/**
 	 * @return The attribute processor.
@@ -60,14 +61,14 @@ public interface SPEP
 	public String getTokenName();
 	
 	/**
-	 * @return The domain at which to define the SPEP token.
+	 * @return The service URL being presented by this spep (or pool of spep).
 	 */
-	public String getTokenDomain();
+	public String getServiceHost();
 	
 	/**
-	 * @return The absolute URL redirect location for the SPEP Authentication servlet.
+	 * @return SSO web application redirect (relative)
 	 */
-	public String getLoginRedirect();
+	public String getSsoRedirect();
 	
 	/**
 	 * @return The URL to redirect new sessions to.
@@ -91,4 +92,22 @@ public interface SPEP
 	 * @return List of cookies.
 	 */
 	public List<Cookie> getLogoutClearCookies();
+	
+	/**
+	 * @return if this spep is operating in lazy mode or not
+	 */
+	public boolean isLazyInit();
+	
+	/**
+	 * @return A list of resources which should be matched against to determine if SPEP should without get involved in the request and invoke the default action inverse
+	 */
+	public List<String> getLazyInitResources();
+	
+	/**
+	 * @return Determines the site wide ESOE session token, has no purpose except to indicate ESOE has quite probably established a session for this user already
+	 */
+	public String getEsoeGlobalTokenName();
+	
+	public defaultAction getLazyInitDefaultAction();
+
 }

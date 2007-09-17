@@ -8,36 +8,61 @@ Configuration for node $velocityCount
 <div id="node">
 <table>
 <tr>
-<td><strong>Description</strong></td><td><strong>Configuration Option</strong></td><td><strong>Value to configure</strong></td>
+<th>Configuration Option</th><th>Value to configure</th>
 </tr>
 <tr>
-<td>Trusted ESOE Identifier</td><td>esoeIdentifier</td><td>$esoeTrustedID</td>
+<th>keystorePassword</th><td>#if($keyStoreDetails.getKeyStorePassphrase())$keyStoreDetails.getKeyStorePassphrase()#end</td>
 </tr>
 <tr>
-<td>Service Identifier</td><td>spepIdentifier</td><td>$serviceID</td>
+<th>spepKeyAlias</th><td>#if($keyStoreDetails.getKeyPairName())$keyStoreDetails.getKeyPairName()#end</td>
 </tr>
 <tr>
-<td>Trusted Metadata Key Name</td><td>metadataKeyAlias</td><td>$metadataKeyName</td>
+<th>spepKeyPassword</th><td>#if($keyStoreDetails.getKeyPairPassphrase())$keyStoreDetails.getKeyPairPassphrase()#end</td>
 </tr>
 <tr>
-<td>Node Identifier</td><td>nodeIdentifier</td><td>$node.getNodeID()</td>
+<th>metadataKeyAlias</th><td>$metadataKeyName</td>
 </tr>
 <tr>
-<td>Key Store Download</td><td/><td><a href="retrievekeystore.htm?serviceID=$serviceID">download keystore</a></td>
+<th>esoeIdentifier</th><td>$esoeTrustedID</td>
 </tr>
 <tr>
-<td>KeyStore Passphrase</td><td>keystorePassword</td><td>#if($keyStoreDetails.getKeyStorePassphrase())$keyStoreDetails.getKeyStorePassphrase()#end</td>
+<th>spepIdentifier</th><td>$serviceID</td>
 </tr>
 <tr>
-<td>Key Name</td><td>spepKeyAlias</td><td>#if($keyStoreDetails.getKeyPairName())$keyStoreDetails.getKeyPairName()#end</td>
+<th>metadataURL</th><td>Ask your local system administrator for this URL</td>
 </tr>
 <tr>
-<td>Key Pasphrase</td><td>spepKeyPassword</td><td>#if($keyStoreDetails.getKeyPairPassphrase())$keyStoreDetails.getKeyPairPassphrase()#end</td>
+<th>serverInfo</th><td>A human readable description of the service, single line.</td>
 </tr>
+<tr>
+<th>nodeIdentifier</th><td>$node.getNodeID()</td>
+</tr>
+<tr>
+<th>attributeConsumingServiceIndex</th><td>$node.getNodeID()</td>
+</tr>
+<tr>
+<th>assertionConsumerServiceIndex</th><td>$node.getNodeID()</td>
+</tr>
+<tr>
+<th>authzCacheIndex</th><td>$node.getNodeID()</td>
+</tr>
+<tr>
+<th>serviceHost</th><td>Address of the service host in use without any application path e.g. <strong>https://myserver.company.com or https://myotherserver.company.com:8443</strong> NOT https://myserver.company.com/myapp/</td>
+</tr>
+<tr>
+<th>ipAddress</th><td>The IP address this node of your service listens for inbound connections on</td>
+</tr>
+<tr>
+<th>loginRedirect</th><td>URL to redirect requests to for interaction with local SPEP software e.g. https://server.company.com/spep/sso?redirectURL={0} or http://server2.company.com:8080/spep/sso?redirectURL={0}</td>
+</tr>
+<tr>
+<th>defaultURL</th><td>Default URL for this service e.g. https://service.company.com/myapp/index.html</td>
+</tr>
+
 </table>
 </div>
 <br/>
 <br/>
 #end
 
-<td><a href="viewservice.htm?entityID=$entityID">return to service details</a></td>
+<td><a href="viewservice.htm?eid=$eid">return to service details</a></td>

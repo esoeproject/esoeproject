@@ -1,6 +1,10 @@
 
 <h2> ESOE Configuration form help</h2>
 
+<h3>ESOE Directory Structure Setup</h3>
+<a name="esoecontent"></a>
+These are directories where the ESOE, ESOE Manager and SPEP will store config files and dynamic run time content. They should be exported as Java properties of esoe.data, esoemanager.data and spep.data respectively.
+
 <h3> Database Setup</h3>
 <a name="database"></a>
 	<h4>Database Connection String</h4>
@@ -13,7 +17,13 @@
 	Password of the user accessing the database.
 
 <h3>ESOE Configuration</h3>
-<a name="base"></a>
+<a name="esoe"></a>
+	<h4> ESOE Common Domain </h4>
+	This is the common domain in which the ESOE operates, generally this is the base component of your enterprise domain assigned to you by a local domain registrar. e.g. mycompany.com, mycompany.com.au or mycompany.co.uk
+	
+	<h4>ESOE Identifier</h4>
+	This is a URI that uniquely identifies the ESOE instance per RFC 2396. Unless otherwise instructed by administrators this should be set the same value as ESOE Service URL
+
 	<h4>ESOE Service URL</h4>
 	The URL client browsers and services will connect to to access components of the ESOE. Generally the ESOE should be deployed within its own zone, with the ESOE itself being the zone host.
 	Example: https://esoe.intient.com
@@ -62,6 +72,9 @@
 <a name="servicedetails"></a>
 	<h4>Service URL</h4>
 	URL where clients connect to access this service, should be secure. (NB: Don't include application directories here eg: https://service.com not https://service.com/myapp
+	
+	<h4>Service Identifier</h4>
+	This is a URI that uniquely identifies the service instance per RFC 2396. Unless otherwise instructed by administrators this should be set the same value as Service URL
 	
 	<h4>Service Authorization Failure</h4>
 	Description to present to users when they fail to access content based on defined policies for this service. May contain html markup. Should contain contact details for service owners to allow resolution of problems.

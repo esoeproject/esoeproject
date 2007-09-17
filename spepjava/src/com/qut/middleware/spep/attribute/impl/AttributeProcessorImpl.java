@@ -19,10 +19,10 @@
  */
 package com.qut.middleware.spep.attribute.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.CharBuffer;
 import java.text.MessageFormat;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -63,6 +63,7 @@ import com.qut.middleware.spep.attribute.Messages;
 import com.qut.middleware.spep.exception.AttributeProcessingException;
 import com.qut.middleware.spep.metadata.KeyStoreResolver;
 import com.qut.middleware.spep.metadata.Metadata;
+import com.qut.middleware.spep.metadata.impl.MetadataImpl;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 import com.qut.middleware.spep.util.CalendarUtils;
 import com.qut.middleware.spep.ws.WSClient;
@@ -75,33 +76,39 @@ public class AttributeProcessorImpl implements AttributeProcessor
 	protected Metadata metadata;
 	protected WSClient wsClient;
 	protected IdentifierGenerator identifierGenerator;
-	private List<AttributeType> attributes;
-	private String[] schemas = new String[]{ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol};
+	private String[] schemas = new String[] { ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
 	private Marshaller<AttributeQuery> attributeQueryMarshaller;
 	private Unmarshaller<Response> responseUnmarshaller;
 	private SAMLValidator samlValidator;
-	
+
 	private final String UNMAR_PKGNAMES = Response.class.getPackage().getName();
 	private final String UNMAR_PKGNAMES2 = AttributeConfig.class.getPackage().getName();
 	private final String MAR_PKGNAMES = AttributeQuery.class.getPackage().getName();
-	
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(AttributeProcessorImpl.class.getName());
-	
+
 	/**
 	 * Constructor
-     *
-	 * @param metadata The metadata used to otain SPEP service details.
-	 * @param wsClient The web service client to use for web service calls.
-	 * @param identifierGenerator For generating unique SAML identifiers.
-	 * @param samlValidator The SAML validator
-	 * @param xmlConfigInputStream The xml configuration input stream.
-	 * @param keyStoreResolver The keystore resolver.
-	 * @throws MarshallerException if the marshaller cannot be created.
-	 * @throws UnmarshallerException if the unmarshaller cannot be created.
-	 * @throws IOException if there is an error reading the xml FileStream.
+	 * 
+	 * @param metadata
+	 *            The metadata used to otain SPEP service details.
+	 * @param wsClient
+	 *            The web service client to use for web service calls.
+	 * @param identifierGenerator
+	 *            For generating unique SAML identifiers.
+	 * @param samlValidator
+	 *            The SAML validator
+	 * @param keyStoreResolver
+	 *            The keystore resolver.
+	 * @throws MarshallerException
+	 *             if the marshaller cannot be created.
+	 * @throws UnmarshallerException
+	 *             if the unmarshaller cannot be created.
+	 * @throws IOException
+	 *             if there is an error reading the xml FileStream.
 	 */
-	public AttributeProcessorImpl(Metadata metadata, WSClient wsClient, IdentifierGenerator identifierGenerator, SAMLValidator samlValidator, InputStream xmlConfigInputStream, KeyStoreResolver keyStoreResolver) throws MarshallerException, UnmarshallerException, IOException
+	public AttributeProcessorImpl(Metadata metadata, WSClient wsClient, IdentifierGenerator identifierGenerator, SAMLValidator samlValidator, KeyStoreResolver keyStoreResolver) throws MarshallerException, UnmarshallerException, IOException
 	{
 		if (metadata == null)
 		{
@@ -119,68 +126,24 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		{
 			throw new IllegalArgumentException(Messages.getString("AttributeProcessorImpl.35")); //$NON-NLS-1$
 		}
-		if (xmlConfigInputStream == null)
-		{
-			throw new IllegalArgumentException(Messages.getString("AttributeProcessorImpl.36")); //$NON-NLS-1$
-		}
 		if (keyStoreResolver == null)
 		{
 			throw new IllegalArgumentException(Messages.getString("AttributeProcessorImpl.37")); //$NON-NLS-1$
 		}
-		
+
 		this.metadata = metadata;
 		this.wsClient = wsClient;
 		this.identifierGenerator = identifierGenerator;
 		this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(this.MAR_PKGNAMES, this.schemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
 		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, this.schemas, this.metadata);
 		this.samlValidator = samlValidator;
-		
-		// Read the config file.
-		
-		String configDocument;
-		
-		this.logger.debug(Messages.getString("AttributeProcessorImpl.1")); //$NON-NLS-1$
-		InputStreamReader in = new InputStreamReader(xmlConfigInputStream);
 
-		// Read the file.
-		StringBuffer stringBuffer = new StringBuffer();
-		CharBuffer charBuffer = CharBuffer.allocate(AttributeProcessorImpl.BUFFER_LEN);
-		while (in.read(charBuffer) >= 0)
-		{
-			charBuffer.flip();
-			stringBuffer.append(charBuffer.toString());
-			charBuffer.clear();
-		}
-		
-		configDocument = stringBuffer.toString();
-		
-		this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.2"), new Object[]{Integer.valueOf(configDocument.length())})); //$NON-NLS-1$
-		
-		String[] attributeConfigSchemas = new String[]{ConfigurationConstants.attributeConfig, ConfigurationConstants.samlAssertion};
-
-		this.attributes = new Vector<AttributeType>();
-
-		// if the file is empty, proceeed with empty attribute queries
-		if(configDocument.length() > 0)
-		{
-			Unmarshaller<AttributeConfig> attributeConfigUnmarshaller = new UnmarshallerImpl<AttributeConfig>(this.UNMAR_PKGNAMES2, attributeConfigSchemas);
-				
-			AttributeConfig attributeConfig = attributeConfigUnmarshaller.unMarshallUnSigned(configDocument);
-		
-			for (RequestedAttributeType requestedAttribute : attributeConfig.getRequestedAttributes())
-			{
-				AttributeType attribute = new AttributeType();
-				attribute.setName(requestedAttribute.getName());
-				attribute.setFriendlyName(requestedAttribute.getFriendlyName());
-				attribute.setNameFormat(requestedAttribute.getNameFormat());
-				this.attributes.add(attribute);
-			}
-		}
-		
 		this.logger.info(Messages.getString("AttributeProcessorImpl.27")); //$NON-NLS-1$
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.qut.middleware.spep.attribute.AttributeProcessor#beginAttributeProcessing(com.qut.middleware.spep.sessions.PrincipalSession)
 	 */
 	public void doAttributeProcessing(PrincipalSession principalSession) throws AttributeProcessingException
@@ -200,28 +163,28 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			this.logger.error(Messages.getString("AttributeProcessorImpl.9")); //$NON-NLS-1$
 			throw new AttributeProcessingException(Messages.getString("AttributeProcessorImpl.10")); //$NON-NLS-1$
 		}
-		
+
 		// Build the attribute query
 		String samlID = this.identifierGenerator.generateSAMLID();
 		this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.28"), samlID)); //$NON-NLS-1$
-		String requestDocument = this.buildAttributeQuery(principalSession, samlID);
-		
+		byte[] requestDocument = this.buildAttributeQuery(principalSession, samlID);
+
 		if (requestDocument == null)
 		{
 			this.logger.error(Messages.getString("AttributeProcessorImpl.11")); //$NON-NLS-1$
 			throw new AttributeProcessingException(Messages.getString("AttributeProcessorImpl.12")); //$NON-NLS-1$
 		}
-		
+
 		// Web service call. May take a long time to return.
-		String responseDocument = null;
+		byte[] responseDocument = null;
 		try
 		{
 			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.29"), samlID)); //$NON-NLS-1$
-		
+
 			String endpoint = this.metadata.getAttributeServiceEndpoint();
-		
+
 			responseDocument = this.wsClient.attributeAuthority(requestDocument, endpoint);
-		
+
 			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.30"), samlID)); //$NON-NLS-1$
 		}
 		catch (WSClientException e)
@@ -229,18 +192,18 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			this.logger.error(Messages.getString("AttributeProcessorImpl.13") + e.getLocalizedMessage()); //$NON-NLS-1$
 			throw new AttributeProcessingException(Messages.getString("AttributeProcessorImpl.14"), e); //$NON-NLS-1$
 		}
-		
-		this.logger.debug(Messages.getString("AttributeProcessorImpl.0") + responseDocument); //$NON-NLS-1$
-		
+
+		this.logger.trace(Messages.getString("AttributeProcessorImpl.0") + new String(responseDocument)); //$NON-NLS-1$
+
 		// Unmarshal the response
 		List<AttributeStatement> attributeStatements = this.getAttributeStatements(responseDocument, samlID);
-		
+
 		if (attributeStatements == null || attributeStatements.size() == 0)
 		{
-			this.logger.error(Messages.getString("AttributeProcessorImpl.19")); //$NON-NLS-1$
-			throw new AttributeProcessingException(Messages.getString("AttributeProcessorImpl.20")); //$NON-NLS-1$
+			this.logger.info(Messages.getString("AttributeProcessorImpl.19") + principalSession.getEsoeSessionID()); //$NON-NLS-1$
+			return;
 		}
-		
+
 		this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.31"), samlID, Integer.toString(attributeStatements.size()))); //$NON-NLS-1$
 
 		// add retrieved attributes to client session
@@ -250,38 +213,39 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			{
 				if (encryptedAttributeOrAttribute instanceof AttributeType)
 				{
-					AttributeType attribute = (AttributeType)encryptedAttributeOrAttribute;
-					
+					AttributeType attribute = (AttributeType) encryptedAttributeOrAttribute;
+
 					String attributeName = attribute.getName();
 					List<Object> attributeValues = principalSession.getAttributes().get(attributeName);
 					if (attributeValues == null)
 					{
-						attributeValues = new Vector<Object>(0,1);
+						attributeValues = new Vector<Object>(0, 1);
 						principalSession.getAttributes().put(attributeName, attributeValues);
 					}
-					
+
 					attributeValues.addAll(attribute.getAttributeValues());
 				}
 			}
 		}
-		
+
 		this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.32"), principalSession.getEsoeSessionID(), principalSession.getEsoeSessionID())); //$NON-NLS-1$
 	}
-	
-	/* Builds the string representation of an AttributeQuery using client details contained in the
-	 * PrincipalSession and the given SAML ID.
+
+	/*
+	 * Builds the string representation of an AttributeQuery using client details contained in the PrincipalSession and
+	 * the given SAML ID.
 	 * 
 	 */
-	private String buildAttributeQuery(PrincipalSession principalSession, String samlID)
+	private byte[] buildAttributeQuery(PrincipalSession principalSession, String samlID)
 	{
 		Subject subject = new Subject();
 		NameIDType subjectNameID = new NameIDType();
 		subjectNameID.setValue(principalSession.getEsoeSessionID());
 		subject.setNameID(subjectNameID);
-		
+
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.metadata.getSPEPIdentifier());
-		
+
 		// Build the attribute query.
 		AttributeQuery attributeQuery = new AttributeQuery();
 		attributeQuery.setID(samlID);
@@ -290,10 +254,8 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		attributeQuery.setSignature(new Signature());
 		attributeQuery.setSubject(subject);
 		attributeQuery.setIssuer(issuer);
-		
-		attributeQuery.getAttributes().addAll(this.attributes);
-		
-		String requestDocument = null;
+
+		byte[] requestDocument = null;
 		try
 		{
 			requestDocument = this.attributeQueryMarshaller.marshallSigned(attributeQuery);
@@ -302,14 +264,15 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		{
 			this.logger.error(Messages.getString("AttributeProcessorImpl.21") + e.getLocalizedMessage()); //$NON-NLS-1$
 		}
-		
+
 		return requestDocument;
 	}
-	
-	/* Extract a list of AttributeStatements from the given string representaion of a SAML Response.
+
+	/*
+	 * Extract a list of AttributeStatements from the given string representaion of a SAML Response.
 	 * 
 	 */
-	private List<AttributeStatement> getAttributeStatements(String responseDocument, String expectedSAMLID)
+	private List<AttributeStatement> getAttributeStatements(byte[] responseDocument, String expectedSAMLID)
 	{
 		// Unmarshal the response.
 		Response response;
@@ -332,7 +295,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			this.logger.error(Messages.getString("AttributeProcessorImpl.24") + e.getLocalizedMessage()); //$NON-NLS-1$
 			return null;
 		}
-		
+
 		try
 		{
 			this.samlValidator.getResponseValidator().validate(response);
@@ -342,82 +305,82 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			this.logger.error(MessageFormat.format(Messages.getString("AttributeProcessorImpl.38"), response.getID(), e.getMessage(), expectedSAMLID)); //$NON-NLS-1$
 			return null;
 		}
-				
+
 		// verify the issuer was the ESOE
-		if(!this.metadata.getESOEIdentifier().equals(response.getIssuer().getValue()) )
+		if (!this.metadata.getESOEIdentifier().equals(response.getIssuer().getValue()))
 		{
 			this.logger.error(Messages.getString("AttributeProcessorImpl.39")); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.40"), this.metadata.getESOEIdentifier(), response.getIssuer().getValue()) ); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.40"), this.metadata.getESOEIdentifier(), response.getIssuer().getValue())); //$NON-NLS-1$
 			return null;
 		}
-		
+
 		// verify assertions
 		for (Object assertionOrEncryptedAssertion : response.getEncryptedAssertionsAndAssertions())
 		{
 			if (assertionOrEncryptedAssertion instanceof Assertion)
 			{
-				Assertion assertion = (Assertion)assertionOrEncryptedAssertion;
-		
+				Assertion assertion = (Assertion) assertionOrEncryptedAssertion;
+
 				// validate SubjectConfirmationData recipient and notOnOrAfter fields
-				if(assertion.getSubject() == null)
+				if (assertion.getSubject() == null)
 				{
-					this.logger.error(Messages.getString("AttributeProcessorImpl.44"));  //$NON-NLS-1$
+					this.logger.error(Messages.getString("AttributeProcessorImpl.44")); //$NON-NLS-1$
 					return null;
 				}
-				
+
 				// validate SubjectConfirmationData recipient and notOnOrAfter fields
 				List<SubjectConfirmation> subjectConfirmations = assertion.getSubject().getSubjectConfirmationNonID();
-				
-				if(subjectConfirmations.size() == 0)
+
+				if (subjectConfirmations.size() == 0)
 				{
-					this.logger.error(Messages.getString("AttributeProcessorImpl.41"));  //$NON-NLS-1$
-					return null;			
+					this.logger.error(Messages.getString("AttributeProcessorImpl.41")); //$NON-NLS-1$
+					return null;
 				}
-			
-				for(SubjectConfirmation confirmation: subjectConfirmations)
+
+				for (SubjectConfirmation confirmation : subjectConfirmations)
 				{
 					SubjectConfirmationDataType confirmationData = confirmation.getSubjectConfirmationData();
-					
-					if(confirmationData == null)
+
+					if (confirmationData == null)
 					{
-						this.logger.warn(Messages.getString("AttributeProcessorImpl.42"));  //$NON-NLS-1$
+						this.logger.warn(Messages.getString("AttributeProcessorImpl.42")); //$NON-NLS-1$
 						return null;
 					}
-			
+
 					// validate data has not expired
 					XMLGregorianCalendar xmlCalendar = confirmationData.getNotOnOrAfter();
 					GregorianCalendar notOnOrAfterCal = xmlCalendar.toGregorianCalendar();
 
 					XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
 					GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
-					
+
 					if (thisCal.after(notOnOrAfterCal))
-				{
-						// request is out of date
-						this.logger.error(Messages.getString("AttributeProcessorImpl.43"));  //$NON-NLS-1$
-						return null;
-					}					
-				}
-			}
-		}
-		
-		// Enumerate the AttributeStatements and return them.
-		List<AttributeStatement> attributeStatements = new Vector<AttributeStatement>(0,1);
-		for (Object encryptedAssertionOrAssertion : response.getEncryptedAssertionsAndAssertions())
-		{
-			if (encryptedAssertionOrAssertion instanceof Assertion)
-			{
-				Assertion assertion = (Assertion)encryptedAssertionOrAssertion;
-				for (StatementAbstractType statement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements())
-				{
-					if (statement instanceof AttributeStatement)
 					{
-						attributeStatements.add((AttributeStatement)statement);
+						// request is out of date
+						this.logger.error(Messages.getString("AttributeProcessorImpl.43")); //$NON-NLS-1$
+						return null;
 					}
 				}
 			}
 		}
-		
+
+		// Enumerate the AttributeStatements and return them.
+		List<AttributeStatement> attributeStatements = new Vector<AttributeStatement>(0, 1);
+		for (Object encryptedAssertionOrAssertion : response.getEncryptedAssertionsAndAssertions())
+		{
+			if (encryptedAssertionOrAssertion instanceof Assertion)
+			{
+				Assertion assertion = (Assertion) encryptedAssertionOrAssertion;
+				for (StatementAbstractType statement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements())
+				{
+					if (statement instanceof AttributeStatement)
+					{
+						attributeStatements.add((AttributeStatement) statement);
+					}
+				}
+			}
+		}
+
 		return attributeStatements;
 	}
 }

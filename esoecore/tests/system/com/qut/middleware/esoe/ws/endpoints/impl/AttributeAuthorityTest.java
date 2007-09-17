@@ -21,8 +21,8 @@ package com.qut.middleware.esoe.ws.endpoints.impl;
 
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -92,7 +92,7 @@ public class AttributeAuthorityTest
 		
 		try
 		{
-			StringReader reader = new StringReader(createAttributeRequest());
+			ByteArrayInputStream reader = new ByteArrayInputStream(createAttributeRequest());
 
 			XMLInputFactory xif = XMLInputFactory.newInstance();
 			XMLStreamReader xmlreader = xif.createXMLStreamReader(reader);
@@ -110,8 +110,6 @@ public class AttributeAuthorityTest
 			StringWriter writer = new StringWriter();
 			result.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
 			writer.flush();
-
-			//System.out.println("Response: " + writer.toString());
 		}
 		catch (Exception ex)
 		{
@@ -119,7 +117,7 @@ public class AttributeAuthorityTest
 		}
 	}
 
-	private String createAttributeRequest()
+	private byte[] createAttributeRequest()
 	{
 		String destination = "https://site.url/roar"; // AttributeQuery attribute
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
@@ -158,7 +156,7 @@ public class AttributeAuthorityTest
 		Signature signature = new Signature();
 		attributeQuery.setSignature(signature);
 
-		String request = null;
+		byte[] request = null;
 		try
 		{
 			request = this.marshaller.marshallSigned(attributeQuery);

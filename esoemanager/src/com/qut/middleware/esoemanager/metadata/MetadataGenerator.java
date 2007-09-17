@@ -21,5 +21,5 @@ package com.qut.middleware.esoemanager.metadata;
 
 public interface MetadataGenerator
 {
-	public String generateMetadata();
+	public byte[] generateMetadata();
 }

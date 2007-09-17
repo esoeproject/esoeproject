@@ -37,6 +37,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="0" ref="metadataDAO" />
 		<constructor-arg index="1" ref="identifierGenerator" />
 		<constructor-arg index="2" ref="esoeManagerKeyStoreResolver" />
+		<constructor-arg index="3" ref="cryptoProcessor" />
 	</bean>
 
 	<!-- Metadata Update Monitor -->

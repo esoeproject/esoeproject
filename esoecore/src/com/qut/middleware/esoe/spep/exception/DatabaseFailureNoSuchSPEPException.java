@@ -22,4 +22,19 @@ package com.qut.middleware.esoe.spep.exception;
 public class DatabaseFailureNoSuchSPEPException extends Exception
 {
 	private static final long serialVersionUID = 7488843736759602692L;
+	
+	public DatabaseFailureNoSuchSPEPException(String message)
+	{
+		super(message);
+	}
+	
+	public DatabaseFailureNoSuchSPEPException(String message, Exception cause)
+	{
+		super(message, cause);
+	}
+	
+	public DatabaseFailureNoSuchSPEPException(Exception cause)
+	{
+		super(cause);
+	}
 }

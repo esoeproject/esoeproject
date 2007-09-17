@@ -21,6 +21,7 @@ package com.qut.middleware.spep.sessions.impl;
 
 import java.text.MessageFormat;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,12 +29,15 @@ import java.util.Vector;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.spep.sessions.Messages;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 import com.qut.middleware.spep.sessions.SessionCache;
 import com.qut.middleware.spep.sessions.UnauthenticatedSession;
+import com.qut.middleware.spep.util.CalendarUtils;
 
 /** */
 public class SessionCacheImpl implements SessionCache
@@ -56,7 +60,7 @@ public class SessionCacheImpl implements SessionCache
 	{
 		this.lock.unlock();
 	}
-	
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(SessionCacheImpl.class.getName());
 
@@ -118,19 +122,22 @@ public class SessionCacheImpl implements SessionCache
 
 		if (principalSession != null)
 		{
-			if (new Date().before(principalSession.getSessionNotOnOrAfter()))
+			XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
+			GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
+
+			if (thisCal.getTime().before(principalSession.getSessionNotOnOrAfter()))
 			{
+				this.logger.info("Continuing with cached session " + principalSession.getEsoeSessionID() + " current time is: " + thisCal.getTime() + " sessionNotOnAfter was set to: " + principalSession.getSessionNotOnOrAfter());
 				return principalSession;
 			}
 
-			this.logger.debug(MessageFormat.format(
-					Messages.getString("SessionCacheImpl.9"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
+			this.logger.info("Terminating session " + principalSession.getEsoeSessionID() + " current time is: " + thisCal.getTime() + " sessionNotOnAfter was set to: " + principalSession.getSessionNotOnOrAfter());
+			this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.9"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
 
 			terminatePrincipalSession(principalSession);
 		}
 
-		this.logger.debug(MessageFormat.format(
-				Messages.getString("SessionCacheImpl.8"), sessionID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.8"), sessionID)); //$NON-NLS-1$
 
 		return null;
 	}
@@ -156,13 +163,17 @@ public class SessionCacheImpl implements SessionCache
 
 		if (principalSession != null)
 		{
-			if (new Date().before(principalSession.getSessionNotOnOrAfter()))
+			XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
+			GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
+
+			if (thisCal.getTime().before(principalSession.getSessionNotOnOrAfter()))
 			{
+				this.logger.info("Continuing with cached session " + principalSession.getEsoeSessionID() + " current time is: " + thisCal.getTime() + " sessionNotOnAfter was set to: " + principalSession.getSessionNotOnOrAfter());
 				return principalSession;
 			}
 
-			this.logger.debug(MessageFormat.format(
-					Messages.getString("SessionCacheImpl.9"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
+			this.logger.info("Terminating session " + principalSession.getEsoeSessionID() + " current time is: " + thisCal.getTime() + " sessionNotOnAfter was set to: " + principalSession.getSessionNotOnOrAfter());
+			this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.9"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
 
 			terminatePrincipalSession(principalSession);
 		}
@@ -195,8 +206,7 @@ public class SessionCacheImpl implements SessionCache
 			unlock();
 		}
 
-		this.logger.debug(MessageFormat.format(
-				Messages.getString("SessionCacheImpl.2"), sessionID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.2"), sessionID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -216,17 +226,19 @@ public class SessionCacheImpl implements SessionCache
 			}
 
 			this.esoeSessions.remove(principalSession.getEsoeSessionID());
-			this.logger.debug(MessageFormat.format(
-					Messages.getString("SessionCacheImpl.3"), principalSession.getEsoeSessionID())); //$NON-NLS-1$		
+			this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.3"), principalSession.getEsoeSessionID())); //$NON-NLS-1$		
 		}
 		finally
 		{
 			unlock();
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.spep.sessions.SessionCache#terminateIndividualPrincipalSession(com.qut.middleware.spep.sessions.PrincipalSession, java.lang.String)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.spep.sessions.SessionCache#terminateIndividualPrincipalSession(com.qut.middleware.spep.sessions.PrincipalSession,
+	 *      java.lang.String)
 	 */
 	public void terminateIndividualPrincipalSession(PrincipalSession principalSession, String esoeSessionIndex)
 	{
@@ -234,22 +246,22 @@ public class SessionCacheImpl implements SessionCache
 		try
 		{
 			Map<String, String> sessionIndex = principalSession.getEsoeSessionIndex();
-			if(sessionIndex != null)
+			if (sessionIndex != null)
 			{
 				String localSessionID = sessionIndex.get(esoeSessionIndex);
-				
-				if(localSessionID != null)
+
+				if (localSessionID != null)
 				{
 					/* Remove this session from local sessionID cache */
 					this.sessions.remove(localSessionID);
 					principalSession.getEsoeSessionIndex().remove(esoeSessionIndex);
-					
+
 					/* If the principal has no further local mappings then terminate their ESOE mapping */
-					if(principalSession.getEsoeSessionIndex().size() == 0)
+					if (principalSession.getEsoeSessionIndex().size() == 0)
 					{
 						this.esoeSessions.remove(principalSession.getEsoeSessionID());
 					}
-					
+
 					this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.3"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
 				}
 			}
@@ -304,8 +316,7 @@ public class SessionCacheImpl implements SessionCache
 
 		unauthenticatedSession.updateTime();
 
-		this.logger.debug(MessageFormat.format(
-				Messages.getString("SessionCacheImpl.4"), requestID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.4"), requestID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -325,8 +336,7 @@ public class SessionCacheImpl implements SessionCache
 			unlock();
 		}
 
-		this.logger.debug(MessageFormat.format(
-				Messages.getString("SessionCacheImpl.5"), requestID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.5"), requestID)); //$NON-NLS-1$
 	}
 
 	/**
@@ -338,7 +348,7 @@ public class SessionCacheImpl implements SessionCache
 	{
 		/* Local logging instance */
 		private Logger logger = Logger.getLogger(CleanupThread.class.getName());
-		
+
 		protected CleanupThread()
 		{
 			super("SPEP Session Cache cleanup thread"); //$NON-NLS-1$
@@ -353,13 +363,12 @@ public class SessionCacheImpl implements SessionCache
 				{
 					Thread.sleep(SessionCacheImpl.this.sessionCacheInterval);
 
-					this.logger.debug( Messages.getString("SessionCacheImpl.10")); //$NON-NLS-1$
+					this.logger.debug(Messages.getString("SessionCacheImpl.10")); //$NON-NLS-1$
 					cleanup();
 				}
 				catch (Exception e)
 				{
-					this.logger.error(MessageFormat.format(Messages
-							.getString("SessionCacheImpl.11"), e.getMessage())); //$NON-NLS-1$
+					this.logger.error(MessageFormat.format(Messages.getString("SessionCacheImpl.11"), e.getMessage())); //$NON-NLS-1$
 				}
 			}
 		}
@@ -376,16 +385,22 @@ public class SessionCacheImpl implements SessionCache
 				for (String esoeID : SessionCacheImpl.this.esoeSessions.keySet())
 				{
 					PrincipalSession principal = SessionCacheImpl.this.esoeSessions.get(esoeID);
-					if (principal != null && new Date().after((principal.getSessionNotOnOrAfter())))
+					if (principal != null)
 					{
-						this.logger.debug(Messages.getString("SessionCacheImpl.16") + principal.getEsoeSessionID() + Messages.getString("SessionCacheImpl.17")); //$NON-NLS-1$ //$NON-NLS-2$
-						terminatePrincipalSession(principal);
+						XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
+						GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
+
+						if (thisCal.getTime().after(principal.getSessionNotOnOrAfter()))
+						{
+							this.logger.info("Terminating session " +principal.getEsoeSessionID() + " current time is: " + thisCal + " sessionNotOnAfter was set to: " + principal.getSessionNotOnOrAfter());
+							this.logger.debug(Messages.getString("SessionCacheImpl.16") + principal.getEsoeSessionID() + Messages.getString("SessionCacheImpl.17")); //$NON-NLS-1$ //$NON-NLS-2$
+							terminatePrincipalSession(principal);
+						}
 					}
 				}
 
 				// Now clean up the unauthenticated sessions
-				for (Entry<String, UnauthenticatedSession> entry : SessionCacheImpl.this.unauthenticatedSessions
-						.entrySet())
+				for (Entry<String, UnauthenticatedSession> entry : SessionCacheImpl.this.unauthenticatedSessions.entrySet())
 				{
 					if (entry.getValue().getIdleTime() > SessionCacheImpl.this.sessionCacheTimeout)
 					{

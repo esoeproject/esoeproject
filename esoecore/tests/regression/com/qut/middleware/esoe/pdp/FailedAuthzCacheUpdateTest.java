@@ -39,7 +39,7 @@ public class FailedAuthzCacheUpdateTest
 {
 
 	private FailedAuthzCacheUpdate testFailedUpdate;
-	private String testRequest;
+	private byte[] testRequest;
 	private Date testTimestamp;
 	private String testEndpoint;
 	
@@ -51,7 +51,7 @@ public class FailedAuthzCacheUpdateTest
 	@Before
 	public void setUp() throws Exception
 	{
-		this.testRequest = "<yo></yo>";
+		this.testRequest = new String("<yo></yo>").getBytes();
 		this.testTimestamp = new Date(System.currentTimeMillis());
 		this.testEndpoint = ENDPOINT;
 		
@@ -114,7 +114,7 @@ public class FailedAuthzCacheUpdateTest
 	{
 		this.testFailedUpdate.setRequestDocument(this.testRequest);
 		
-		String test = this.testFailedUpdate.getRequestDocument();
+		byte[] test = this.testFailedUpdate.getRequestDocument();
 		
 		assertTrue(test != null && test.equals(this.testRequest) );
 	}

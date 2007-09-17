@@ -20,6 +20,7 @@
  */
 package com.qut.middleware.esoe.sso.servlet;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -45,25 +46,32 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.authn.servlet.Messages;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.saml2.BindingConstants;
 
-/** Control point for SSO module, SPEP session establishment and authentication network wide single logout. */
+/**
+ * Control point for SSO module, SPEP session establishment and authentication network wide single logout.
+ */
 
 public class SSOAAServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 4083024809106578744L;
-	private final String SAML_REQUEST_FORM_ELEMENT = "SAMLRequest"; //$NON-NLS-1$
+
+	private final String SAML_REQUEST_ELEMENT = "SAMLRequest"; //$NON-NLS-1$
+	private final String SAML_REQUEST_ENCODING = "SAMLEncoding";
+	private final String SAML_RELAY_STATE = "RelayState";
+	private final String SAML_SIG_ALGORITHM = "SigAlg";
+	private final String SAML_REQUEST_SIGNATURE = "Signature";
+	
 	private final String SAML_RESPONSE_TEMPLATE = "samlResponseTemplate.html"; //$NON-NLS-1$
 
 	private MessageFormat samlMessageFormat;
-	private SSOProcessor authAuthorityProcessor;
-	private String sessionTokenName, authnRedirectURL, authnDynamicURLParam, ssoURL, sessionDomain;
+	protected SSOProcessor authAuthorityProcessor;
+	protected String sessionTokenName, commonDomainTokenName, authnRedirectURL, authnDynamicURLParam, ssoURL, sessionDomain, commonDomain;
 
 	private final String samlResponseTemplate;
 
@@ -110,8 +118,8 @@ public class SSOAAServlet extends HttpServlet
 		data = (SSOProcessorData) request.getSession().getAttribute(SSOProcessorData.SESSION_NAME);
 
 		/*
-		 * If this is a request due to previous allow of ForceAuthn by spep then retrieve 
-		 * details from session and continue
+		 * If this is a request due to previous allow of ForceAuthn by spep then retrieve details from session and
+		 * continue
 		 */
 		if (data != null)
 		{
@@ -122,8 +130,8 @@ public class SSOAAServlet extends HttpServlet
 			processCookies(request, data);
 
 			/*
-			 * Set the data value of returning request to be true to prevent additional
-			 * processing by Authentication Authority
+			 * Set the data value of returning request to be true to prevent additional processing by Authentication
+			 * Authority
 			 */
 			data.setReturningRequest(true);
 
@@ -131,12 +139,41 @@ public class SSOAAServlet extends HttpServlet
 		}
 		else
 		{
-			this.logger.debug(Messages.getString("SSOAAServlet.31")); //$NON-NLS-1$
-			
-			/* All other get requests are forced to login portal */
-			response.sendRedirect(this.authnRedirectURL);
-		}
+			/* Determine if this is a HTTP Redirect Binding SAML AuthnRequest */
+			String samlRequest = request.getParameter(this.SAML_REQUEST_ELEMENT);
+			String relayState = request.getParameter(this.SAML_RELAY_STATE);
+			String encoding = request.getParameter(this.SAML_REQUEST_ENCODING);
+			String sigAlg = request.getParameter(this.SAML_SIG_ALGORITHM);
+			String signature = request.getParameter(this.SAML_REQUEST_SIGNATURE);
 
+			if (samlRequest != null)
+			{
+				this.logger.debug(Messages.getString("SSOAAServlet.33")); //$NON-NLS-1$
+				data = new SSOProcessorDataImpl();
+
+				data.setSamlBinding(BindingConstants.httpRedirect);
+				data.setRequestDocument(samlRequest.getBytes());
+				data.setRelayState(relayState);
+				data.setSamlEncoding(encoding);
+				data.setSigAlg(sigAlg);
+				data.setSignature(signature);
+
+				data.setHttpRequest(request);
+				data.setHttpResponse(response);
+
+				processCookies(request, data);
+				
+				processRequest(request, response, data);
+			}
+			else
+			{
+				/* Nothing we support just redirect to the default authentication service */
+				this.logger.debug(Messages.getString("SSOAAServlet.31")); //$NON-NLS-1$
+
+				/* All other get requests are forced to login portal */
+				response.sendRedirect(this.authnRedirectURL);
+			}
+		}
 	}
 
 	/*
@@ -146,66 +183,38 @@ public class SSOAAServlet extends HttpServlet
 	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-			IOException
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
-		this.logger.debug(Messages.getString("SSOAAServlet.32")); //$NON-NLS-1$
-		execAuthenticationAuthorityProcessor(request, response);
-	}
-
-	/**
-	 * Submits the request to the authentication authority processor to handle.
-	 * 
-	 * @param request
-	 *            Container request object associated with the request.
-	 * @param response
-	 *            Container response object associated with the request.
-	 */
-	private void execAuthenticationAuthorityProcessor(HttpServletRequest request, HttpServletResponse response)
-	{
+		/* Determine if this is a HTTP Post binding SAML AuthnRequest */
+		
 		SSOProcessorData data;
-		String samlRequestEncoded;
-		byte[] samlRequestBytes;
-		String samlRequestDocument;
+		String samlRequest = request.getParameter(this.SAML_REQUEST_ELEMENT);
+		String relayState = request.getParameter(this.SAML_RELAY_STATE);
+		
+		this.logger.debug(Messages.getString("SSOAAServlet.32")); //$NON-NLS-1$
 
-		data = (SSOProcessorData) request.getSession().getAttribute(SSOProcessorData.SESSION_NAME);
-		try
+		data = new SSOProcessorDataImpl();
+
+		samlRequest = request.getParameter(this.SAML_REQUEST_ELEMENT);
+
+		if (samlRequest == null)
 		{
-			if (data == null)
-			{
-				this.logger.debug(Messages.getString("SSOAAServlet.33")); //$NON-NLS-1$
-				data = new SSOProcessorDataImpl();
-
-				/* SAML 2.0 Post Browser Profile specifies request is base64 encoded, decode and store for processors */
-				samlRequestEncoded = request.getParameter(this.SAML_REQUEST_FORM_ELEMENT);
-
-				if (samlRequestEncoded == null)
-				{
-					this.logger.info(Messages.getString("SSOAAServlet.34")); //$NON-NLS-1$
-					generateErrorResponse(response, Messages.getString("SSOAAServlet.1")); //$NON-NLS-1$
-					return;
-				}
-
-				this.logger.log(InsaneLogLevel.INSANE, Messages.getString("SSOAAServlet.35") + samlRequestEncoded); //$NON-NLS-1$
-				samlRequestBytes = Base64.decodeBase64(samlRequestEncoded.getBytes("UTF-8")); //$NON-NLS-1$
-				samlRequestDocument = new String(samlRequestBytes);
-				
-				this.logger.log(InsaneLogLevel.INSANE, Messages.getString("SSOAAServlet.36") + samlRequestDocument); //$NON-NLS-1$
-				data.setRequestDocument(samlRequestDocument);
-			}
-
-			data.setHttpRequest(request);
-			data.setHttpResponse(response);
-
-			processCookies(request, data);
-
-			processRequest(request, response, data);
+			this.logger.info(Messages.getString("SSOAAServlet.34")); //$NON-NLS-1$
+			generateErrorResponse(response, Messages.getString("SSOAAServlet.1")); //$NON-NLS-1$
+			return;
 		}
-		catch (UnsupportedEncodingException de)
-		{
-			this.logger.warn(Messages.getString("SSOAAServlet.37") + de.getLocalizedMessage()); //$NON-NLS-1$
-			generateErrorResponse(response, Messages.getString("SSOAAServlet.6")); //$NON-NLS-1$
-		}
+		
+		this.logger.debug(Messages.getString("SSOAAServlet.33")); //$NON-NLS-1$
+		data.setSamlBinding(BindingConstants.httpPost);
+		data.setRequestDocument(samlRequest.getBytes());
+		data.setRelayState(relayState);
+
+		data.setHttpRequest(request);
+		data.setHttpResponse(response);
+
+		processCookies(request, data);
+
+		processRequest(request, response, data);
 	}
 
 	/**
@@ -253,14 +262,13 @@ public class SSOAAServlet extends HttpServlet
 	 * @param data
 	 *            Principals SSOProcessorData bean
 	 */
-	private void generateForceAuthnResponse(HttpServletRequest request, HttpServletResponse response,
-			SSOProcessorData data)
+	private void generateForceAuthnResponse(HttpServletRequest request, HttpServletResponse response, SSOProcessorData data)
 	{
 		try
 		{
 			byte[] encodedURL;
 			String encodedURLString;
-			
+
 			this.logger.debug(Messages.getString("SSOAAServlet.41")); //$NON-NLS-1$
 
 			/* Set this request to returning before storing */
@@ -268,9 +276,9 @@ public class SSOAAServlet extends HttpServlet
 			request.getSession().setAttribute(SSOProcessorData.SESSION_NAME, data);
 
 			this.logger.debug(Messages.getString("SSOAAServlet.42") + this.ssoURL + Messages.getString("SSOAAServlet.43")); //$NON-NLS-1$ //$NON-NLS-2$
-			
+
 			/* Base64 encode dynamic redirect URL */
-			encodedURL = Base64.encodeBase64(this.ssoURL.getBytes("UTF-8")); //$NON-NLS-1$
+			encodedURL = Base64.encodeBase64(this.ssoURL.getBytes("UTF-16")); //$NON-NLS-1$
 			encodedURLString = new String(encodedURL);
 
 			response.sendRedirect(this.authnRedirectURL + "?" + this.authnDynamicURLParam + "=" + encodedURLString); //$NON-NLS-1$ //$NON-NLS-2$
@@ -299,7 +307,8 @@ public class SSOAAServlet extends HttpServlet
 			byte[] samlResponseEncoded;
 			String htmlOutput;
 			PrintWriter writer = response.getWriter();
-			
+			String responseRelayState;
+
 			this.logger.debug(Messages.getString("SSOAAServlet.45")); //$NON-NLS-1$
 
 			if (data.getResponseDocument() == null)
@@ -308,13 +317,18 @@ public class SSOAAServlet extends HttpServlet
 				generateErrorResponse(response, Messages.getString("SSOAAServlet.10")); //$NON-NLS-1$
 			}
 
-			this.logger.log(InsaneLogLevel.INSANE, Messages.getString("SSOAAServlet.47") + data.getResponseDocument()); //$NON-NLS-1$
-			/* Encode SAML Response in base64 */
-			samlResponseEncoded = Base64.encodeBase64(data.getResponseDocument().getBytes("UTF-8")); //$NON-NLS-1$
-			responseArgs = new Object[] { data.getResponseEndpoint(), new String(samlResponseEncoded) };
-			htmlOutput = this.samlMessageFormat.format(responseArgs);
+			this.logger.trace(Messages.getString("SSOAAServlet.47") + data.getResponseDocument()); //$NON-NLS-1$
 			
-			this.logger.log(InsaneLogLevel.INSANE, Messages.getString("SSOAAServlet.48") + htmlOutput); //$NON-NLS-1$
+			responseRelayState = data.getRelayState();
+			if(responseRelayState == null)
+				responseRelayState = new String("");
+
+			/* Encode SAML Response in base64 */
+			samlResponseEncoded = Base64.encodeBase64(data.getResponseDocument()); //$NON-NLS-1$
+			responseArgs = new Object[] { data.getResponseEndpoint(), new String(samlResponseEncoded), responseRelayState };
+			htmlOutput = this.samlMessageFormat.format(responseArgs);
+
+			this.logger.trace(Messages.getString("SSOAAServlet.48") + htmlOutput); //$NON-NLS-1$
 
 			writer.print(htmlOutput);
 			writer.flush();
@@ -330,17 +344,19 @@ public class SSOAAServlet extends HttpServlet
 			generateErrorResponse(response, Messages.getString("SSOAAServlet.12")); //$NON-NLS-1$
 		}
 	}
-	
+
 	/**
 	 * Clears a provided session identifying cookie when some invalid value has been presented
-	 * @param data Local request AuthnProcessoreData bean
+	 * 
+	 * @param data
+	 *            Local request AuthnProcessoreData bean
 	 */
 	private void clearSessionCookie(SSOProcessorData data)
 	{
 		/* Remove the value of the users session cookie at the ESOE */
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$
 		sessionCookie.setDomain(this.sessionDomain);
-		sessionCookie.setSecure(true);
+		sessionCookie.setSecure(false);
 		data.getHttpResponse().addCookie(sessionCookie);
 	}
 
@@ -354,36 +370,35 @@ public class SSOAAServlet extends HttpServlet
 	{
 		super.init(servletConfig);
 
-		URL configFile;
+		FileInputStream configFile;
 		Properties props;
 
 		try
 		{
-			configFile = this.getServletContext().getResource(ConfigurationConstants.ESOE_CONFIG);
+			configFile = new FileInputStream(System.getProperty("esoe.data") + ConfigurationConstants.ESOE_CONFIG);
 			props = new java.util.Properties();
 
-			props.load(configFile.openStream());
+			props.load(configFile);
 
 			/* Spring integration to make our servlet aware of IoC */
-			WebApplicationContext webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this
-					.getServletContext());
+			WebApplicationContext webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this.getServletContext());
 
-			this.authAuthorityProcessor = (SSOProcessor) webAppContext.getBean(
-					ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR, com.qut.middleware.esoe.sso.SSOProcessor.class);
+			this.authAuthorityProcessor = (SSOProcessor) webAppContext.getBean(ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR, com.qut.middleware.esoe.sso.SSOProcessor.class);
 
 			if (this.authAuthorityProcessor == null)
-				throw new IllegalArgumentException(
-						Messages.getString("SSOAAServlet.2") + ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR); //$NON-NLS-1$
+				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.2") + ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR); //$NON-NLS-1$
 
-			this.sessionTokenName = props.getProperty(ConfigurationConstants.SESSION_TOKEN_NAME);
+			this.sessionTokenName = props.getProperty(ConfigurationConstants.ESOE_SESSION_TOKEN_NAME);
+			this.commonDomainTokenName = props.getProperty(ConfigurationConstants.COMMON_DOMAIN_TOKEN_NAME);
 			this.authnRedirectURL = props.getProperty(ConfigurationConstants.AUTHN_REDIRECT_URL);
 			this.authnDynamicURLParam = props.getProperty(ConfigurationConstants.AUTHN_DYNAMIC_URL_PARAM);
 			this.ssoURL = props.getProperty(ConfigurationConstants.SSO_URL);
-			this.sessionDomain = props.getProperty(ConfigurationConstants.COOKIE_SESSION_DOMAIN);
+			this.sessionDomain = props.getProperty(ConfigurationConstants.ESOE_SESSION_DOMAIN);
+			this.commonDomain =  props.getProperty(ConfigurationConstants.COMMON_DOMAIN);
 
 			if (this.sessionTokenName == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.13") //$NON-NLS-1$
-						+ ConfigurationConstants.SESSION_TOKEN_NAME + Messages.getString("SSOAAServlet.14")); //$NON-NLS-1$
+						+ ConfigurationConstants.ESOE_SESSION_TOKEN_NAME + Messages.getString("SSOAAServlet.14")); //$NON-NLS-1$
 
 			if (this.authnRedirectURL == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.15") //$NON-NLS-1$
@@ -396,10 +411,18 @@ public class SSOAAServlet extends HttpServlet
 			if (this.ssoURL == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
 						+ ConfigurationConstants.SSO_URL + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
-			
+
 			if (this.sessionDomain == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
-						+ ConfigurationConstants.COOKIE_SESSION_DOMAIN + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
+						+ ConfigurationConstants.ESOE_SESSION_DOMAIN + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
+			
+			if (this.commonDomainTokenName == null)
+				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
+						+ ConfigurationConstants.COMMON_DOMAIN_TOKEN_NAME + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
+			
+			if (this.commonDomain == null)
+				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
+						+ ConfigurationConstants.COMMON_DOMAIN + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
 
 			this.logger.info(Messages.getString("SSOAAServlet.51") + this.sessionTokenName //$NON-NLS-1$
 					+ Messages.getString("SSOAAServlet.52") + this.authnRedirectURL + Messages.getString("SSOAAServlet.53") //$NON-NLS-1$ //$NON-NLS-2$
@@ -437,7 +460,7 @@ public class SSOAAServlet extends HttpServlet
 	 * @param data
 	 *            SSOProcessorData bean for this session
 	 */
-	private void processCookies(HttpServletRequest request, SSOProcessorData data)
+	protected void processCookies(HttpServletRequest request, SSOProcessorData data)
 	{
 		Cookie[] cookies;
 
@@ -454,6 +477,20 @@ public class SSOAAServlet extends HttpServlet
 			}
 		}
 	}
+	
+	/**
+	 * Sets the common domain cookie
+	 * @param data
+	 */
+	private void setCommonCookie(SSOProcessorData data)
+	{
+		Cookie commonDomainCookie = new Cookie(this.commonDomainTokenName, data.getCommonCookieValue());
+		commonDomainCookie.setDomain(this.commonDomain);
+		commonDomainCookie.setMaxAge(-1); //negative indicates session scope cookie
+		commonDomainCookie.setPath("/");
+		
+		data.getHttpResponse().addCookie(commonDomainCookie);
+	}
 
 	/**
 	 * Hands all logic processing to the AuthenticationAuthority
@@ -465,8 +502,9 @@ public class SSOAAServlet extends HttpServlet
 	 * @param data
 	 *            SSOProcessorData bean for this session
 	 */
-	private void processRequest(HttpServletRequest request, HttpServletResponse response, SSOProcessorData data)
+	protected void processRequest(HttpServletRequest request, HttpServletResponse response, SSOProcessorData data)
 	{
+
 		SSOProcessor.result result;
 
 		try
@@ -474,10 +512,11 @@ public class SSOAAServlet extends HttpServlet
 			/* Hand logic processing to the Authentication Authority */
 			result = this.authAuthorityProcessor.execute(data);
 			this.logger.debug(Messages.getString("SSOAAServlet.61") + result.toString()); //$NON-NLS-1$
-			
+
 			switch (result)
 			{
 				case SSOGenerationSuccessful:
+					setCommonCookie(data);
 					generateResponse(response, data);
 					cleanSessionState(request);
 					break;
@@ -498,7 +537,7 @@ public class SSOAAServlet extends HttpServlet
 		{
 			this.logger.warn(Messages.getString("SSOAAServlet.62")); //$NON-NLS-1$
 			this.clearSessionCookie(data);
-			
+
 			if (data.getResponseDocument() != null)
 				generateResponse(response, data);
 			else
@@ -508,7 +547,7 @@ public class SSOAAServlet extends HttpServlet
 		{
 			this.logger.warn(Messages.getString("SSOAAServlet.63")); //$NON-NLS-1$
 			this.clearSessionCookie(data);
-			
+
 			if (data.getResponseDocument() != null)
 				generateResponse(response, data);
 			else

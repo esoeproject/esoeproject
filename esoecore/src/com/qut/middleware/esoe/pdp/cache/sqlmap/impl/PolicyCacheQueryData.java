@@ -19,49 +19,76 @@
  */
 package com.qut.middleware.esoe.pdp.cache.sqlmap.impl;
 
-import java.util.Date;
+import java.math.BigDecimal;
 
-/** */
+import com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache;
+
+
+@SuppressWarnings("nls")
 public class PolicyCacheQueryData
 {
-	private String descriptorID = null;
-	private Date dateLastUpdated = null;
+	private String entityID = null;
+	private BigDecimal sequenceId = null;
+	private String policyId;
 	
-	/** Get the last updated time. The underlying database connector will use this timestamp
-	 * to retrieve policies modified after this time.
+	
+	/** Default constructor. Initializes all internal types to zero size objects.
 	 * 
-	 * @return the dateLastUpdated
+	 * The value of the descriptorId field is set to ""
+	 * The value of the policyId filed is set to ""
+	 * The long value of the sequenceId filed is set to AuthzPolicyCache.SEQUENCE_UNINITIALIZED.
 	 */
-	public Date getDateLastUpdated()
+	public PolicyCacheQueryData()
 	{
-		return this.dateLastUpdated;
+		this.entityID = "";
+		this.sequenceId = new BigDecimal(AuthzPolicyCache.SEQUENCE_UNINITIALIZED);
+		this.policyId = "";
 	}
 	
-	/** Set the last updated time. The underlying database connector will use this timestamp
-	 * to retrieve policies modified after this time.
+	
+	/** Get the last sequence ID from the policies state data source.
 	 * 
-	 * @param dateLastUpdated the dateLastUpdated to set
+	 * @return the latest sequence ID.
 	 */
-	public void setDateLastUpdated(Date dateLastUpdated)
+	public BigDecimal getSequenceId() 
 	{
-		this.dateLastUpdated = dateLastUpdated;
+		return this.sequenceId;
+	}
+
+
+	/** Set the last sequence ID from the policies state data source.
+	 * 
+	 * @param sequenceId the sequence ID to set.
+	 */
+	public void setSequenceId(BigDecimal sequenceId) 
+	{
+		this.sequenceId = sequenceId;
 	}
 	
-	/** Get the descriptor ID to retrieve policies for.
-	 * 
-	 * @return the descriptorID
-	 */
-	public String getDescriptorID()
+	public String getPolicyId() 
 	{
-		return this.descriptorID;
+		return this.policyId;
+	}
+
+	public void setPolicyId(String policyId) {
+		this.policyId = policyId;
+	}
+
+	/** Get the entityID to retrieve policies for.
+	 * 
+	 * @return the entityID
+	 */
+	public String getEntityID()
+	{
+		return this.entityID;
 	}
 	
-	/** Set the descriptor ID to retrieve policies for.
+	/** Set the entity ID to retrieve policies for.
 	 * 
-	 * @param descriptorID the descriptorID to set
+	 * @param entity ID the descriptorID to set
 	 */
-	public void setDescriptorID(String descriptorID)
+	public void setEntityID(String entityID)
 	{
-		this.descriptorID = descriptorID;
+		this.entityID = entityID;
 	}
 }

@@ -32,7 +32,16 @@ public class ESOEForm extends Form implements BaseForm
 	{
 		this.setValidate(true);
 		this.setErrorsPosition(Form.POSITION_TOP);
-
+		
+		TextField esoeCommonDomain = new TextField(PageConstants.ESOE_COMMON_DOMAIN, true);
+		esoeCommonDomain.setSize(PageConstants.URL_FIELD_WIDTH);
+		esoeCommonDomain.setLabel("ESOE common domain <a href=\"help.htm#esoe\" target=\"_blank\">?</a>");
+		
+		TextField esoeIdentifier = new TextField(PageConstants.ESOE_IDENTIFIER, true);
+		esoeIdentifier.setSize(PageConstants.URL_FIELD_WIDTH);
+		esoeIdentifier.setValue(PageConstants.DEFAULT_PROTOCOL);
+		esoeIdentifier.setLabel("ESOE Identifier <a href=\"help.htm#esoe\" target=\"_blank\">?</a>");
+		
 		TextField esoeNodeURL = new TextField(PageConstants.ESOE_NODE_URL, true);
 		esoeNodeURL.setSize(PageConstants.URL_FIELD_WIDTH);
 		esoeNodeURL.setValue(PageConstants.DEFAULT_PROTOCOL);
@@ -67,6 +76,8 @@ public class ESOEForm extends Form implements BaseForm
 		this.add(organizationURL);
 		this.add(new Label("empty", "<br/>"));
 		this.add(new Label("deployment", "Server details for ESOE deployment"));
+		this.add(esoeCommonDomain);
+		this.add(esoeIdentifier);
 		this.add(esoeNodeURL);
 		this.add(esoeSingleSignOnService);
 		this.add(esoeAttributeService);

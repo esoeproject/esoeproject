@@ -20,7 +20,6 @@
 package com.qut.middleware.esoemanager.logic.impl;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +37,7 @@ import com.qut.middleware.esoemanager.spep.sqlmap.SPEPDAO;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.Policy;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.PolicySet;
 
 public class ConfigureServiceAuthorizationPolicyLogicImpl implements ConfigureServiceAuthorizationPolicyLogic
@@ -48,9 +48,9 @@ public class ConfigureServiceAuthorizationPolicyLogicImpl implements ConfigureSe
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(ConfigureServiceAuthorizationPolicyLogicImpl.class.getName());
 
-	Unmarshaller<PolicySet> lxacmlUnmarshaller;
+	Unmarshaller<Policy> lxacmlUnmarshaller;
 
-	private final String MAR_PKGNAMES = PolicySet.class.getPackage().getName();
+	private final String MAR_PKGNAMES = Policy.class.getPackage().getName();
 	private final String[] schemas = { Constants.lxacml, Constants.lxacmlContext };
 
 	public ConfigureServiceAuthorizationPolicyLogicImpl(PolicyGuard policyGuard, SPEPDAO spepDAO) throws IOException,
@@ -70,22 +70,17 @@ public class ConfigureServiceAuthorizationPolicyLogicImpl implements ConfigureSe
 		this.policyGuard = policyGuard;
 		this.spepDAO = spepDAO;
 
-		this.lxacmlUnmarshaller = new UnmarshallerImpl<PolicySet>(MAR_PKGNAMES, schemas);
+		this.lxacmlUnmarshaller = new UnmarshallerImpl<Policy>(MAR_PKGNAMES, schemas);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoemanager.logic.impl.ConfigureServiceAuthorizationPolicyLogic#getActiveServiceAuthorizationPolicy(java.lang.String)
-	 */
-	public AuthorizationPolicyBean getActiveServiceAuthorizationPolicy(String descriptorID)
+	public AuthorizationPolicyBean getActiveServiceAuthorizationPolicy(Integer descID)
 			throws ServiceAuthorizationPolicyException
 	{
 		AuthorizationPolicyBean activePolicy = new AuthorizationPolicyBeanImpl();
 		List<Map<String, Object>> rawPolicy;
 		try
 		{
-			rawPolicy = this.spepDAO.queryActiveAuthorizationPolicy(descriptorID);
+			rawPolicy = this.spepDAO.queryActiveAuthorizationPolicy(descID);
 		}
 		catch (SPEPDAOException e)
 		{
@@ -94,11 +89,10 @@ public class ConfigureServiceAuthorizationPolicyLogicImpl implements ConfigureSe
 
 		for (Map<String, Object> policy : rawPolicy)
 		{
-			activePolicy.setLxacmlPolicy((String) policy.get(Constants.FIELD_LXACML_POLICY));
-			activePolicy.setLastUpdated((Date) policy.get(Constants.FIELD_LXACML_DATE_LAST_UPDATED));
+			activePolicy.setLxacmlPolicy((byte[]) policy.get(Constants.FIELD_LXACML_POLICY));
 		}
 
-		if (activePolicy.getLxacmlPolicy() == null || activePolicy.getLxacmlPolicy().length() == 1)
+		if (activePolicy.getLxacmlPolicy() == null || activePolicy.getLxacmlPolicy().length <= 1)
 		{
 			throw new ServiceAuthorizationPolicyException(
 					"No policy exists in database for this service, default policies must be inserted at service creation");
@@ -107,29 +101,17 @@ public class ConfigureServiceAuthorizationPolicyLogicImpl implements ConfigureSe
 		return activePolicy;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoemanager.logic.impl.ConfigureServiceAuthorizationPolicyLogic#updateServiceAuthorizationPolicy(java.lang.String,
-	 *      java.lang.String)
-	 */
-	public void updateServiceAuthorizationPolicy(String descriptorID, String policy) throws PolicyGuardException,
+	public void updateServiceAuthorizationPolicy(Integer entID, byte[] policy) throws PolicyGuardException,
 			ServiceAuthorizationPolicyException
 	{
 		try
 		{
 			/* Validate supplied policy is valid LXACML */
-			this.lxacmlUnmarshaller.unMarshallUnSigned(policy);
-
-			/*
-			 * Ensure we store a historical record of this policy update, incase there is a need for future roll back or
-			 * determination of what policies where being enforced at some period in time
-			 */
-			this.spepDAO.insertServiceAuthorizationHistoricalPolicy(descriptorID, policy, new Date());
+			Policy policyOb = this.lxacmlUnmarshaller.unMarshallUnSigned(policy);
 
 			/* Determine via implemented PolicyGuard if this change should be aloud to proceed or not */
 			this.policyGuard.validatePolicy(policy);
-			this.spepDAO.updateServiceAuthorizationPolicy(descriptorID, policy, new Date());
+			this.spepDAO.updateServiceAuthorizationPolicy(entID, policyOb.getPolicyId(), policy);
 		}
 		catch (UnmarshallerException e)
 		{

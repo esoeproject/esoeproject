@@ -25,18 +25,23 @@ import net.sf.click.control.Submit;
 
 import com.qut.middleware.esoemanager.pages.BorderPage;
 import com.qut.middleware.esoemanager.pages.forms.impl.ServiceForm;
+import com.qut.middleware.esoestartup.bean.ESOEBean;
 
 public class RegisterESOEManagerServicePage extends BorderPage
 {
 	public ServiceForm serviceDetails;
-	
+
+	private ESOEBean esoeBean;
+
 	public RegisterESOEManagerServicePage()
 	{
 		this.serviceDetails = new ServiceForm();
 	}
-	
+
 	public void onInit()
 	{
+		this.esoeBean = (ESOEBean) this.retrieveSession(ESOEBean.class.getName());
+
 		this.serviceDetails.init();
 
 		Submit nextButton = new Submit(PageConstants.NAV_NEXT_LABEL, this, PageConstants.NAV_NEXT_FUNC);
@@ -46,19 +51,35 @@ public class RegisterESOEManagerServicePage extends BorderPage
 		this.serviceDetails.add(backButton);
 		this.serviceDetails.add(nextButton);
 		this.serviceDetails.setButtonAlign(Form.ALIGN_RIGHT);
-		
-		this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue((String)this.retrieveSession(PageConstants.STORED_SERVICE_NAME));
-		this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue((String)this.retrieveSession(PageConstants.STORED_SERVICE_URL));
-		if(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL) == null || this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL).length() < 1)
-			this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue("http://{HOSTNAME}/esoemanager");
-		this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue((String)this.retrieveSession(PageConstants.STORED_SERVICE_DESCRIPTION));
-		this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue((String)this.retrieveSession(PageConstants.STORED_SERVICE_AUTHZ_FAILURE_MESSAGE));
+
+		if (esoeBean != null)
+		{
+			this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue((String) this.esoeBean.getServiceName());
+			this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue((String) this.esoeBean.getServiceURL());
+			this.serviceDetails.getField(PageConstants.SERVICE_IDENTIFIER).setValue((String) this.esoeBean.getEntityID());
+
+			if (this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL) == null || this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL).length() < 1)
+				this.serviceDetails.getField(PageConstants.SERVICE_URL).setValue("http://{HOSTNAME}/esoemanager");
+
+			if (this.serviceDetails.getFieldValue(PageConstants.SERVICE_IDENTIFIER) == null || this.serviceDetails.getFieldValue(PageConstants.SERVICE_IDENTIFIER).length() < 1)
+				this.serviceDetails.getField(PageConstants.SERVICE_IDENTIFIER).setValue("http://{HOSTNAME}/esoemanager");
+
+			this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue((String) this.esoeBean.getServiceDescription());
+			this.serviceDetails.getField(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE).setValue((String) this.esoeBean.getServiceAuthzFailureMsg());
+		}
 	}
-	
+
 	public boolean nextClick()
 	{
 		String redirectPath;
 		
+		/* Ensure session data is correctly available */
+		if(this.esoeBean == null)
+		{
+			previousClick();
+			return false;
+		}
+
 		if (this.serviceDetails.isValid())
 		{
 			try
@@ -66,13 +87,14 @@ public class RegisterESOEManagerServicePage extends BorderPage
 				URL validHost = new URL(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
 
 				/* Store details in the session */
-				this.storeSession(PageConstants.STORED_SERVICE_NAME, this.serviceDetails.getFieldValue(PageConstants.SERVICE_NAME));
-				this.storeSession(PageConstants.STORED_SERVICE_URL, this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
-				this.storeSession(PageConstants.STORED_SERVICE_DESCRIPTION, this.serviceDetails.getFieldValue(PageConstants.SERVICE_DESCRIPTION));
-				this.storeSession(PageConstants.STORED_SERVICE_AUTHZ_FAILURE_MESSAGE, this.serviceDetails.getFieldValue(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE));
-				
+				this.esoeBean.setEntityID(this.serviceDetails.getFieldValue(PageConstants.SERVICE_IDENTIFIER));
+				this.esoeBean.setServiceName(this.serviceDetails.getFieldValue(PageConstants.SERVICE_NAME));
+				this.esoeBean.setServiceURL(this.serviceDetails.getFieldValue(PageConstants.SERVICE_URL));
+				this.esoeBean.setServiceDescription(this.serviceDetails.getFieldValue(PageConstants.SERVICE_DESCRIPTION));
+				this.esoeBean.setServiceAuthzFailureMsg(this.serviceDetails.getFieldValue(PageConstants.SERVICE_AUTHZ_FAILURE_MESSAGE));
+
 				/* This stage completed correctly */
-				this.storeSession(PageConstants.STAGE5_RES, new Boolean(true));
+				this.storeSession(PageConstants.STAGE6_RES, new Boolean(true));
 
 				/* Move client to add contacts for this service */
 				redirectPath = getContext().getPagePath(RegisterESOEManagerServiceNodesPage.class);
@@ -90,21 +112,28 @@ public class RegisterESOEManagerServicePage extends BorderPage
 
 		return true;
 	}
-	
+
 	@Override
 	public void onGet()
 	{
+		/* Ensure session data is correctly available */
+		if(this.esoeBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
 		/* Check if previous registration stage completed */
-		Boolean status = (Boolean) this.retrieveSession(PageConstants.STAGE4_RES);
+		Boolean status = (Boolean) this.retrieveSession(PageConstants.STAGE5_RES);
 		if (status == null || status.booleanValue() != true)
 		{
 			previousClick();
 		}
-		
+
 		this.serviceDetails.getField(PageConstants.SERVICE_NAME).setValue(PageConstants.ESOE_MANAGER_SERVICE_NAME);
 		this.serviceDetails.getField(PageConstants.SERVICE_DESCRIPTION).setValue(PageConstants.ESOE_MANAGER_SERVICE_DESCRIPTION);
 	}
-	
+
 	public boolean previousClick()
 	{
 		/* Move client to register service page */

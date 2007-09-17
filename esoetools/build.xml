@@ -26,22 +26,22 @@
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="${artifacts.dev}/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="${artifacts.dev}" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 	
 	<target name="dev-release-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="${artifacts.dev-release}/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="${artifacts.dev-release}" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev-release}" />
 	</target>
 
 	<target name="dev-publish">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
 		<ivy:publish resolver="local-resolver" forcedeliver="true">
-			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
 		</ivy:publish>
 	</target>
 
@@ -65,7 +65,10 @@
 		<javac source="1.5" target="1.5" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>

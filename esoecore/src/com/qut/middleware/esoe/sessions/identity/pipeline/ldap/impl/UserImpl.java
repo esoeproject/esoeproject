@@ -24,7 +24,6 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
@@ -70,7 +69,7 @@ public class UserImpl implements User
 		// We can safely ignore it if the attribute comes back null
 		if (attribute != null)
 		{
-			this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("UserImpl.0"), attributeName, value.toString())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("UserImpl.0"), attributeName, value.toString())); //$NON-NLS-1$
 			
 			attribute.getValues().add(value);
 		}

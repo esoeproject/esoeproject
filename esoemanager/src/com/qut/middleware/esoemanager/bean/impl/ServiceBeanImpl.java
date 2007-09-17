@@ -19,6 +19,8 @@
  */
 package com.qut.middleware.esoemanager.bean.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Vector;
 
 import com.qut.middleware.esoemanager.bean.ContactPersonBean;
@@ -36,7 +38,10 @@ public class ServiceBeanImpl implements ServiceBean
 	private String descriptorID;
 	private String entityID;
 	private String activeFlag;
-	private String descriptorXML;
+	private byte[] descriptorXML;
+	
+	private Integer entID;
+	private Integer descID;
 
 	private String keyStorePassphrase;
 	private String keyPairPassphrase;
@@ -191,13 +196,49 @@ public class ServiceBeanImpl implements ServiceBean
 		this.activeFlag = activeFlag;
 	}
 
-	public String getDescriptorXML()
+	public byte[] getDescriptorXML()
 	{
 		return descriptorXML;
 	}
 
-	public void setDescriptorXML(String descriptorXML)
+	public void setDescriptorXML(byte[] descriptorXML)
 	{
 		this.descriptorXML = descriptorXML;
+	}
+
+	public String getServiceHost()
+	{
+		try
+		{
+			URL serviceURL = new URL(this.serviceURL);
+			if(serviceURL.getPort() == -1)
+				return serviceURL.getProtocol() + "://" + serviceURL.getHost();
+			else
+				return serviceURL.getProtocol() + "://" + serviceURL.getHost() + ":" + serviceURL.getPort();
+		}
+		catch (MalformedURLException e)
+		{
+			return null;
+		}
+	}
+
+	public Integer getEntID()
+	{
+		return entID;
+	}
+
+	public void setEntID(Integer entID)
+	{
+		this.entID = entID;
+	}
+
+	public Integer getDescID()
+	{
+		return descID;
+	}
+
+	public void setDescID(Integer descID)
+	{
+		this.descID = descID;
 	}
 }

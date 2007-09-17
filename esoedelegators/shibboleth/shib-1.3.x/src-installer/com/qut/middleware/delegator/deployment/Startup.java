@@ -23,14 +23,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import com.qut.middleware.crypto.CryptoProcessor;
@@ -40,18 +39,13 @@ import com.qut.middleware.crypto.impl.KeyStoreResolverImpl;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
-import com.qut.middleware.tools.war.bean.AdditionalContent;
-import com.qut.middleware.tools.war.logic.GenerateWarLogic;
 
 public class Startup
 {
 	private final String CONFIG_TEMPLATE = "shibdelegator.config";
 	private final String CONFIG_TEMPLATE_PATH = File.separatorChar + CONFIG_TEMPLATE;
-	private final String WAR_NAME = "shibdelegator.war";
-	private final String WARFILES = File.separatorChar + "war";
 	private final String ESOE_KEYSTORE_NAME = "esoeKeystore.ks";
-	private final String WEBINF = "WEB-INF";
-	private final String OPENID_DELEGATOR_KEYSTORE_NAME = "shibKeystore.ks";
+	private final String SHIB_DELEGATOR_KEYSTORE_NAME = "shibKeystore.ks";
 	private final String CERT_ISSUER_DN = "cn=esoeshibdelegator";
 	private final String CERT_ISSUER_EMAIL = "not@required";
 	
@@ -122,7 +116,7 @@ public class Startup
 
 		System.out.print("Please enter the ESOE keystore location ");
 		if (this.configBean.getEsoeKeystore() == null)
-			System.out.print("(eg: /var/tomcat5/webapps/ROOT/WEB-INF/esoeKeystore.ks): ");
+			System.out.print("(eg: ${esoe.data}/config/esoeKeystore.ks): ");
 		else
 			System.out.print("[" + this.configBean.getEsoeKeystore() + "] :");
 		tmp = br.readLine();
@@ -131,7 +125,7 @@ public class Startup
 
 		System.out.print("Please enter the ESOE configuration file location ");
 		if (this.configBean.getEsoeConfig() == null)
-			System.out.print("(eg: /var/tomcat5/webapps/ROOT/WEB-INF/esoe.config): ");
+			System.out.print("(eg: ${esoe.data}/config/esoe.config): ");
 		else
 			System.out.print("[" + this.configBean.getEsoeConfig() + "] :");
 		tmp = br.readLine();
@@ -196,7 +190,6 @@ public class Startup
 		this.cryptoProcessor = new CryptoProcessorImpl(this.keyStoreResolver, this.CERT_ISSUER_DN, this.CERT_ISSUER_EMAIL, this.configBean.getCertExpiryInterval(), this.KEY_SIZE);
 
 		RenderShibDelegatorConfigLogic renderer = new RenderShibDelegatorConfigLogic();
-		GenerateWarLogic logic = new GenerateWarLogic();
 		String renderedConfig;
 
 		System.out.println("*** Created keystores...");
@@ -205,24 +198,15 @@ public class Startup
 		System.out.println("*** Rendered config...");
 		renderedConfig = renderer.generateConfig(new File(this.configBean.getExtractedFiles() + this.CONFIG_TEMPLATE_PATH), this.configBean);
 		
-		/* Store the new OpenID Delegator KeyStore in the created WAR */
-		AdditionalContent oidKeyStoreContent = new AdditionalContent();
-		oidKeyStoreContent.setPath(this.WEBINF + File.separatorChar + this.OPENID_DELEGATOR_KEYSTORE_NAME);
-		oidKeyStoreContent.setFileContent(this.cryptoProcessor.convertKeystoreByteArray(this.configBean.getKeyStore(), this.configBean.getShibKeyStorePassphrase()));
+		/* Store the new shib delegator KeyStore */
+		this.cryptoProcessor.serializeKeyStore(this.configBean.getKeyStore(), this.configBean.getShibKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + this.SHIB_DELEGATOR_KEYSTORE_NAME);
 				
-		/* Store the rendered OpenID Delegator config in the created WAR */
-		AdditionalContent oidConfigContent = new AdditionalContent();
-		oidConfigContent.setPath(this.WEBINF + File.separatorChar + this.CONFIG_TEMPLATE);
-		oidConfigContent.setFileContent(renderedConfig.getBytes());
+		/* Store the rendered shib delegator config */
+		FileOutputStream output = new FileOutputStream( this.configBean.getOutputDirectory() + File.separatorChar + this.CONFIG_TEMPLATE );
+		output.write(renderedConfig.getBytes());
+		output.close();
 		
-		List<AdditionalContent> additionalContent = new ArrayList<AdditionalContent>();
-		additionalContent.add(oidKeyStoreContent);
-		additionalContent.add(oidConfigContent);
-
-		System.out.println("*** Generating shibdeleg.war");
-		logic.generateWar(additionalContent, new File(this.configBean.getExtractedFiles() + this.WARFILES), new File(this.configBean.getOutputDirectory() + this.WARFILES), new File(this.configBean.getOutputDirectory() + File.separator + this.WAR_NAME));
-		
-		System.out.println("Completed, files written to " + this.configBean.getOutputDirectory() + ". Copy shibdelegator.war to your tomcat instance and after backing up your current esoeKeystore.ks replace with the newly generated version.");
+		System.out.println("Completed, files written to " + this.configBean.getOutputDirectory() + ". Copy shibdelegator.war to your tomcat instance, copy created files to ${shibdeleg.data}/config and after backing up your current esoeKeystore.ks replace with the newly generated version.");
 	}
 
 	private void createKeystores() throws Exception
@@ -231,31 +215,31 @@ public class Startup
 		 * This will create two keystores, one for the OpenID delegator and an updated ESOE keystore with the OpenID
 		 * Delegators public key inserted
 		 */
-		KeyStore oidKeyStore;
-		KeyPair oidKeyPair, esoeKeyPair;
+		KeyStore shibKeystore;
+		KeyPair shibKeyPair, esoeKeyPair;
 
-		String oidKeyStorePassphrase = this.cryptoProcessor.generatePassphrase();
-		this.configBean.setShibKeyStorePassphrase(oidKeyStorePassphrase);
+		String shibKeyStorePassphrase = this.cryptoProcessor.generatePassphrase();
+		this.configBean.setShibKeyStorePassphrase(shibKeyStorePassphrase);
 
-		String oidKeyPairName = this.identifierGenerator.generateXMLKeyName();
-		this.configBean.setShibKeyPairName(oidKeyPairName);
+		String shibKeyPairName = this.identifierGenerator.generateXMLKeyName();
+		this.configBean.setShibKeyPairName(shibKeyPairName);
 
-		String oidKeyPairPassphrase = this.cryptoProcessor.generatePassphrase();
-		this.configBean.setShibKeyPairPassphrase(oidKeyPairPassphrase);
+		String shibKeyPairPassphrase = this.cryptoProcessor.generatePassphrase();
+		this.configBean.setShibKeyPairPassphrase(shibKeyPairPassphrase);
 
-		oidKeyStore = this.cryptoProcessor.generateKeyStore();
-		oidKeyPair = this.cryptoProcessor.generateKeyPair();
-		this.cryptoProcessor.addKeyPair(oidKeyStore, oidKeyStorePassphrase, oidKeyPair, oidKeyPairName, oidKeyPairPassphrase, this.generateSubjectDN(this.configBean.getShibEndpoint()));
+		shibKeystore = this.cryptoProcessor.generateKeyStore();
+		shibKeyPair = this.cryptoProcessor.generateKeyPair();
+		this.cryptoProcessor.addKeyPair(shibKeystore, shibKeyStorePassphrase, shibKeyPair, shibKeyPairName, shibKeyPairPassphrase, this.generateSubjectDN(this.configBean.getShibEndpoint()));
 
 		esoeKeyPair = new KeyPair(this.keyStoreResolver.getPublicKey(), this.keyStoreResolver.getPrivateKey());
-		this.cryptoProcessor.addPublicKey(oidKeyStore, esoeKeyPair, this.keyStoreResolver.getKeyAlias(), this.generateSubjectDN(this.configBean.getEsoeURL()));
-		this.cryptoProcessor.addPublicKey(this.keyStoreResolver.getKeyStore(), oidKeyPair, oidKeyPairName, this.generateSubjectDN(this.configBean.getShibEndpoint()));
+		this.cryptoProcessor.addPublicKey(shibKeystore, esoeKeyPair, this.keyStoreResolver.getKeyAlias(), this.generateSubjectDN(this.configBean.getEsoeURL()));
+		this.cryptoProcessor.addPublicKey(this.keyStoreResolver.getKeyStore(), shibKeyPair, shibKeyPairName, this.generateSubjectDN(this.configBean.getShibEndpoint()));
 
 		/* Store the updated ESOE keystore to disk for manual updaing by deployer */
 		this.cryptoProcessor.serializeKeyStore(this.keyStoreResolver.getKeyStore(), this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + ESOE_KEYSTORE_NAME);
 
 		/* Store new OpenID delegator keystore for insertion to war */
-		this.configBean.setKeyStore(oidKeyStore);
+		this.configBean.setKeyStore(shibKeystore);
 	}
 
 	private void loadESOEConfigProperties() throws FileNotFoundException, IOException

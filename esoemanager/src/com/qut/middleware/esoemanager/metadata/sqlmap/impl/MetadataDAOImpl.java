@@ -29,6 +29,8 @@ import org.apache.log4j.Logger;
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 
 import com.qut.middleware.esoemanager.Constants;
+import com.qut.middleware.esoemanager.exception.MetadataDAOException;
+import com.qut.middleware.esoemanager.exception.SPEPDAOException;
 import com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO;
 
 public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataDAO
@@ -36,12 +38,32 @@ public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataD
 
 	private Logger logger = Logger.getLogger(MetadataDAOImpl.class.getName());
 	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO#queryActiveEntities()
-	 */
-	public List<String> queryActiveEntities()
+	public String getEntityID(Integer entID) throws MetadataDAOException
 	{
-		List<String> activeEntities = new ArrayList<String>();
+		try
+		{
+			String result = (String) this.getSqlMapClient().queryForObject(Constants.QUERY_ENTITY_ID, entID);
+			if(result != null)
+			{
+				return result;
+			}
+			else
+			{
+				throw new MetadataDAOException("No value for entityID mapping for supplied entID of " + entID + " could be established");
+			}
+			
+		}
+		catch (SQLException e)
+		{
+			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
+			this.logger.debug(e);
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
+		}
+	}
+	
+	public List<Integer> queryActiveEntities() throws MetadataDAOException
+	{
+		List<Integer> activeEntities = new ArrayList<Integer>();
 		try
 		{
 			activeEntities = this.getSqlMapClient().queryForList(Constants.QUERY_ACTIVE_ENTITY_LIST, null);
@@ -51,18 +73,15 @@ public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataD
 		{
 			this.logger.error("SQL exception when attempting to get active entities from data repository \n" + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
-			return null;
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO#queryAttributeAuthorityDescriptor(java.lang.String)
-	 */
-	public List<Map<String, String>> queryAttributeAuthorityDescriptor(String entityID)
+	public List<Map<String, Object>> queryAttributeAuthorityDescriptor(Integer entID) throws MetadataDAOException
 	{
-		List<Map<String, String>> attributeAuthorities = new ArrayList<Map<String, String>>();
-		Map<String, String> queryParameters = new HashMap<String,String>();
-		queryParameters.put(Constants.FIELD_ENTITY_ID, entityID);
+		List<Map<String, Object>> attributeAuthorities = new ArrayList<Map<String, Object>>();
+		Map<String, Object> queryParameters = new HashMap<String,Object>();
+		queryParameters.put(Constants.FIELD_ENT_ID, entID);
 		queryParameters.put(Constants.FIELD_DESCRIPTOR_TYPE_ID, Constants.ATTRIBUTE_AUTHORITY_DESCRIPTOR);
 		try
 		{
@@ -73,37 +92,37 @@ public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataD
 		{
 			this.logger.error("SQL exception when attempting to get attribute authorities from data repository \n" + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
-			return null;
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
 		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO#queryContacts(java.lang.String)
 	 */
-	public List<Map<String, String>> queryContacts(String entityID)
+	public List<Map<String, String>> queryContacts(Integer entID) throws MetadataDAOException
 	{
 		List<Map<String, String>> contacts = new ArrayList<Map<String, String>>();
 		try
 		{
-			contacts = this.getSqlMapClient().queryForList(Constants.QUERY_CONTACTS, entityID);
+			contacts = this.getSqlMapClient().queryForList(Constants.QUERY_CONTACTS, entID);
 			return contacts;
 		}
 		catch (SQLException e)
 		{
 			this.logger.error("SQL exception when attempting to get entity contacts from data repository \n" + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
-			return null;
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
 		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO#queryIDPDescriptor(java.lang.String)
 	 */
-	public List<Map<String, String>> queryIDPDescriptor(String entityID)
+	public List<Map<String, Object>> queryIDPDescriptor(Integer entID) throws MetadataDAOException
 	{
-		List<Map<String, String>> idpDescriptors = new ArrayList<Map<String, String>>();
-		Map<String, String> queryParameters = new HashMap<String,String>();
-		queryParameters.put(Constants.FIELD_ENTITY_ID, entityID);
+		List<Map<String, Object>> idpDescriptors = new ArrayList<Map<String, Object>>();
+		Map<String, Object> queryParameters = new HashMap<String,Object>();
+		queryParameters.put(Constants.FIELD_ENT_ID, entID);
 		queryParameters.put(Constants.FIELD_DESCRIPTOR_TYPE_ID, Constants.IDP_DESCRIPTOR);
 		
 		try
@@ -115,18 +134,18 @@ public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataD
 		{
 			this.logger.error("SQL exception when attempting to get IDP descriptors from data repository \n" + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
-			return null;
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
 		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO#queryLXACMLPDPDescriptor(java.lang.String)
 	 */
-	public List<Map<String, String>> queryLXACMLPDPDescriptor(String entityID)
+	public List<Map<String, Object>> queryLXACMLPDPDescriptor(Integer entID) throws MetadataDAOException
 	{
-		List<Map<String, String>>lxacmlDescriptors = new ArrayList<Map<String, String>>();
-		Map<String, String> queryParameters = new HashMap<String,String>();
-		queryParameters.put(Constants.FIELD_ENTITY_ID, entityID);
+		List<Map<String, Object>>lxacmlDescriptors = new ArrayList<Map<String, Object>>();
+		Map<String, Object> queryParameters = new HashMap<String,Object>();
+		queryParameters.put(Constants.FIELD_ENT_ID, entID);
 		queryParameters.put(Constants.FIELD_DESCRIPTOR_TYPE_ID, Constants.LXACML_PDP_DESCRIPTOR);
 		try
 		{
@@ -137,18 +156,18 @@ public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataD
 		{
 			this.logger.error("SQL exception when attempting to get LXACML descriptors from data repository \n" + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
-			return null;
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
 		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoemanager.metadata.sqlmap.MetadataDAO#querySPDescriptors(java.lang.String)
 	 */
-	public List<Map<String, String>> querySPDescriptors(String entityID)
+	public List<Map<String, Object>> querySPDescriptors(Integer entID) throws MetadataDAOException
 	{
-		List<Map<String, String>> spDescriptors = new ArrayList<Map<String, String>>();
-		Map<String, String> queryParameters = new HashMap<String,String>();
-		queryParameters.put(Constants.FIELD_ENTITY_ID, entityID);
+		List<Map<String, Object>> spDescriptors = new ArrayList<Map<String, Object>>();
+		Map<String, Object> queryParameters = new HashMap<String,Object>();
+		queryParameters.put(Constants.FIELD_ENT_ID, entID);
 		queryParameters.put(Constants.FIELD_DESCRIPTOR_TYPE_ID, Constants.SP_DESCRIPTOR);
 		
 		try
@@ -160,7 +179,24 @@ public class MetadataDAOImpl extends SqlMapClientDaoSupport implements MetadataD
 		{
 			this.logger.error("SQL exception when attempting to get SP descriptors from data repository \n" + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
-			return null;
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	public List<Map<String, Object>> queryDescriptorActivePublicKeys(Integer descID) throws MetadataDAOException
+	{
+		List<Map<String, Object>> keyData = new ArrayList<Map<String, Object>>();
+		
+		try
+		{
+			keyData = this.getSqlMapClient().queryForList(Constants.QUERY_DESCRIPTOR_PUBLIC_KEYS, descID);
+			return keyData;
+		}
+		catch (SQLException e)
+		{
+			this.logger.error("SQL exception when attempting to get SP descriptors from data repository \n" + e.getLocalizedMessage());
+			this.logger.debug(e.getLocalizedMessage(), e);
+			throw new MetadataDAOException(e.getLocalizedMessage(), e);
 		}
 	}
 

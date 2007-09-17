@@ -49,7 +49,7 @@ public class MetadataLogicImpl implements MetadataLogic
          * 
          * Metadata is loaded from the current in memory representation, this is updated by a thread which is spawned to handle database interaction
          */
-        public String loadMetadata(MetadataBean bean)
+        public byte[] loadMetadata(MetadataBean bean)
         {
                 return this.metadataCache.getCacheData();
         }

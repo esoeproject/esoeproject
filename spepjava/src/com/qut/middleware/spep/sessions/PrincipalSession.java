@@ -47,13 +47,13 @@ public interface PrincipalSession
 	 */
 	public void setEsoeSessionID(String esoeSessionID);
 	
-	/** String representation of a timestamp limiting the duration of a client session.
+	/** String representation of a timestamp limiting the duration of a client session, must be UTC.
 	 * 
 	 * @return the sessionNotOnOrAfter
 	 */
 	public Date getSessionNotOnOrAfter();
 	
-	/** String representation of a timestamp limiting the duration of a client session.
+	/** String representation of a timestamp limiting the duration of a client session, must be UTC.
 	 * 
 	 * @param sessionNotOnOrAfter the sessionNotOnOrAfter to set
 	 */

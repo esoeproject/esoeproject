@@ -33,8 +33,8 @@ public class PolicyForm extends Form implements BaseForm
 		lxacmlPolicy.setRows(40);
 		lxacmlPolicy.setLabel("");
 		
-		HiddenField serviceID = new HiddenField(PageConstants.ENTITYID, String.class);
-		HiddenField descriptorID = new HiddenField(PageConstants.DESCRIPTORID, String.class);
+		HiddenField serviceID = new HiddenField(PageConstants.EID, String.class);
+		HiddenField descriptorID = new HiddenField(PageConstants.DID, String.class);
 
 		this.add(serviceID);
 		this.add(descriptorID);

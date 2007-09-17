@@ -27,5 +27,5 @@
 	<typeHandler callback="org.springframework.orm.ibatis.support.ClobStringTypeHandler" javaType="string" jdbcType="LONGTEXT" />
 	<typeHandler callback="org.springframework.orm.ibatis.support.BlobByteArrayTypeHandler" javaType="[B" jdbcType="BLOB"/>
 	
-	<sqlMap resource="sqlmaps/esoe-sqlmap.xml" />
+	<sqlMap resource="sqlmaps/esoestartup-sqlmap.xml" />
 </sqlMapConfig>

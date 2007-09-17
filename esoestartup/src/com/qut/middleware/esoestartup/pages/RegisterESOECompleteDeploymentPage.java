@@ -26,7 +26,7 @@ public class RegisterESOECompleteDeploymentPage extends BorderPage
 
 	public void onInit()
 	{
-		this.esoeBean = (ESOEBean) this.retrieveSession(PageConstants.STORED_ESOE_COMPLETED_DETAILS);
+		this.esoeBean = (ESOEBean) this.retrieveSession(ESOEBean.class.getName());
 	}
 
 	@Override

@@ -141,7 +141,7 @@ public class AttributeAuthorityProcessorImplTest
 		
 		this.spepProcessor = createMock(SPEPProcessor.class);
 		expect(this.spepProcessor.getMetadata()).andReturn(this.metadata).anyTimes();
-		expect(this.metadata.getESOEIdentifier()).andReturn("ESOE-TEST").anyTimes();
+		expect(this.metadata.getEsoeEntityID()).andReturn("ESOE-TEST").anyTimes();
 		
 		IdentifierCache identifierCache = new IdentifierCacheImpl();
 		IdentifierGenerator identifierGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
@@ -208,7 +208,7 @@ public class AttributeAuthorityProcessorImplTest
 		Signature signature = new Signature();
 		attributeQuery.setSignature(signature);
 		
-		String request = null;
+		byte[] request = null;
 		try
 		{
 			request = marshalRequest(attributeQuery);
@@ -238,12 +238,12 @@ public class AttributeAuthorityProcessorImplTest
 		//System.out.println(data.getResponseDocument());
 	}
 
-	private String marshalRequest(AttributeQuery request) throws MarshallerException
+	private byte[] marshalRequest(AttributeQuery request) throws MarshallerException
 	{
 		return this.attributeQueryMarshaller.marshallSigned(request);
 	}
 	
-	private Response unmarshalResponse(String response) throws UnmarshallerException, ReferenceValueException, SignatureValueException
+	private Response unmarshalResponse(byte[] response) throws UnmarshallerException, ReferenceValueException, SignatureValueException
 	{
 		return this.responseUnmarshaller.unMarshallSigned(response);
 	}

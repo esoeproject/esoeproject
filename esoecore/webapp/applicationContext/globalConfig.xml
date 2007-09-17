@@ -25,7 +25,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		====================================================================== -->
 	<bean id="globalConfig"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="/WEB-INF/esoe.config" />
+		<property name="location" value="file://${esoe.data}/config/esoe.config" />
 	</bean>
 
 </beans>

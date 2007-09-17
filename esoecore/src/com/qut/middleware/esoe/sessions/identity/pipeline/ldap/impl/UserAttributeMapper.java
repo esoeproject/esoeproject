@@ -32,7 +32,6 @@ import javax.naming.directory.Attributes;
 import org.apache.log4j.Logger;
 import org.springframework.ldap.AttributesMapper;
 
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
 import com.qut.middleware.esoe.sessions.identity.pipeline.ldap.User;
@@ -103,7 +102,7 @@ public class UserAttributeMapper implements AttributesMapper
 			Attribute a = attributeEnumeration.next();
 			String localAttributeName = a.getID();
 
-			this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("UserAttributeMapper.2"), localAttributeName)); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("UserAttributeMapper.2"), localAttributeName)); //$NON-NLS-1$
 
 			List<String> attributeNameList = findLocalAttribute(localAttributeName);
 
@@ -158,7 +157,7 @@ public class UserAttributeMapper implements AttributesMapper
 					if (this.handlerName.equals(handler.getName())
 							&& localAttributeName.equalsIgnoreCase(handler.getLocalIdentifier()))
 					{
-						this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("UserAttributeMapper.3"), localAttributeName, handler.getLocalIdentifier())); //$NON-NLS-1$
+						this.logger.debug(MessageFormat.format(Messages.getString("UserAttributeMapper.3"), localAttributeName, handler.getLocalIdentifier())); //$NON-NLS-1$
 						attributeNames.add(attribute.getIdentifier());
 					}
 				}

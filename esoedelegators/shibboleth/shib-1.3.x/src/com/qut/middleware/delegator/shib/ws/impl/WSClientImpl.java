@@ -19,8 +19,8 @@
  */
 package com.qut.middleware.delegator.shib.ws.impl;
 
-import java.io.StringReader;
-import java.io.StringWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.security.InvalidParameterException;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -33,8 +33,8 @@ import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.addressing.EndpointReference;
-import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.client.Options;
+import org.apache.axis2.client.ServiceClient;
 
 import com.qut.middleware.delegator.shib.ws.WSClient;
 import com.qut.middleware.delegator.shib.ws.exception.WSClientException;
@@ -56,7 +56,7 @@ public class WSClientImpl implements WSClient
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.delegator.shib.ws.WSClient#registerPrincipal(java.lang.String, java.lang.String)
 	 */
-	public String registerPrincipal(String request, String endpoint) throws WSClientException
+	public byte[] registerPrincipal(byte[] request, String endpoint) throws WSClientException
 	{
 		if (request == null)
 			throw new InvalidParameterException();
@@ -78,10 +78,10 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private String invokeWSCall(String request, String endpoint) throws WSClientException
+	private byte[] invokeWSCall(byte[] request, String endpoint) throws WSClientException
 	{
-		StringReader reader;
-		StringWriter writer;
+		ByteArrayInputStream reader;
+		ByteArrayOutputStream writer;
 		XMLStreamReader xmlreader;
 		StAXOMBuilder builder;
 		OMElement requestElement, resultElement;
@@ -92,7 +92,7 @@ public class WSClientImpl implements WSClient
 		try
 		{
 			targetEPR = new EndpointReference(endpoint);
-			reader = new StringReader(request);
+			reader = new ByteArrayInputStream(request);
 			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
 			builder = new StAXOMBuilder(xmlreader);
 			requestElement = builder.getDocumentElement();
@@ -104,7 +104,7 @@ public class WSClientImpl implements WSClient
 
 			resultElement = serviceClient.sendReceive(requestElement);
 
-			writer = new StringWriter();
+			writer = new ByteArrayOutputStream();
 			if (resultElement != null)
 			{
 				resultElement.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
@@ -113,9 +113,8 @@ public class WSClientImpl implements WSClient
 			{
 				throw new WSClientException("Unable to serialize request to remote endpoint");
 			}
-			writer.flush();
 
-			return writer.toString();
+			return writer.toByteArray();
 		}
 		catch (AxisFault e)
 		{

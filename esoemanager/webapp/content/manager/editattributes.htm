@@ -1,0 +1,21 @@
+<h3>Edit Released Attributes</h3>
+
+#if($editComplete)
+You have successfully modified the attributes this ESOE instance makes available to services. Due to the static nature of attribute configuration this config is currently only updated when the ESOE is restarted. <strong>This change will only be applied next time the ESOE is restarted.</strong>
+#else
+
+		This page allows you to edit the attribute policy applied to this ESOE instance. This includes global names for attributes, source data repositories and source attribute names. 
+		<br/>
+		We currently require this entry as valid SessionData XML, for schema details please see <a href="schema/sessiondata-schema.xsd">session data schema</a>. 
+		<br/>
+		Future additions of this tool will support a much improved, administrator friendly SessionData editor.
+		<br/>
+		#if($validPolicy == false)
+			<br/>
+			<strong>Your policy is not valid, please correct the issues noted below and try again</strong>
+			<br/><br/>
+		#end
+		
+		$attributeForm
+		
+#end

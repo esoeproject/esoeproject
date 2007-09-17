@@ -19,6 +19,7 @@ package com.qut.middleware.esoemanager.pages;
 
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.bean.KeyStoreDetailsBean;
@@ -34,17 +35,19 @@ public class ServiceNodeConfigurationPage extends BorderPage
 	RetrieveServiceKeyStoreDetailsLogic serviceKeyStoreLogic;
 
 	/* entityID and serviceID are passed in on query string */
-	public String entityID;
-	public String serviceID;
-	
+	public String eid;
+	public String did;
+	public String sid;
+
 	public String esoeTrustedID;
+	public String serviceID;
 	public String metadataKeyName;
 	public List<ServiceNodeBean> serviceNodes;
 	public KeyStoreDetailsBean keyStoreDetails;
-	
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(ServiceNodeConfigurationPage.class.getName());
-	
+
 	public ServiceNodeConfigurationPage()
 	{
 		this.serviceNodes = null;
@@ -56,8 +59,16 @@ public class ServiceNodeConfigurationPage extends BorderPage
 	{
 		try
 		{
-			this.serviceNodes = serviceNodesLogic.execute(serviceID);
-			this.keyStoreDetails = serviceKeyStoreLogic.execute(serviceID);
+			if (did != null)
+			{
+				this.serviceNodes = serviceNodesLogic.execute(new Integer(did));
+				this.keyStoreDetails = serviceKeyStoreLogic.execute(new Integer(did));
+			}
+
+			if (sid != null)
+			{
+				this.serviceID = new String( Base64.decodeBase64(sid.getBytes()) );
+			}
 		}
 		catch (RetrieveServiceKeyStoreException e)
 		{

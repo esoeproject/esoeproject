@@ -27,6 +27,6 @@ import com.qut.middleware.esoemanager.exception.RetrieveServiceNodesException;
 public interface RetrieveServiceNodesLogic
 {
 
-	public List<ServiceNodeBean> execute(String descriptorID) throws RetrieveServiceNodesException;
+	public List<ServiceNodeBean> execute(Integer descID) throws RetrieveServiceNodesException;
 
 }

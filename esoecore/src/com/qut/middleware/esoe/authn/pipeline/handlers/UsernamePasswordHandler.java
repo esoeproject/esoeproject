@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.authn.bean.AuthnProcessorData;
 import com.qut.middleware.esoe.authn.exception.SessionCreationException;
@@ -55,6 +56,7 @@ public class UsernamePasswordHandler implements Handler
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(UsernamePasswordHandler.class.getName());
+	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
 	 * Sets up the UsernamePasswordHandler, if a default redirectTarget is not provided (element 0) then the failURL
@@ -169,18 +171,20 @@ public class UsernamePasswordHandler implements Handler
 
 		if (principalName == null || password == null)
 		{
+			this.logger.debug("Did not find either username or password, ensure form submitted contains " + this.FORM_USER_IDENTIFIER + " AND " + this.FORM_PASSWORD_IDENTIFIER);
 			failedAuthentication(data, true);
 			return Handler.result.Failure;
 		}
 
 		if (Authenticator.result.Failure == this.authenticator.authenticate(principalName, password))
 		{
-			this.logger.debug(Messages.getString("UsernamePasswordHandler.14") + principalName + Messages.getString("UsernamePasswordHandler.15")); //$NON-NLS-1$ //$NON-NLS-2$
+			this.authnLogger.error(Messages.getString("UsernamePasswordHandler.14") + principalName + Messages.getString("UsernamePasswordHandler.15")); //$NON-NLS-1$ //$NON-NLS-2$
 			failedAuthentication(data, true);
 			return Handler.result.Failure;
 		}
 
 		data.setSessionID(this.identifierGenerator.generateSessionID());
+		this.authnLogger.info("Successfully authenticated principal " + principalName + Messages.getString("UsernamePasswordHandler.15") + data.getSessionID() + " using username/password handler");
 
 		try
 		{
@@ -201,7 +205,8 @@ public class UsernamePasswordHandler implements Handler
 			return Handler.result.Invalid;
 		}
 
-		this.logger.debug(Messages.getString("UsernamePasswordHandler.19") + result); //$NON-NLS-1$
+		this.authnLogger.info(Messages.getString("UsernamePasswordHandler.19") + result); //$NON-NLS-1$
+		
 		// Interpret the return value from the sessions processor
 		switch (result)
 		{

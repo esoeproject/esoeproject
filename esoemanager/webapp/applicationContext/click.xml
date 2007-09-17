@@ -34,6 +34,7 @@
 			classname="com.qut.middleware.esoemanager.pages.EditServiceDescriptionPage" />
 		<page path="manager/editserviceauthorizationpolicy.htm"
 			classname="com.qut.middleware.esoemanager.pages.ConfigureServiceAuthorizationPolicyPage" />
+		<page path="manager/editattributes.htm" classname="com.qut.middleware.esoemanager.pages.ConfigureAttributePolicyPage" />
 		<page path="manager/help.htm" classname="com.qut.middleware.esoemanager.pages.HelpPage" />
 	</pages>
 

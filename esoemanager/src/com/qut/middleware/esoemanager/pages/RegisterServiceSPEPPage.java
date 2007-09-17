@@ -25,8 +25,10 @@ import java.util.Vector;
 import net.sf.click.control.Form;
 import net.sf.click.control.Submit;
 
+import com.qut.middleware.esoemanager.bean.ServiceBean;
 import com.qut.middleware.esoemanager.bean.ServiceNodeBean;
 import com.qut.middleware.esoemanager.pages.forms.impl.ServiceForm;
+
 
 public class RegisterServiceSPEPPage extends SPEPPage
 {
@@ -39,6 +41,8 @@ public class RegisterServiceSPEPPage extends SPEPPage
 	public List<String> defaultSingleLogoutService;
 	public List<String> defaultAssertionConsumerService;
 	public List<String> defaultCacheClearService;
+	
+	public ServiceBean serviceBean;
 
 	public RegisterServiceSPEPPage()
 	{
@@ -49,6 +53,8 @@ public class RegisterServiceSPEPPage extends SPEPPage
 	public void onInit()
 	{
 		super.onInit();
+		
+		serviceBean = (ServiceBean)this.retrieveSession(ServiceBean.class.getName());
 
 		Submit nextButton = new Submit(PageConstants.NAV_NEXT_LABEL, this, PageConstants.NAV_NEXT_FUNC);
 		Submit backButton = new Submit(PageConstants.NAV_PREV_LABEL, this, PageConstants.NAV_PREV_FUNC);
@@ -61,7 +67,27 @@ public class RegisterServiceSPEPPage extends SPEPPage
 	@Override
 	public void onPost()
 	{
-		super.onPost();
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
+		/* Determine if the submitted form for new spep node is valid */
+		if (this.spepDetails.isFormSubmission())
+		{
+			try
+			{
+				URL validHost = new URL(this.spepDetails.getFieldValue(PageConstants.SPEP_NODE_URL));
+				createOrUpdateSPEP(this.serviceBean);
+			}
+			catch (MalformedURLException e)
+			{
+				// TODO Log4j here
+				this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setError("Malformed server address submitted");
+			}
+		}
 
 		if (this.spepDetails.isValid())
 		{
@@ -74,6 +100,13 @@ public class RegisterServiceSPEPPage extends SPEPPage
 	@Override
 	public void onGet()
 	{
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
 		/* Check if previous registration stage completed */
 		Boolean status = (Boolean) this.retrieveSession(PageConstants.STAGE2_RES);
 		if (status == null || status.booleanValue() != true)
@@ -83,12 +116,19 @@ public class RegisterServiceSPEPPage extends SPEPPage
 
 		if (this.action != null)
 		{
-			super.onGet();
+			if (this.action.equals(PageConstants.EDIT))
+			{
+				editSPEP(this.serviceBean);
+			}
+			if (this.action.equals(PageConstants.DELETE))
+			{
+				deleteSPEP(this.serviceBean);
+			}
 		}
 		else
 		{
 			/* Set the default NodeURL as the service URL */
-			this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setValue((String) this.retrieveSession(PageConstants.STORED_SERVICE_URL));
+			this.spepDetails.getField(PageConstants.SPEP_NODE_URL).setValue((String) serviceBean.getServiceURL());
 
 			/* Setup the default values for service endpoints dependend on technology selected */
 			if (this.spepDetails.getField(PageConstants.SERVICE_TYPE).getValue().equals(PageConstants.SERVICE_TYPE_JAVA))
@@ -123,7 +163,15 @@ public class RegisterServiceSPEPPage extends SPEPPage
 	public boolean nextClick()
 	{
 		String redirectPath;
-		this.serviceNodes = (Vector<ServiceNodeBean>) this.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+		
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return false;
+		}
+		
+		this.serviceNodes = (Vector<ServiceNodeBean>) this.serviceBean.getServiceNodes();
 		
 		/* Attempt to save the incoming data as user has clicked next instead of save in all likely hood */
 		if (this.serviceNodes == null || this.serviceNodes.size() == 0)
@@ -133,7 +181,7 @@ public class RegisterServiceSPEPPage extends SPEPPage
 				try
 				{
 					URL validHost = new URL(this.spepDetails.getFieldValue(PageConstants.SPEP_NODE_URL));
-					this.createOrUpdateSPEP();
+					this.createOrUpdateSPEP(this.serviceBean);
 				}
 				catch (MalformedURLException e)
 				{
@@ -143,11 +191,10 @@ public class RegisterServiceSPEPPage extends SPEPPage
 					return true;
 				}
 
-				/* Attempting to create submittied node failed */
+				/* Attempting to create submitted node failed */
 				if (!this.spepDetails.isValid())
 				{
-					this.serviceNodes = (Vector<ServiceNodeBean>) this
-							.retrieveSession(PageConstants.STORED_SERVICE_NODES);
+					this.serviceNodes = (Vector<ServiceNodeBean>) this.serviceBean.getServiceNodes();
 				}
 			}
 			else

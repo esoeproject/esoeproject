@@ -19,7 +19,6 @@
 
 package com.qut.middleware.esoe;
 
-
 import static com.qut.middleware.test.Capture.capture;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
@@ -31,10 +30,12 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.io.StringWriter;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -187,8 +188,8 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 
 public class CompleteESOETest
 {
-	Logger logger = Logger.getLogger( CompleteESOETest.class );
-	
+	Logger logger = Logger.getLogger(CompleteESOETest.class);
+
 	private class SPEPInformation
 	{
 		public String entityDesciptorID;
@@ -196,36 +197,40 @@ public class CompleteESOETest
 		public KeyPair keyPair;
 		public String authzCacheClearEndpoint;
 		public String singleLogoutServiceEndpoint;
-		
+
 		public Marshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseMarshaller;
 		public Marshaller<Response> logoutResponseMarshaller;
 		public Marshaller<AuthnRequest> authnRequestMarshaller;
 		public Marshaller<LXACMLAuthzDecisionQuery> lxacmlAuthzDecisionQueryMarshaller;
-		
-		public SPEPInformation(){}
+
+		public SPEPInformation()
+		{
+		}
 	}
-	
+
 	private class UserInformation
 	{
 		public String username;
 		public String password;
-		public Map<String,String> attributeValues;
-		public Map<String,Boolean> expectedAuthzBehaviour;
-		
-		public UserInformation(){}
+		public Map<String, String> attributeValues;
+		public Map<String, Boolean> expectedAuthzBehaviour;
+
+		public UserInformation()
+		{
+		}
 	}
-	
+
 	private class TestHttpSession implements HttpSession
 	{
 		private static final int DEFAULT_INACTIVE_INTERVAL = 600;
-		
-		protected Map<String,Object> attributes;
+
+		protected Map<String, Object> attributes;
 		protected Date creationTime;
 		protected String id;
 		protected IdentifierGenerator idGen;
 		protected ServletContext servletContext;
 		protected int inactiveInterval;
-		
+
 		public void reset()
 		{
 			attributes = new HashMap<String, Object>();
@@ -234,13 +239,13 @@ public class CompleteESOETest
 			inactiveInterval = DEFAULT_INACTIVE_INTERVAL;
 		}
 
-		TestHttpSession( IdentifierGenerator idGen )
+		TestHttpSession(IdentifierGenerator idGen)
 		{
 			this.idGen = idGen;
 			reset();
 		}
-		
-		TestHttpSession( TestHttpSession other, ServletContext servletContext )
+
+		TestHttpSession(TestHttpSession other, ServletContext servletContext)
 		{
 			attributes = other.attributes;
 			creationTime = other.creationTime;
@@ -251,81 +256,108 @@ public class CompleteESOETest
 		}
 
 		public Object getAttribute(String name)
-		{ return attributes.get(name); }
-		public Enumeration<?> getAttributeNames()
-		{ 
-			return new Enumeration<Object>(){
-				private Iterator<String> attributeNames;
-				{ attributeNames = TestHttpSession.this.attributes.keySet().iterator(); }
-				public boolean hasMoreElements()
-				{ return attributeNames.hasNext(); }
-				public Object nextElement()
-				{ return attributeNames.next(); }
-				}; 
+		{
+			return attributes.get(name);
 		}
+
+		public Enumeration<?> getAttributeNames()
+		{
+			return new Enumeration<Object>()
+			{
+				private Iterator<String> attributeNames;
+				{
+					attributeNames = TestHttpSession.this.attributes.keySet().iterator();
+				}
+
+				public boolean hasMoreElements()
+				{
+					return attributeNames.hasNext();
+				}
+
+				public Object nextElement()
+				{
+					return attributeNames.next();
+				}
+			};
+		}
+
 		public long getCreationTime()
 		{
 			return creationTime.getTime();
 		}
+
 		public String getId()
 		{
 			return this.id;
 		}
+
 		public long getLastAccessedTime()
 		{
 			return creationTime.getTime();
 		}
+
 		public int getMaxInactiveInterval()
 		{
 			return 120;
 		}
+
 		public ServletContext getServletContext()
 		{
 			return this.servletContext;
 		}
+
 		public HttpSessionContext getSessionContext()
 		{
 			return null;
 		}
+
 		public Object getValue(String name)
 		{
-			return attributes.get( name );
+			return attributes.get(name);
 		}
+
 		public String[] getValueNames()
 		{
 			// TODO Auto-generated method stub
 			return null;
 		}
+
 		public void invalidate()
 		{
 			reset();
 		}
+
 		public boolean isNew()
 		{
 			return false;
 		}
+
 		public void putValue(String name, Object value)
 		{
 			attributes.put(name, value);
 		}
+
 		public void removeAttribute(String name)
 		{
-			attributes.remove( name );
+			attributes.remove(name);
 		}
+
 		public void removeValue(String name)
 		{
-			attributes.remove( name );
+			attributes.remove(name);
 		}
+
 		public void setAttribute(String name, Object value)
 		{
-			attributes.put( name, value );
+			attributes.put(name, value);
 		}
+
 		public void setMaxInactiveInterval(int interval)
 		{
 			this.inactiveInterval = interval;
 		}
 	}
-	
+
 	public static final String AUTHN_DYNAMIC_URL_PARAM = "redirectURL";
 	public static final String SESSION_TOKEN_NAME = "esoeSession";
 	public static final String COOKIE_SESSION_DOMAIN = "example.com";
@@ -337,34 +369,34 @@ public class CompleteESOETest
 	public static final String AUTHENTICATION_FAILED_NAME_VALUE = "rc=authnfail";
 	public static final String AUTHENTICATION_SUCCESS_URL = "https://esoe.example.com/login_success.jsp";
 	public static final String AUTHENTICATION_FAIL_URL = "https://esoe.example.com/failure.jsp";
-	
+
 	public static final String SSO_URL = "ssoURL";
-	
+
 	private static final String ESOE_SERVER_NAME = "esoe.example.com";
-	
+
 	private static final String KEY_ALGORITHM = "RSA";
 	// Not very secure, but who cares? We're not testing the performance of large signatures here.
 	private static final int KEY_SIZE = 512;
-	
+
 	private static final int MAX_SESSION_LENGTH = 120;
 	private static final int ALLOWED_TIME_SKEW = 300;
 	private static final int POLICY_POLL_INTERVAL = 120;
 	private static final int SESSION_REMAINING_TIME = 0;
-	
+
 	private static final String UID_ATTRIBUTE = "uid";
-	
+
 	private static final String AUTHORIZATION_DEFAULT_MODE = "DENY";
-	
+
 	private static final String SECURITY_LEVEL_IDENTIFIER = "SecurityLevel";
 	private static final String SECURITY_LEVEL_1 = "Level 1";
 	private static final String SECURITY_LEVEL_2 = "Level 2";
-	
+
 	private static final int NUMBER_OF_SPEPS = 3;
 	private static final int NUMBER_OF_THREADS = 5;
 	private static final int NUMBER_OF_RUNS = 5;
-	
+
 	private List<Exception> errors;
-	
+
 	private List<SPEPInformation> speps;
 	private UnmarshallerImpl<ClearAuthzCacheRequest> clearAuthzCacheRequestUnmarshaller;
 	private Unmarshaller<Response> authnResponseUnmarshaller;
@@ -389,179 +421,177 @@ public class CompleteESOETest
 	private Random random;
 	private boolean up = false;
 	private XMLInputFactory xmlInputFactory;
-	private Map<String,UserInformation> userMap;
-	
+	private Map<String, UserInformation> userMap;
+
 	private static final String XML_DOCUMENT_BUILDER_FACTORY_CLASS = DocumentBuilderFactoryImpl.class.getName();
 	private static final String XML_SAX_PARSER_FACTORY_CLASS = SAXParserFactoryImpl.class.getName();
 	private static final String XML_TRANSFORMER_FACTORY_CLASS = TransformerFactoryImpl.class.getName();
 	private static final String XML_SCHEMA_FACTORY_CLASS = XMLSchemaFactory.class.getName();
 
-    @Before
+	@Before
 	public void setUp() throws Exception
 	{
-		System.setProperty( "javax.xml.parsers.DocumentBuilderFactory", XML_DOCUMENT_BUILDER_FACTORY_CLASS );
-		System.setProperty( "javax.xml.parsers.SAXParserFactory", XML_SAX_PARSER_FACTORY_CLASS );
-		System.setProperty( "javax.xml.transform.TransformerFactory", XML_TRANSFORMER_FACTORY_CLASS );
-		System.setProperty( "javax.xml.validation.SchemaFactory", XML_SCHEMA_FACTORY_CLASS );
-		System.setProperty( "java.protocol.handler.pkgs", "com.qut.middleware.esoe" );
+		System.setProperty("javax.xml.parsers.DocumentBuilderFactory", XML_DOCUMENT_BUILDER_FACTORY_CLASS);
+		System.setProperty("javax.xml.parsers.SAXParserFactory", XML_SAX_PARSER_FACTORY_CLASS);
+		System.setProperty("javax.xml.transform.TransformerFactory", XML_TRANSFORMER_FACTORY_CLASS);
+		System.setProperty("javax.xml.validation.SchemaFactory", XML_SCHEMA_FACTORY_CLASS);
+		System.setProperty("java.protocol.handler.pkgs", "com.qut.middleware.esoe");
 
 		this.random = new Random();
-		this.userMap = Collections.synchronizedMap( new HashMap<String, UserInformation>() );
-		
-		errors = Collections.synchronizedList( new Vector<Exception>() );
-		
+		this.userMap = Collections.synchronizedMap(new HashMap<String, UserInformation>());
+
+		errors = Collections.synchronizedList(new Vector<Exception>());
+
 		// Identifier cache/generator from SAML2lib-j
 		IdentifierCache identifierCache = new IdentifierCacheImpl();
-		IdentifierGenerator identifierGenerator = new IdentifierGeneratorImpl( identifierCache );
-		
+		IdentifierGenerator identifierGenerator = new IdentifierGeneratorImpl(identifierCache);
+
 		this.localIdentifierCache = new IdentifierCacheImpl();
-		this.localIdentifierGenerator = new IdentifierGeneratorImpl( this.localIdentifierCache );
-		
-		metadata = createMock( Metadata.class );
+		this.localIdentifierGenerator = new IdentifierGeneratorImpl(this.localIdentifierCache);
+
+		metadata = createMock(Metadata.class);
 		// SAML Validator from SAML2lib-j
-		SAMLValidator samlValidator = new SAMLValidatorImpl( identifierCache, ALLOWED_TIME_SKEW );
-		
+		SAMLValidator samlValidator = new SAMLValidatorImpl(identifierCache, ALLOWED_TIME_SKEW);
+
 		// Generate key pairs and identifiers for the ESOE and SPEPs
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance( KEY_ALGORITHM );
-		keyPairGenerator.initialize( KEY_SIZE );
-		
+		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KEY_ALGORITHM);
+		keyPairGenerator.initialize(KEY_SIZE);
+
 		// Generate key pair for ESOE
-		logger.debug( "Generating key pairs.." );
+		logger.debug("Generating key pairs..");
 		KeyPair esoeKeyPair = keyPairGenerator.generateKeyPair();
 		String esoeKeyAlias = identifierGenerator.generateXMLKeyName();
 		String esoeEntityDescriptorID = identifierGenerator.generateSAMLID();
-		logger.debug( "Generated ESOE key pair." );
-		
-		expect( metadata.getESOEIdentifier() ).andReturn( esoeEntityDescriptorID ).anyTimes();
-		expect( metadata.resolveKey( esoeKeyAlias ) ).andReturn( esoeKeyPair.getPublic() ).anyTimes();
-		
+		logger.debug("Generated ESOE key pair.");
+
+		expect(metadata.getEsoeEntityID()).andReturn(esoeEntityDescriptorID).anyTimes();
+		expect(metadata.resolveKey(esoeKeyAlias)).andReturn(esoeKeyPair.getPublic()).anyTimes();
+
 		// Create Marshaller/Unmarshaller instances
-		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol,
-				ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
+		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
 		this.clearAuthzCacheRequestUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheRequest>(ClearAuthzCacheRequest.class.getPackage().getName(), clearAuthzCacheSchemas, metadata);
 		String[] logoutSchemas = new String[] { ConfigurationConstants.samlProtocol };
 		this.logoutRequestUnmarshaller = new UnmarshallerImpl<LogoutRequest>(LogoutRequest.class.getPackage().getName(), logoutSchemas, metadata);
 		String[] authnSchemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion };
-		this.authnResponseUnmarshaller = new UnmarshallerImpl<Response>( Response.class.getPackage().getName(), authnSchemas, metadata );
-		String[] authzDecisionSchemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion,
-				ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.samlProtocol };
+		this.authnResponseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName(), authnSchemas, metadata);
+		String[] authzDecisionSchemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.samlProtocol };
 		this.lxacmlAuthzDecisionResponseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName(), authzDecisionSchemas, metadata);
 
 		this.speps = new Vector<SPEPInformation>();
-		for( int i = 0; i < NUMBER_OF_SPEPS; ++i )
+		for (int i = 0; i < NUMBER_OF_SPEPS; ++i)
 		{
 			SPEPInformation spep = new SPEPInformation();
 			spep.keyPair = keyPairGenerator.generateKeyPair();
 			spep.keyAlias = identifierGenerator.generateXMLKeyName();
 			spep.entityDesciptorID = identifierGenerator.generateSAMLID();
-			spep.authzCacheClearEndpoint = MessageFormat.format( "https://spep{0}.example.com/spep/ws/services/authzCacheClear", i );
-			spep.singleLogoutServiceEndpoint = MessageFormat.format( "https://spep{0}.example.com/spep/ws/services/logout", i );
-			
-			spep.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>( ClearAuthzCacheResponse.class.getPackage().getName(), clearAuthzCacheSchemas, spep.keyAlias, spep.keyPair.getPrivate() );
-			spep.logoutResponseMarshaller = new MarshallerImpl<Response>( Response.class.getPackage().getName(), logoutSchemas, spep.keyAlias, spep.keyPair.getPrivate() );
-			spep.authnRequestMarshaller = new MarshallerImpl<AuthnRequest>( AuthnRequest.class.getPackage().getName(), authnSchemas, spep.keyAlias, spep.keyPair.getPrivate() );
-			spep.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(LXACMLAuthzDecisionQuery.class.getPackage().getName(),
-					authzDecisionSchemas, spep.keyAlias, spep.keyPair.getPrivate());
-			
+			spep.authzCacheClearEndpoint = MessageFormat.format("https://spep{0}.example.com/spep/ws/services/authzCacheClear", i);
+			spep.singleLogoutServiceEndpoint = MessageFormat.format("https://spep{0}.example.com/spep/ws/services/logout", i);
 
-			logger.error( "Generated SPEP " + i + " key pair." );
+			spep.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(ClearAuthzCacheResponse.class.getPackage().getName(), clearAuthzCacheSchemas, spep.keyAlias, spep.keyPair.getPrivate());
+			spep.logoutResponseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), logoutSchemas, spep.keyAlias, spep.keyPair.getPrivate());
+			spep.authnRequestMarshaller = new MarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), authnSchemas, spep.keyAlias, spep.keyPair.getPrivate());
+			spep.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(LXACMLAuthzDecisionQuery.class.getPackage().getName(), authzDecisionSchemas, spep.keyAlias, spep.keyPair.getPrivate());
 
-			Map<Integer,String> cacheClearServiceMap = new HashMap<Integer,String>();
-			cacheClearServiceMap.put( 0, spep.authzCacheClearEndpoint );
+			logger.error("Generated SPEP " + i + " key pair.");
+
+			Map<Integer, String> cacheClearServiceMap = new HashMap<Integer, String>();
+			cacheClearServiceMap.put(0, spep.authzCacheClearEndpoint);
 			List<String> singleLogoutServiceList = new Vector<String>();
-			singleLogoutServiceList.add( spep.singleLogoutServiceEndpoint );
-			
-			expect( metadata.resolveAssertionConsumerService( spep.entityDesciptorID, 0) ).andReturn( MessageFormat.format( "https://spep{0}.example.com/spep/sso", i ) ).anyTimes();
-			expect( metadata.resolveCacheClearService( spep.entityDesciptorID ) ).andReturn( cacheClearServiceMap ).anyTimes();
-			expect( metadata.resolveKey( spep.keyAlias ) ).andReturn( spep.keyPair.getPublic() ).anyTimes();
-			expect( metadata.resolveSingleLogoutService( spep.entityDesciptorID ) ).andReturn( singleLogoutServiceList ).anyTimes();
-			
-			this.speps.add( spep );
+			singleLogoutServiceList.add(spep.singleLogoutServiceEndpoint);
+
+			expect(metadata.resolveAssertionConsumerService(spep.entityDesciptorID, 0)).andReturn(MessageFormat.format("https://spep{0}.example.com/spep/sso", i)).anyTimes();
+			expect(metadata.resolveCacheClearService(spep.entityDesciptorID)).andReturn(cacheClearServiceMap).anyTimes();
+			expect(metadata.resolveKey(spep.keyAlias)).andReturn(spep.keyPair.getPublic()).anyTimes();
+			expect(metadata.resolveSingleLogoutService(spep.entityDesciptorID)).andReturn(singleLogoutServiceList).anyTimes();
+
+			this.speps.add(spep);
 		}
-		
-		keystoreResolver = createMock( KeyStoreResolver.class );
-		expect( keystoreResolver.getPrivateKey() ).andReturn( esoeKeyPair.getPrivate() ).anyTimes();
-		expect( keystoreResolver.getPublicKey() ).andReturn( esoeKeyPair.getPublic() ).anyTimes();
-		expect( keystoreResolver.getKeyAlias() ).andReturn( esoeKeyAlias ).anyTimes();
-		
+
+		keystoreResolver = createMock(KeyStoreResolver.class);
+		expect(keystoreResolver.getPrivateKey()).andReturn(esoeKeyPair.getPrivate()).anyTimes();
+		expect(keystoreResolver.getPublicKey()).andReturn(esoeKeyPair.getPublic()).anyTimes();
+		expect(keystoreResolver.getKeyAlias()).andReturn(esoeKeyAlias).anyTimes();
+
 		// Session cache
 		SessionCache sessionCache = new SessionCacheImpl();
-		
+
 		List<Handler> identityHandlers = new Vector<Handler>();
 		// Add handlers to the identity handlers list
-		Handler identityHandler = new Handler(){
+		Handler identityHandler = new Handler()
+		{
 			public result execute(IdentityData data) throws DataSourceException
 			{
 				String principal = data.getPrincipalAuthnIdentifier();
-				UserInformation info = CompleteESOETest.this.userMap.get( principal );
-				
-				for( Map.Entry<String,IdentityAttribute> entry : data.getAttributes().entrySet() )
+				UserInformation info = CompleteESOETest.this.userMap.get(principal);
+
+				for (Map.Entry<String, IdentityAttribute> entry : data.getAttributes().entrySet())
 				{
-					for( Map.Entry<String,String> attributeEntry : info.attributeValues.entrySet() )
+					for (Map.Entry<String, String> attributeEntry : info.attributeValues.entrySet())
 					{
 						if (attributeEntry.getKey().equals(entry.getKey()))
 						{
-							entry.getValue().addValue( attributeEntry.getValue() );
+							entry.getValue().addValue(attributeEntry.getValue());
 						}
 					}
 				}
-				
+
 				return result.Successful;
 			}
 
 			public String getHandlerName()
 			{
 				return "SystemTestHandler";
-			}};
-		identityHandlers.add( identityHandler );
-		
-		IdentityResolver identityResolver = new IdentityResolverImpl( identityHandlers );
-		
+			}
+		};
+		identityHandlers.add(identityHandler);
+
+		IdentityResolver identityResolver = new IdentityResolverImpl(identityHandlers);
+
 		// List of identity data
 		List<IdentityType> identityList = new Vector<IdentityType>();
 		IdentityType identity = new IdentityType();
 		AttributeType uidAttribute = new AttributeType();
-		uidAttribute.setIdentifier( UID_ATTRIBUTE );
-		uidAttribute.setSingleton( true );
-		uidAttribute.setType( DataType.STRING );
+		uidAttribute.setIdentifier(UID_ATTRIBUTE);
+		uidAttribute.setSingleton(true);
+		uidAttribute.setType(DataType.STRING);
 		AttributeType somethingAttribute = new AttributeType();
-		somethingAttribute.setIdentifier( "SomethingLevel" );
-		somethingAttribute.setSingleton( true );
-		somethingAttribute.setType( DataType.STRING );
+		somethingAttribute.setIdentifier("SomethingLevel");
+		somethingAttribute.setSingleton(true);
+		somethingAttribute.setType(DataType.STRING);
 		identity.getAttributes().add(uidAttribute);
 		identity.getAttributes().add(somethingAttribute);
-		identityList.add( identity );
-		
-		sessionConfigData = createMock( SessionConfigData.class );
-		expect( sessionConfigData.getIdentity() ).andReturn( identityList ).anyTimes();
-		
+		identityList.add(identity);
+
+		sessionConfigData = createMock(SessionConfigData.class);
+		expect(sessionConfigData.getIdentity()).andReturn(identityList).anyTimes();
+
 		// Session manipulation interfaces for the sessions processor.
-		Create create = new CreateImpl( sessionCache, sessionConfigData, identityResolver, identifierGenerator, MAX_SESSION_LENGTH );
-		Query query = new QueryImpl( sessionCache );
-		Terminate terminate = new TerminateImpl( sessionCache );
-		Update update = new UpdateImpl( sessionCache );
-		
-		SessionsProcessor sessionsProcessor = new SessionsProcessorImpl( create, query, terminate, update );
-		
-		userPassAuthenticator = createMock( UserPassAuthenticator.class );
+		Create create = new CreateImpl(sessionCache, sessionConfigData, identityResolver, identifierGenerator, MAX_SESSION_LENGTH);
+		Query query = new QueryImpl(sessionCache);
+		Terminate terminate = new TerminateImpl(sessionCache);
+		Update update = new UpdateImpl(sessionCache);
+
+		SessionsProcessor sessionsProcessor = new SessionsProcessorImpl(create, query, terminate, update);
+
+		userPassAuthenticator = createMock(UserPassAuthenticator.class);
 		goodUserInformation = new Vector<UserInformation>();
 		badUsernamePasswordPairs = new Vector<String[]>();
 		// Number of users == Number of threads
-		for( int i = 0; i < NUMBER_OF_THREADS; ++i )
+		for (int i = 0; i < NUMBER_OF_THREADS; ++i)
 		{
 			UserInformation user = new UserInformation();
-			
+
 			user.username = identifierGenerator.generateXMLKeyName();
 			user.password = identifierGenerator.generateXMLKeyName();
-			
+
 			user.attributeValues = new HashMap<String, String>();
-			user.attributeValues.put( UID_ATTRIBUTE, user.username );
-			
+			user.attributeValues.put(UID_ATTRIBUTE, user.username);
+
 			user.expectedAuthzBehaviour = new HashMap<String, Boolean>();
 			user.expectedAuthzBehaviour.put("/secure/index.jsp", Boolean.TRUE);
 
-			boolean highAuth = (( i % 2 ) == 0);
-			
+			boolean highAuth = ((i % 2) == 0);
+
 			if (highAuth)
 			{
 				user.attributeValues.put("SomethingLevel", SECURITY_LEVEL_2);
@@ -572,86 +602,89 @@ public class CompleteESOETest
 				user.attributeValues.put("SomethingLevel", SECURITY_LEVEL_1);
 				user.expectedAuthzBehaviour.put("/secure/higherauth.jsp", Boolean.FALSE);
 			}
-			
-			expect( userPassAuthenticator.authenticate( user.username, user.password ) ).andReturn( result.Successful ).anyTimes();
-			
-			goodUserInformation.add( user );
+
+			expect(userPassAuthenticator.authenticate(user.username, user.password)).andReturn(result.Successful).anyTimes();
+
+			goodUserInformation.add(user);
 
 			String username = identifierGenerator.generateXMLKeyName();
 			String password = identifierGenerator.generateXMLKeyName();
-			badUsernamePasswordPairs.add( new String[]{username, password} );
-			expect( userPassAuthenticator.authenticate( username, password ) ).andReturn( result.Failure ).anyTimes();
-			
-			this.userMap.put( user.username, user );
+			badUsernamePasswordPairs.add(new String[] { username, password });
+			expect(userPassAuthenticator.authenticate(username, password)).andReturn(result.Failure).anyTimes();
+
+			this.userMap.put(user.username, user);
 		}
-		
+
 		replay(userPassAuthenticator);
 		List<com.qut.middleware.esoe.authn.pipeline.Handler> authnHandlers = new Vector<com.qut.middleware.esoe.authn.pipeline.Handler>();
 		// Add handlers to the authn handlers list
 		List<AuthnIdentityAttribute> authnIdentityAttributeList = new Vector<AuthnIdentityAttribute>();
 		AuthnIdentityAttribute securityLevelAttribute = new AuthnIdentityAttributeImpl();
-		securityLevelAttribute.setName( SECURITY_LEVEL_IDENTIFIER );
+		securityLevelAttribute.setName(SECURITY_LEVEL_IDENTIFIER);
 		List<String> securityLevelValues = new Vector<String>();
-		//securityLevelValues.add( SECURITY_LEVEL_1 );
-		securityLevelAttribute.setValues( securityLevelValues );
-		authnIdentityAttributeList.add( securityLevelAttribute );
-		
-		UsernamePasswordHandler handler = new UsernamePasswordHandler( userPassAuthenticator, sessionsProcessor, identifierGenerator, authnIdentityAttributeList, REQUIRE_CREDENTIALS_URL, AUTHENTICATION_FAILED_NAME_VALUE, AUTHENTICATION_SUCCESS_URL, AUTHENTICATION_FAIL_URL );
-		authnHandlers.add( handler );
-		
-		
+		// securityLevelValues.add( SECURITY_LEVEL_1 );
+		securityLevelAttribute.setValues(securityLevelValues);
+		authnIdentityAttributeList.add(securityLevelAttribute);
+
+		UsernamePasswordHandler handler = new UsernamePasswordHandler(userPassAuthenticator, sessionsProcessor, identifierGenerator, authnIdentityAttributeList, REQUIRE_CREDENTIALS_URL, AUTHENTICATION_FAILED_NAME_VALUE, AUTHENTICATION_SUCCESS_URL, AUTHENTICATION_FAIL_URL);
+		authnHandlers.add(handler);
+
 		WSClient wsClient = new WSClient()
 		{
-			public String authzCacheClear(String request, String endpoint) throws WSClientException
+			public byte[] authzCacheClear(byte[] request, String endpoint) throws WSClientException
 			{
-				return CompleteESOETest.this.respondAuthzCacheClear( request, endpoint );
+				return CompleteESOETest.this.respondAuthzCacheClear(request, endpoint);
 			}
-			
-			public String singleLogout(String request, String endpoint) throws WSClientException
+
+			public byte[] singleLogout(byte[] request, String endpoint) throws WSClientException
 			{
-				return CompleteESOETest.this.respondSingleLogout( request, endpoint );
+				return CompleteESOETest.this.respondSingleLogout(request, endpoint);
 			}
 		};
-		
+
 		List<String> deniedIdentifiers = new Vector<String>();
-		deniedIdentifiers.add( SECURITY_LEVEL_IDENTIFIER );
-		
+		deniedIdentifiers.add(SECURITY_LEVEL_IDENTIFIER);
+
 		String delegatedAuthnIdentifier = esoeEntityDescriptorID;
-		
-		spepRegistrationDao = createMock( SPEPRegistrationDao.class );
-		
-		policyCacheDao = createMock( PolicyCacheDao.class );
-		expect( policyCacheDao.queryDateLastUpdated() ).andAnswer( new IAnswer<Date>(){
-			public Date answer() throws Throwable
+
+		spepRegistrationDao = createMock(SPEPRegistrationDao.class);
+
+		policyCacheDao = createMock(PolicyCacheDao.class);
+		expect(policyCacheDao.queryLastSequenceId()).andAnswer(new IAnswer<Long>()
+		{
+			public Long answer() throws Throwable
 			{
-				return new Date();
-			}} ).anyTimes();
-		
-		expect( policyCacheDao.queryPolicyCache( (PolicyCacheQueryData)anyObject() ) ).andReturn( makePolicyCacheDataMap() ).anyTimes();
-		
-		servletConfig = createMock( ServletConfig.class );
-		servletContext = createMock( ServletContext.class );
-		
-		expect( servletConfig.getServletContext() ).andReturn( servletContext ).anyTimes();
-		expect( servletConfig.getInitParameterNames() ).andReturn( new Enumeration<Object>(){
+				return new Long(System.currentTimeMillis());
+			}
+		}).anyTimes();
+
+		expect(policyCacheDao.queryPolicyCache((PolicyCacheQueryData) anyObject())).andReturn(makePolicyCacheDataMap()).anyTimes();
+
+		servletConfig = createMock(ServletConfig.class);
+		servletContext = createMock(ServletContext.class);
+
+		expect(servletConfig.getServletContext()).andReturn(servletContext).anyTimes();
+		expect(servletConfig.getInitParameterNames()).andReturn(new Enumeration<Object>()
+		{
 			public boolean hasMoreElements()
 			{
 				return false;
 			}
+
 			public Object nextElement()
 			{
 				return null;
-			}} ).anyTimes();
-		expect( servletConfig.getInitParameter( (String)notNull() ) ).andReturn( null ).anyTimes();
-		
-		URL esoeconfigURL = new URL( "esoeconfig://just.a.test/" );
-		
-		
-		expect( servletContext.getResource( ConfigurationConstants.ESOE_CONFIG ) ).andReturn( esoeconfigURL ).anyTimes();
-		
-		webApplicationContext = createMock( WebApplicationContext.class );
-		expect( servletContext.getAttribute( WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE ) ).andReturn( webApplicationContext ).anyTimes();
-	
+			}
+		}).anyTimes();
+		expect(servletConfig.getInitParameter((String) notNull())).andReturn(null).anyTimes();
+
+		URL esoeconfigURL = new URL("esoeconfig://just.a.test/");
+
+		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(esoeconfigURL).anyTimes();
+
+		webApplicationContext = createMock(WebApplicationContext.class);
+		expect(servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE)).andReturn(webApplicationContext).anyTimes();
+
 		replay(metadata);
 		replay(keystoreResolver);
 		replay(sessionConfigData);
@@ -661,111 +694,111 @@ public class CompleteESOETest
 		replay(servletContext);
 
 		AuthzCacheUpdateFailureRepository authzCacheUpdateFailureRepository = new AuthzCacheUpdateFailureRepositoryImpl();
-		
-		SPEPRegistrationCache spepRegistrationCache = new SPEPRegistrationCacheImpl( spepRegistrationDao );
-		
+
+		SPEPRegistrationCache spepRegistrationCache = new SPEPRegistrationCacheImpl(spepRegistrationDao);
+
 		AuthzPolicyCache authzPolicyCache = new AuthzPolicyCacheImpl();
-		
-		PolicyCacheProcessor policyCacheProcessor = new PolicyCacheProcessorImpl( authzCacheUpdateFailureRepository, authzPolicyCache, metadata, policyCacheDao, wsClient, keystoreResolver, identifierGenerator, samlValidator, POLICY_POLL_INTERVAL );
-		
-		Startup startup = new StartupImpl( samlValidator, identifierGenerator, spepRegistrationCache, metadata, keystoreResolver, policyCacheProcessor );
-		
-		SPEPProcessor spepProcessor = new SPEPProcessorImpl( metadata, startup, authzCacheUpdateFailureRepository, wsClient, identifierGenerator, samlValidator, keystoreResolver );
-		
-		AttributeAuthorityProcessor attributeAuthority = new AttributeAuthorityProcessorImpl( metadata, sessionsProcessor, samlValidator, identifierGenerator, keystoreResolver, ALLOWED_TIME_SKEW );
-		
-		AuthnProcessor authnProcessor = new AuthnProcessorImpl( spepProcessor, sessionsProcessor, authnHandlers );
-		
+
+		PolicyCacheProcessor policyCacheProcessor = new PolicyCacheProcessorImpl(authzCacheUpdateFailureRepository, authzPolicyCache, metadata, policyCacheDao, wsClient, keystoreResolver, identifierGenerator, samlValidator, POLICY_POLL_INTERVAL);
+
+		Startup startup = new StartupImpl(samlValidator, identifierGenerator, spepRegistrationCache, metadata, keystoreResolver, policyCacheProcessor);
+
+		SPEPProcessor spepProcessor = new SPEPProcessorImpl(metadata, startup, authzCacheUpdateFailureRepository, wsClient, identifierGenerator, samlValidator, keystoreResolver);
+
+		AttributeAuthorityProcessor attributeAuthority = new AttributeAuthorityProcessorImpl(metadata, sessionsProcessor, samlValidator, identifierGenerator, keystoreResolver, ALLOWED_TIME_SKEW);
+
+		AuthnProcessor authnProcessor = new AuthnProcessorImpl(spepProcessor, sessionsProcessor, authnHandlers);
+
 		FailedLogoutRepository failedLogoutRepository = new FailedLogoutRepositoryImpl();
-		
-		LogoutAuthorityProcessor logoutAuthorityProcessor = new LogoutAuthorityProcessor( failedLogoutRepository, samlValidator, sessionsProcessor, metadata, identifierGenerator, keystoreResolver, wsClient );
-		
-		DelegatedAuthenticationProcessor delegatedAuthenticationProcessor = new DelegatedAuthenticationProcessorImpl( samlValidator, sessionsProcessor, identifierGenerator, keystoreResolver, deniedIdentifiers, delegatedAuthnIdentifier );
-		
-		SSOProcessor ssoProcessor = new AuthenticationAuthorityProcessor( samlValidator, sessionsProcessor, metadata, identifierGenerator, metadata, keystoreResolver, ConfigurationConstants.samlProtocol, ALLOWED_TIME_SKEW, SESSION_REMAINING_TIME );
-		
-		AuthorizationProcessor authorizationProcessor = new AuthorizationProcessorImpl( authzPolicyCache, sessionsProcessor, metadata, samlValidator, identifierGenerator, keystoreResolver, AUTHORIZATION_DEFAULT_MODE, ALLOWED_TIME_SKEW );
-		
-		expect( webApplicationContext.getBean( eq(ConfigurationConstants.AUTHN_PROCESSOR), (Class)notNull() ) ).andReturn( authnProcessor ).anyTimes();
-		expect( webApplicationContext.getBean( eq(ConfigurationConstants.AUTHN_PROCESSOR) ) ).andReturn( authnProcessor ).anyTimes();
-		expect( webApplicationContext.getBean( eq(ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR), (Class)notNull() ) ).andReturn( logoutAuthorityProcessor ).anyTimes();
-		expect( webApplicationContext.getBean( eq(ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR) ) ).andReturn( logoutAuthorityProcessor ).anyTimes();
-		expect( webApplicationContext.getBean( eq(ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR), (Class)notNull() ) ).andReturn( ssoProcessor ).anyTimes();
-		expect( webApplicationContext.getBean( eq(ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR) ) ).andReturn( authnProcessor ).anyTimes();
+
+		LogoutAuthorityProcessor logoutAuthorityProcessor = new LogoutAuthorityProcessor(failedLogoutRepository, samlValidator, sessionsProcessor, metadata, identifierGenerator, keystoreResolver, wsClient);
+
+		DelegatedAuthenticationProcessor delegatedAuthenticationProcessor = new DelegatedAuthenticationProcessorImpl(samlValidator, sessionsProcessor, identifierGenerator, keystoreResolver, deniedIdentifiers, delegatedAuthnIdentifier);
+
+		SSOProcessor ssoProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, metadata, identifierGenerator, metadata, keystoreResolver, ConfigurationConstants.samlProtocol, ALLOWED_TIME_SKEW, SESSION_REMAINING_TIME);
+
+		AuthorizationProcessor authorizationProcessor = new AuthorizationProcessorImpl(authzPolicyCache, sessionsProcessor, metadata, samlValidator, identifierGenerator, keystoreResolver, AUTHORIZATION_DEFAULT_MODE, ALLOWED_TIME_SKEW);
+
+		expect(webApplicationContext.getBean(eq(ConfigurationConstants.AUTHN_PROCESSOR), (Class) notNull())).andReturn(authnProcessor).anyTimes();
+		expect(webApplicationContext.getBean(eq(ConfigurationConstants.AUTHN_PROCESSOR))).andReturn(authnProcessor).anyTimes();
+		expect(webApplicationContext.getBean(eq(ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR), (Class) notNull())).andReturn(logoutAuthorityProcessor).anyTimes();
+		expect(webApplicationContext.getBean(eq(ConfigurationConstants.LOGOUT_AUTHORITY_PROCESSOR))).andReturn(logoutAuthorityProcessor).anyTimes();
+		expect(webApplicationContext.getBean(eq(ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR), (Class) notNull())).andReturn(ssoProcessor).anyTimes();
+		expect(webApplicationContext.getBean(eq(ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR))).andReturn(authnProcessor).anyTimes();
 
 		replay(webApplicationContext);
-		
+
 		ssoAAServlet = new SSOAAServlet();
 		ssoAAServlet.init(servletConfig);
-		
+
 		ssoLogoutServlet = new SSOLogoutServlet();
 		ssoLogoutServlet.init(servletConfig);
-		
+
 		authnServlet = new AuthnServlet();
 		authnServlet.init(servletConfig);
-		
+
 		wsProcessor = new WSProcessorImpl(attributeAuthority, authorizationProcessor, spepProcessor, delegatedAuthenticationProcessor);
-		
+
 		xmlInputFactory = XMLInputFactory.newInstance();
-		this.up  = true;
+		this.up = true;
 	}
 
-	private Map<String, PolicyCacheData> makePolicyCacheDataMap()
+	private List<PolicyCacheData> makePolicyCacheDataMap()
 	{
-		Map<String, PolicyCacheData> map = new HashMap<String, PolicyCacheData>();
-		String policyXML = "<?xml version=\"1.0\" encoding=\"UTF-16\"?><PolicySet xmlns=\"http://www.qut.com/middleware/lxacmlSchema\"><Description>A blah! policy set for the default SPEP deployment.</Description><Policy PolicyId=\"spep2:default\"><Description>Simple Policy</Description><Target><Resources><Resource><AttributeValue>/secure/.*</AttributeValue></Resource></Resources></Target><Rule Effect=\"Permit\" RuleId=\"rule1\"><Description>Description</Description><Condition><Apply FunctionId=\"or\"><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"uid\" /><AttributeValue>.*</AttributeValue></Apply><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"openIDprovider\" /><AttributeValue>.*</AttributeValue></Apply><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"shibidporigin\" /><AttributeValue>urn\\:mace\\:federation\\.org\\.au\\:testfed\\:level\\-1.*</AttributeValue></Apply></Apply></Condition></Rule><Rule Effect=\"Deny\" RuleId=\"rule2\"><Description>Description</Description><Target><Resources><Resource><AttributeValue>/secure/higherauth.jsp</AttributeValue></Resource></Resources></Target><Condition><Apply FunctionId=\"not\"><Apply FunctionId=\"string-equal\"><SubjectAttributeDesignator AttributeId=\"SomethingLevel\" /><AttributeValue>Level 2</AttributeValue></Apply></Apply></Condition></Rule><Rule Effect=\"Deny\" RuleId=\"rule3\"><Description>Description</Description><Target><Resources><Resource><AttributeValue>/secure/shibauth.jsp</AttributeValue></Resource></Resources></Target><Condition><Apply FunctionId=\"not\"><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"shibidporigin\" /><AttributeValue>urn\\:mace\\:federation\\.org\\.au\\:testfed\\:level\\-1\\:qut.*</AttributeValue></Apply></Apply></Condition></Rule></Policy></PolicySet>";
-		
-		for (int i=0; i<this.speps.size(); ++i)
+		List<PolicyCacheData> map = new Vector<PolicyCacheData>();
+		byte[] policyXML = new String("<?xml version=\"1.0\" encoding=\"UTF-16\"?><PolicySet xmlns=\"http://www.qut.com/middleware/lxacmlSchema\"><Description>A blah! policy set for the default SPEP deployment.</Description><Policy PolicyId=\"spep2:default\"><Description>Simple Policy</Description><Target><Resources><Resource><AttributeValue>/secure/.*</AttributeValue></Resource></Resources></Target><Rule Effect=\"Permit\" RuleId=\"rule1\"><Description>Description</Description><Condition><Apply FunctionId=\"or\"><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"uid\" /><AttributeValue>.*</AttributeValue></Apply><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"openIDprovider\" /><AttributeValue>.*</AttributeValue></Apply><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"shibidporigin\" /><AttributeValue>urn\\:mace\\:federation\\.org\\.au\\:testfed\\:level\\-1.*</AttributeValue></Apply></Apply></Condition></Rule><Rule Effect=\"Deny\" RuleId=\"rule2\"><Description>Description</Description><Target><Resources><Resource><AttributeValue>/secure/higherauth.jsp</AttributeValue></Resource></Resources></Target><Condition><Apply FunctionId=\"not\"><Apply FunctionId=\"string-equal\"><SubjectAttributeDesignator AttributeId=\"SomethingLevel\" /><AttributeValue>Level 2</AttributeValue></Apply></Apply></Condition></Rule><Rule Effect=\"Deny\" RuleId=\"rule3\"><Description>Description</Description><Target><Resources><Resource><AttributeValue>/secure/shibauth.jsp</AttributeValue></Resource></Resources></Target><Condition><Apply FunctionId=\"not\"><Apply FunctionId=\"string-regex-match\"><SubjectAttributeDesignator AttributeId=\"shibidporigin\" /><AttributeValue>urn\\:mace\\:federation\\.org\\.au\\:testfed\\:level\\-1\\:qut.*</AttributeValue></Apply></Apply></Condition></Rule></Policy></PolicySet>").getBytes();
+
+		for (int i = 0; i < this.speps.size(); ++i)
 		{
 			SPEPInformation spep = this.speps.get(i);
-			
+
 			PolicyCacheData policyCacheData = new PolicyCacheData();
-			policyCacheData.setDateLastUpdated( new Date() );
-			policyCacheData.setDescriptorID( spep.entityDesciptorID );
-			policyCacheData.setLxacmlPolicy( policyXML );
-			
-			map.put( spep.entityDesciptorID, policyCacheData );
+			policyCacheData.setSequenceId(new BigDecimal(System.currentTimeMillis()) );
+			policyCacheData.setEntityID(spep.entityDesciptorID);
+			policyCacheData.setLxacmlPolicy(policyXML);
+
+			map.add(policyCacheData);
 		}
-		
+
 		return map;
 	}
 
-	protected String respondAuthzCacheClear(String requestDocument, String endpoint) throws WSClientException
+	protected byte[] respondAuthzCacheClear(byte[] requestDocument, String endpoint) throws WSClientException
 	{
 		SPEPInformation targetSPEP = null;
-		for ( SPEPInformation spep : this.speps )
+		for (SPEPInformation spep : this.speps)
 		{
-			if ( spep != null && endpoint.equals( spep.authzCacheClearEndpoint ) )
+			if (spep != null && endpoint.equals(spep.authzCacheClearEndpoint))
 			{
 				targetSPEP = spep;
 				break;
 			}
 		}
-		
-		if ( targetSPEP == null )
+
+		if (targetSPEP == null)
 		{
-			throw new WSClientException( "Couldn't find the endpoint." );
+			throw new WSClientException("Couldn't find the endpoint.");
 		}
-		
+
 		try
 		{
-			ClearAuthzCacheRequest request = this.clearAuthzCacheRequestUnmarshaller.unMarshallUnSigned( requestDocument );
-			
-			String responseDocument = null;
+			ClearAuthzCacheRequest request = this.clearAuthzCacheRequestUnmarshaller.unMarshallUnSigned(requestDocument);
+
+			byte[] responseDocument = null;
 			ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 			NameIDType issuer = new NameIDType();
-			issuer.setValue( targetSPEP.entityDesciptorID );
+			issuer.setValue(targetSPEP.entityDesciptorID);
 
 			Status status = new Status();
 			StatusCode statusCode = new StatusCode();
 			statusCode.setValue(StatusCodeConstants.success);
 			status.setStatusCode(statusCode);
-			status.setStatusMessage( "Success!" );
+			status.setStatusMessage("Success!");
 
 			clearAuthzCacheResponse = new ClearAuthzCacheResponse();
-			clearAuthzCacheResponse.setInResponseTo( request.getID() );
-			clearAuthzCacheResponse.setID( this.localIdentifierGenerator.generateSAMLID() );
+			clearAuthzCacheResponse.setInResponseTo(request.getID());
+			clearAuthzCacheResponse.setID(this.localIdentifierGenerator.generateSAMLID());
 			clearAuthzCacheResponse.setIssueInstant(new XMLGregorianCalendarImpl(new GregorianCalendar()));
 			clearAuthzCacheResponse.setIssuer(issuer);
 			clearAuthzCacheResponse.setSignature(new Signature());
@@ -778,47 +811,47 @@ public class CompleteESOETest
 		}
 		catch (UnmarshallerException e)
 		{
-			throw new WSClientException( e.getMessage() );
+			throw new WSClientException(e.getMessage());
 		}
 		catch (MarshallerException e)
 		{
-			throw new WSClientException( e.getMessage() );
+			throw new WSClientException(e.getMessage());
 		}
 	}
 
-	protected String respondSingleLogout(String requestDocument, String endpoint) throws WSClientException
+	protected byte[] respondSingleLogout(byte[] requestDocument, String endpoint) throws WSClientException
 	{
 		SPEPInformation targetSPEP = null;
-		for ( SPEPInformation spep : this.speps )
+		for (SPEPInformation spep : this.speps)
 		{
-			if ( spep != null && endpoint.equals( spep.authzCacheClearEndpoint ) )
+			if (spep != null && endpoint.equals(spep.authzCacheClearEndpoint))
 			{
 				targetSPEP = spep;
 				break;
 			}
 		}
-		
-		if ( targetSPEP == null )
+
+		if (targetSPEP == null)
 		{
-			throw new WSClientException( "Couldn't find the endpoint." );
+			throw new WSClientException("Couldn't find the endpoint.");
 		}
-		
+
 		try
 		{
-			LogoutRequest request = this.logoutRequestUnmarshaller.unMarshallUnSigned( requestDocument );
+			LogoutRequest request = this.logoutRequestUnmarshaller.unMarshallUnSigned(requestDocument);
 
 			NameIDType issuer = new NameIDType();
-			issuer.setValue( targetSPEP.entityDesciptorID );
+			issuer.setValue(targetSPEP.entityDesciptorID);
 
 			Status status = new Status();
 			StatusCode statusCode = new StatusCode();
-			statusCode.setValue( StatusCodeConstants.success );
+			statusCode.setValue(StatusCodeConstants.success);
 			status.setStatusCode(statusCode);
-			status.setStatusMessage( "Success" );
+			status.setStatusMessage("Success");
 
 			Response response = new Response();
 			response.setID(this.localIdentifierGenerator.generateSAMLID());
-			response.setInResponseTo( request.getID() );
+			response.setInResponseTo(request.getID());
 			response.setIssueInstant(new XMLGregorianCalendarImpl(new GregorianCalendar()));
 			response.setIssuer(issuer);
 			response.setSignature(new Signature());
@@ -829,18 +862,18 @@ public class CompleteESOETest
 		}
 		catch (UnmarshallerException e)
 		{
-			throw new WSClientException( e.getMessage() );
+			throw new WSClientException(e.getMessage());
 		}
 		catch (MarshallerException e)
 		{
-			throw new WSClientException( e.getMessage() );
+			throw new WSClientException(e.getMessage());
 		}
 	}
 
 	@After
 	public void tearDown() throws Exception
 	{
-		if(up)
+		if (up)
 		{
 			verify(userPassAuthenticator);
 			verify(metadata);
@@ -853,113 +886,114 @@ public class CompleteESOETest
 			verify(webApplicationContext);
 		}
 	}
-	
+
 	@Test
 	public void testRun()
 	{
 		List<Thread> threadList = new Vector<Thread>();
-		for (int i=0; i<NUMBER_OF_THREADS; ++i)
+		for (int i = 0; i < NUMBER_OF_THREADS; ++i)
 		{
 			// need a 'final' variable so that the anonymous class can use it
 			final int threadNumber = i;
-			
+
 			Thread thread = new Thread()
 			{
 				@Override
 				public void run()
 				{
-					for( int j=0; j<CompleteESOETest.NUMBER_OF_RUNS; ++j )
+					for (int j = 0; j < CompleteESOETest.NUMBER_OF_RUNS; ++j)
 					{
-						doTest( CompleteESOETest.this.random.nextInt(CompleteESOETest.this.NUMBER_OF_SPEPS), threadNumber );
+						doTest(CompleteESOETest.this.random.nextInt(CompleteESOETest.this.NUMBER_OF_SPEPS), threadNumber);
 					}
 				}
 			};
-			
+
 			thread.start();
-			
-			threadList.add( thread );
+
+			threadList.add(thread);
 		}
-		
+
 		for (Thread t : threadList)
 		{
-			while(t.isAlive())
+			while (t.isAlive())
 			{
 				try
 				{
-				Thread.sleep(100);
+					Thread.sleep(100);
 				}
 				catch (InterruptedException e)
-				{}
+				{
+				}
 			}
 		}
-		
+
 		for (Exception e : errors)
 		{
-			e.printStackTrace( System.err );
+			e.printStackTrace(System.err);
 		}
-		
-		assertTrue( errors.size() == 0 );
+
+		assertTrue(errors.size() == 0);
 	}
-	
-	private void doTest( int spepIndex, int userIndex )
+
+	private void doTest(int spepIndex, int userIndex)
 	{
 		SPEPInformation spep = this.speps.get(spepIndex);
-		UserInformation user = this.goodUserInformation.get( userIndex );
-		String badUsername = this.badUsernamePasswordPairs.get( userIndex )[0];
-		String badPassword = this.badUsernamePasswordPairs.get( userIndex )[1];
-		
+		UserInformation user = this.goodUserInformation.get(userIndex);
+		String badUsername = this.badUsernamePasswordPairs.get(userIndex)[0];
+		String badPassword = this.badUsernamePasswordPairs.get(userIndex)[1];
+
 		List<String> resourceURLList = new Vector<String>();
-		
-		int badAttempts = 0;//this.random.nextInt(3);
-		
+
+		int badAttempts = 0;// this.random.nextInt(3);
+
 		SessionData sessionData = new SessionData();
-		
+
 		sessionData.spep = spep;
 		sessionData.user = user;
-		sessionData.session = new TestHttpSession( this.localIdentifierGenerator );
-		
+		sessionData.session = new TestHttpSession(this.localIdentifierGenerator);
+
 		try
 		{
-			for ( int i=0; i<badAttempts; ++i )
+			for (int i = 0; i < badAttempts; ++i)
 			{
-				badAuthnRequest( sessionData );
+				badAuthnRequest(sessionData);
 			}
-			
-			//synchronized( this )
-			//{
-			goodAuthnRequest( sessionData );
-			//}
-			
-			for ( int i=0; i<badAttempts; ++i )
-			{
-				badLogin( sessionData, badUsername, badPassword );
-			}
-			
-			goodLogin( sessionData );
 
-			for ( int i=0; i<badAttempts; ++i )
+			// synchronized( this )
+			// {
+			goodAuthnRequest(sessionData);
+			// }
+
+			for (int i = 0; i < badAttempts; ++i)
 			{
-				badSSO( sessionData );
+				badLogin(sessionData, badUsername, badPassword);
 			}
-			
-			goodSSO( sessionData );
-			
-			pdp( sessionData );
+
+			goodLogin(sessionData);
+
+			for (int i = 0; i < badAttempts; ++i)
+			{
+				badSSO(sessionData);
+			}
+
+			goodSSO(sessionData);
+
+			pdp(sessionData);
 		}
 		catch (Exception e)
 		{
-			errors.add( e );
+			errors.add(e);
 		}
 	}
-	
+
 	private static final String DYNAMIC_RESPONSE_URL_SESSION_NAME = "com.qut.middleware.esoe.authn.servlet.dynamicresponseurl";
 	private static final String FORM_USER_IDENTIFIER = "esoeauthn_user";
 	private static final String FORM_PASSWORD_IDENTIFIER = "esoeauthn_pw";
 	private static final String FORM_REDIRECT_URL = "redirectURL";
 	private static final String SAML_REQUEST_FORM_ELEMENT = "SAMLRequest";
 	private static final String SAML_RESPONSE_FORM_ELEMENT = "SAMLResponse";
-	
-	private static final Pattern pattern =  Pattern.compile( ".*name=\"" + SAML_RESPONSE_FORM_ELEMENT + "\"\\s+value=\"([^\"]+)\".*", Pattern.DOTALL );
+
+	private static final Pattern pattern = Pattern.compile(".*name=\"" + SAML_RESPONSE_FORM_ELEMENT + "\"\\s+value=\"([^\"]+)\".*", Pattern.DOTALL);
 	private WSProcessor wsProcessor;
 
 	private class SessionData
@@ -968,35 +1002,38 @@ public class CompleteESOETest
 		public UserInformation user;
 		public SSOProcessorData ssoProcessorData;
 		public AuthnProcessorData authnProcessorData;
-		public Map<String,Cookie> cookies = new HashMap<String, Cookie>();
+		public Map<String, Cookie> cookies = new HashMap<String, Cookie>();
 		public String esoeSessionID;
 		public String esoeSessionIndex;
-		
+
 		public TestHttpSession session;
 
-		public SessionData(){}
+		public SessionData()
+		{
+		}
 	}
-	
-	private void goodAuthnRequest( SessionData sessionData ) throws Exception
+
+	private void goodAuthnRequest(SessionData sessionData) throws Exception
 	{
 		this.logger.error("goodAuthnRequest");
-		
+
 		long startTime;
 		boolean first = true;
-		
+
 		StringWriter out;
 		HttpServletRequest request;
 		HttpServletResponse response;
 		Capture<Cookie> cookieCapture;
 		do
 		{
-			if (!first) this.logger.error("retrying pdp - timed out - thread " + Thread.currentThread().getId());
+			if (!first)
+				this.logger.error("retrying pdp - timed out - thread " + Thread.currentThread().getId());
 			first = false;
-			
+
 			startTime = System.currentTimeMillis();
-			
+
 			String authnRequestSAMLID = localIdentifierGenerator.generateSAMLID();
-			
+
 			AuthnRequest authnRequest = new AuthnRequest();
 			authnRequest.setIssueInstant(new XMLGregorianCalendarImpl(new GregorianCalendar()));
 			NameIDPolicy nameIDPolicy = new NameIDPolicy();
@@ -1010,56 +1047,53 @@ public class CompleteESOETest
 			authnRequest.setID(authnRequestSAMLID);
 			authnRequest.setAssertionConsumerServiceIndex(0);
 			authnRequest.setAttributeConsumingServiceIndex(0);
-			
+
 			NameIDType issuer = new NameIDType();
 			issuer.setValue(sessionData.spep.entityDesciptorID);
 			authnRequest.setIssuer(issuer);
-			
-			String requestDocument = sessionData.spep.authnRequestMarshaller.marshallSigned(authnRequest);
-			
-			String base64RequestDocument = new String(Base64.encodeBase64(requestDocument.getBytes("UTF-8")));
-			
+
+			byte[] requestDocument = sessionData.spep.authnRequestMarshaller.marshallSigned(authnRequest);
+
 			request = createMock(HttpServletRequest.class);
 			response = createMock(HttpServletResponse.class);
-			
+
 			sessionData.session = new TestHttpSession(sessionData.session, null);
-			
+
 			expect(request.getSession()).andReturn(sessionData.session).anyTimes();
 			expect(request.getCookies()).andReturn(new Cookie[] {}).anyTimes();
 			expect(request.getMethod()).andReturn("POST").anyTimes();
-			expect(request.getParameter(SAML_REQUEST_FORM_ELEMENT)).andReturn(base64RequestDocument).anyTimes();
-			
+			expect(request.getParameter(SAML_REQUEST_FORM_ELEMENT)).andReturn(new String(Base64.encodeBase64(requestDocument))).anyTimes();
+
 			cookieCapture = new Capture<Cookie>();
 			response.addCookie(capture(cookieCapture));
 			expectLastCall().anyTimes();
-			
-			response.sendRedirect(AUTHN_REDIRECT_URL + "?" + AUTHN_DYNAMIC_URL_PARAM + "="
-					+ new String(Base64.encodeBase64(SSO_URL.getBytes())));
+
+			response.sendRedirect(AUTHN_REDIRECT_URL + "?" + AUTHN_DYNAMIC_URL_PARAM + "=" + new String(Base64.encodeBase64(SSO_URL.getBytes())));
 			expectLastCall().once();
-			
+
 			out = new StringWriter();
 			expect(response.getWriter()).andReturn(new PrintWriter(out)).anyTimes();
-			
+
 			replay(request);
 			replay(response);
-			
+
 			ssoAAServlet.service(request, response);
-		} while (( System.currentTimeMillis() - startTime ) / 1000 > ALLOWED_TIME_SKEW );
-		
+		} while ((System.currentTimeMillis() - startTime) / 1000 > ALLOWED_TIME_SKEW);
+
 		if (out.toString().length() > 0)
 		{
-			throw new Exception( "Unexpected content: \n" + getResponeSAMLDocument( out.toString() ) );
+			throw new Exception("Unexpected content: \n" + getResponeSAMLDocument(out.toString()));
 		}
-		
-		verify( request );
-		verify( response );
-		
-		for( Cookie cookie : cookieCapture.getCaptured() )
+
+		verify(request);
+		verify(response);
+
+		for (Cookie cookie : cookieCapture.getCaptured())
 		{
-			sessionData.cookies.put( cookie.getName(), cookie );
+			sessionData.cookies.put(cookie.getName(), cookie);
 		}
 	}
-	
+
 	private void badAuthnRequest( SessionData sessionData ) throws Exception
 	{
 		
@@ -1072,8 +1106,7 @@ public class CompleteESOETest
 		authnRequest.setIssueInstant( new XMLGregorianCalendarImpl( new GregorianCalendar() ) );
 		authnRequest.setVersion( "invalid" );
 		
-		String requestDocument = sessionData.spep.authnRequestMarshaller.marshallUnSigned( authnRequest );
-		String base64RequestDocument = new String( Base64.encodeBase64( requestDocument.getBytes( "UTF-8" ) ) );
+		byte[] requestDocument = sessionData.spep.authnRequestMarshaller.marshallUnSigned( authnRequest );
 
 		HttpServletRequest request = createMock( HttpServletRequest.class );
 		HttpServletResponse response = createMock( HttpServletResponse.class );
@@ -1082,7 +1115,7 @@ public class CompleteESOETest
 		expect( request.getSession() ).andReturn( sessionData.session ).anyTimes();
 		expect( request.getCookies() ).andReturn( new Cookie[]{} ).anyTimes();
 		expect( request.getMethod() ).andReturn( "POST" ).anyTimes();
-		expect( request.getParameter(SAML_REQUEST_FORM_ELEMENT) ).andReturn( base64RequestDocument ).anyTimes();
+		expect( request.getParameter(SAML_REQUEST_FORM_ELEMENT) ).andReturn( new String(Base64.encodeBase64( requestDocument ))).anyTimes();
 		
 		Capture<Cookie> cookieCapture = new Capture<Cookie>();
 		response.addCookie( capture(cookieCapture) );
@@ -1104,221 +1137,224 @@ public class CompleteESOETest
 			sessionData.cookies.put( cookie.getName(), cookie );
 		}
 	}
-	
-	private void goodLogin( SessionData sessionData ) throws Exception
+
+	private void goodLogin(SessionData sessionData) throws Exception
 	{
 		this.logger.error("goodLogin");
-		
-		HttpServletRequest request = createMock( HttpServletRequest.class );
-		HttpServletResponse response = createMock( HttpServletResponse.class );
-		sessionData.session = new TestHttpSession( sessionData.session, null );
-		
-		String redirectURL = "https://esoe.example.com/sso";
-		String base64RedirectURL = new String( Base64.encodeBase64( redirectURL.getBytes() ) );
 
-		expect( request.getSession() ).andReturn( sessionData.session ).anyTimes();
-		expect( request.getCookies() ).andReturn( new Cookie[]{} ).anyTimes();
-		expect( request.getMethod() ).andReturn( "POST" ).anyTimes();
-		expect( request.getParameter(FORM_USER_IDENTIFIER) ).andReturn( sessionData.user.username ).anyTimes();
-		expect( request.getParameter(FORM_PASSWORD_IDENTIFIER) ).andReturn( sessionData.user.password ).anyTimes();
-		expect( request.getParameter(FORM_REDIRECT_URL) ).andReturn( base64RedirectURL ).anyTimes();
-		
+		HttpServletRequest request = createMock(HttpServletRequest.class);
+		HttpServletResponse response = createMock(HttpServletResponse.class);
+		sessionData.session = new TestHttpSession(sessionData.session, null);
+
+		String redirectURL = "https://esoe.example.com/sso";
+		String base64RedirectURL = new String(Base64.encodeBase64(redirectURL.getBytes()));
+
+		expect(request.getSession()).andReturn(sessionData.session).anyTimes();
+		expect(request.getCookies()).andReturn(new Cookie[] {}).anyTimes();
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+		expect(request.getParameter(FORM_USER_IDENTIFIER)).andReturn(sessionData.user.username).anyTimes();
+		expect(request.getParameter(FORM_PASSWORD_IDENTIFIER)).andReturn(sessionData.user.password).anyTimes();
+		expect(request.getParameter(FORM_REDIRECT_URL)).andReturn(base64RedirectURL).anyTimes();
+
 		Capture<Cookie> cookieCapture = new Capture<Cookie>();
-		response.addCookie( capture(cookieCapture) );
+		response.addCookie(capture(cookieCapture));
 		expectLastCall().anyTimes();
-		
+
 		try
 		{
-			response.sendRedirect( redirectURL );
+			response.sendRedirect(redirectURL);
 			expectLastCall().once();
-		} catch (IOException e)
-		{}
-		
-		Capture<AuthnProcessorData> captureAuthnProcessorData = new Capture<AuthnProcessorData>();
-		
-		sessionData.authnProcessorData = new AuthnProcessorDataImpl();
-		
-		replay( request );
-		replay( response );
-		
-		authnServlet.service( request, response );
-		
-		verify( request );
-		verify( response );
-		
-		for( Cookie cookie : cookieCapture.getCaptured() )
+		}
+		catch (IOException e)
 		{
-			sessionData.cookies.put( cookie.getName(), cookie );
+		}
+
+		Capture<AuthnProcessorData> captureAuthnProcessorData = new Capture<AuthnProcessorData>();
+
+		sessionData.authnProcessorData = new AuthnProcessorDataImpl();
+
+		replay(request);
+		replay(response);
+
+		authnServlet.service(request, response);
+
+		verify(request);
+		verify(response);
+
+		for (Cookie cookie : cookieCapture.getCaptured())
+		{
+			sessionData.cookies.put(cookie.getName(), cookie);
 		}
 	}
-	
-	private void badLogin( SessionData sessionData, String username, String password ) throws Exception
+
+	private void badLogin(SessionData sessionData, String username, String password) throws Exception
 	{
 		this.logger.error("badLogin");
-		
-		HttpServletRequest request = createMock( HttpServletRequest.class );
-		HttpServletResponse response = createMock( HttpServletResponse.class );
-		sessionData.session = new TestHttpSession( sessionData.session, null );
-		
-		String redirectURL = "https://esoe.example.com/sso";
-		String base64RedirectURL = new String( Base64.encodeBase64( redirectURL.getBytes() ) );
 
-		expect( request.getSession() ).andReturn( sessionData.session ).anyTimes();
-		expect( request.getCookies() ).andReturn( new Cookie[]{} ).anyTimes();
-		expect( request.getMethod() ).andReturn( "POST" ).anyTimes();
-		expect( request.getParameter(FORM_USER_IDENTIFIER) ).andReturn( username ).anyTimes();
-		expect( request.getParameter(FORM_PASSWORD_IDENTIFIER) ).andReturn( password ).anyTimes();
-		expect( request.getParameter(FORM_REDIRECT_URL) ).andReturn( base64RedirectURL ).anyTimes();
-		
-		response.sendRedirect( REQUIRE_CREDENTIALS_URL + "?" + AUTHENTICATION_FAILED_NAME_VALUE );
+		HttpServletRequest request = createMock(HttpServletRequest.class);
+		HttpServletResponse response = createMock(HttpServletResponse.class);
+		sessionData.session = new TestHttpSession(sessionData.session, null);
+
+		String redirectURL = "https://esoe.example.com/sso";
+		String base64RedirectURL = new String(Base64.encodeBase64(redirectURL.getBytes()));
+
+		expect(request.getSession()).andReturn(sessionData.session).anyTimes();
+		expect(request.getCookies()).andReturn(new Cookie[] {}).anyTimes();
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+		expect(request.getParameter(FORM_USER_IDENTIFIER)).andReturn(username).anyTimes();
+		expect(request.getParameter(FORM_PASSWORD_IDENTIFIER)).andReturn(password).anyTimes();
+		expect(request.getParameter(FORM_REDIRECT_URL)).andReturn(base64RedirectURL).anyTimes();
+
+		response.sendRedirect(REQUIRE_CREDENTIALS_URL + "?" + AUTHENTICATION_FAILED_NAME_VALUE);
 		expectLastCall().once();
-		
-		replay( request );
-		replay( response );
-		
-		authnServlet.service( request, response );
-		
-		verify( request );
-		verify( response );
+
+		replay(request);
+		replay(response);
+
+		authnServlet.service(request, response);
+
+		verify(request);
+		verify(response);
 	}
-	
-	public void goodSSO( SessionData sessionData ) throws Exception
+
+	public void goodSSO(SessionData sessionData) throws Exception
 	{
 		this.logger.error("goodSSO");
-		
-		HttpServletRequest request = createMock( HttpServletRequest.class );
-		HttpServletResponse response = createMock( HttpServletResponse.class );
-		sessionData.session = new TestHttpSession( sessionData.session, null );
-		
+
+		HttpServletRequest request = createMock(HttpServletRequest.class);
+		HttpServletResponse response = createMock(HttpServletResponse.class);
+		sessionData.session = new TestHttpSession(sessionData.session, null);
+
 		Collection<Cookie> cookieValues = sessionData.cookies.values();
 		Cookie[] cookies = new Cookie[cookieValues.size()];
 		int i = 0;
-		for ( Cookie c : cookieValues )
+		for (Cookie c : cookieValues)
 		{
 			cookies[i++] = c;
 		}
-		
-		expect( request.getSession() ).andReturn( sessionData.session ).anyTimes();
-		expect( request.getCookies() ).andReturn( cookies ).anyTimes();
-		expect( request.getMethod() ).andReturn( "GET" ).anyTimes();
-		expect( request.getServerName() ).andReturn( ESOE_SERVER_NAME ).anyTimes();
-		
-		StringWriter out = new StringWriter();
-		expect( response.getWriter() ).andReturn( new PrintWriter( out ) ).atLeastOnce();
 
-		response.addCookie( (Cookie)anyObject() );
+		expect(request.getSession()).andReturn(sessionData.session).anyTimes();
+		expect(request.getCookies()).andReturn(cookies).anyTimes();
+		expect(request.getMethod()).andReturn("GET").anyTimes();
+		expect(request.getServerName()).andReturn(ESOE_SERVER_NAME).anyTimes();
+
+		StringWriter out = new StringWriter();
+		expect(response.getWriter()).andReturn(new PrintWriter(out)).atLeastOnce();
+
+		response.addCookie((Cookie) anyObject());
 		expectLastCall().anyTimes();
 
-		replay( request );
-		replay( response );
-		
-		ssoAAServlet.service( request, response );
-		
-		verify( request );
-		verify( response );
-		
-		Response samlResponse = this.authnResponseUnmarshaller.unMarshallSigned( getResponeSAMLDocument( out.toString() ) );
-			
-		processSAMLAuthnResponse( sessionData, samlResponse );
+		replay(request);
+		replay(response);
+
+		ssoAAServlet.service(request, response);
+
+		verify(request);
+		verify(response);
+
+		Response samlResponse = this.authnResponseUnmarshaller.unMarshallSigned(getResponeSAMLDocument(out.toString()));
+
+		processSAMLAuthnResponse(sessionData, samlResponse);
 	}
-	
-	private String getResponeSAMLDocument( String htmlDocument ) throws Exception
+
+	private byte[] getResponeSAMLDocument(String htmlDocument) throws Exception
 	{
-		Matcher matcher = pattern.matcher( htmlDocument );
-		if( matcher.matches() && matcher.groupCount() > 0 )
+		Matcher matcher = pattern.matcher(htmlDocument);
+		if (matcher.matches() && matcher.groupCount() > 0)
 		{
-			String base64ResponseDocument = matcher.group( 1 );
-			String responseDocument = new String( Base64.decodeBase64( base64ResponseDocument.getBytes() ), "UTF-8" );
-			
-			
-			return responseDocument;
+			String base64ResponseDocument = matcher.group(1);
+
+			return Base64.decodeBase64(base64ResponseDocument.getBytes());
 		}
 		else
 		{
-			throw new Exception( "No response document" );
+			throw new Exception("No response document");
 		}
 	}
-	
-	private void processSAMLAuthnResponse( SessionData sessionData, Response samlResponse ) throws Exception
+
+	private void processSAMLAuthnResponse(SessionData sessionData, Response samlResponse) throws Exception
 	{
-		
+
 		Assertion assertion = null;
 		AuthnStatement authnStatement = null;
-		
-		for ( Object maybeAssertion : samlResponse.getEncryptedAssertionsAndAssertions() )
+
+		for (Object maybeAssertion : samlResponse.getEncryptedAssertionsAndAssertions())
 		{
-			if ( !( maybeAssertion instanceof Assertion ) )
+			if (!(maybeAssertion instanceof Assertion))
 			{
 				continue;
 			}
-			
-			assertion = (Assertion)maybeAssertion;
-			
-			for( Object maybeAuthnStatement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements() )
+
+			assertion = (Assertion) maybeAssertion;
+
+			for (Object maybeAuthnStatement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements())
 			{
-				if ( !( maybeAuthnStatement instanceof AuthnStatement ) )
+				if (!(maybeAuthnStatement instanceof AuthnStatement))
 				{
 					continue;
 				}
-				
-				authnStatement = (AuthnStatement)maybeAuthnStatement;
+
+				authnStatement = (AuthnStatement) maybeAuthnStatement;
 				break;
 			}
-			
-			if ( authnStatement != null ) break;
+
+			if (authnStatement != null)
+				break;
 		}
-		
-		if (authnStatement == null) throw new Exception( "No AuthnStatement" );
-		
+
+		if (authnStatement == null)
+			throw new Exception("No AuthnStatement");
+
 		sessionData.esoeSessionID = assertion.getSubject().getNameID().getValue();
 		sessionData.esoeSessionIndex = authnStatement.getSessionIndex();
 	}
 
-	public void badSSO( SessionData sessionData ) throws Exception
+	public void badSSO(SessionData sessionData) throws Exception
 	{
 		this.logger.error("badSSO");
-		
-		HttpServletRequest request = createMock( HttpServletRequest.class );
-		HttpServletResponse response = createMock( HttpServletResponse.class );
-		sessionData.session = new TestHttpSession( sessionData.session, null );
-		
-		expect( request.getSession() ).andReturn( sessionData.session ).anyTimes();
-		expect( request.getCookies() ).andReturn( new Cookie[]{} ).anyTimes();
-		expect( request.getMethod() ).andReturn( "GET" ).anyTimes();
 
-		response.sendRedirect( AUTHN_REDIRECT_URL + "?" + AUTHN_DYNAMIC_URL_PARAM + "=" + new String( Base64.encodeBase64( SSO_URL.getBytes() ) ) );
+		HttpServletRequest request = createMock(HttpServletRequest.class);
+		HttpServletResponse response = createMock(HttpServletResponse.class);
+		sessionData.session = new TestHttpSession(sessionData.session, null);
+
+		expect(request.getSession()).andReturn(sessionData.session).anyTimes();
+		expect(request.getCookies()).andReturn(new Cookie[] {}).anyTimes();
+		expect(request.getMethod()).andReturn("GET").anyTimes();
+
+		response.sendRedirect(AUTHN_REDIRECT_URL + "?" + AUTHN_DYNAMIC_URL_PARAM + "=" + new String(Base64.encodeBase64(SSO_URL.getBytes())));
 		expectLastCall().once();
-		
-		response.addCookie( (Cookie)anyObject() );
+
+		response.addCookie((Cookie) anyObject());
 		expectLastCall().anyTimes();
-		
-		replay( request );
-		replay( response );
-		
-		ssoAAServlet.service( request, response );
-		
-		verify( request );
-		verify( response );
+
+		replay(request);
+		replay(response);
+
+		ssoAAServlet.service(request, response);
+
+		verify(request);
+		verify(response);
 	}
-	
-	public void pdp( SessionData sessionData ) throws Exception
+
+	public void pdp(SessionData sessionData) throws Exception
 	{
-		
+
 		this.logger.error("pdp");
-		
-		for( Map.Entry<String,Boolean> entry : sessionData.user.expectedAuthzBehaviour.entrySet() )
+
+		for (Map.Entry<String, Boolean> entry : sessionData.user.expectedAuthzBehaviour.entrySet())
 		{
 			boolean first = true;
-			
-			String responseDocument;
+
+			byte[] responseDocument;
 			long startTime;
 			do
 			{
-				if (!first) this.logger.error("retrying pdp - timed out - thread " + Thread.currentThread().getId());
+				if (!first)
+					this.logger.error("retrying pdp - timed out - thread " + Thread.currentThread().getId());
 				first = false;
-				
+
 				startTime = System.currentTimeMillis();
-				
+
 				// The resource being accessed by the client
 				Resource resource = new Resource();
 				Attribute resourceAttribute = new Attribute();
@@ -1347,12 +1383,12 @@ public class CompleteESOETest
 				lxacmlAuthzDecisionQuery.setVersion(VersionConstants.saml20);
 				lxacmlAuthzDecisionQuery.setIssuer(issuer);
 				lxacmlAuthzDecisionQuery.setSignature(new Signature());
-				String requestDocument = sessionData.spep.lxacmlAuthzDecisionQueryMarshaller
-						.marshallSigned(lxacmlAuthzDecisionQuery);
-				StringWriter writer;
+				byte[] requestDocument = sessionData.spep.lxacmlAuthzDecisionQueryMarshaller.marshallSigned(lxacmlAuthzDecisionQuery);
+
+				ByteArrayOutputStream writer;
 				OMElement requestElement, resultElement;
-				StringReader reader;
-				reader = new StringReader(requestDocument);
+				ByteArrayInputStream reader;
+				reader = new ByteArrayInputStream(requestDocument);
 				synchronized (this)
 				{
 					XMLStreamReader xmlreader;
@@ -1362,7 +1398,7 @@ public class CompleteESOETest
 					requestElement = builder.getDocumentElement();
 				}
 				resultElement = wsProcessor.policyDecisionPoint(requestElement);
-				writer = new StringWriter();
+				writer = new ByteArrayOutputStream();
 				if (resultElement != null)
 				{
 					synchronized (this)
@@ -1374,51 +1410,52 @@ public class CompleteESOETest
 				{
 					throw new Exception("No web service response to PDP query");
 				}
-				writer.flush();
-				responseDocument = writer.toString();
-			} while (( System.currentTimeMillis() - startTime ) / 1000 > ALLOWED_TIME_SKEW );		
-			
-			Response response = this.lxacmlAuthzDecisionResponseUnmarshaller.unMarshallUnSigned(responseDocument );
+
+				responseDocument = writer.toByteArray();
+				
+			} while ((System.currentTimeMillis() - startTime) / 1000 > ALLOWED_TIME_SKEW);
+
+			Response response = this.lxacmlAuthzDecisionResponseUnmarshaller.unMarshallUnSigned(responseDocument);
 			Assertion assertion = null;
 			LXACMLAuthzDecisionStatement lxacmlAuthzDecisionStatement = null;
-			for( Object maybeAssertion : response.getEncryptedAssertionsAndAssertions() )
+			for (Object maybeAssertion : response.getEncryptedAssertionsAndAssertions())
 			{
-				
-				if( !( maybeAssertion instanceof Assertion ) )
+
+				if (!(maybeAssertion instanceof Assertion))
 				{
 					continue;
 				}
-				
-				assertion = (Assertion)maybeAssertion;
-				
-				for ( StatementAbstractType statement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements() )
+
+				assertion = (Assertion) maybeAssertion;
+
+				for (StatementAbstractType statement : assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements())
 				{
-					
-					if( !(statement instanceof LXACMLAuthzDecisionStatement) )
+
+					if (!(statement instanceof LXACMLAuthzDecisionStatement))
 					{
 						continue;
 					}
-					
-					lxacmlAuthzDecisionStatement = (LXACMLAuthzDecisionStatement)statement;
+
+					lxacmlAuthzDecisionStatement = (LXACMLAuthzDecisionStatement) statement;
 					break;
-					
+
 				}
-				
+
 				if (lxacmlAuthzDecisionStatement != null)
 					break;
-				
+
 			}
-			
+
 			if (lxacmlAuthzDecisionStatement == null)
-				throw new Exception( "No LXACML Authz Decision Statement from PDP query" );
-			
+				throw new Exception("No LXACML Authz Decision Statement from PDP query");
+
 			Boolean value = lxacmlAuthzDecisionStatement.getResponse().getResult().getDecision().equals(DecisionType.PERMIT);
 			if (value.booleanValue() != entry.getValue())
 			{
-				throw new Exception( "Wrong decision for " + sessionData.user.username + " " + entry.getKey() + " expected " + entry.getValue() );
+				throw new Exception("Wrong decision for " + sessionData.user.username + " " + entry.getKey() + " expected " + entry.getValue());
 			}
 		}
-		
+
 	}
 
 }

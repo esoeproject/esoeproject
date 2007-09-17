@@ -135,10 +135,7 @@ public class AttributeProcessorTest
 		
 		this.wsClient = createMock(WSClient.class);
 		
-		this.xmlConfigFilename = "xmlConfig.xml";
-		InputStream xmlConfigInputStream = this.getClass().getResourceAsStream(this.xmlConfigFilename);
-		
-		this.attributeProcessor = new AttributeProcessorImpl(this.metadata, this.wsClient, this.identifierGenerator, this.samlValidator, xmlConfigInputStream, keyStoreResolver);
+		this.attributeProcessor = new AttributeProcessorImpl(this.metadata, this.wsClient, this.identifierGenerator, this.samlValidator, keyStoreResolver);
 		
 		this.schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion};
 		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, this.keyName, this.key);
@@ -167,9 +164,9 @@ public class AttributeProcessorTest
 	{
 		Response response = buildResponse();
 		
-		String responseDocument = this.responseMarshaller.marshallSigned(response);
+		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
 		
-		Capture<String> captureRequest = new Capture<String>();
+		Capture<byte[]> captureRequest = new Capture<byte[]>();
 		
 		expect(this.wsClient.attributeAuthority(capture(captureRequest),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
@@ -210,9 +207,9 @@ public class AttributeProcessorTest
 		Response response = buildResponse();
 		response.setInResponseTo("non-existent-session");
 		
-		String responseDocument = this.responseMarshaller.marshallSigned(response);
+		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
 		
-		expect(this.wsClient.attributeAuthority((String)notNull(),(String)notNull())).andReturn(responseDocument);
+		expect(this.wsClient.attributeAuthority((byte[])notNull(),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
 		expect(this.metadata.getAttributeServiceEndpoint()).andReturn("").anyTimes();
@@ -245,45 +242,9 @@ public class AttributeProcessorTest
 		Response response = buildResponse();
 		response.getEncryptedAssertionsAndAssertions().clear();
 		
-		String responseDocument = this.responseMarshaller.marshallSigned(response);
+		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
 		
-		expect(this.wsClient.attributeAuthority((String)notNull(),(String)notNull())).andReturn(responseDocument);
-		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
-		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
-		expect(this.metadata.getAttributeServiceEndpoint()).andReturn("").anyTimes();
-		
-		startMock();
-
-		GregorianCalendar expiry = new GregorianCalendar();
-		expiry.add(Calendar.DAY_OF_MONTH, 1);
-		Date sessionNotOnOrAfter = expiry.getTime();
-		
-		PrincipalSession principalSession = new PrincipalSessionImpl();
-		principalSession.setEsoeSessionID("sdofajoijroqiwjeorijqweorijqwoeirjqwerioqwjeroiqwjer");
-		principalSession.setSessionNotOnOrAfter(sessionNotOnOrAfter);
-		
-		this.attributeProcessor.doAttributeProcessing(principalSession);
-		
-		endMock();
-		
-		assertTrue(principalSession.getAttributes().get("mail").contains(this.emailAddress));
-		assertTrue(principalSession.getAttributes().get("uid").contains(this.uid));
-	}
-
-	/**
-	 * Test method for {@link com.qut.middleware.spep.attribute.AttributeProcessor#doAttributeProcessing(com.qut.middleware.spep.sessions.PrincipalSession)}.
-	 * @throws Exception 
-	 */
-	@Test(expected = AttributeProcessingException.class)
-	public void testBeginAttributeProcessing1d() throws Exception
-	{
-		Response response = buildResponse();
-		
-		String responseDocument = this.responseMarshaller.marshallSigned(response);
-		
-		responseDocument = responseDocument.replace(this.uid, "admin");
-		
-		expect(this.wsClient.attributeAuthority((String)notNull(),(String)notNull())).andReturn(responseDocument);
+		expect(this.wsClient.attributeAuthority((byte[])notNull(),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
 		expect(this.metadata.getAttributeServiceEndpoint()).andReturn("").anyTimes();

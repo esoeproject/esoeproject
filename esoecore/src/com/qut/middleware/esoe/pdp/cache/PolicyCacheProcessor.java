@@ -36,11 +36,11 @@ public interface PolicyCacheProcessor
 	 * cache. Calling of this method with valid parameters MUST initiate a procedure whereby the associated policy is
 	 * interrogated, which results in the sending of a clearAuthzCache directive to the requesting endpoint.
 	 * 
-	 * @param descriptorID
-	 *            The descriptor identifier of the policy bound to the requesting SPEP.
+	 * @param entityID
+	 *            The entityID of the policy bound to the requesting SPEP.
 	 * @param authzCacheIndex
 	 *            The index identifier of the SPEP to respond to.
 	 * @return result indicating success or failure of the SPEP notification.
 	 */
-	public result spepStartingNotification(String descriptorID, int authzCacheIndex);
+	public result spepStartingNotification(String entityID, int authzCacheIndex);
 }

@@ -363,7 +363,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 * @return A valid w3c.org Document object
 	 * @throws UnmarshallerException
 	 */
-	private Document generateDocument(String document) throws UnmarshallerException
+	private Document generateDocument(byte[] document) throws UnmarshallerException
 	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.56")); //$NON-NLS-1$ 
 
@@ -373,7 +373,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 		try
 		{
 			/* Create JAXP DocumentBuilder to retrieve Document */
-			doc = new ByteArrayInputStream(document.getBytes("UTF-16")); //$NON-NLS-1$ 
+			doc = new ByteArrayInputStream(document); //$NON-NLS-1$ 
 			result = validate(doc);
 
 			// return (Document) result.getNode();
@@ -405,7 +405,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 * @see com.qut.middleware.saml2.handler.Unmarshaller#unMarshallMetadata(java.lang.String, java.lang.String,
 	 *      java.security.PublicKey, java.lang.String, java.util.Map)
 	 */
-	public T unMarshallMetadata(PublicKey pk, String document, Map<String, KeyData> keyList)
+	public T unMarshallMetadata(PublicKey pk, byte[] document, Map<String, KeyData> keyList)
 			throws SignatureValueException, ReferenceValueException, UnmarshallerException
 	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.61")); //$NON-NLS-1$ 
@@ -416,7 +416,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.6")); //$NON-NLS-1$ 
 		}
 
-		if ((document == null) || (document.length() <= 0))
+		if ((document == null) || (document.length <= 0))
 		{
 			this.logger.fatal(Messages.getString("UnmarshallerImpl.7")); //$NON-NLS-1$ 
 			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.7")); //$NON-NLS-1$ 
@@ -601,7 +601,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 * 
 	 * @see com.qut.middleware.saml2.handler.UnMarshaller#unMarshall(java.lang.String, java.net.URL)
 	 */
-	public T unMarshallSigned(PublicKey pk, String document) throws SignatureValueException, ReferenceValueException,
+	public T unMarshallSigned(PublicKey pk, byte[] document) throws SignatureValueException, ReferenceValueException,
 			UnmarshallerException
 	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.80")); //$NON-NLS-1$
@@ -612,7 +612,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.6")); //$NON-NLS-1$
 		}
 
-		if ((document == null) || (document.length() <= 0))
+		if ((document == null) || (document.length <= 0))
 		{
 			this.logger.fatal(Messages.getString("UnmarshallerImpl.7")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.7")); //$NON-NLS-1$
@@ -657,12 +657,12 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 * 
 	 * @see com.qut.middleware.saml2.handler.UnMarshaller#unMarshall(java.lang.String, java.net.URL)
 	 */
-	public T unMarshallSigned(String document) throws SignatureValueException, ReferenceValueException,
+	public T unMarshallSigned(byte[] document) throws SignatureValueException, ReferenceValueException,
 			UnmarshallerException
 	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.86")); //$NON-NLS-1$ 
 
-		if ((document == null) || (document.length() <= 0))
+		if ((document == null) || (document.length <= 0))
 		{
 			this.logger.fatal(Messages.getString("UnmarshallerImpl.10")); //$NON-NLS-1$ 
 			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.10")); //$NON-NLS-1$
@@ -763,11 +763,11 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 * @see com.qut.middleware.saml2.handler.Unmarshaller#unMarshallUnSigned(java.lang.String, java.lang.String,
 	 *      java.lang.String)
 	 */
-	public T unMarshallUnSigned(String document) throws UnmarshallerException
+	public T unMarshallUnSigned(byte[] document) throws UnmarshallerException
 	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.105")); //$NON-NLS-1$
 
-		if ((document == null) || (document.length() <= 0))
+		if ((document == null) || (document.length <= 0))
 		{
 			this.logger.fatal(Messages.getString("UnmarshallerImpl.13")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.13")); //$NON-NLS-1$

@@ -148,16 +148,16 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	public void clearPrincipalSPEPCaches(Principal principal)
 	{
 		List<String> activeDescriptors = principal.getActiveDescriptors();
-		String authzClearCacheRequest = null;
+		byte[] authzClearCacheRequest = null;
 		boolean updateResult = false;
 
 		if (activeDescriptors != null && activeDescriptors.size() > 0)
 		{
-			for (String descriptorID : activeDescriptors)
+			for (String entityID : activeDescriptors)
 			{
 				try
 				{
-					Map<Integer,String> endpoints = this.metadata.resolveCacheClearService(descriptorID);
+					Map<Integer,String> endpoints = this.metadata.resolveCacheClearService(entityID);
 
 					if (endpoints != null)
 					{
@@ -168,7 +168,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 
 							if (authzClearCacheRequest == null)
 								this.logger.warn(Messages.getString("SPEPProcessorImpl.9") //$NON-NLS-1$
-										+ principal + Messages.getString("SPEPProcessorImpl.10") + descriptorID); //$NON-NLS-1$
+										+ principal + Messages.getString("SPEPProcessorImpl.10") + entityID); //$NON-NLS-1$
 							else
 								updateResult = this.sendCacheUpdateRequest(authzClearCacheRequest, endpoint);
 
@@ -186,7 +186,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 				}
 				catch (MarshallerException e)
 				{
-					this.logger.error(Messages.getString("SPEPProcessorImpl.12") + descriptorID); //$NON-NLS-1$
+					this.logger.error(Messages.getString("SPEPProcessorImpl.12") + entityID); //$NON-NLS-1$
 					this.logger.debug(e.getLocalizedMessage(), e);
 				}
 			}
@@ -199,10 +199,10 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * 
 	 * 
 	 */
-	private String generateClearCacheRequest(String samlAuthnIdentifier, String endpoint, String reason)
+	private byte[] generateClearCacheRequest(String samlAuthnIdentifier, String endpoint, String reason)
 			throws MarshallerException
 	{
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		Subject subject = new Subject();
 		NameIDType subjectID = new NameIDType();
@@ -215,7 +215,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 		request.setDestination(endpoint);
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getESOEIdentifier());
+		issuer.setValue(this.metadata.getEsoeEntityID());
 		request.setIssuer(issuer);
 
 		subjectID.setValue(samlAuthnIdentifier);
@@ -240,9 +240,9 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * 
 	 * @return The result of the operation. Either Success or Failure.
 	 */
-	private boolean sendCacheUpdateRequest(String authzClearCacheRequest, String endPoint)
+	private boolean sendCacheUpdateRequest(byte[] authzClearCacheRequest, String endPoint)
 	{
-		String responseDocument;
+		byte[] responseDocument;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		try
@@ -319,7 +319,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * @param request The request that failed to deliver. @param endPoint The end point the the request failed to
 	 * deliver to.
 	 */
-	private synchronized void recordFailure(String request, String endPoint)
+	private synchronized void recordFailure(byte[] request, String endPoint)
 	{
 		// create an UpdateFailure object
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();

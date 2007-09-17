@@ -30,8 +30,8 @@ import org.ietf.ldap.LDAPException;
 import org.ietf.ldap.LDAPSearchResults;
 
 import com.novell.ldap.LDAPJSSESecureSocketFactory;
+import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.pipeline.UserPassAuthenticator;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 
 public class LdapBasicAuthenticator implements UserPassAuthenticator
 {
@@ -55,6 +55,7 @@ public class LdapBasicAuthenticator implements UserPassAuthenticator
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(LdapBasicAuthenticator.class.getName());
+	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
 	 * Constructor for LdapBasicAuthenticator where admin binds are not required
@@ -135,7 +136,7 @@ public class LdapBasicAuthenticator implements UserPassAuthenticator
 
 			try
 			{
-				this.logger.log(InsaneLogLevel.INSANE, Messages.getString("LdapBasicAuthenticator.27") + DN); //$NON-NLS-1$
+				this.logger.trace(Messages.getString("LdapBasicAuthenticator.27") + DN); //$NON-NLS-1$
 				
 				conn.bind(this.LDAP_VERSION, DN, password.getBytes(this.LDAP_UTF));
 			}
@@ -147,11 +148,11 @@ public class LdapBasicAuthenticator implements UserPassAuthenticator
 
 			if (conn.isBound())
 			{
-				this.logger.debug(Messages.getString("LdapBasicAuthenticator.8") + DN); //$NON-NLS-1$
+				this.authnLogger.info(Messages.getString("LdapBasicAuthenticator.8") + DN); //$NON-NLS-1$
 				return result.Successful;
 			}
 
-			this.logger.debug(Messages.getString("LdapBasicAuthenticator.9") + DN); //$NON-NLS-1$
+			this.authnLogger.error(Messages.getString("LdapBasicAuthenticator.9") + DN); //$NON-NLS-1$
 			return result.Failure;
 		}
 		catch (LDAPException e)
@@ -179,7 +180,7 @@ public class LdapBasicAuthenticator implements UserPassAuthenticator
 		LDAPConnection conn;
 		LDAPJSSESecureSocketFactory ssf;
 
-		this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("LdapBasicAuthenticator.28"), userIdentifier) ); //$NON-NLS-1$
+		this.logger.trace(MessageFormat.format(Messages.getString("LdapBasicAuthenticator.28"), userIdentifier) ); //$NON-NLS-1$
 				
 		if (!this.recursive)
 		{
@@ -207,7 +208,7 @@ public class LdapBasicAuthenticator implements UserPassAuthenticator
 			conn.connect(this.ldapServer, this.ldapServerPort);
 			try
 			{
-				this.logger.log(InsaneLogLevel.INSANE, Messages.getString("LdapBasicAuthenticator.29") + this.adminUser); //$NON-NLS-1$
+				this.logger.trace(Messages.getString("LdapBasicAuthenticator.29") + this.adminUser); //$NON-NLS-1$
 				
 				conn.bind(this.LDAP_VERSION, this.adminUser, this.adminPassword.getBytes(this.LDAP_UTF));
 			}

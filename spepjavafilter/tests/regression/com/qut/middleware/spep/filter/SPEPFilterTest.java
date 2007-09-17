@@ -196,7 +196,7 @@ public class SPEPFilterTest
 		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).once();
-		expect( spep.getLoginRedirect() ).andReturn( this.loginRedirect ).atLeastOnce();
+		expect( spep.getServiceHost() ).andReturn( this.loginRedirect ).atLeastOnce();
 		expect( spep.getLogoutClearCookies() ).andReturn( new Vector<Cookie>() ).anyTimes();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
@@ -282,7 +282,7 @@ public class SPEPFilterTest
 		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).once();
-		expect( spep.getLoginRedirect() ).andReturn( this.loginRedirect ).atLeastOnce();
+		expect( spep.getServiceHost() ).andReturn( this.loginRedirect ).atLeastOnce();
 		expect( spep.getLogoutClearCookies() ).andReturn( clearCookies ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
 		
@@ -390,7 +390,7 @@ public class SPEPFilterTest
 		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).once();
-		expect( spep.getLoginRedirect() ).andReturn( this.loginRedirect ).atLeastOnce();
+		expect( spep.getServiceHost() ).andReturn( this.loginRedirect ).atLeastOnce();
 		expect( spep.getLogoutClearCookies() ).andReturn( clearCookies ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
 		

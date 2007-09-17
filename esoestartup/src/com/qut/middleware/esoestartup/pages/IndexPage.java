@@ -18,8 +18,16 @@
 package com.qut.middleware.esoestartup.pages;
 
 import com.qut.middleware.esoemanager.pages.BorderPage;
+import com.qut.middleware.esoestartup.bean.ESOEBean;
 
 public class IndexPage extends BorderPage
 {
+
+	@Override
+	public void onInit()
+	{
+		ESOEBean esoeBean = new ESOEBean();
+		this.storeSession(ESOEBean.class.getName(), esoeBean);
+	}
 
 }

@@ -24,8 +24,8 @@ public class AuthorizationProcessorDataTest {
 	
 	private String descriptorID = "546348723834786438"; //$NON-NLS-1$
 	private String subjectID = "746187672gfefga68fgtaifhg7tfe7087geusiahdg78etf6e7wg9fe9d6sartsdf7e9"; //$NON-NLS-1$
-	private String request = "<question><mytest value=\"blah\" /></question>";
-	private String response = "<answer><mytest value=\"blah\" /></answer>";
+	private byte[] request = new String("<question><mytest value=\"blah\" /></question>").getBytes();
+	private byte[] response = new String("<answer><mytest value=\"blah\" /></answer>").getBytes();
 	
 	/**
 	 * @throws java.lang.Exception
@@ -38,14 +38,14 @@ public class AuthorizationProcessorDataTest {
 
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#setDescriptorID(java.lang.String)}.
+	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#setIssuerID(java.lang.String)}.
 	 */
 	@Test
 	public void testSetDescriptorID()
 	{		
-		this.testData.setDescriptorID(this.descriptorID);
+		this.testData.setIssuerID(this.descriptorID);
 		
-		assertTrue(this.testData.getDescriptorID().equals(this.descriptorID)); 
+		assertTrue(this.testData.getIssuerID().equals(this.descriptorID)); 
 	}
 
 	/**
@@ -81,25 +81,25 @@ public class AuthorizationProcessorDataTest {
 	public void testSetSubjectID()
 	{
 		// set value should not match value 
-		this.testData.setDescriptorID(this.subjectID + "783742343729"); //$NON-NLS-1$
+		this.testData.setIssuerID(this.subjectID + "783742343729"); //$NON-NLS-1$
 		
-		assertNotSame("Set subject ID comparison.", this.subjectID, this.testData.getDescriptorID());  //$NON-NLS-1$
+		assertNotSame("Set subject ID comparison.", this.subjectID, this.testData.getIssuerID());  //$NON-NLS-1$
 		
-		this.testData.setDescriptorID(this.subjectID);
+		this.testData.setIssuerID(this.subjectID);
 		
-		assertSame("Set subject ID comparison.", this.subjectID, this.testData.getDescriptorID()); //$NON-NLS-1$
+		assertSame("Set subject ID comparison.", this.subjectID, this.testData.getIssuerID()); //$NON-NLS-1$
 	}
 
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#getDescriptorID()}.
+	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#getIssuerID()}.
 	 */
 	@Test
 	public void testGetDescriptorID() 
 	{		
-		this.testData.setDescriptorID(this.descriptorID);
+		this.testData.setIssuerID(this.descriptorID);
 		
-		assertSame("Set Descriptor ID comparison.", this.descriptorID, this.testData.getDescriptorID()); //$NON-NLS-1$
+		assertSame("Set Descriptor ID comparison.", this.descriptorID, this.testData.getIssuerID()); //$NON-NLS-1$
 	}
 
 	
@@ -135,13 +135,13 @@ public class AuthorizationProcessorDataTest {
 	public void testGetSubjectID()
 	{		
 		// set value should not match value 
-		this.testData.setDescriptorID(this.subjectID + "7837429"); //$NON-NLS-1$
+		this.testData.setIssuerID(this.subjectID + "7837429"); //$NON-NLS-1$
 		
-		assertNotSame("Subject ID comparison.", this.subjectID, this.testData.getDescriptorID());  //$NON-NLS-1$
+		assertNotSame("Subject ID comparison.", this.subjectID, this.testData.getIssuerID());  //$NON-NLS-1$
 		
-		this.testData.setDescriptorID(this.subjectID);
+		this.testData.setIssuerID(this.subjectID);
 		
-		assertSame("Subject ID comparison.", this.subjectID, this.testData.getDescriptorID()); //$NON-NLS-1$
+		assertSame("Subject ID comparison.", this.subjectID, this.testData.getIssuerID()); //$NON-NLS-1$
 	}
 
 }

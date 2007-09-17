@@ -29,21 +29,27 @@
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="lib/dev/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="lib/dev" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
+		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 
 	<target name="dev-publish">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
 		<ivy:publish resolver="local-resolver" forcedeliver="true">
-			<artifacts pattern="${output.dev}/[artifact].[ext]" />
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
 		</ivy:publish>
 	</target>
 
 	<!-- 
 		ESOE Development environment compilation and war creation
 	 -->
+	<target name="dev-release" depends="dev-jar" description="Creates release tar ball">
+		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" compression="gzip" >
+			<tarfileset file="${output.dev}/${output.dev.jar}.jar"/>
+		</tar>
+	</target>
+		
 	<target name="dev-jar" depends="dev-build" description="Assembles ESOE Active Directory authenticator jar">
 		<jar destfile="${output.dev}/${output.dev.jar}.jar">
 			<fileset dir="${src}">
@@ -58,10 +64,13 @@
 	</target>
 
 	<target name="dev-build" depends="setup" description="Compiles ESOE code base">
-		<javac source="1.6" target="1.6" destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.dev}">
+					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</javac>
@@ -101,7 +110,7 @@
 	</target>
 
 	<target name="junit-regression-build" depends="dev-jar" description="Compiles regression tests code base">
-		<javac source="1.6" target="1.6" destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.test.regression.build}" srcdir="${src.tests.regression}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts}">
 					<include name="**/*.jar" />
@@ -154,7 +163,7 @@
 	</target>
 
 	<target name="junit-functional-build" depends="dev-jar" description="Compiles functional test code base">
-		<javac source="1.6" target="1.6" destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
+		<javac destdir="${output.test.functional.build}" srcdir="${src.tests.functional}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 
 				<fileset dir="${artifacts}">

@@ -28,15 +28,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.sql.Date;
+import java.math.BigDecimal;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -96,7 +94,6 @@ public class PolicyCacheProcessorTest
 	private String invalidSpep = "_123456-invalidspep";
 	private KeyStoreResolver keyStoreResolver;
 	private Marshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseMarshaller;
-	private String clearAuthzCachePackages;
 	private IdentifierGeneratorImpl idGenerator;
 	private IdentifierCache identifierCache;
 	private SAMLValidator validator;
@@ -127,34 +124,34 @@ public class PolicyCacheProcessorTest
 		String[] clearAuthzCacheSchemas = new String[]{ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol};
 		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(ClearAuthzCacheRequest.class.getPackage().getName() + ":" + Request.class.getPackage().getName(), clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
 		
-		Map<String, PolicyCacheData> testMap = new HashMap<String, PolicyCacheData>();
+		List<PolicyCacheData> testList = new Vector<PolicyCacheData>();
 		PolicyCacheData testPolicy = new PolicyCacheData();
 		testPolicy.setLxacmlPolicy(this.getTestPolicy());
-		testPolicy.setDescriptorID(this.validSpep);
-		testMap.put(validSpep, testPolicy);
+		testPolicy.setEntityID(this.validSpep);
+		testList.add(testPolicy);
 	
 		PolicyCacheQueryData policyCacheQuery = new PolicyCacheQueryData();
-		policyCacheQuery.setDescriptorID(this.validSpep);
-		policyCacheQuery.setDateLastUpdated(new Date(System.currentTimeMillis()));
+		policyCacheQuery.setEntityID(this.validSpep);
+		policyCacheQuery.setSequenceId(new BigDecimal(System.currentTimeMillis()) );
 		
 		this.validator = new SAMLValidatorImpl(new IdentifierCacheImpl(), skew);
 		this.identifierCache = new IdentifierCacheImpl();
 		this.idGenerator = new IdentifierGeneratorImpl(this.identifierCache);
 		
 		webServiceClient = createMock(WSClient.class);
-		expect(this.webServiceClient.authzCacheClear( (String)anyObject(),(String)notNull() ) ).andReturn(this.getTestAuthzResponse()).anyTimes();
+		expect(this.webServiceClient.authzCacheClear( (byte[])anyObject(),(String)notNull() ) ).andReturn(this.getTestAuthzResponse()).anyTimes();
 		replay(this.webServiceClient);
 		
 		policyCacheDao = createMock(PolicyCacheDao.class);	
-		expect(this.policyCacheDao.queryDateLastUpdated()).andReturn(new Date(System.currentTimeMillis()  + 10000)).anyTimes();
-		expect(this.policyCacheDao.queryPolicyCache(policyCacheQuery)).andReturn(testMap).anyTimes();
-		expect(this.policyCacheDao.queryPolicyCache((PolicyCacheQueryData)notNull())).andReturn(testMap).anyTimes();
+		expect(this.policyCacheDao.queryLastSequenceId()).andReturn(System.currentTimeMillis()  + 10000).anyTimes();
+		expect(this.policyCacheDao.queryPolicyCache(policyCacheQuery)).andReturn(testList).anyTimes();
+		expect(this.policyCacheDao.queryPolicyCache((PolicyCacheQueryData)notNull())).andReturn(testList).anyTimes();
 		replay(this.policyCacheDao);
 			
 		// setup invalid SPEP to resolve
 		expect(this.metadata.resolveCacheClearService(this.invalidSpep)).andThrow(new InvalidMetadataEndpointException()).anyTimes();
 		expect(this.metadata.resolveCacheClearService(this.validSpep)).andReturn(this.endpoints).atLeastOnce();
-		expect(this.metadata.getESOEIdentifier()).andReturn(esoeKeyAlias).anyTimes();
+		expect(this.metadata.getEsoeEntityID()).andReturn(esoeKeyAlias).anyTimes();
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
 		replay(this.metadata);
 				
@@ -243,40 +240,34 @@ public class PolicyCacheProcessorTest
 	}
 
 	
-	private String getTestPolicy()
+	private byte[] getTestPolicy()
 	{
 		String path = System.getProperty("user.dir") + File.separator +"tests" + File.separator+ "testdata"+  File.separator  ;
-		
-			// map of policy sets and associated test SPEP ID's 
-		String file = new String(path + "PolicySetComplexity1.xml");
-		StringBuffer xmlBuff = new StringBuffer();
 			
 		try
 		{
+			// Get the size of the file
+			File file = new File(path + "Policy1.xml");
+			long length = file.length();
+			byte[] byteArray = new byte[(int) length];
+
 			InputStream fileStream = new FileInputStream(file);
-			Reader reader = new InputStreamReader(fileStream, "UTF-16");
-			BufferedReader in = new BufferedReader(reader);
-			
-			String str;
-			while ((str = in.readLine()) != null)
-			{
-			   	xmlBuff.append(str);
-			}
-				    
-			in.close();
+			fileStream.read(byteArray);
+			fileStream.close();
+
+			return byteArray;
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
+			return null;
 		}
-		
-		return xmlBuff.toString();
 	}
 	
 	
-	private String getTestAuthzResponse()
+	private byte[] getTestAuthzResponse()
 	{
-		String responseDocument = null;
+		byte[] responseDocument = null;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		NameIDType issuer = new NameIDType();

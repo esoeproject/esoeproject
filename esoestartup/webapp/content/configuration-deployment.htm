@@ -3,21 +3,21 @@
 
 <p>All information below assumes you have undertaken all prerequisite stages at <a href="http://esoeproject.org/confluence/display/eu/ESOE+Installation+Guide">http://esoeproject.org/confluence/display/eu/ESOE+Installation+Guide</a></p>
 
-<p>This tool has created 3(or more) WAR files for you, these should now be deployed in Tomcat in the following order: 
+<p>This tool has created configuration and keystores for you and deployed them to your nominated content directories identifed by the java properties <strong>esoe.data manager.data and spep.data</strong>.
 <br/><br/>
-Copy esoemanager.war to $TOMCAT/webapps, wait for approximately a minute as heavy XML loading will occur underneath. You may tail your logs defined in the log4j.xml file during this process to see whats going on
+The ESOE Startup binary you downloaded contains several other WAR files apart from esoestartup.war these should now be deployed in Tomcat in the following order: 
 <br/><br/>
-Copy ROOT.war to $TOMCAT/webapps, this will invoke even heavier processing load, again tail the logging for full details
+Copy esoemanager.war to $TOMCAT/webapps, wait for approximately a minute. N.B If your running ESOE Manager across multiple nodes you'll need to deploy this war on each node along with a full copy of the content stored at <strong>manager.data</strong>
 <br/><br/>
-Finally copy spep.war.XYZ (where XYZ is a node id, copy each created war to each machine in use) to $Tomcat/webapps/spep.war (Note the removal of the XYZ numbering)
+Copy ROOT.war to $TOMCAT/webapps, this will invoke heavy processing load, wait for approximately two minutes.
 <br/><br/>
-After another minute or so depending on machine performance you should be able to navigate to http(s)://{HOSTNAME}[:PORT]/esoemanager/manager/, this will invoke the ESOE's SAML2 SSO engine and you will be redirected to authenticate 
+Copy web.war to $TOMCAT/webapps wait for approximately two minutes.
+<br/><br/>
+Copy spep.war to $TOMCAT/webapps, wait for approximately 1 minute. N.B If your running ESOE Manager across multiple nodes you'll need to deploy this war on each node along with a full copy of the content stored at <strong>spep.data</strong>
+<br/><br/>
+After another minute or so depending on machine performance you should be able to navigate to http(s)://{HOSTNAME}[:PORT]/esoemanager/manager/, this will invoke the ESOE's SAML 2 SSO engine and you will be redirected to authenticate 
 using the default forms based authentication against the LDAP server you provided. You will then be directed back to the manager application and all is now ready for more services to be setup.
 <br/><br/>
-You should probably look at the ESOE Managers LXACML policy at this stage and start locking it down, more details are available at <a href="http://esoeproject.org/confluence/display/eu/ESOE+Administrators+Guide">http://esoeproject.org/confluence/display/eu/ESOE+Administrators+Guide</a>
-or stop by the users mailing list.
-<br><br>
-This is an alpha release, so unfortunately there may be some pain while bugs and cross platform issues get ironed out, we'll listen to all your feedback and do our best to accomodate, thanks for trialing!
+You should probably look at the ESOE Managers LXACML policy at this stage and start locking it down, more details are available at <a href="http://esoeproject.org/confluence/display/eu/ESOE+Administrators+Guide">http://esoeproject.org/confluence/display/eu/ESOE+Administrators+Guide</a>.
 <br/><br/>
-regards,<br/>
-Bradley, Shaun, Andre and the extended ESOE development team.
+That concludes the installation process, we'd love to hear your feedback on this process in our online community.

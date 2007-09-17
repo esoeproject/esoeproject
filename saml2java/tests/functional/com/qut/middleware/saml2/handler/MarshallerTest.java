@@ -307,10 +307,9 @@ public class MarshallerTest
 			authnRequest.setVersion("2.0");
 			authnRequest.setIssueInstant(xmlCalendar);
 
-			String doc = marshaller.marshallSigned(authnRequest);
+			byte[] doc = marshaller.marshallSigned(authnRequest);
 
 			assertNotNull("Supplied XML document should not be null", doc);
-			assertTrue("Supplied XML document MUST have a signature", doc.contains("ds:SignatureValue"));
 	}
 
 	/**
@@ -365,18 +364,9 @@ public class MarshallerTest
 			authnRequest.setVersion("2.0");
 			authnRequest.setIssueInstant(xmlCalendar);
 
-			String doc = marshaller.marshallSigned(authnRequest);
+			byte[] doc = marshaller.marshallSigned(authnRequest);
 
 			assertNotNull("Supplied XML document should not be null", doc);
-			assertTrue("Supplied XML document MUST have a signature", doc.contains("ds:SignatureValue"));
-
-			/* Write the results for human inspection */
-			String filename = this.path + "AuthnRequestSigned.xml";
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-16"));
-
-			out.write(doc);
-			out.flush();
-			out.close();
 		}
 		catch (Exception e)
 		{
@@ -400,9 +390,9 @@ public class MarshallerTest
 		try
 		{
 			/* Supplied private/public key will be in RSA format */
-			marshaller = new MarshallerImpl<EntityDescriptor>(CacheClearService.class.getPackage().getName(), schemas,
+			marshaller = new MarshallerImpl<EntityDescriptor>(EntityDescriptor.class.getPackage().getName(), schemas,
 					"myrsakey", privKey);
-			marshaller2 = new MarshallerImpl<CacheClearService>(EntityDescriptor.class.getPackage().getName(), schemas,
+			marshaller2 = new MarshallerImpl<CacheClearService>(CacheClearService.class.getPackage().getName(), schemas,
 					"myrsakey", privKey);
 
 			/*
@@ -480,18 +470,9 @@ public class MarshallerTest
 
 			entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(spSSODescriptor);
 
-			String doc = marshaller.marshallSigned(entityDescriptor);
+			byte[] doc = marshaller.marshallSigned(entityDescriptor);
 
-			// assertNotNull("Supplied XML document should not be null", doc);
-			// assertTrue("Supplied XML document MUST have a signature", doc.contains("ds:SignatureValue"));
-
-			/* Write the results for human inspection */
-			String filename = this.path + "SAMLMetadataSigned.xml";
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-16"));
-
-			out.write(doc);
-			out.flush();
-			out.close();
+			assertNotNull("Supplied XML document should not be null", doc);
 		}
 		catch (Exception e)
 		{
@@ -590,7 +571,7 @@ public class MarshallerTest
 
 		entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(spSSODescriptor);
 
-		String doc = marshaller.marshallSigned(entityDescriptor);
+		byte[] doc = marshaller.marshallSigned(entityDescriptor);
 	}
 
 	/**
@@ -626,25 +607,16 @@ public class MarshallerTest
 
 			InputStream fileStream = new FileInputStream(file);
 			fileStream.read(byteArray);
-			String docO = new String(byteArray, "UTF-16");
 			fileStream.close();
 
 			Map<String, KeyData> keys = new HashMap<String, KeyData>();
 
-			EntityDescriptor entity = unmarshaller.unMarshallUnSigned(docO); //$NON-NLS-1$	
+			EntityDescriptor entity = unmarshaller.unMarshallUnSigned(byteArray); //$NON-NLS-1$	
 			entity.setSignature(new Signature());
 			SPSSODescriptor sp = (SPSSODescriptor) entity.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().get(0);
 			sp.setSignature(new Signature());
 
-			String doc = marshaller.marshallSigned(entity);
-
-			/* Write the results for human inspection */
-			String fileout = this.path + "SAMLMetadataSigned-jaxb.xml";
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileout), "UTF-16"));
-
-			out.write(doc);
-			out.flush();
-			out.close();
+			byte[] doc = marshaller.marshallSigned(entity);
 		}
 		catch (Exception e)
 		{
@@ -727,8 +699,8 @@ public class MarshallerTest
 			RSAPublicKey rsaPK = (RSAPublicKey) pk;
 
 			/* Supplied private/public key will be in RSA format */
-			marshaller = new MarshallerImpl<EntityDescriptor>(CacheClearService.class.getPackage().getName(), schemas);
-			marshaller2 = new MarshallerImpl<CacheClearService>(EntityDescriptor.class.getPackage().getName(), schemas);
+			marshaller = new MarshallerImpl<EntityDescriptor>(EntityDescriptor.class.getPackage().getName(), schemas);
+			marshaller2 = new MarshallerImpl<CacheClearService>(CacheClearService.class.getPackage().getName(), schemas);
 
 			EntityDescriptor entityDescriptor = new EntityDescriptor();
 			SPSSODescriptor spSSODescriptor = new SPSSODescriptor();
@@ -798,18 +770,9 @@ public class MarshallerTest
 
 			entityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(spSSODescriptor);
 
-			String doc = marshaller.marshallUnSigned(entityDescriptor);
+			byte[] doc = marshaller.marshallUnSigned(entityDescriptor);
 
 			assertNotNull("Generated XML document should not be null", doc);
-			assertTrue("Generated XML document MUST NOT have a signature", !doc.contains("ds:SignatureValue"));
-
-			/* Write the results for human inspection */
-			String filename = this.path + "SAMLMetadataUnSigned.xml";
-			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-16"));
-
-			out.write(doc);
-			out.flush();
-			out.close();
 		}
 		catch (Exception e)
 		{

@@ -39,13 +39,22 @@ public interface SessionGroupCache
 	public decision makeCachedAuthzDecision(PrincipalSession principalSession, String resource);
 	
 	/**
+	 * Makes an authorization decision from cached data when an action is specified.
+	 * @param principalSession The authenticated client session
+	 * @param resource The resource being requested
+	 * @param action The action being undertaken by the user
+	 * @return The authz decision, or decision.cache if not enough data cached
+	 */
+	public decision makeCachedAuthzDecision(PrincipalSession principalSession, String resource, String action);
+	
+	/**
 	 * Processes a list of resources to form cached data.
 	 * @param principalSession The client session
 	 * @param groupTarget The group target
 	 * @param authzTargets The resources
 	 * @param decision The decision to cache for these resources
 	 */
-	public void updateCache(PrincipalSession principalSession, String groupTarget, List<String> authzTargets, decision decision);
+	public void updateCache(PrincipalSession principalSession, String groupTarget, List<String> authzTargets, String action, decision decision);
 	
 	/**
 	 * Clears the Authz cache

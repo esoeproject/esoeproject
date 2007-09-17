@@ -385,14 +385,9 @@ public class MetadataMonitorTest {
 	private  void marshalMetadata() throws Exception
 	{
 		String[] schemas = new String[]{ConfigurationConstants.samlMetadata};
-		
-		OutputStreamWriter out = new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(tempFile, false)), "UTF-16");
 
 		this.marshaller = new MarshallerImpl<EntitiesDescriptor>(EntitiesDescriptor.class.getPackage().getName(), schemas,"esoeprimary",privateKey);
-		String document = this.marshaller.marshallSigned(entitiesDescriptorRoot);
-		
-		out.write(document);
-		out.close();
+		byte[] document = this.marshaller.marshallSigned(entitiesDescriptorRoot);
 	}
 		
 }

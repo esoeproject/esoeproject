@@ -37,7 +37,7 @@ public class RetrieveKeystorePage extends Page
 	RetrieveKeyStoreLogic logic;
 
 	/* serviceID is supplied by name value attributes in the request */
-	public String serviceID;
+	public String did;
 	
 	public KeyStoreBean keyStoreBean;
 
@@ -64,7 +64,7 @@ public class RetrieveKeystorePage extends Page
 
 	public void onGet()
 	{
-		if (serviceID == null)
+		if (did == null)
 		{
 			// TODO: Redirect client to error page
 		}
@@ -72,7 +72,7 @@ public class RetrieveKeystorePage extends Page
 		OutputStream out = null;
 		try
 		{
-			this.keyStoreBean = this.logic.execute(serviceID);
+			this.keyStoreBean = this.logic.execute(new Integer(did));
 			this.getContext().getResponse().setContentType("application/octet-stream");
 			this.getContext().getResponse().addHeader("Content-disposition", "attachment; filename=spepKeystore.ks"); //$NON-NLS-1$ //$NON-NLS-2$
 			

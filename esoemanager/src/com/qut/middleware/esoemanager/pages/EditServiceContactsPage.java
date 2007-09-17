@@ -18,7 +18,6 @@
 package com.qut.middleware.esoemanager.pages;
 
 import java.util.List;
-import java.util.Vector;
 
 import net.sf.click.control.Field;
 import net.sf.click.control.Submit;
@@ -26,6 +25,8 @@ import net.sf.click.control.Submit;
 import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoemanager.bean.ContactPersonBean;
+import com.qut.middleware.esoemanager.bean.ServiceBean;
+import com.qut.middleware.esoemanager.bean.impl.ServiceBeanImpl;
 import com.qut.middleware.esoemanager.exception.EditServiceContactException;
 import com.qut.middleware.esoemanager.logic.EditServiceContactsLogic;
 import com.qut.middleware.esoemanager.pages.forms.impl.ContactForm;
@@ -34,10 +35,12 @@ public class EditServiceContactsPage extends ContactPersonPage
 {
 	private EditServiceContactsLogic logic;
 
-	public String entityID;
+	public String eid;
 	public String action;
 	public String contactID;
 	public String confirm;
+	
+	public ServiceBean serviceBean;
 
 	public String actionLabel;
 
@@ -52,49 +55,42 @@ public class EditServiceContactsPage extends ContactPersonPage
 	@Override
 	public void onInit()
 	{
+		serviceBean = (ServiceBean) this.retrieveSession(ServiceBean.class.getName());
+		if(serviceBean == null)
+		{
+			serviceBean = new ServiceBeanImpl();
+			this.storeSession(ServiceBean.class.getName(), serviceBean);
+		}
+		
 		this.contactDetails.init();
 
 		Submit completeButton = new Submit(PageConstants.NAV_COMPLETE_LABEL, this, PageConstants.NAV_COMPLETE_FUNC);
 		this.contactDetails.add(completeButton);
 
-		if (this.entityID != null)
+		if (this.eid != null)
 		{
 			/* Store reference to serviceID for future interactions across multiple form submissions */
-			this.storeSession(PageConstants.STORED_ENTITY_ID, this.entityID);
+			serviceBean.setEntID(new Integer(this.eid));
 
 			/*
-			 * Refresh contacts whenerver serviceID is being submitted as this is a new edit attempt and things may get
+			 * Refresh contacts whenever serviceID is being submitted as this is a new edit attempt and things may get
 			 * out of sync
 			 */
 			try
 			{
-				this.contacts = this.logic.getServiceContacts(this.entityID);
-				this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
+				serviceBean.setContacts (this.logic.getServiceContacts(new Integer(this.eid)));
 			}
 			catch (EditServiceContactException e)
 			{
-				this.storeSession(PageConstants.STORED_CONTACTS, null);
+				serviceBean.setContacts(null);
 			}
 		}
 		else
 		{
-			this.entityID = (String) this.retrieveSession(PageConstants.STORED_ENTITY_ID);
-		}
-
-		if (this.entityID == null)
-		{
-			setError();
-		}
-
-		if (this.contacts == null)
-		{
-			this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-
-			/* If contacts can't be retrieved from session then can't proceed */
-			if (this.contacts == null)
-			{
+			if(this.serviceBean == null)
 				setError();
-			}
+			
+			this.eid = (String) this.serviceBean.getEntityID();
 		}
 
 	}
@@ -102,8 +98,11 @@ public class EditServiceContactsPage extends ContactPersonPage
 	@Override
 	public void onGet()
 	{
+		if(this.serviceBean == null)
+			setError();
+		
 		/* Determine action, none or unknown default to add which requires no additional processing */
-		for (ContactPersonBean contact : this.contacts)
+		for (ContactPersonBean contact : this.serviceBean.getContacts())
 		{
 			/* Determine which contact is being edited or deleted (skip newley created contacts with null ID's) */
 			if (contact.getContactID() != null && contact.getContactID().equals(this.contactID))
@@ -119,7 +118,7 @@ public class EditServiceContactsPage extends ContactPersonPage
 						&& this.confirm.equals(PageConstants.CONFIRMED))
 				{
 					/* Do not allow removal of the last stored contact */
-					if (this.contacts.size() == 1)
+					if (this.serviceBean.getContacts().size() == 1)
 					{
 						this.actionLabel = PageConstants.DELETE_SERVICE_CONTACT_DENIED;
 						this.action = null;
@@ -132,14 +131,14 @@ public class EditServiceContactsPage extends ContactPersonPage
 
 					try
 					{
-						this.logic.deleteServiceContact(this.entityID, contact.getContactID());
+						this.logic.deleteServiceContact(new Integer(this.eid), contact.getContactID());
 					}
 					catch (EditServiceContactException e)
 					{
 						setError();
 					}
 
-					this.contacts.removeElement(contact);
+					this.serviceBean.getContacts().removeElement(contact);
 					this.action = null;
 					this.confirm = null;
 					return;
@@ -151,7 +150,10 @@ public class EditServiceContactsPage extends ContactPersonPage
 	@Override
 	public void onPost()
 	{
-		super.onPost();
+		if(this.serviceBean == null)
+			setError();
+		
+		super.createOrUpdateContact(serviceBean);
 
 		if (this.contactDetails.isValid())
 		{
@@ -165,24 +167,28 @@ public class EditServiceContactsPage extends ContactPersonPage
 
 	public boolean completeClick()
 	{
+		if(this.serviceBean == null )
+			setError();
+		
 		/* If the user has submitted form content then attempt to save last input before proceeding */
 		for (Field field : (List<Field>) this.contactDetails.getFieldList())
 		{
 			if (!field.isHidden() && !field.getName().equals(PageConstants.CONTACTTYPE)
 					&& field.getValue().length() > 0)
 			{
-				createOrUpdateContact();
+				createOrUpdateContact(serviceBean);
 				if (!this.contactDetails.isValid())
 				{
 					/* Make user fix submitted errors */
 					return true;
 				}
+				break;
 			}
 		}
 
 		try
 		{
-			this.logic.updateServiceContacts(this.entityID, this.contacts);
+			this.logic.updateServiceContacts(this.serviceBean.getEntID(), this.serviceBean.getContacts());
 		}
 		catch (EditServiceContactException e)
 		{
@@ -194,21 +200,23 @@ public class EditServiceContactsPage extends ContactPersonPage
 
 		/* Move users to completed view */
 		this.action = PageConstants.COMPLETED;
-		cleanSession();
+		
+		/* Set eid so user may return to listing */
+		this.eid = serviceBean.getEntID().toString();
+		
+		cleanUp();
 		return false;
+	}
+	
+	private void cleanUp()
+	{
+		this.removeSession(ServiceBean.class.getName());
 	}
 
 	private void setError()
 	{
 		/* Move users to error view */
-		this.action = PageConstants.ERROR;
-		cleanSession();		
-	}
-	
-	private void cleanSession()
-	{
-		this.removeSession(PageConstants.STORED_ENTITY_ID);
-		this.removeSession(PageConstants.STORED_CONTACTS);
+		this.action = PageConstants.ERROR;	
 	}
 
 	public EditServiceContactsLogic getEditServiceContactsLogic()

@@ -23,45 +23,97 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Date: 20/11/2006                                                        
 		Purpose: Defines spring integration for
 		====================================================================== -->
-		
-	<bean id="authnAuthorityProcessor" class="com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor">
-		<constructor-arg index="0" ref="samlValidator"/>
-		<constructor-arg index="1" ref="sessionsProcessor"/>
-		<constructor-arg index="2" ref="metadata"/>
-		<constructor-arg index="3" ref="identifierGenerator"/>
-		<constructor-arg index="4" ref="metadata"/>
-		<constructor-arg index="5" ref="esoeKeyStoreResolver"/>
-		<constructor-arg index="6" value="${saml.protocol}"/>
-		<constructor-arg index="7" value="${sso.allowedActiveAuthSkew}"/>
-		<constructor-arg index="8" value="${sso.sessionRemainingLength}"/>
+
+	<bean id="authnAuthorityProcessor"
+		class="com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor">
+		<constructor-arg index="0" ref="samlValidator" />
+		<constructor-arg index="1" ref="sessionsProcessor" />
+		<constructor-arg index="2" ref="metadata" />
+		<constructor-arg index="3" ref="identifierGenerator" />
+		<constructor-arg index="4" ref="metadata" />
+		<constructor-arg index="5" ref="esoeKeyStoreResolver" />
+		<constructor-arg index="6" value="${sso.allowedActiveAuthSkew}" />
+		<constructor-arg index="7"
+			value="${sso.sessionRemainingLength}" />
+		<constructor-arg index="8"
+			value="${sso.acceptUnsignedAuthnRequests}" />
+		<constructor-arg index="9">
+			<map>
+				<entry>
+					<key>
+						<value>${identifier.unspecified}</value>
+					</key>
+					<value>${identifier.unspecified.value}</value>
+				</entry>
+				<entry>
+					<key>
+						<value>${identifier.emailAddress}</value>
+					</key>
+					<value>${identifier.emailAddress.value}</value>
+				</entry>
+				<entry>
+					<key>
+						<value>${identifier.X509SubjectName}</value>
+					</key>
+					<value>${identifier.X509SubjectName.value}</value>
+				</entry>
+				<entry>
+					<key>
+						<value>
+							${identifier.windowsDomainQualName}
+						</value>
+					</key>
+					<value>
+						${identifier.windowsDomainQualName.value}
+					</value>
+				</entry>
+				<entry>
+					<key>
+						<value>${identifier.kerberos}</value>
+					</key>
+					<value>${identifier.kerberos.value}</value>
+				</entry>
+				<entry>
+					<key>
+						<value>${identifier.persistent}</value>
+					</key>
+					<value>${identifier.persistent.value}</value>
+				</entry>
+			</map>
+		</constructor-arg>
+
 	</bean>
-	
-	<bean id="logoutAuthorityProcessor" class="com.qut.middleware.esoe.sso.impl.LogoutAuthorityProcessor">
-		<constructor-arg index="0" ref="failedLogoutRepository"/>
-		<constructor-arg index="1" ref="samlValidator"/>
-		<constructor-arg index="2" ref="sessionsProcessor"/>
-		<constructor-arg index="3" ref="metadata"/>
-		<constructor-arg index="4" ref="identifierGenerator"/>
-		<constructor-arg index="5" ref="esoeKeyStoreResolver"/>
-		<constructor-arg index="6" ref="wsClient"/>
+
+	<bean id="logoutAuthorityProcessor"
+		class="com.qut.middleware.esoe.sso.impl.LogoutAuthorityProcessor">
+		<constructor-arg index="0" ref="failedLogoutRepository" />
+		<constructor-arg index="1" ref="samlValidator" />
+		<constructor-arg index="2" ref="sessionsProcessor" />
+		<constructor-arg index="3" ref="metadata" />
+		<constructor-arg index="4" ref="identifierGenerator" />
+		<constructor-arg index="5" ref="esoeKeyStoreResolver" />
+		<constructor-arg index="6" ref="wsClient" />
 	</bean>
-	
+
 	<!--  Failed logout event repository -->
 	<bean name="failedLogoutRepository"
 		class="com.qut.middleware.esoe.sso.bean.impl.FailedLogoutRepositoryImpl" />
-		
+
 	<!--  Monitor of failed logouts -->
 	<bean name="failedLogoutMonitor"
-		class="com.qut.middleware.esoe.sso.impl.FailedLogoutMonitor" destroy-method="shutdown">
+		class="com.qut.middleware.esoe.sso.impl.FailedLogoutMonitor"
+		destroy-method="shutdown">
 		<constructor-arg index="0" ref="failedLogoutRepository" />
-		<constructor-arg index="1" ref="samlValidator"/>
+		<constructor-arg index="1" ref="samlValidator" />
 		<constructor-arg index="2" ref="metadata" />
-		<constructor-arg index="3" ref="esoeKeyStoreResolver"/>
-		<constructor-arg index="4" ref="identifierGenerator"/>
+		<constructor-arg index="3" ref="esoeKeyStoreResolver" />
+		<constructor-arg index="4" ref="identifierGenerator" />
 		<constructor-arg index="5" ref="wsClient" />
-		<constructor-arg index="6" value="${sso.failedlogoutmonitor.retryInterval}"/>
-		<constructor-arg index="7" value="${sso.failedlogoutmonitor.maxFailureAge}" />
+		<constructor-arg index="6"
+			value="${sso.failedlogoutmonitor.retryInterval}" />
+		<constructor-arg index="7"
+			value="${sso.failedlogoutmonitor.maxFailureAge}" />
 	</bean>
-	
-	
+
+
 </beans>

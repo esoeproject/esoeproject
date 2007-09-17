@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
 
-	<info organisation="esoeproject" module="esoeauthn-ad" revision="0.2">
+	<info organisation="esoeproject" module="esoeauthn-ad" revision="${esoe.version}">
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"
@@ -14,16 +14,13 @@
 
 	<configurations>
 		<conf name="dev" />
-		<conf name="prd" />
 	</configurations>
 	
 	<publications>
 		<artifact name="esoeauthn-ad" type="jar" />
 	</publications>
 
-	<dependencies>
-		<!-- Production dependencies -->
-        
+	<dependencies>       
         <!-- Development dependencies -->
         <dependency org="esoeproject" name="esoecore" rev="latest.integration" conf="dev->dev"/>		
         

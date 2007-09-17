@@ -26,10 +26,10 @@ import com.qut.middleware.esoemanager.exception.ServiceAuthorizationPolicyExcept
 public interface ConfigureServiceAuthorizationPolicyLogic
 {
 
-	public AuthorizationPolicyBean getActiveServiceAuthorizationPolicy(String descriptorID)
+	public AuthorizationPolicyBean getActiveServiceAuthorizationPolicy(Integer descID)
 			throws ServiceAuthorizationPolicyException;
 
-	public void updateServiceAuthorizationPolicy(String descriptorID, String policy)
+	public void updateServiceAuthorizationPolicy(Integer entID, byte[] policy)
 			throws PolicyGuardException, ServiceAuthorizationPolicyException;
 
 }

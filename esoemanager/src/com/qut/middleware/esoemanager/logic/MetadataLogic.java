@@ -28,5 +28,5 @@ public interface MetadataLogic
          * @param MetadataBean Bean containing various data to support request for Metadata
          * @return String value of the metadata document or NULL when an error state is encountered
          */
-        public String loadMetadata(MetadataBean bean);
+        public byte[] loadMetadata(MetadataBean bean);
 }

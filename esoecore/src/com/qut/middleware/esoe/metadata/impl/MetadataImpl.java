@@ -124,7 +124,7 @@ public class MetadataImpl implements Metadata
 	 *  
 	 * @see com.qut.middleware.esoe.spep.Metadata#resolveAssertionConsumerService(java.lang.String, java.lang.String)
 	 */
-	public String resolveAssertionConsumerService(String descriptorID, int index)
+	public String resolveAssertionConsumerService(String entityID, int index)
 			throws InvalidMetadataEndpointException
 	{
 		MetadataCache.State state = this.metadataCache.getState();
@@ -148,7 +148,7 @@ public class MetadataImpl implements Metadata
 			
 		if(null != consumerServices)
 		{
-			String assertionConsumerServiceLocation = consumerServices.get(generateKey(descriptorID, index));
+			String assertionConsumerServiceLocation = consumerServices.get(generateKey(entityID, index));
 
 			if(assertionConsumerServiceLocation != null)
 			{
@@ -156,16 +156,45 @@ public class MetadataImpl implements Metadata
 			}
 		}
 			
-		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.9"), descriptorID, Integer.toString(index))); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.9"), entityID, Integer.toString(index))); //$NON-NLS-1$
 		throw new InvalidMetadataEndpointException();		
 		
+	}
+	
+	public List<String> resolveAssertionConsumerServiceIdentifierTypes(String entityID, int index)
+	{
+		MetadataCache.State state = this.metadataCache.getState();
+		
+		while(state == MetadataCache.State.UnInitialized)
+		{
+			try
+			{
+				state = this.metadataCache.getState();
+				
+				Thread.sleep(SHORT_SLEEP);
+			}
+			catch (InterruptedException e)
+			{
+				// we dont want this object blocking threads that are trying to shutdown
+				return null;
+			}
+		}
+		
+		Map<String, List<String>> identifierTypes = this.metadataCache.getAssertionConsumerServiceIdentifierTypes();
+			
+		if(null != identifierTypes)
+		{
+			return identifierTypes.get(generateKey(entityID, index));	
+		}
+		
+		return null;
 	}
 
 	/** NOTE: implementation of this method will block calls if there is no initial data in the cache.
 	 * 
 	 * @see com.qut.middleware.esoe.spep.Metadata#resolveCacheClearService(java.lang.String)
 	 */
-	public Map<Integer,String> resolveCacheClearService(String descriptorID) throws InvalidMetadataEndpointException
+	public Map<Integer,String> resolveCacheClearService(String entityID) throws InvalidMetadataEndpointException
 	{
 		MetadataCache.State state = this.metadataCache.getState();
 			
@@ -188,7 +217,7 @@ public class MetadataImpl implements Metadata
 		
 		if(null != cacheClearServices)
 		{
-			Map<Integer,String> cacheClearServiceLocations = cacheClearServices.get(descriptorID);
+			Map<Integer,String> cacheClearServiceLocations = cacheClearServices.get(entityID);
 		
 			if(cacheClearServiceLocations != null)
 			{
@@ -196,7 +225,7 @@ public class MetadataImpl implements Metadata
 			}
 		}
 		
-		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.11"), descriptorID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.11"), entityID)); //$NON-NLS-1$
 		throw new InvalidMetadataEndpointException();
 		
 	}
@@ -205,7 +234,7 @@ public class MetadataImpl implements Metadata
 	 * 
 	 * @see com.qut.middleware.esoe.spep.Metadata#resolveSingleLogoutService(java.lang.String)
 	 */
-	public List<String> resolveSingleLogoutService(String descriptorID) throws InvalidMetadataEndpointException
+	public List<String> resolveSingleLogoutService(String entityID) throws InvalidMetadataEndpointException
 	{
 		MetadataCache.State state = this.metadataCache.getState();
 				
@@ -228,7 +257,7 @@ public class MetadataImpl implements Metadata
 		
 		if(null != singleLogoutServices)
 		{		
-			List<String> singleLogoutServiceLocations = singleLogoutServices.get(descriptorID);
+			List<String> singleLogoutServiceLocations = singleLogoutServices.get(entityID);
 			
 			if(singleLogoutServiceLocations != null)
 			{
@@ -236,7 +265,7 @@ public class MetadataImpl implements Metadata
 			}
 		}
 		
-		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.13"), descriptorID)); //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("MetadataImpl.13"), entityID)); //$NON-NLS-1$
 		throw new InvalidMetadataEndpointException();
 	
 		
@@ -246,7 +275,7 @@ public class MetadataImpl implements Metadata
 	 * (non-Javadoc)
 	 * @see com.qut.middleware.esoe.metadata.Metadata#getESOEIdentifier()
 	 */
-	public String getESOEIdentifier()
+	public String getEsoeEntityID()
 	{
 		return this.esoeIdentifier;
 	}

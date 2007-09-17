@@ -25,11 +25,14 @@ import net.sf.click.control.Form;
 import net.sf.click.control.Submit;
 
 import com.qut.middleware.esoemanager.bean.ContactPersonBean;
+import com.qut.middleware.esoemanager.bean.ServiceBean;
 
 public class RegisterServiceContactPersonPage extends ContactPersonPage
 {
 	public String action;
 	public Integer ref;
+	
+	public ServiceBean serviceBean;
 	
 	public RegisterServiceContactPersonPage()
 	{
@@ -40,6 +43,8 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 	public void onInit()
 	{
 		super.onInit();
+		
+		serviceBean = (ServiceBean)this.retrieveSession(ServiceBean.class.getName());
 	
 		Submit nextButton = new Submit(PageConstants.NAV_NEXT_LABEL, this, PageConstants.NAV_NEXT_FUNC);
 		Submit backButton = new Submit(PageConstants.NAV_PREV_LABEL, this, PageConstants.NAV_PREV_FUNC);
@@ -52,7 +57,14 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 	@Override
 	public void onPost()
 	{
-		super.onPost();
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
+		createOrUpdateContact(serviceBean);
 		
 		if(this.contactDetails.isValid())
 		{
@@ -67,6 +79,13 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 	@Override
 	public void onGet()
 	{
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return;
+		}
+		
 		/* Check if previous registration stage completed */
 		Boolean status = (Boolean)this.retrieveSession(PageConstants.STAGE1_RES);
 		if(status == null || status.booleanValue() != true)
@@ -89,8 +108,8 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 	
 	protected void deleteContact()
 	{
-		this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-		if (this.contacts != null)
+		Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) this.serviceBean.getContacts();
+		if (contacts != null)
 		{
 			if (this.ref != null)
 			{
@@ -98,8 +117,8 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 				 * Submitted value for contact ID will be the current position of the contact in the contacts vector - 1
 				 * as listed by velocity when writing the response
 				 */
-				this.contacts.remove(this.ref - 1);
-				this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
+				contacts.remove(this.ref - 1);
+				this.serviceBean.setContacts(contacts);
 			}
 
 		}
@@ -119,8 +138,8 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 
 	protected void editContact()
 	{
-		this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-		if (this.contacts != null)
+		Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) this.serviceBean.getContacts();
+		if (contacts != null)
 		{
 			if (ref != null)
 			{
@@ -128,9 +147,9 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 				 * Submitted value for contact ID will be the current position of the contact in the contacts vector - 1
 				 * as listed by velocity when writing the response
 				 */
-				ContactPersonBean contact = this.contacts.get(this.ref - 1);
-				this.contacts.remove(this.ref - 1);
-				this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
+				ContactPersonBean contact = contacts.get(this.ref - 1);
+				contacts.remove(this.ref - 1);
+				this.serviceBean.setContacts(contacts);
 
 				translateDetails(contact);
 			}
@@ -140,6 +159,13 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 	
 	public boolean nextClick()
 	{
+		/* Ensure registration session is active */
+		if(serviceBean == null)
+		{
+			previousClick();
+			return false;
+		}
+		
 		/* Determine if the user is clicking next with a fresh submission (as opposed to saving) if so
 		 * attempt to add that contact to the list
 		 */
@@ -151,7 +177,7 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 			{
 				if(this.contactDetails.isValid())
 				{
-					this.createOrUpdateContact();
+					this.createOrUpdateContact(serviceBean);
 					
 					/* Attempting to create submittied contact failed */
 					if(!this.contactDetails.isValid())
@@ -164,7 +190,7 @@ public class RegisterServiceContactPersonPage extends ContactPersonPage
 			}
 		}
 		
-		contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
+		Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) this.serviceBean.getContacts();
 		
 		if(contacts == null || contacts.size() == 0)
 		{

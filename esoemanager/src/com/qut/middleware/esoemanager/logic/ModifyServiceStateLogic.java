@@ -24,8 +24,8 @@ import com.qut.middleware.esoemanager.exception.ModifyServiceStateException;
 public interface ModifyServiceStateLogic
 {
 
-	public abstract void setActive(String entityID) throws ModifyServiceStateException;
+	public abstract void setActive(Integer entID) throws ModifyServiceStateException;
 
-	public abstract void setInActive(String entityID) throws ModifyServiceStateException;
+	public abstract void setInActive(Integer entID) throws ModifyServiceStateException;
 
 }

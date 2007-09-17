@@ -19,45 +19,6 @@ package com.qut.middleware.esoestartup.pages;
 
 public class PageConstants
 {
-	/** Session Constants */
-	public final static String STORED_ESOE_NODE_URL = "session-nodeURL";
-	public final static String STORED_ESOE_SINGLE_SIGN_ON_SERVICE = "session-singleSignOnService";
-	public final static String STORED_ESOE_ATTRIBUTE_SERVICE = "session-attributeService";
-	public final static String STORED_ESOE_LXACML_SERVICE = "session-lxacmlService";
-	public final static String STORED_ESOE_SPEP_STARTUP_SERVICE = "session-spepStartupService";
-	public final static String STORED_ESOE_ORGANIZATION_NAME = "session-esoeOrganizationName";
-	public final static String STORED_ESOE_ORGANIZATION_DISPLAY_NAME = "session-esoeOrganizationDisplayName";
-	public final static String STORED_ESOE_ORGANIZATION_URL = "session-esoeOrganizationURL";
-
-	public final static String STORED_DATA_REPOSITORY_DRIVER = "session-driverType";
-	public final static String STORED_DATA_REPOSITORY_URL = "session-dataRepositoryURL";
-	public final static String STORED_DATA_REPOSITORY_USERNAME = "session-dataRepositoryUsername";
-	public final static String STORED_DATA_REPOSITORY_PASSWORD = "session-dataRepositoryPassword";
-	
-	public final static String STORED_ESOE_COMPLETED_DETAILS = "session-stored-esoe-complet-details";
-	
-	/* LDAP */
-	public final static String STORED_LDAP_URL = "session-ldapURL";
-	public final static String STORED_LDAP_PORT = "session-ldapPort";
-	public final static String STORED_LDAP_BASE_DN = "session-ldapBaseDN";
-	public final static String STORED_LDAP_ACCOUNT_IDENTIFIER = "session-ldapAccountIdentifier";
-	public final static String STORED_LDAP_RECURSIVE = "session-ldapRecursive";
-	public final static String STORED_LDAP_DISABLE_SSL = "session-ldapDisableSSL";
-	public final static String STORED_LDAP_ADMIN_USER = "session-ldapAdminUser";
-	public final static String STORED_LDAP_ADMIN_PASSWORD = "session-ldapAdminPassword";
-
-	public final static String STORED_CONTACTS = "session-contacts";
-	
-	public final static String STORED_SERVICE_NAME = "session-ServiceName";
-	public final static String STORED_SERVICE_URL = "session-ServiceURL";
-	public final static String STORED_SERVICE_DESCRIPTION = "session-ServiceDescription";
-	public final static String STORED_SERVICE_AUTHZ_FAILURE_MESSAGE = "session-ServiceAuthzFailure";
-	
-	public final static String STORED_SERVICE_NODES = "session-service-nodes";
-
-	public final static String STORED_CRYPTO_ISSUER_EMAIL = "session-issuerEmailAddress";
-	public final static String STORED_CRYPTO_ISSUER_DN = "session-issuerDN";
-
 	/** Stages */
 	public final static String STAGE1_RES = "stageOneResult";
 	public final static String STAGE2_RES = "stageTwoResult";
@@ -67,6 +28,7 @@ public class PageConstants
 	public final static String STAGE6_RES = "stageSixResult";
 	public final static String STAGE7_RES = "stageSevenResult";
 	public final static String STAGE8_RES = "stageEightResult";
+	public final static String STAGE9_RES = "stageEightResult";
 
 	/** Form Control Constants */
 	/* General */
@@ -75,6 +37,8 @@ public class PageConstants
 	public final static String NAV_PREV_FUNC = "previousClick";
 
 	/* ESOE */
+	public final static String ESOE_IDENTIFIER = "esoeIdentifier";
+	public final static String ESOE_COMMON_DOMAIN = "esoeCommonDomain";
 	public final static String ESOE_NODE_URL = "nodeURL";
 	public final static String ESOE_SINGLE_SIGN_ON_SERVICE = "singleSignOnService";
 	public final static String ESOE_ATTRIBUTE_SERVICE = "attributeService";
@@ -83,6 +47,11 @@ public class PageConstants
 	public final static String ESOE_ORGANIZATION_NAME = "esoeOrganizationName";
 	public final static String ESOE_ORGANIZATION_DISPLAY_NAME = "esoeOrganizationDisplayName";
 	public final static String ESOE_ORGANIZATION_URL = "esoeOrganizationURL";
+	
+	/* Content Directories */
+	public final static String ESOE_CONTENT_DATA = "esoe.data";
+	public final static String ESOEMANAGER_CONTENT_DATA = "esoemanager.data";
+	public final static String SPEP_CONTENT_DATA = "spep.data";
 
 	/* Data Repository */
 	public final static String DATA_REPOSITORY_DRIVER = "driverType";
@@ -120,6 +89,7 @@ public class PageConstants
 
 	/* Services */
 	public final static String SERVICE_NAME = "ServiceName";
+	public final static String SERVICE_IDENTIFIER = "ServiceIdentifier";
 	public final static String SERVICE_URL = "ServiceURL";
 	public final static String SERVICE_DESCRIPTION = "ServiceDescription";
 	public final static String SERVICE_AUTHZ_FAILURE_MESSAGE = "ServiceAuthzFailure";
@@ -144,6 +114,10 @@ public class PageConstants
 	public final static String TOMCAT_WEBAPPS_DIRECTORY = "tomcatWebapps";
 	
 	/** Form error state messages */
+	public final static String ESOE_CONTENT_ERROR = "Unable to write to directory specified for esoe.data, please ensure directory exists and has correct permissions";
+	public final static String ESOEMANAGER_CONTENT_ERROR = "Unable to write to directory specified for esoemanager.data, please ensure directory exists and has correct permissions";
+	public final static String SPEP_CONTENT_ERROR = "Unable to write to directory specified for spep.data, please ensure directory exists and has correct permissions";
+	
 	public final static String DATA_REPOSITORY_TEST_ERROR = "Using the below details attempting to connect to the database failed, please review the output below and adjust values accordingly <br/>";
 	public final static String DATA_REPOSITORY_UNKNOWN_DRIVER = "The driver you submitted is unknown to this system";
 	public final static String EDIT_SERVICE_CONTACT = "Editing contact";

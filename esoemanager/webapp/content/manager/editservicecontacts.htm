@@ -1,12 +1,12 @@
 <h3> Edit Service Contacts </h3>
 
 #if ($action.equals("completed"))
-Contacts for this service have been updated, <a href="viewservice.htm?serviceID=$serviceID">return to service details</a>
+Contacts for this service have been updated, <a href="viewservice.htm?eid=$eid">return to service details</a>
 #else
 
 #if ($action.equals("error"))
 <div id="error">
-The operation you have attempted to undertake has resulted in an error and the operation being terminated, <a href="viewservice.htm?serviceID=$serviceID">return to service details</a>
+The operation you have attempted to undertake has resulted in an error and the operation being terminated, <a href="viewservice.htm?eid=$eid">return to service details</a>
 </div>
 #else
 
@@ -14,7 +14,7 @@ The operation you have attempted to undertake has resulted in an error and the o
 <div id="confirmDeleteContact">
 You have requested to delete this contact, do you wish to proceed?
 <div id="confirmAction">
-<a href="editservicecontacts.htm?id=$serviceID&action=delete&contactID=$contactID&confirm=confirmed">Confirm change</a> <a href="javascript: history.go(-1)">Cancel change</a>
+<a href="editservicecontacts.htm?eid=$eid&action=delete&contactID=$contactID&confirm=confirmed">Confirm change</a> <a href="javascript: history.go(-1)">Cancel change</a>
 </div>
 </div>
 #else
@@ -25,25 +25,25 @@ You have requested to delete this contact, do you wish to proceed?
 $actionLabel, when you have completed all contact editing for this service, please click the complete button below.
 #end
 </div>
-#if($contacts)
-#if($contacts.size() > 0)
+#if($serviceBean.getContacts())
+#if($serviceBean.getContacts().size() > 1)
 <br/>
 The following contacts exist for this service
 <br/>
 <table>
 <tr>
-<td><b>Name</b></td><td><b>Email</b></td><td><b>Telephone</b></td><td><b>Company</b></td><td><b>Type</b></td><td/><td/>
+<th>Name</th><th>Email</th><th>Telephone</th><th>Company</th><th>Type</th><th/><th/>
 </tr>
-#foreach( $contact in $contacts )
+#foreach( $contact in $serviceBean.getContacts() )
 <tr>
 <td>$contact.getGivenName() $contact.getSurName()</td>
 <td>$contact.getEmailAddress()</td>
 <td>$contact.getTelephoneNumber()</td>
 <td>$contact.getCompany()</td>
 <td>$contact.getContactType()</td>
-<td><a href="editservicecontacts.htm?serviceID=$serviceID&action=edit&contactID=$contact.getContactID()">edit</a></td>
+<td><a href="editservicecontacts.htm?eid=$eid&action=edit&contactID=$contact.getContactID()">edit</a></td>
 #if( $contacts.size() > 1 )
-<td><a href="editservicecontacts.htm?serviceID=$serviceID&action=delete&contactID=$contact.getContactID()">delete</a></td>
+<td><a href="editservicecontacts.htm?eid=$eid&action=delete&contactID=$contact.getContactID()">delete</a></td>
 #end
 </tr>
 #end
@@ -51,6 +51,7 @@ The following contacts exist for this service
 #end
 #end
 </div>
+
 <br/>
 <div id="createContact">
 <div id="createContactMessage">

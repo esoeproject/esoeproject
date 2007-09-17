@@ -36,7 +36,6 @@ import org.w3._2000._09.xmldsig_.Signature;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.log4j.AuthzLogLevel;
 import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.pdp.AuthorizationProcessor;
 import com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData;
@@ -125,21 +124,20 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 	private String keyName;
 	private int allowedTimeSkew;
 
-	private String[] schemas = new String[] { ConfigurationConstants.samlProtocol,
-			ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget,
-			ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion };
+	private String[] schemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget, ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion };
 
 	private final String UNMAR_PKGNAMES = LXACMLAuthzDecisionQuery.class.getPackage().getName();
 	private final String MAR_PKGNAMES = LXACMLAuthzDecisionQuery.class.getPackage().getName() + ":" + //$NON-NLS-1$
-			GroupTarget.class.getPackage().getName() + ":" + //$NON-NLS-1$
-			StatementAbstractType.class.getPackage().getName() + ":" + //$NON-NLS-1$
-			LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" + //$NON-NLS-1$
-			Response.class.getPackage().getName();
+	GroupTarget.class.getPackage().getName() + ":" + //$NON-NLS-1$
+	StatementAbstractType.class.getPackage().getName() + ":" + //$NON-NLS-1$
+	LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" + //$NON-NLS-1$
+	Response.class.getPackage().getName();
 
 	private String defaultMode;
 	private IdentifierGenerator identifierGenerator;
 
 	Logger logger = Logger.getLogger(AuthorizationProcessorImpl.class.getName());
+	Logger authzLogger = Logger.getLogger(ConfigurationConstants.authzLogger);
 
 	/**
 	 * @param cache
@@ -162,9 +160,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 	 *            timestamps in Requests/Responses to determine the life of the document.
 	 * @throws Exception
 	 */
-	public AuthorizationProcessorImpl(AuthzPolicyCache cache, SessionsProcessor sessionProcessor, Metadata metadata,
-			SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver,
-			String defaultMode, int allowedTimeSkew) throws UnmarshallerException, MarshallerException
+	public AuthorizationProcessorImpl(AuthzPolicyCache cache, SessionsProcessor sessionProcessor, Metadata metadata, SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver, String defaultMode, int allowedTimeSkew) throws UnmarshallerException, MarshallerException
 	{
 		if (cache == null)
 			throw new IllegalArgumentException(Messages.getString("AuthorizationProcessorImpl.0")); //$NON-NLS-1$
@@ -204,8 +200,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		this.metadata = metadata;
 		this.allowedTimeSkew = allowedTimeSkew;
 
-		this.unmarshaller = new UnmarshallerImpl<LXACMLAuthzDecisionQuery>(this.UNMAR_PKGNAMES, this.schemas,
-				this.metadata);
+		this.unmarshaller = new UnmarshallerImpl<LXACMLAuthzDecisionQuery>(this.UNMAR_PKGNAMES, this.schemas, this.metadata);
 		this.marshaller = new MarshallerImpl<Response>(this.MAR_PKGNAMES, this.schemas, this.keyName, this.privKey);
 
 		this.strEqualEval = new EvaluateStringEqualExpression();
@@ -219,10 +214,13 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 	public result execute(AuthorizationProcessorData authData) throws InvalidRequestException
 	{
+		if (authData == null)
+			throw new IllegalArgumentException("AuthorizationProcessorData must not be null.");
+
 		// DEFAULT override. If there are no policies in the cache then we DENY all.
 		if (this.globalCache.getSize() == 0)
 		{
-			this.logger.log(AuthzLogLevel.Authz, Messages.getString("AuthorizationProcessorImpl.79")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthorizationProcessorImpl.79")); //$NON-NLS-1$
 			this.defaultMode = ProtocolTools.DENY;
 		}
 
@@ -236,6 +234,12 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 		try
 		{
+			if (authData.getRequestDocument() == null)
+			{
+				this.logger.warn("Recieved null Request Document . Invalid Request.");
+				throw new InvalidSAMLRequestException("Null Request Document Recieved. Invalid Request.");
+			}
+
 			authzRequest = this.unmarshaller.unMarshallSigned(authData.getRequestDocument());
 
 			this.samlValidator.getRequestValidator().validate(authzRequest);
@@ -246,40 +250,37 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 			// the SAML ID of the request will be used to respond to
 			String inResponseTo = authzRequest.getID();
 
-			authData.setDescriptorID(eval.getDescriptorID(authzRequest));
+			authData.setIssuerID(eval.getDescriptorID(authzRequest));
 			authData.setSubjectID(eval.getSubjectID(authzRequest));
 
 			principal = this.sessionProcessor.getQuery().querySAMLSession(authData.getSubjectID());
-			String requestedResource = new RequestEvaluator().getResource(authzRequest);
+			String requestedResource = eval.getResource(authzRequest);
+			String specifiedAction = eval.getAction(authzRequest);
 
-			this.logger.log(AuthzLogLevel.Authz, MessageFormat.format(Messages
-					.getString("AuthorizationProcessorImpl.80"), authData.getDescriptorID(), requestedResource)); //$NON-NLS-1$ 
+			this.authzLogger.info(MessageFormat.format(Messages.getString("AuthorizationProcessorImpl.80"), authData.getIssuerID(), requestedResource, specifiedAction, principal.getPrincipalAuthnIdentifier())); //$NON-NLS-1$ 
 
 			// retrieve policy set associated with SPEP
-			Vector<Policy> policies = this.queryCache(authData.getDescriptorID());
+			Vector<Policy> policies = this.queryCache(authData.getIssuerID());
 
 			if (policies == null)
 			{
-				this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.82")); //$NON-NLS-1$
-				authResult = this.createResult(null, null,
-						"No matching policy located. Falling through to default state of " + this.defaultMode); //$NON-NLS-1$
+				this.logger.debug(Messages.getString("AuthorizationProcessorImpl.82")); //$NON-NLS-1$
+				authResult = this.createResult(null, null, "No matching policy located. Falling through to default state of " + this.defaultMode); //$NON-NLS-1$
 			}
 			else
 			// process auth request against policies
 			{
 				this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.83")); //$NON-NLS-1$
-				authResult = this.evaluatePolicyRequest(policies, requestedResource, principal);
+				authResult = this.evaluatePolicyRequest(policies, requestedResource, specifiedAction, principal);
 			}
 
-			this.logger
-					.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.84") + authResult.getDecision()); //$NON-NLS-1$
+			this.authzLogger.info(MessageFormat.format(Messages.getString("AuthorizationProcessorImpl.84"), authData.getIssuerID(), requestedResource, specifiedAction, principal.getPrincipalAuthnIdentifier(), authResult.getDecision())); //$NON-NLS-1$
 
 			// call external helper to generate the LXACMLAuthzDecisionStatement
 			authzResponse = ProtocolTools.generateAuthzDecisionStatement(authzRequest.getRequest(), authResult);
 
 			// build success response with embedded authz return statement
-			response = this.buildResponse(StatusCodeConstants.success, authzResponse, authData, restrictedAudience,
-					inResponseTo);
+			response = this.buildResponse(StatusCodeConstants.success, authzResponse, authData, restrictedAudience, inResponseTo);
 		}
 		catch (InvalidSessionIdentifierException e)
 		{
@@ -341,7 +342,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 			// marshall all the response documents and set in auth data bean
 			try
 			{
-				String responseDocument = this.marshaller.marshallSigned(response);
+				byte[] responseDocument = this.marshaller.marshallSigned(response);
 
 				this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.90")); //$NON-NLS-1$
 
@@ -368,6 +369,31 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		return (Vector<Policy>) this.globalCache.getPolicies(descriptorID);
 	}
 
+	private boolean isValidAction(String specifiedAction, List<String> policyActions, Rule currentRule)
+	{
+		// Get all action targets of the rule and check for a match
+		List<String> targetActions = PolicyEvaluator.getRuleTargetActions(currentRule);
+
+		// If the rule has no specified targets, use the policy targets
+		if (targetActions == null || targetActions.size() == 0)
+		{
+			if (policyActions == null || policyActions.size() == 0)
+				return true;
+
+			targetActions = policyActions;
+		}
+
+		Iterator<String> actIter = targetActions.iterator();
+
+		while (actIter.hasNext())
+		{
+			if (actIter.next().equals(specifiedAction))
+				return true;
+		}
+
+		return false;
+	}
+
 	/*
 	 * Evaluate the given resource request against the rules retrieved from the working policy and the current user
 	 * session. NOTE: This function assumes that the policy object retrieved has been validated against the
@@ -375,11 +401,12 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 	 * 
 	 * @param policy The authorization policy associated with the given SPEP. @param resource The target resource as
 	 * requested by the SPEP. This is the resource given to the authorization processor in the <code>LXACMLAuthzDecisionQuery<code>.
-	 * @param principal The principal associated with the auth request @return the Result representing the outcome of
-	 * the request processing.
+	 * @param specifiedAction The action specified to be evaluated with this request. May be null if no action
+	 * specified. @param principal The principal associated with the auth request @return the Result representing the
+	 * outcome of the request processing.
 	 * 
 	 */
-	private Result evaluatePolicyRequest(Vector<Policy> policies, String resource, Principal principal)
+	private Result evaluatePolicyRequest(Vector<Policy> policies, String resource, String specifiedAction, Principal principal)
 	{
 		Result result = null;
 		DecisionType currentDecision = null;
@@ -398,8 +425,9 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 			Policy policy = policyIter.next();
 
-			// retrieve a list of all resources strings in the policy
+			// retrieve a list of all resources and action strings in the policy
 			List<String> policyResources = PolicyEvaluator.getPolicyTargetResources(policy);
+			List<String> policyActions = PolicyEvaluator.getPolicyTargetActions(policy);
 
 			// add current policy to list of processed policies
 			policyData.addProcessedPolicy(policy.getPolicyId());
@@ -438,7 +466,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 							this.logger.debug(Messages.getString("AuthorizationProcessorImpl.159")); //$NON-NLS-1$
 							targetResources = policyResources;
 						}
-						
+
 						Iterator<String> ruleResources = targetResources.iterator();
 
 						while (ruleResources.hasNext())
@@ -450,38 +478,44 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 							if (resource.equals(ruleResource) || resource.matches(ruleResource))
 							{
-								policyData.addProcessedRule(currentRule.getRuleId().toString());
-
-								DecisionType newDecision = this.processRule(currentRule, resource, principal);
-
-								// null return indicates the a condition contained in the rule evaluated to false. We must ignore
-								// this rule. ie: do not process this Rule any longer.
-								if(newDecision == null)
-									break;
-								
-								// end processing if we hit a deny
-								if (newDecision == DecisionType.DENY)
+								if (isValidAction(specifiedAction, policyActions, currentRule))
 								{
-									this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.94")); //$NON-NLS-1$
-									
-									currentDecision = DecisionType.DENY;
-									
-									// we also only want to send the deny group target and authz target that matched the
-									// requested resource, so we need to clear and reset these values in policy data bean
-									policyData.clearTargets();
-									continueProcessing = false;
+									policyData.addProcessedRule(currentRule.getRuleId().toString());
+
+									DecisionType newDecision = this.processRule(currentRule, resource, principal);
+
+									// null return indicates the a condition contained in the rule evaluated to false.
+									// We must ignore
+									// this rule. ie: do not process this Rule any longer.
+									if (newDecision == null)
+										break;
+
+									// end processing if we hit a deny
+									if (newDecision == DecisionType.DENY)
+									{
+										this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.94")); //$NON-NLS-1$
+
+										currentDecision = DecisionType.DENY;
+
+										// we also only want to send the deny group target and authz target that matched
+										// the
+										// requested resource, so we need to clear and reset these values in policy data
+										// bean
+										policyData.clearTargets();
+										continueProcessing = false;
+									}
+									else
+										if (newDecision == DecisionType.PERMIT)
+										{
+											this.logger.debug("Permit decision returned. Continuing processing .."); //$NON-NLS-1$
+
+											currentDecision = DecisionType.PERMIT;
+										}
+
+									// add the policy target match and authz match to data object
+									policyData.addGroupTarget(policyResource);
+									policyData.addMatch(ruleResource);
 								}
-								else if(newDecision == DecisionType.PERMIT)
-								{
-									this.logger.log(Level.DEBUG, "Permit decision returned. Continuing processing .."); //$NON-NLS-1$
-									
-									currentDecision = DecisionType.PERMIT;
-								}									
-								
-								// add the policy target match and authz match to data object
-								policyData.addGroupTarget(policyResource);
-								policyData.addMatch(ruleResource);
-
 							}
 						}
 					}
@@ -500,24 +534,19 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 	/*
 	 * Evaluate and process the given rule to determine the outcome of the resource request.
 	 * 
-	 * @param rule The Rule to evaluate.
-	 * @param principal The Principal object that contains information to match against any conditions
-	 * contained in the given Rule.
-	 * @return A DecisionType representing the outcome of the Rule evaluation if one can be made. If a condition
-	 * contained in the given rule evaluates to False, a decision can not be made based on the Effect of the Rule (because
-	 * the condition does not match) and null is returned. 
+	 * @param rule The Rule to evaluate. @param principal The Principal object that contains information to match
+	 * against any conditions contained in the given Rule. @return A DecisionType representing the outcome of the Rule
+	 * evaluation if one can be made. If a condition contained in the given rule evaluates to False, a decision can not
+	 * be made based on the Effect of the Rule (because the condition does not match) and null is returned.
 	 */
-	@SuppressWarnings("unchecked")  //$NON-NLS-1$
+	@SuppressWarnings("unchecked")//$NON-NLS-1$
 	private DecisionType processRule(Rule rule, String requestedResource, Principal principal)
 	{
 		boolean conditionMatches = true;
 		String effect = new String();
 		ConditionType cond = rule.getCondition();
 
-		this.logger
-				.log(
-						Level.DEBUG,
-						Messages.getString("AuthorizationProcessorImpl.97") + rule.getRuleId() + Messages.getString("AuthorizationProcessorImpl.98") + rule.getEffect()); //$NON-NLS-1$ //$NON-NLS-2$
+		this.logger.debug(Messages.getString("AuthorizationProcessorImpl.97") + rule.getRuleId() + Messages.getString("AuthorizationProcessorImpl.98") + rule.getEffect()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// if a condition exists, evaluate its expression
 		if (cond != null)
@@ -556,12 +585,13 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		effect = rule.getEffect().toString();
 		if (conditionMatches && effect.equalsIgnoreCase(ProtocolTools.PERMIT))
 			return DecisionType.PERMIT;
-		else if (conditionMatches && effect.equalsIgnoreCase(ProtocolTools.DENY))
-			return DecisionType.DENY;
 		else
-			// in this case, the condition did not match so the Effect must be ignored.
-			return null;
-		}
+			if (conditionMatches && effect.equalsIgnoreCase(ProtocolTools.DENY))
+				return DecisionType.DENY;
+			else
+				// in this case, the condition did not match so the Effect must be ignored.
+				return null;
+	}
 
 	/*
 	 * Evaluates all expresssions contained in the given apply type element and returns a boolean value based on the
@@ -642,16 +672,14 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		else
 			if (decision == DecisionType.PERMIT)
 			{
-				message = MessageFormat.format(
-						Messages.getString("AuthorizationProcessorImpl.25"), localPolicyData.getProcessedPolicies()); //$NON-NLS-1$
+				message = MessageFormat.format(Messages.getString("AuthorizationProcessorImpl.25"), localPolicyData.getProcessedPolicies()); //$NON-NLS-1$
 
 				result = eval.createPermitResult(message, localPolicyData);
 			}
 			else
 				if (decision == DecisionType.DENY)
 				{
-					Object[] args = { localPolicyData.getCurrentPolicy(), localPolicyData.getCurrentRule(),
-							localPolicyData.getProcessedRules(), localPolicyData.getProcessedPolicies() };
+					Object[] args = { localPolicyData.getCurrentPolicy(), localPolicyData.getCurrentRule(), localPolicyData.getProcessedRules(), localPolicyData.getProcessedPolicies() };
 					message = MessageFormat.format(Messages.getString("AuthorizationProcessorImpl.26"), args); //$NON-NLS-1$
 
 					result = eval.createDenyResult(message, localPolicyData);
@@ -670,8 +698,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 	 * audienceRestriction The nodeID of the SPEP for whom the response is intended. If there was a problem retrieving
 	 * this value, set to null.
 	 */
-	private Response buildResponse(String samlStatusCode, LXACMLAuthzDecisionStatement authzResponse,
-			AuthorizationProcessorData authData, String audienceRestriction, String inResponseTo)
+	private Response buildResponse(String samlStatusCode, LXACMLAuthzDecisionStatement authzResponse, AuthorizationProcessorData authData, String audienceRestriction, String inResponseTo)
 	{
 		Response response = new Response();
 		response.setVersion(VersionConstants.saml20);
@@ -695,8 +722,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		conditions.setNotOnOrAfter(CalendarUtils.generateXMLCalendar(this.allowedTimeSkew));
 
 		// set audience restriction to SPEP receiving the response
-		List<ConditionAbstractType> audienceRestrictions = conditions
-				.getConditionsAndOneTimeUsesAndAudienceRestrictions();
+		List<ConditionAbstractType> audienceRestrictions = conditions.getConditionsAndOneTimeUsesAndAudienceRestrictions();
 		AudienceRestriction restrict = new AudienceRestriction();
 
 		// we cant set this if the recieved request failed validation
@@ -712,7 +738,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		Subject subject = new Subject();
 		NameIDType nameID = new NameIDType();
 		nameID.setFormat(NameIDFormatConstants.trans);
-		nameID.setValue(authData.getDescriptorID());
+		nameID.setValue(authData.getIssuerID());
 		subject.setNameID(nameID);
 
 		/* subject MUST contain a SubjectConfirmation */
@@ -727,7 +753,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		assertion.setSubject(subject);
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getESOEIdentifier());
+		issuer.setValue(this.metadata.getEsoeEntityID());
 
 		// set assertions and response issuer ID
 		assertion.setIssuer(issuer);
@@ -773,7 +799,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		 *            The associated principal to use when evaluating.
 		 * @return The result of this operation.
 		 */
-		@SuppressWarnings("unchecked")  //$NON-NLS-1$
+		@SuppressWarnings("unchecked")//$NON-NLS-1$
 		public boolean execute(JAXBElement<ApplyType> node, Principal principal)
 		{
 			String function = null;
@@ -822,15 +848,11 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 				// if any returns evaluate to true, the OR is successfull
 				if (result)
 				{
-					AuthorizationProcessorImpl.this.logger
-							.log(
-									Level.DEBUG,
-									Messages.getString("AuthorizationProcessorImpl.104") + FUNCTION_OR + Messages.getString("AuthorizationProcessorImpl.105")); //$NON-NLS-1$ //$NON-NLS-2$
+					AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.104") + FUNCTION_OR + Messages.getString("AuthorizationProcessorImpl.105")); //$NON-NLS-1$ //$NON-NLS-2$
 					return true;
 				}
 			}
-			AuthorizationProcessorImpl.this.logger
-					.debug(Messages.getString("AuthorizationProcessorImpl.106") + FUNCTION_OR + Messages.getString("AuthorizationProcessorImpl.107")); //$NON-NLS-1$ //$NON-NLS-2$
+			AuthorizationProcessorImpl.this.logger.debug(Messages.getString("AuthorizationProcessorImpl.106") + FUNCTION_OR + Messages.getString("AuthorizationProcessorImpl.107")); //$NON-NLS-1$ //$NON-NLS-2$
 			return false;
 		}
 	}
@@ -846,7 +868,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		 *            The associated principal to use when evaluating
 		 * @return The result of this operation
 		 */
-		@SuppressWarnings("unchecked")  //$NON-NLS-1$
+		@SuppressWarnings("unchecked")//$NON-NLS-1$
 		public boolean execute(JAXBElement<ApplyType> node, Principal principal)
 		{
 			String function = null;
@@ -898,16 +920,12 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 				// if any returns evaluate to false, no dice
 				if (!result)
 				{
-					AuthorizationProcessorImpl.this.logger
-							.log(
-									Level.DEBUG,
-									Messages.getString("AuthorizationProcessorImpl.110") + FUNCTION_AND + Messages.getString("AuthorizationProcessorImpl.111")); //$NON-NLS-1$ //$NON-NLS-2$
+					AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.110") + FUNCTION_AND + Messages.getString("AuthorizationProcessorImpl.111")); //$NON-NLS-1$ //$NON-NLS-2$
 					return false;
 				}
 			}
 
-			AuthorizationProcessorImpl.this.logger
-					.debug(Messages.getString("AuthorizationProcessorImpl.112") + FUNCTION_AND + Messages.getString("AuthorizationProcessorImpl.113")); //$NON-NLS-1$ //$NON-NLS-2$
+			AuthorizationProcessorImpl.this.logger.debug(Messages.getString("AuthorizationProcessorImpl.112") + FUNCTION_AND + Messages.getString("AuthorizationProcessorImpl.113")); //$NON-NLS-1$ //$NON-NLS-2$
 			return true;
 		}
 	}
@@ -923,7 +941,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		 *            The associated principal to use when evaluating
 		 * @return The result of this operation
 		 */
-		@SuppressWarnings("unchecked")  //$NON-NLS-1$
+		@SuppressWarnings("unchecked")//$NON-NLS-1$
 		public boolean execute(JAXBElement<ApplyType> node, Principal principal)
 		{
 			String function = null;
@@ -972,16 +990,12 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 				// if any returns evaluate to true, no dice
 				if (result)
 				{
-					AuthorizationProcessorImpl.this.logger
-							.log(
-									Level.DEBUG,
-									Messages.getString("AuthorizationProcessorImpl.116") + FUNCTION_NOT + Messages.getString("AuthorizationProcessorImpl.117")); //$NON-NLS-1$ //$NON-NLS-2$
+					AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.116") + FUNCTION_NOT + Messages.getString("AuthorizationProcessorImpl.117")); //$NON-NLS-1$ //$NON-NLS-2$
 					return false;
 				}
 			}
 
-			AuthorizationProcessorImpl.this.logger
-					.debug(Messages.getString("AuthorizationProcessorImpl.118") + FUNCTION_NOT + Messages.getString("AuthorizationProcessorImpl.119")); //$NON-NLS-1$ //$NON-NLS-2$
+			AuthorizationProcessorImpl.this.logger.debug(Messages.getString("AuthorizationProcessorImpl.118") + FUNCTION_NOT + Messages.getString("AuthorizationProcessorImpl.119")); //$NON-NLS-1$ //$NON-NLS-2$
 			return true;
 		}
 	}
@@ -997,7 +1011,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		 *            The associated principal to use when evaluating
 		 * @return The result of this operation
 		 */
-		@SuppressWarnings("unchecked")  //$NON-NLS-1$
+		@SuppressWarnings("unchecked")//$NON-NLS-1$
 		public boolean execute(JAXBElement<ApplyType> node, Principal principal)
 		{
 			String logMessage = Messages.getString("AuthorizationProcessorImpl.122"); //$NON-NLS-1$
@@ -1059,8 +1073,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 								if (childFunction.equals(FUNCTION_STRING_NORMALIZE_SPACE))
 									normalizeSpaces = true;
 								else
-									throw new IllegalArgumentException(Messages
-											.getString("AuthorizationProcessorImpl.156") + childFunction); //$NON-NLS-1$
+									throw new IllegalArgumentException(Messages.getString("AuthorizationProcessorImpl.156") + childFunction); //$NON-NLS-1$
 						}
 
 			}
@@ -1096,19 +1109,19 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 				// if there were matching attributes, apply the function against then
 				Iterator<IdentityAttribute> identityAttributeIterator = matchingIdentityAttributes.iterator();
 
-				// if the principal's identity attributes did not match any requested attributes as 
+				// if the principal's identity attributes did not match any requested attributes as
 				// specified by the policy, format our message accordingly
-				if(! identityAttributeIterator.hasNext())
+				if (!identityAttributeIterator.hasNext())
 				{
-					logMessage = "{null.equals("+ matcher + ")}";  //$NON-NLS-1$//$NON-NLS-2$
+					logMessage = "{null.equals(" + matcher + ")}"; //$NON-NLS-1$//$NON-NLS-2$
 				}
 				while (identityAttributeIterator.hasNext())
 				{
-					// iterate through values of attributes 
+					// iterate through values of attributes
 					IdentityAttribute attr = identityAttributeIterator.next();
 
 					Iterator attributeValueIterator = attr.getValues().iterator();
-										
+
 					while (attributeValueIterator.hasNext())
 					{
 						String attrValue = (String) attributeValueIterator.next();
@@ -1118,19 +1131,15 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 							if (normalizeSpaces)
 							{
-								attrValue = attrValue.replaceAll(
-										AuthorizationProcessorImpl.this.REGEX_WHITESPACE_START,
-										AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
-								attrValue = attrValue.replaceAll(AuthorizationProcessorImpl.this.REGEX_WHITESPACE_END,
-										AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
+								attrValue = attrValue.replaceAll(AuthorizationProcessorImpl.this.REGEX_WHITESPACE_START, AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
+								attrValue = attrValue.replaceAll(AuthorizationProcessorImpl.this.REGEX_WHITESPACE_END, AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
 							}
 
 							logMessage += Messages.getString("AuthorizationProcessorImpl.123") + attrValue + Messages.getString("AuthorizationProcessorImpl.124") + matcher + Messages.getString("AuthorizationProcessorImpl.125"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 							if (attrValue.equals(matcher))
 							{
-								AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage
-										+ Messages.getString("AuthorizationProcessorImpl.126")); //$NON-NLS-1$
+								AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage + Messages.getString("AuthorizationProcessorImpl.126")); //$NON-NLS-1$
 								return true;
 							}
 						}
@@ -1138,8 +1147,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 				}
 			}
 
-			AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage
-					+ Messages.getString("AuthorizationProcessorImpl.127")); //$NON-NLS-1$
+			AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage + Messages.getString("AuthorizationProcessorImpl.127")); //$NON-NLS-1$
 			return false;
 		}
 
@@ -1156,7 +1164,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 		 *            The associated principal to use when evaluating
 		 * @return The result of this operation
 		 */
-		@SuppressWarnings("unchecked")  //$NON-NLS-1$
+		@SuppressWarnings("unchecked")//$NON-NLS-1$
 		public boolean execute(JAXBElement<ApplyType> node, Principal principal)
 		{
 			String logMessage = Messages.getString("AuthorizationProcessorImpl.131"); //$NON-NLS-1$
@@ -1221,7 +1229,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 								if (childFunction.equals(FUNCTION_STRING_NORMALIZE_SPACE))
 									normalizeSpaces = true;
 								else
-									throw new IllegalArgumentException(MessageFormat.format(Messages.getString("AuthorizationProcessorImpl.152"), childFunction) ); //$NON-NLS-1$
+									throw new IllegalArgumentException(MessageFormat.format(Messages.getString("AuthorizationProcessorImpl.152"), childFunction)); //$NON-NLS-1$
 						}
 			}
 
@@ -1257,12 +1265,12 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 				// if there were matching attributes, apply the function against them
 				Iterator<IdentityAttribute> identityAttributeIterator = identityAttributes.iterator();
-				
-				// if the principal's identity attributes did not match any requested attributes as 
+
+				// if the principal's identity attributes did not match any requested attributes as
 				// specified by the policy, format our message accordingly
-				if(! identityAttributeIterator.hasNext())
+				if (!identityAttributeIterator.hasNext())
 				{
-					logMessage = "{null.equals("+ matcher + ")}"; //$NON-NLS-1$ //$NON-NLS-2$
+					logMessage = "{null.equals(" + matcher + ")}"; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				while (identityAttributeIterator.hasNext())
 				{
@@ -1270,15 +1278,15 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 					IdentityAttribute attr = identityAttributeIterator.next();
 
 					Iterator attributeValueIterator = attr.getValues().iterator();
-					
+
 					// if no attribute values for the slected attribute, format our message accordingly
-					if(!attributeValueIterator.hasNext())
+					if (!attributeValueIterator.hasNext())
 					{
-						logMessage = "{null.equals("+ matcher + ")}"; //$NON-NLS-1$ //$NON-NLS-2$
+						logMessage = "{null.equals(" + matcher + ")}"; //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					while (attributeValueIterator.hasNext())
 					{
-						String attrValue =  attributeValueIterator.next().toString();
+						String attrValue = attributeValueIterator.next().toString();
 
 						try
 						{
@@ -1287,33 +1295,27 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 							if (normalizeSpaces)
 							{
-								attrValue = attrValue.replaceAll(
-										AuthorizationProcessorImpl.this.REGEX_WHITESPACE_START,
-										AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
-								attrValue = attrValue.replaceAll(AuthorizationProcessorImpl.this.REGEX_WHITESPACE_END,
-										AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
+								attrValue = attrValue.replaceAll(AuthorizationProcessorImpl.this.REGEX_WHITESPACE_START, AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
+								attrValue = attrValue.replaceAll(AuthorizationProcessorImpl.this.REGEX_WHITESPACE_END, AuthorizationProcessorImpl.this.REGEX_REPLACE_WITH);
 							}
 
 							logMessage += Messages.getString("AuthorizationProcessorImpl.132") + attrValue + Messages.getString("AuthorizationProcessorImpl.133") + matcher + Messages.getString("AuthorizationProcessorImpl.134"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 							if (attrValue.matches(matcher))
 							{
-								AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage
-										+ Messages.getString("AuthorizationProcessorImpl.135")); //$NON-NLS-1$
+								AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage + Messages.getString("AuthorizationProcessorImpl.135")); //$NON-NLS-1$
 								return true;
 							}
 						}
 						catch (PatternSyntaxException e)
 						{
-							AuthorizationProcessorImpl.this.logger.log(Level.WARN, Messages
-									.getString("AuthorizationProcessorImpl.78") + function + "."); //$NON-NLS-1$ //$NON-NLS-2$
+							AuthorizationProcessorImpl.this.logger.log(Level.WARN, Messages.getString("AuthorizationProcessorImpl.78") + function + "."); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 					}
 				}
 			}
 
-			AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage
-					+ Messages.getString("AuthorizationProcessorImpl.136")); //$NON-NLS-1$
+			AuthorizationProcessorImpl.this.logger.log(Level.DEBUG, logMessage + Messages.getString("AuthorizationProcessorImpl.136")); //$NON-NLS-1$
 			return false;
 		}
 	}

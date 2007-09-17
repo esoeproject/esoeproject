@@ -139,7 +139,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((String)notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest1, StatusCodeConstants.invalidAttr)).anyTimes();
+			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest1, StatusCodeConstants.invalidAttr)).anyTimes();
 		
 		}
 		catch(MarshallerException e)
@@ -164,7 +164,7 @@ public class CacheUpdateFailureMonitorTest
 	}
 
 
-	/** Test the bahaviour of the monitor with regards to removing successfully sent entries.
+	/** Test the behaviour of the monitor with regards to removing successfully sent entries.
 	 * after first poll (this.retryInterval) there should be no entries left.
 	 */
 	@Test
@@ -176,7 +176,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((String)notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
+			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
 		
 		}
 		catch(MarshallerException e)
@@ -218,7 +218,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((String)notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.noAvailableIDP)).anyTimes();
+			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.noAvailableIDP)).anyTimes();
 		
 		}
 		catch(WSClientException e)
@@ -254,7 +254,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((String)notNull(),(String)notNull())).andReturn("<invalid />").anyTimes();
+			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(new String("<invalid />").getBytes()).anyTimes();
 		
 		}
 		catch(WSClientException e)
@@ -275,7 +275,7 @@ public class CacheUpdateFailureMonitorTest
 		// add a new failure with invalid request document, it should stay until it expires.
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
 		failure.setEndPoint("new.invalid.com");
-		failure.setRequestDocument("<hello />");
+		failure.setRequestDocument(new String("<hello />").getBytes());
 		failure.setTimeStamp(new Date(System.currentTimeMillis()));
 		
 		this.failures.add(failure);
@@ -301,7 +301,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((String)notNull(),(String)notNull())).andThrow(new WSClientException("WS error")).anyTimes();
+			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andThrow(new WSClientException("WS error")).anyTimes();
 		
 		}
 		catch(WSClientException e)
@@ -374,7 +374,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((String)notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
+			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
 		
 		}
 		catch(MarshallerException e)
@@ -397,9 +397,9 @@ public class CacheUpdateFailureMonitorTest
 	/* Generate a valid authzclear cache request xml document.
 	 * 
 	 */
-	private String generateClearCacheRequest(String issuerID) throws MarshallerException
+	private byte[] generateClearCacheRequest(String issuerID) throws MarshallerException
 	{
-		String requestDocument = null;
+		byte[] requestDocument = null;
 					
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		NameIDType issuer = new NameIDType();
@@ -421,10 +421,10 @@ public class CacheUpdateFailureMonitorTest
 	/* Generate a valid ClearCache Request XML string
 	 * 
 	 */
-	private String generateClearCacheResponse(String inResponseTo, String statusCodeValue)
+	private byte[] generateClearCacheResponse(String inResponseTo, String statusCodeValue)
 	throws MarshallerException
 	{
-		String responseDocument = null;
+		byte[] responseDocument = null;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 		
 		NameIDType issuer = new NameIDType();

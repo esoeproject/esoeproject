@@ -187,13 +187,13 @@ public class SPEPProcessorTest
 			assertEquals("SPEPProcessor did not return expected metadata object", this.metadata, spepProcessor.getMetadata());
 			
 			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
-			expect(this.metadata.getESOEIdentifier()).andReturn("_esoeid1234").anyTimes();
+			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
 			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
 			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse());
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse());
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse());
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse());
 			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
 
 			setUpMock();
@@ -251,15 +251,15 @@ public class SPEPProcessorTest
 
 			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
 			expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
-			expect(this.metadata.getESOEIdentifier()).andReturn("_esoeid1234").anyTimes();
+			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
 			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
 			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse()).times(2);
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse()).times(2);
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse()).times(2);
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse()).times(2);
 			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
 
 			setUpMock();
@@ -316,15 +316,15 @@ public class SPEPProcessorTest
 
 			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
 			expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
-			expect(this.metadata.getESOEIdentifier()).andReturn("_esoeid1234").anyTimes();
+			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
 			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
 			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
 			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
 			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
 			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
@@ -387,15 +387,15 @@ public class SPEPProcessorTest
 			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
 			expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
 			expect(this.metadata.resolveCacheClearService("_iaminvalid-123")).andThrow(new InvalidMetadataEndpointException());
-			expect(this.metadata.getESOEIdentifier()).andReturn("_esoeid1234").anyTimes();
+			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
 			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
 			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
 			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
-			expect(this.webServiceClient.authzCacheClear((String) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
+			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
 			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
 			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
 			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
@@ -438,7 +438,7 @@ public class SPEPProcessorTest
 		}
 	}	
 	
-	private String generateResponse() throws MarshallerException
+	private byte[] generateResponse() throws MarshallerException
 	{
 		ClearAuthzCacheResponse response = new ClearAuthzCacheResponse();
 		StatusCode code = new StatusCode();
@@ -459,7 +459,7 @@ public class SPEPProcessorTest
 		return this.clearAuthzCacheResponseMarshaller.marshallSigned(response);
 	}
 	
-	private String generateInvalidResponse() throws MarshallerException
+	private byte[] generateInvalidResponse() throws MarshallerException
 	{
 		ClearAuthzCacheResponse response = new ClearAuthzCacheResponse();
 		StatusCode code = new StatusCode();

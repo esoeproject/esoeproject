@@ -81,5 +81,10 @@
 		<constructor-arg index="0" ref="nonInvasivePolicyGuard"/>
 		<constructor-arg index="1" ref="spepDAO" />
 	</bean>
+	
+	<bean id="configureAttributePolicyLogic" class="com.qut.middleware.esoemanager.logic.impl.ConfigureAttributePolicyLogicImpl">
+		<constructor-arg index="0" ref="spepDAO"/>
+		<constructor-arg index="1" value="${configureAttributePolicyLogic.esoeTrustedID}" />
+	</bean>
 
 </beans>

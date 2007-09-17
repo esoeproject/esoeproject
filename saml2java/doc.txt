@@ -14,3 +14,6 @@ org.jcp.xml.dsig.internal.level = FINER
 com.sun.org.apache.xml.internal.security.level = FINER
 
 This will emit XML DSig log messages of level FINER and higher to the console, don't use this in production
+
+**Eclipse**
+Be sure to export -Djavax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema=org.apache.xerces.jaxp.validation.XMLSchemaFactory when building in eclipse to ensure bugs with default JAXPimpl in JDK 5 are not introduced.

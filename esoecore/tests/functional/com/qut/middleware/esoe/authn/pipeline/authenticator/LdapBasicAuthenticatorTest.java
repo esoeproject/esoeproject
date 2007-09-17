@@ -113,7 +113,7 @@ public class LdapBasicAuthenticatorTest
 	 * Test method for
 	 * {@link com.qut.middleware.esoe.authn.pipeline.authenticator.LdapBasicAuthenticator#authenticate(java.lang.String, java.lang.String)}.
 	 */
-	@Test (timeout=3000)
+	@Test
 	public void testAuthenticateInValid()
 	{
 		Authenticator.result result;

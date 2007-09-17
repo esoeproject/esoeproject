@@ -20,24 +20,17 @@
  */
 package com.qut.middleware.esoe.sessions.bean.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.text.MessageFormat;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.springframework.util.FileCopyUtils;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
+import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
 import com.qut.middleware.esoe.sessions.exception.ConfigurationValidationException;
+import com.qut.middleware.esoe.sessions.exception.SessionsDAOException;
+import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
@@ -49,7 +42,9 @@ import com.qut.middleware.saml2.schemas.esoe.sessions.SessionData;
 public class SessionConfigDataImpl implements SessionConfigData
 {
 	private List<IdentityType> identityList;
-	
+	private SessionsDAO sessionsDAO;
+	private Metadata metadata;
+	private Integer esoeEntID;
 	
 	private final String UNMAR_PKGNAMES = SessionData.class.getPackage().getName();
 		
@@ -57,31 +52,22 @@ public class SessionConfigDataImpl implements SessionConfigData
 	private Logger logger = Logger.getLogger(SessionConfigDataImpl.class.getName());
 
 	/**
-	 * @param xmlConfigFile
-	 *            The configuration file to be parsed.
+	 * Default constructor
 	 * @throws ConfigurationValidationException
 	 */
-	public SessionConfigDataImpl(File xmlConfigFile) throws ConfigurationValidationException
+	public SessionConfigDataImpl(SessionsDAO sessionsDAO, Metadata metadata) throws ConfigurationValidationException
 	{
-		if (xmlConfigFile == null || !xmlConfigFile.exists())
-		{
-			throw new IllegalArgumentException(Messages.getString("SessionConfigDataImpl.ConfigPathNull")); //$NON-NLS-1$
-		}
-		
-		InputStream fileStream = null;
-		
 		try
-		{
-			this.logger.debug(MessageFormat.format(Messages.getString("SessionConfigDataImpl.0"), xmlConfigFile.getAbsolutePath())); //$NON-NLS-1$
+		{		
+			this.sessionsDAO = sessionsDAO;
+			this.metadata = metadata;
 			
 			Unmarshaller<SessionData> sessionDataUnmarshaller = new UnmarshallerImpl<SessionData>(this.UNMAR_PKGNAMES, new String[]{ConfigurationConstants.sessionData});
 
-			fileStream = new FileInputStream(xmlConfigFile);
-			Reader reader = new InputStreamReader(fileStream, "UTF-16"); //$NON-NLS-1$
+			this.esoeEntID = this.sessionsDAO.getEntID(this.metadata.getEsoeEntityID());
+			byte[] xmlConfigData = this.sessionsDAO.selectActiveAttributePolicy(this.esoeEntID);
 			
-			String xmlConfigData = FileCopyUtils.copyToString(reader);
-			
-			this.logger.log(InsaneLogLevel.INSANE, xmlConfigData);
+			this.logger.trace(xmlConfigData);
 			
 			SessionData sessionData;
 			sessionData = sessionDataUnmarshaller.unMarshallUnSigned(xmlConfigData);
@@ -89,30 +75,15 @@ public class SessionConfigDataImpl implements SessionConfigData
 		}
 		catch (UnmarshallerException e)
 		{
-			this.logger.debug(MessageFormat.format(Messages.getString("SessionConfigDataImpl.1"), xmlConfigFile.getAbsolutePath()), e); //$NON-NLS-1$
+			this.logger.error(Messages.getString("SessionConfigDataImpl.1")); //$NON-NLS-1$
+			this.logger.debug(Messages.getString("SessionConfigDataImpl.1"), e); //$NON-NLS-1$
 			throw new ConfigurationValidationException(e);
 		}
-		catch (FileNotFoundException e)
+		catch (SessionsDAOException e)
 		{
-			this.logger.debug(MessageFormat.format(Messages.getString("SessionConfigDataImpl.2"), xmlConfigFile.getAbsolutePath()), e); //$NON-NLS-1$
+			this.logger.error(Messages.getString("SessionConfigDataImpl.2")); //$NON-NLS-1$
+			this.logger.debug(Messages.getString("SessionConfigDataImpl.3"), e); //$NON-NLS-1$
 			throw new ConfigurationValidationException(e);
-		}
-		catch (IOException e)
-		{
-			this.logger.debug(MessageFormat.format(Messages.getString("SessionConfigDataImpl.3"), xmlConfigFile.getAbsolutePath()), e); //$NON-NLS-1$
-			throw new ConfigurationValidationException(e);
-		}
-		finally
-		{
-			try
-			{
-				if(fileStream != null)
-					fileStream.close();
-			}
-			catch(IOException e)
-			{
-				//
-			}
 		}
 	}
 

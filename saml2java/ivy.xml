@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
 
-	<info organisation="esoeproject" module="saml2lib-j" revision="0.2">
+	<info organisation="esoeproject" module="saml2lib-j" revision="${esoe.version}">
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"
@@ -15,7 +15,6 @@
 	<configurations>
 		<conf name="dev" />
 		<conf name="dev-release" />
-		<conf name="prd" />
 	</configurations>
 
 	<dependencies>
@@ -24,7 +23,6 @@
         <dependency org="apache" name="commons-collections" rev="latest.integration" conf="dev-release->default"/> 
         <dependency org="apache" name="commons-logging" rev="latest.integration" conf="dev-release->default"/> 
         <dependency org="apache" name="xmlsec" rev="latest.integration" conf="dev-release->default"/> 
-        <dependency org="apache" name="xalan" rev="latest.integration" conf="dev-release->default"/> 
         
         <dependency org="codehaus" name="stax" rev="latest.integration" conf="dev-release->default"/>	
         

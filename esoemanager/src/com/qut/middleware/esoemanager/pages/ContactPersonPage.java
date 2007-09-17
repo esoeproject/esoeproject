@@ -20,13 +20,12 @@ package com.qut.middleware.esoemanager.pages;
 import java.util.Vector;
 
 import com.qut.middleware.esoemanager.bean.ContactPersonBean;
+import com.qut.middleware.esoemanager.bean.ServiceBean;
 import com.qut.middleware.esoemanager.bean.impl.ContactPersonBeanImpl;
 import com.qut.middleware.esoemanager.pages.forms.impl.ContactForm;
 
 public class ContactPersonPage extends BorderPage
 {
-	public Vector<ContactPersonBean> contacts;
-
 	/* Contact details */
 	public ContactForm contactDetails;
 
@@ -39,27 +38,18 @@ public class ContactPersonPage extends BorderPage
 	public void onInit()
 	{
 		this.contactDetails.init();
-
-		/* Retrieve any already active contacts */
-		contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
 	}
 
-	@Override
-	public void onPost()
-	{
-		createOrUpdateContact();
-	}
-
-	protected void createOrUpdateContact()
+	protected void createOrUpdateContact(ServiceBean serviceBean)
 	{
 		if (this.contactDetails.isValid())
 		{
 			/* All data for creating a new contact person is valid, copy to SAML compliant instance */
-			this.contacts = (Vector<ContactPersonBean>) this.retrieveSession(PageConstants.STORED_CONTACTS);
-			if (this.contacts == null)
-				this.contacts = new Vector<ContactPersonBean>();
+			Vector<ContactPersonBean> contacts = (Vector<ContactPersonBean>) serviceBean.getContacts();
+			if (contacts == null)
+				contacts = new Vector<ContactPersonBean>();
 
-			for (ContactPersonBean contactPerson : this.contacts)
+			for (ContactPersonBean contactPerson : contacts)
 			{
 				/*
 				 * If this contact already exists in the data respository it will have a contactID, in which case we
@@ -67,14 +57,13 @@ public class ContactPersonPage extends BorderPage
 				 */
 				if (contactPerson.getContactID() != null && contactPerson.getContactID().length() > 1 && contactPerson.getContactID().equals(this.contactDetails.getFieldValue(PageConstants.CONTACTID)))
 				{
-
-					this.contacts.remove(contactPerson);
+					contacts.remove(contactPerson);
 					break;
 				}
 			}
 
-			this.contacts.add(translateDetails());
-			this.storeSession(PageConstants.STORED_CONTACTS, this.contacts);
+			contacts.add(translateDetails());
+			serviceBean.setContacts(contacts);
 		}
 	}
 

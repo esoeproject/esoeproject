@@ -25,6 +25,6 @@ import com.qut.middleware.esoemanager.exception.ViewServiceException;
 public interface ViewServiceLogic
 {
 
-	public abstract ServiceBean execute(String entityID) throws ViewServiceException;
+	public abstract ServiceBean execute(Integer entID) throws ViewServiceException;
 
 }

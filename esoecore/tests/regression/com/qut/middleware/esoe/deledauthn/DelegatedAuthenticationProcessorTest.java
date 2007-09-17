@@ -302,7 +302,9 @@ public class DelegatedAuthenticationProcessorTest
 	public void testExecute7()
 	{
 		DelegatedAuthenticationData processorData = new DelegatedAuthenticationDataImpl();
-		processorData.setRequestDocument(this.generateRegisterPrincipalRequest() + "<woopsie>");
+		byte[] doc = this.generateRegisterPrincipalRequest();
+		doc [5] = '~';
+		processorData.setRequestDocument(doc);
 		
 		this.processor.execute(processorData);
 		//	validate the returned document
@@ -391,7 +393,7 @@ public class DelegatedAuthenticationProcessorTest
 	/** Creates a valid RegisterPrincipalRequest XML string.
 	 * 
 	 */
-	private String generateRegisterPrincipalRequest()
+	private byte[] generateRegisterPrincipalRequest()
 	{
 		List<AttributeType> attributes = new Vector<AttributeType>();
 		AttributeType attr1 = new AttributeType();
@@ -405,7 +407,7 @@ public class DelegatedAuthenticationProcessorTest
 		attributes.add(attr2);
 		
 		RegisterPrincipalRequest request = new RegisterPrincipalRequest();
-		String document = null;
+		byte[] document = null;
 		
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.issuerID);

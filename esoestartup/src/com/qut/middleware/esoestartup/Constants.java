@@ -17,6 +17,8 @@
  */
 package com.qut.middleware.esoestartup;
 
+import java.io.File;
+
 public class Constants
 {
 	/** SAML schemas */
@@ -45,7 +47,7 @@ public class Constants
 	public static final String MYSQL = "mysql";
 	public static final String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
 	
-	public static final String ALIVE_QUERY = "SELECT COUNT(*) FROM DUAL";
+	public static final String ALIVE_QUERY = "SELECT * FROM SERVICE_POLICIES";
 	public static final String ENTITY_ACTIVE = "y";
 	
 	/* Crypto Generation */
@@ -54,28 +56,20 @@ public class Constants
 	public static final int PASSPHRASE_LENGTH = 10;
 	public static final String METADATA_ISSUER = "cn=\"metadata\",";
 	
-	/* Web Application WAR file generation */
-	public static final String WEBINF = "WEB-INF";
-	public static final String WEBAPP_NAME = "esoestartup";
+	/* Config and Data output */
+	public static final String CONFIG_DIR = File.separatorChar + "config";
+	public static final String LOGGING_DIR = File.separatorChar + "logging";
+	public static final String MD_HISTORICAL_DIR = File.separatorChar + "metadatahistory";
 	
 	public static final String ESOECONFIG = "esoe.config";
 	public static final String ESOEMANAGERSPEPCONFIG = "spep.config";
 	public static final String ESOEMANAGERCONFIG = "esoemanager.config";
 	
-	public static final String ESOE_WAR_NAME = "ROOT.war";
-	public static final String ESOE_EXPLODED_DIR = "esoe";
-
-	public static final String ESOE_MANAGER_SPEP_WAR_NAME = "spep.war";
-	public static final String ESOE_MANAGER_SPEP_EXPLODED_DIR = "spep";
-	
-	public static final String ESOE_MANAGER_WAR_NAME = "esoemanager.war";
-	public static final String ESOE_MANAGER_EXPLODED_DIR = "esoemanager";
-	
-	public static final String ESOE_STARTUP_WARNAME = "esoestartup";
-	
 	public static final String METADATA_KEYSTORE_NAME = "metadataKeystore.ks";
 	public static final String ESOE_KEYSTORE_NAME = "esoeKeystore.ks";
 	public static final String ESOE_MANAGER_SPEP_KEYSTORE_NAME = "spepKeystore.ks";
+	
+	public static final String ESOE_STARTUP_WARNAME = "esoestartup";
 	
 	/* General */
 	public static final String SCHEMA_SEPERATOR = ":";

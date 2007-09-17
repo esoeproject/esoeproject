@@ -65,9 +65,6 @@ public class AuthnServletTest
 	ServletConfig servletConfig;
 	ServletContext servletContext;
 	WebApplicationContext webApplicationContext;
-
-	// use this as esoe config file
-	String configTestFile = "tests/testdata/test.config";
 	
 	Capture<String> captured;
 
@@ -90,6 +87,8 @@ public class AuthnServletTest
 		data = new AuthnProcessorDataImpl();
 		data.setInvalidURL("http://esoe.qut.edu.au/logon/difficulties.do");
 		data.setRedirectTarget("http://esoe.url/sso1");
+		
+		System.setProperty("esoe.data", "tests/testdata");
 	}
 
 	/**
@@ -144,10 +143,6 @@ public class AuthnServletTest
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
 	
-		File esoeConfigFile = new File(configTestFile);
-		
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(new URL("file:" + esoeConfigFile.getAbsolutePath()));
-	
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -181,8 +176,8 @@ public class AuthnServletTest
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -218,8 +213,8 @@ public class AuthnServletTest
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -263,8 +258,8 @@ public class AuthnServletTest
 		
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -307,8 +302,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -346,8 +341,8 @@ public class AuthnServletTest
 	{
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -389,8 +384,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -434,8 +429,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -477,8 +472,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -521,8 +516,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -564,8 +559,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -603,8 +598,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -641,8 +636,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -679,8 +674,8 @@ public class AuthnServletTest
 
 		/* All of our expections for required mockups */
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -711,8 +706,8 @@ public class AuthnServletTest
 	public void testGetServletInfo1() throws ServletException, IOException
 	{
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))
@@ -734,8 +729,8 @@ public class AuthnServletTest
 	public void testInit1() throws ServletException, IOException
 	{
 		expect(servletConfig.getServletContext()).andReturn(servletContext).atLeastOnce();
-		expect(servletContext.getResource(ConfigurationConstants.ESOE_CONFIG)).andReturn(
-				new URL("file:"+ new File(configTestFile).getAbsolutePath()) );
+		
+		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
 		expect(webApplicationContext.getBean("authnProcessor", com.qut.middleware.esoe.authn.AuthnProcessor.class))

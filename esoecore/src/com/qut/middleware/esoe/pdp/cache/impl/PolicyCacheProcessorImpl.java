@@ -19,6 +19,8 @@
  */
 package com.qut.middleware.esoe.pdp.cache.impl;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.security.PrivateKey;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -38,7 +40,6 @@ import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.MonitorThread;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
 import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.log4j.InsaneLogLevel;
 import com.qut.middleware.esoe.metadata.exception.InvalidMetadataEndpointException;
 import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
 import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor;
@@ -66,7 +67,6 @@ import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Policy;
-import com.qut.middleware.saml2.schemas.esoe.lxacml.PolicySet;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.grouptarget.GroupTarget;
 import com.qut.middleware.saml2.schemas.esoe.protocol.ClearAuthzCacheRequest;
 import com.qut.middleware.saml2.schemas.esoe.protocol.ClearAuthzCacheResponse;
@@ -79,11 +79,11 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	// the cache is a map of policy ID -> PolicyType objects
 	private AuthzPolicyCache globalCache;
 	private AuthzCacheUpdateFailureRepository failureRep;
+	
 	private boolean running;
+	private boolean cacheInitialized;
 	
 	private Metadata metadata;
-	// we need to know when the cache was last rebuilt so we can compare last modified times
-	private Date cacheRebuildTime;
 	private int pollInterval;
 	private PrivateKey key;
 	private String keyName;
@@ -95,21 +95,21 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 
 	private Marshaller<ClearAuthzCacheRequest> clearAuthzCacheRequestMarshaller;
 	private Unmarshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseUnmarshaller;
-	private Unmarshaller<PolicySet> policySetUnmarshaller;
+	private Unmarshaller<Policy> policyUnmarshaller;
 	private Marshaller<GroupTarget> groupTargetMarshaller;
 	private SAMLValidator samlValidator;
 	private WSClient wsClient;
 	
 	private final String UNMAR_PKGNAMES = ClearAuthzCacheResponse.class.getPackage().getName();
 	private final String MAR_PKGNAMES = ClearAuthzCacheRequest.class.getPackage().getName() + ":" + GroupTarget.class.getPackage().getName(); //$NON-NLS-1$
-   	private final String UNMAR_PKGNAMES2 = PolicySet.class.getPackage().getName();
+   	private final String UNMAR_PKGNAMES2 = Policy.class.getPackage().getName();
 	private final String MAR_PKGNAMES2 = GroupTarget.class.getPackage().getName();
 	
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(PolicyCacheProcessorImpl.class.getName());
 
 	/**
-	 * Constructor which takes a spring injected datasource as a param. Spring will inject a singleton instance of the
+	 * Constructor which takes a spring injected data source as a parameter. Spring will inject a singleton instance of the
 	 * failure monitor for us to manipulate. This constructor will need to have the global cache object injected by
 	 * spring.
 	 * 
@@ -175,13 +175,13 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 		this.sqlConfig = sqlConfig;
 		this.wsClient = wsClient;
 		this.pollInterval = pollInterval * 1000;
-		this.cacheRebuildTime = null;
 		this.identifierGenerator = identifierGenerator;
 		this.samlValidator = samlValidator;
-
+		this.cacheInitialized = false;
+		
 		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.MAR_PKGNAMES, this.schemas, this.keyName, this.key);
 		this.clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(this.UNMAR_PKGNAMES, this.schemas, this.metadata);
-		this.policySetUnmarshaller = new UnmarshallerImpl<PolicySet>(this.UNMAR_PKGNAMES2, new String[]{ConfigurationConstants.lxacml});
+		this.policyUnmarshaller = new UnmarshallerImpl<Policy>(this.UNMAR_PKGNAMES2, new String[]{ConfigurationConstants.lxacml});
 		this.groupTargetMarshaller = new MarshallerImpl<GroupTarget>(this.MAR_PKGNAMES2, this.schemas);
 		
 		this.logger.info(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.10"), (this.pollInterval/1000)) ); //$NON-NLS-1$
@@ -195,30 +195,30 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	/**
 	 * @see com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor#spepStartingNotification(String, int)
 	 */
-	public result spepStartingNotification(String descriptorID, int authzCacheIndex)
+	public result spepStartingNotification(String entityID, int authzCacheIndex)
 	{		
 		String endpoint = null;
 		
 		try
 		{
-			Map<Integer,String> cacheClearServiceList = this.metadata.resolveCacheClearService(descriptorID);
+			Map<Integer,String> cacheClearServiceList = this.metadata.resolveCacheClearService(entityID);
 			if (cacheClearServiceList == null)
 			{
-				this.logger.error(Messages.getString("PolicyCacheProcessorImpl.33") + descriptorID); //$NON-NLS-1$
+				this.logger.error(Messages.getString("PolicyCacheProcessorImpl.33") + entityID); //$NON-NLS-1$
 				return result.Failure;
 			}
 			
 			endpoint = cacheClearServiceList.get(authzCacheIndex);
 
-			// get associated policies and create authz clear cache request AND generate the request
-			String authzClearCacheRequest = this.generateClearCacheRequest(descriptorID, endpoint, Messages
+			// Get associated policies and create AuthzClearCache request
+			byte[] authzClearCacheRequest = this.generateClearCacheRequest(entityID, endpoint, Messages
 					.getString("PolicyCacheProcessorImpl.3")); //$NON-NLS-1$
 
-			// if the returned request string is null, then a problem occured retrieving policy data.
+			// If the returned request string is null, then a problem occurred retrieving policy data.
 			// Don't send request.
 			if(authzClearCacheRequest == null)
 			{
-				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.12") + descriptorID + Messages.getString("PolicyCacheProcessorImpl.13")); //$NON-NLS-1$ //$NON-NLS-2$
+				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.12") + entityID + Messages.getString("PolicyCacheProcessorImpl.13")); //$NON-NLS-1$ //$NON-NLS-2$
 				return result.Failure;
 			}
 						
@@ -253,20 +253,16 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	 */
 	private void init() throws SQLException
 	{
-		// If there is a last updated timestamp available in the database, use that as the rebuild time
-		// We do this to avoid any time synchronization problems that may cause updated policies to be 
-		// ignored. For example, if the system time is ahead of DB system time, policies updated within
-		// the time skew window will be forever ignored as they will be percieved as being modified
-		// before the cache was last rebuilt.
-		Date lastUpdated = this.sqlConfig.queryDateLastUpdated();
+		// Retrieve the higher sequence number from policies state and compare to our last sequence id
+		long latestSequenceId = this.sqlConfig.queryLastSequenceId();
 		
-		if(lastUpdated == null)
-			// If we can't get a last updated timestamp from the DB, just set the rebuild time to something very
-			// early. Ie something that could not possibly be ahead of the database time when it does get an available
-			// last updated timestamp.
-			lastUpdated = new Date(0);
+		// Reset the policy cache build number to force a rebuild
+		this.globalCache.setBuildSequenceId(AuthzPolicyCache.SEQUENCE_UNINITIALIZED);
 		
-		this.buildCache(lastUpdated, true);
+		if(latestSequenceId <= 0)
+			throw new SQLException("Cache init failed to retrieve any valid sequence id's from policies data store.");
+		
+		this.buildCache(latestSequenceId, true);
 	}
 
 	/*
@@ -283,6 +279,8 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 		try
 		{
 			init();
+			
+			this.cacheInitialized = true;
 		}
 		catch (SQLException e)
 		{
@@ -300,7 +298,6 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 			}
 			catch(SQLException e)
 			{
-				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.18")); //$NON-NLS-1$
 				this.logger.debug(e.getLocalizedMessage(), e);
 			}
 			catch(InterruptedException e)
@@ -308,7 +305,7 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 				if(!this.isRunning())
 					break;
 			}
-			// ignore interrupts and other non-runtime exceptions
+			// ignore interrupts and other runtime exceptions
 			catch (Exception e)
 			{
 				this.logger.debug(e.getLocalizedMessage(), e);
@@ -321,25 +318,28 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	}
 
 	/**
-	 * Poll the datasource containing authorization policies to see if there has been a change. If a policy contained in
-	 * the associated datasource has changed, this method will initiate a cache update - this.updateCache()
+	 * Poll the data source containing authorization policies to see if there has been a change. If a policy contained in
+	 * the associated data source has changed, this method will initiate a cache update - this.updateCache()
 	 * 
 	 * @throws SQLException
 	 */
 	private void poll() throws SQLException
 	{
-		Date lastUpdated = this.sqlConfig.queryDateLastUpdated();
-
-		if(lastUpdated == null)
-			throw new SQLException(Messages.getString("PolicyCacheProcessorImpl.19")); //$NON-NLS-1$
+		// Retrieve the higher sequence number from policies state and compare to our last sequence id
+		long latestSequenceId = this.sqlConfig.queryLastSequenceId();
 		
-		this.logger.debug(Messages.getString("PolicyCacheProcessorImpl.35") + this.cacheRebuildTime + Messages.getString("PolicyCacheProcessorImpl.36") + lastUpdated); //$NON-NLS-1$ //$NON-NLS-2$
+		this.logger.debug(MessageFormat.format("Checking current cache rebuild sequence number {0} against lastest retrieved {1}.", this.globalCache.getBuildSequenceId(), latestSequenceId) ); 
 		
-		// initiate cache update if something has changed
-		if (this.cacheRebuildTime.before(lastUpdated))
+		// Initiate cache update if something has changed
+		if (this.globalCache.getBuildSequenceId() < latestSequenceId)
 		{
 			this.logger.info(Messages.getString("PolicyCacheProcessorImpl.29")); //$NON-NLS-1$
-			this.buildCache(lastUpdated, false);
+			
+			// If the cache still isn't initialized, do a full rebuild
+			if(this.cacheInitialized)
+				this.buildCache(latestSequenceId, false);
+			else
+				this.buildCache(latestSequenceId, true);
 		}
 		else
 			this.logger.debug(Messages.getString("PolicyCacheProcessorImpl.30")); //$NON-NLS-1$
@@ -353,21 +353,20 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	 * 
 	 * @param fullRebuild
 	 *            If set to false, only updated policies will be refreshed.
-	 *  @param rebuildTime 
-	 *  		   The rebuild time of the cache. Ie: when it was last updated.
+	 *  @param latestSequenceId The highest sequenceId retrieved from the policies data store.
 	 * @throws SQLException
 	 *             If there was a problem connecting to the data store.
 	 */
-	private void buildCache(Date rebuildTime, boolean fullRebuild) throws SQLException
+	private void buildCache(long latestSequenceId, boolean fullRebuild) throws SQLException
 	{
 		Vector<String> modifiedDescriptors = new Vector<String>();
 		
-		this.logger.debug(Messages.getString("PolicyCacheProcessorImpl.37") + fullRebuild + Messages.getString("PolicyCacheProcessorImpl.38")); //$NON-NLS-1$ //$NON-NLS-2$
+		this.logger.debug(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.37"), fullRebuild )); //$NON-NLS-1$ 
 				
-		Map<String, PolicySet> databasePolicies = null;
+		Map<String, List<Policy>> databasePolicies = null;
 
 		if (fullRebuild)
-			// retrieve ALL laxacml policies from data source
+			// retrieve ALL lxacml policies from data source
 			databasePolicies = this.retrievePolicies();
 		else
 			// only retrieve changed policies
@@ -382,20 +381,23 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 			{
 				String currentKey = iter.next();
 				modifiedDescriptors.add(currentKey);
-
-				// add or replace realtime cache policy with updated policies
-				this.globalCache.add(currentKey, this.getPolicies(databasePolicies.get(currentKey))); 
+			
+				// add or replace real time cache policy with updated policies
+				this.globalCache.add(currentKey, databasePolicies.get(currentKey)); 
+		
 			}
+			
+			// update cache sequence id
+			this.globalCache.setBuildSequenceId(latestSequenceId);
+			
+			this.logger.info(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.39"), this.globalCache.getSize()) );//$NON-NLS-1$
+
 		}
 		else
 		{
 			throw new SQLException(Messages.getString("PolicyCacheProcessorImpl.20")); //$NON-NLS-1$
 		}
-		
-		this.cacheRebuildTime = rebuildTime;
-		
-		this.logger.info(Messages.getString("PolicyCacheProcessorImpl.39") + this.cacheRebuildTime + Messages.getString("PolicyCacheProcessorImpl.40") + this.globalCache.getSize()); //$NON-NLS-1$ //$NON-NLS-2$
-		
+				
 		// call SPEP notification method
 		this.notifyCacheUpdate(modifiedDescriptors);
 	}
@@ -408,21 +410,21 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	 * @param spepStartup Whether or not it is an SPEP starting up request, in which case we do not record failed
 	 * updates.
 	 */
-	private void notifyCacheUpdate(List<String> descriptors)
+	private void notifyCacheUpdate(List<String> entities)
 	{
 		// iterate through list of SPEPS (obtained from SPEP processor)
-		Iterator<String> descriptorIDIter = descriptors.iterator();
+		Iterator<String> entityIter = entities.iterator();
 
-		while (descriptorIDIter.hasNext())
+		while (entityIter.hasNext())
 		{
-			String descriptorID = descriptorIDIter.next();
+			String entityID = entityIter.next();
 			result updateResult = result.Failure;
-			String authzClearCacheRequest = null;
+			byte[] authzClearCacheRequest = null;
 			String endpoint = null;
 			
 			try
 			{
-				Map<Integer,String> endpoints = this.metadata.resolveCacheClearService(descriptorID);
+				Map<Integer,String> endpoints = this.metadata.resolveCacheClearService(entityID);
 				
 				Iterator<String> endpointIter = endpoints.values().iterator();
 				
@@ -430,14 +432,14 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 				{
 					endpoint = endpointIter.next();
 
-					// get associated policies and create authz clear cache request AND generate the request
-					authzClearCacheRequest = this.generateClearCacheRequest(descriptorID, endpoint, Messages
+					// get associated policies and create AuthzClearCache Request AND generate the request
+					authzClearCacheRequest = this.generateClearCacheRequest(entityID, endpoint, Messages
 							.getString("PolicyCacheProcessorImpl.4")); //$NON-NLS-1$
 
 					// if the returned request string is null, then a problem occured retrieving policy data. Don't send
 					// request.
 					if(authzClearCacheRequest == null)
-						this.logger.warn(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.21"), descriptorID) ); //$NON-NLS-1$
+						this.logger.warn(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.21"), entityID) ); //$NON-NLS-1$
 					else
 						updateResult = this.sendCacheUpdateRequest(authzClearCacheRequest, endpoint);
 				
@@ -450,13 +452,13 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 			// nothing we can do but warn, can't be delivered
 			catch (InvalidMetadataEndpointException e)
 			{				
-				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.23") + descriptorID); //$NON-NLS-1$
+				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.23") + entityID); //$NON-NLS-1$
 				this.logger.trace(e.getLocalizedMessage(), e);
 			}
 			// response from SPEP could not be deciphered
 			catch(MarshallerException e)
 			{			
-				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.24") + descriptorID); //$NON-NLS-1$
+				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.24") + entityID); //$NON-NLS-1$
 				this.logger.trace(e.getLocalizedMessage(), e);
 			}
 			
@@ -473,13 +475,13 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	 * 
 	 * @return The result of the operation. Either Success or Failure.
 	 */
-	private result sendCacheUpdateRequest(String authzClearCacheRequest, String endPoint)
+	private result sendCacheUpdateRequest(byte[] authzClearCacheRequest, String endPoint)
 	{
-		String responseDocument;
+		byte[] responseDocument;
 
 		try
 		{
-			this.logger.debug(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.47"), endPoint)); //$NON-NLS-1$
+			this.logger.info(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.47"), endPoint)); //$NON-NLS-1$
 			
 			responseDocument = this.wsClient.authzCacheClear(authzClearCacheRequest, endPoint);
 			
@@ -497,7 +499,7 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 				{
 					if(StatusCodeConstants.success.equals(clearAuthzCacheResponse.getStatus().getStatusCode().getValue()))
 					{
-						this.logger.debug(Messages.getString("PolicyCacheProcessorImpl.41")); //$NON-NLS-1$
+						this.logger.info(Messages.getString("PolicyCacheProcessorImpl.41")); //$NON-NLS-1$
 						return result.Success;
 					}
 					else
@@ -558,7 +560,7 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	 * @param request The request that failed to deliver. @param endPoint The end point the the request failed to
 	 * deliver to.
 	 */
-	private synchronized void recordFailure(String request, String endPoint)
+	private synchronized void recordFailure(byte[] request, String endPoint)
 	{
 		// create an UpdateFailure object
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
@@ -576,37 +578,237 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 
 	
 	/*
-	 * Retrieve all PolicySet objects the the Policy cache.
+	 * Retrieve all Policy objects from the Policy cache data store.
 	 * 
-	 * @return A map of descriptorID -> PolicySet for all entries in the data store.
+	 * @return A map of descriptorId -> Policy list for all entries in the data store.
 	 */
-	private Map<String, PolicySet> retrievePolicies() throws SQLException
+	private Map<String, List<Policy>> retrievePolicies() throws SQLException
 	{
-		Map<String, PolicySet> policies = Collections.synchronizedMap(new HashMap<String, PolicySet>());
-
-		// spring will map the results into a list for us
+		Map<String, List<Policy>> returnMap = Collections.synchronizedMap(new HashMap<String, List<Policy>>());
 
 		PolicyCacheQueryData queryData = new PolicyCacheQueryData();
 
-		Map<String, PolicyCacheData> result = this.sqlConfig.queryPolicyCache(queryData);
+		List<PolicyCacheData> result = this.sqlConfig.queryPolicyCache(queryData);
 
+		this.logger.debug(MessageFormat.format("Query retrieved {0} results.", result.size()) );
+		
 		if(result != null && !result.isEmpty())
 		{
-			Iterator<String> resultIter = result.keySet().iterator();
+			List<Policy> datasourcePolicies = null;
+			String entityID = null;
+		
+			Iterator<PolicyCacheData> resultIter = result.iterator();
 			while (resultIter.hasNext())
 			{
-				String descriptorID = resultIter.next();
+				PolicyCacheData data = resultIter.next();
+				String policyId = "";
 				try
 				{
-					PolicyCacheData data = result.get(descriptorID);
 					if(data != null)
-						policies.put(descriptorID, this.policySetUnmarshaller.unMarshallUnSigned(data.getLxacmlPolicy()) );
-	
+					{
+						policyId = data.getPolicyId();
+						entityID  = data.getEntityID();
+						
+						// Unmarshall currently processed policy and add to associated policy list for that descriptor
+						Policy replacement = this.policyUnmarshaller.unMarshallUnSigned(data.getLxacmlPolicy());
+						
+						// if our return map does not already contain a list for the currently processed descriptorId, retrieve it from cache
+						if(returnMap.get(entityID) == null)
+							datasourcePolicies = this.globalCache.getPolicies(entityID);
+						
+						if(datasourcePolicies == null)
+						{
+							this.logger.debug("No current policies found. Creating new Policy List ..");
+							// create new list if none stored
+							datasourcePolicies = new Vector<Policy>();
+						}
+						
+						try
+						{
+							this.logger.trace( new String(data.getLxacmlPolicy(), "UTF-16"));
+						}
+						catch(UnsupportedEncodingException e)
+						{
+							e.printStackTrace();
+						}
+						
+						// if the policy already exists in the List, remove it first and replace it.
+						Policy policyToReplace = this.getMatchingPolicy(datasourcePolicies, policyId);
+						if(policyToReplace != null)
+						{
+							boolean removeResult  = datasourcePolicies.remove(policyToReplace);
+							this.logger.debug(MessageFormat.format("Result of removing Policy {0} from data source List is {1}.",policyToReplace, removeResult) );
+						}
+						
+						datasourcePolicies.add(replacement);
+						
+						this.logger.debug(MessageFormat.format("Added policy {0} to List of Policies for {1}", policyId, entityID) ) ;
+					}
+				}
+				// in case there is junk in the data base
+				catch(ClassCastException e)
+				{
+					this.logger.warn(MessageFormat.format("Invalid object contained in Policy data store cache . Offending entity is {0}." , entityID) );
+					this.logger.debug(e.getLocalizedMessage(), e);
 				}
 				catch (UnmarshallerException e)
 				{
-					this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.27") + descriptorID); //$NON-NLS-1$
+					this.logger.warn(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.28"), policyId) ); //$NON-NLS-1$
 					this.logger.debug(e.getLocalizedMessage(), e);
+				}
+				
+				// replace with updated policy list if valid policies are available
+				if(datasourcePolicies.size() != 0)
+				{
+					// replace with updated policy list
+					this.logger.debug(MessageFormat.format("Updating {0} ({1} Policies).", entityID, datasourcePolicies.size()));
+					returnMap.put(entityID , datasourcePolicies );
+				}
+				else
+				{
+					this.logger.warn(MessageFormat.format("DescriptorID {0} has no valid policies. Removing from cache policy update map.", entityID) );
+					returnMap.remove(entityID);
+				}
+			}
+		}
+
+		return returnMap;
+	}
+
+	
+	/*
+	 * Retrieve a list of xacml policies that have a sequence number greater than the current cache rebuild sequence number.
+	 * 
+	 * NOTE: The data structure returned by this method is assumed to be the replacement for the current cache data. As such,
+	 * it will examine the field pollAction() in the returned ibatis bean to see if an operation should be applied to the policy (such
+	 * as delete). It can therefore be assumed that this method will return an accurate and up to date representation of any
+	 * policies which have changed in the data store, including additions or deletions.
+	 * 
+	 * @return  A map of descriptorId -> Policy list for all entries in the data store.
+	 */
+	private Map<String, List<Policy>> retrieveChangedPolicies() throws SQLException
+	{
+		Map<String, List<Policy>> policies = Collections.synchronizedMap(new HashMap<String, List<Policy>>());
+
+		PolicyCacheQueryData queryData = new PolicyCacheQueryData();
+		
+		queryData.setSequenceId(new BigDecimal(this.globalCache.getBuildSequenceId()));
+		
+		List<PolicyCacheData> result = this.sqlConfig.queryPolicyCache(queryData);
+
+		this.logger.debug(MessageFormat.format("Query retrieved {0} results.", result.size()) );
+		
+		if(result != null)
+		{
+			List<Policy> datasourcePolicies = null;
+			String entityID = null;
+			
+			Iterator<PolicyCacheData> resultIter = result.iterator();
+			while (resultIter.hasNext())
+			{
+				PolicyCacheData data = resultIter.next();
+				entityID = data.getEntityID();
+					
+				try
+				{	
+					// first attempt to unmarshall the currently processed policy. If this fails we need do no more
+					Policy replacement = this.policyUnmarshaller.unMarshallUnSigned(data.getLxacmlPolicy()) ;
+				
+					// Retrieve any currently stored policies for currently processed entityID
+					try
+					{
+						this.logger.trace( new String(data.getLxacmlPolicy(), "UTF-16"));
+					}
+					catch(UnsupportedEncodingException e)
+					{
+						e.printStackTrace();
+					}
+					
+					// if our return map does not already contain a list for the currently processed entityID, retrieve it from cache
+					if(policies.get(entityID) == null)
+						datasourcePolicies = this.globalCache.getPolicies(entityID);
+					
+					if(datasourcePolicies == null)
+					{
+						// create new list if none stored
+						datasourcePolicies = new Vector<Policy>();
+					}
+					
+					this.logger.debug(MessageFormat.format("Retrieved current policy list for {0}. {1} policies found.", entityID, datasourcePolicies.size()) );
+					
+					// check poll actions to see if replace or remove
+					char pollAction = (data.getPollAction().length() != 0 ? data.getPollAction().charAt(0) : ConfigurationConstants.POLICY_STATE_NONE);
+					
+					this.logger.debug("Poll action to perform is " + pollAction);
+					
+					if(pollAction == ConfigurationConstants.POLICY_STATE_UPDATE)
+					{
+						// if the policy already exists in the List, remove it first and replace it.
+						Policy policyToReplace = this.getMatchingPolicy(datasourcePolicies, data.getPolicyId());
+						if(policyToReplace != null)
+						{
+							boolean removeResult  = datasourcePolicies.remove(policyToReplace);
+							this.logger.info( MessageFormat.format("Result of removing Policy {0} from data source List is {1}.",policyToReplace, removeResult) );
+						}
+						
+						// Add the replacement.
+						datasourcePolicies.add(replacement);
+						
+						this.logger.debug("Updated Policy " + data.getPolicyId());
+						
+					}
+					else if(pollAction == ConfigurationConstants.POLICY_STATE_DELETE)
+					{
+						// if the policy already exists in the List, remove it first and replace it.
+						Policy policyToReplace = this.getMatchingPolicy(datasourcePolicies, data.getPolicyId());
+						if(policyToReplace != null)
+						{
+							boolean removeResult  = datasourcePolicies.remove(policyToReplace);
+							this.logger.info(MessageFormat.format("Result of removing Policy {0} from data source List is {1}.",policyToReplace, removeResult) );
+						}
+											
+						this.logger.debug("Deleted Policy " + data.getPolicyId());	
+					}
+					else if(pollAction == ConfigurationConstants.POLICY_STATE_ADD)
+					{
+						// if the policy does not already exist in the List, add it.
+						if(this.getMatchingPolicy(datasourcePolicies, replacement.getPolicyId()) == null)
+						{
+							datasourcePolicies.add(replacement);
+							this.logger.debug("Added Policy " + data.getPolicyId());
+						}
+						else
+						{
+							this.logger.warn("Attempt to add existing Policy. Ignoring update.");
+						}
+					}
+					else
+						this.logger.warn(MessageFormat.format("Updated policy {0} did not contain a valid poll action. Ignoring update.", data.getPolicyId()));
+									
+				}
+				// in case there is junk in the data base
+				catch(ClassCastException e)
+				{
+					this.logger.warn(MessageFormat.format("Invalid object contained in Policy data store cache . Offending descriptor is {0}." , entityID) );
+					this.logger.debug(e.getLocalizedMessage(), e);
+				}
+				catch (UnmarshallerException e)
+				{
+					this.logger.warn(MessageFormat.format(Messages.getString("PolicyCacheProcessorImpl.28"), entityID) ); //$NON-NLS-1$
+					this.logger.debug(e.getLocalizedMessage(), e);
+				}
+				
+				// replace with updated policy list if valid policies are available
+				if(datasourcePolicies.size() != 0)
+				{
+					// replace with updated policy list
+					this.logger.debug(MessageFormat.format("Retrieved Policies for {0} ({1} Policies).", entityID, datasourcePolicies.size()));
+					policies.put(entityID , datasourcePolicies );
+				}
+				else
+				{
+					this.logger.warn(MessageFormat.format("DescriptorID {0} has no valid policies. Removing from cache policy update map.", entityID) );
+					policies.remove(entityID);
 				}
 			}
 		}
@@ -615,85 +817,33 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	}
 
 	
-	/*
-	 * Retrieve a list of xacml policies that have a modified date greater than the time the cache was last rebuilt. *
-	 * 
-	 * @return Internal data type to be determined by spring @throws PolicyDataSourceException
-	 */
-	private Map<String, PolicySet> retrieveChangedPolicies() throws SQLException
-	{
-		Map<String, PolicySet> policies = Collections.synchronizedMap(new HashMap<String, PolicySet>());
-
-		PolicyCacheQueryData queryData = new PolicyCacheQueryData();
-		
-		queryData.setDateLastUpdated(this.cacheRebuildTime);
-		
-		Map<String, PolicyCacheData> result = this.sqlConfig.queryPolicyCache(queryData);
-
-		Iterator<String> resultIter = result.keySet().iterator();
-		while (resultIter.hasNext())
-		{
-			String descriptorID = resultIter.next();
-			try
-			{
-				PolicyCacheData data = result.get(descriptorID);
-				PolicySet policySet = this.policySetUnmarshaller.unMarshallUnSigned(data.getLxacmlPolicy());
-				
-				policies.put(descriptorID, policySet);
-				
-			}
-			catch (UnmarshallerException e)
-			{
-				this.logger.warn(Messages.getString("PolicyCacheProcessorImpl.28") + descriptorID ); //$NON-NLS-1$
-				this.logger.debug(e.getLocalizedMessage(), e);
-			}
-		}
-
-		return policies;
-	}
-
-	
-
-	/*
-	 * Small helper to return the policies.
-	 */
-	private Vector<Policy> getPolicies(PolicySet policySet)
-	{
-		Vector<Policy> policies = new Vector<Policy>();
-
-		policies.addAll(policySet.getPolicies());
-
-		return policies;
-
-	}
-
 	
 	/*
-	 * Creates and marshalls the authz clear cache request. Note: If no policies are found for the given descriptorID,
+	 * Creates and marshall's the AuthzClearCache Request. Note: If no policies are found for the given entityID,
 	 * no objects will be marshalled and a null xml string will be returned. This is done because SPEP's with no valid
 	 * policies should not be notified of cache updates.
 	 * 
-	 * @param descriptorID The ID of the SPEP that is being notified of a cache update. Used to retrieve GroupTargets and AuthzTargets. 
+	 * @param descriptorId The ID of the SPEP that is being notified of a cache update. Used to retrieve GroupTargets and AuthzTargets. 
 	 * @param endpoint The SPEP endpoint identifier of the reciever. 
 	 * @param reason The reason for the update notification. 
-	 * @return The string representation of the xml request object generated by this method.
+	 * @return The representation of the xml request object generated by this method.
 	 */
-	private String generateClearCacheRequest(String descriptorID, String endpoint, String reason) throws MarshallerException
+	private byte[] generateClearCacheRequest(String entityID, String endpoint, String reason) throws MarshallerException
 	{
-		String requestDocument = null;
+		byte[] requestDocument = null;
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		Extensions extensions = new Extensions();
 					
-		List<Policy> policies = this.globalCache.getPolicies(descriptorID);
+		List<Policy> policies = this.globalCache.getPolicies(entityID);
 		
 		if(policies != null)
 		{
-			this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format("Generating clearCacheRequest for {0}. {1} Policies retrieved.", descriptorID, policies.size()));
+			this.logger.debug(MessageFormat.format("Generating clearCacheRequest for {0}. {1} Policies retrieved.", entityID, policies.size()));
 			
 			Iterator<Policy> policyIter = policies.iterator();
 			
 			while (policyIter.hasNext())
-			{			
+			{							
 				Policy policy = policyIter.next();
 	
 				// retrieve a list of all resources strings in the policy
@@ -718,14 +868,14 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 			request.setReason(reason);
 			request.setVersion(VersionConstants.saml20);
 			
-			// set the desintation endpoint ID
+			// set the destination end point ID
 			request.setDestination(endpoint);
 			
 			NameIDType issuer = new NameIDType();
-			issuer.setValue(this.metadata.getESOEIdentifier());
+			issuer.setValue(this.metadata.getEsoeEntityID());
 			request.setIssuer(issuer);
 			
-			// Timestamps MUST be set to UTC, no offset
+			// Time stamps MUST be set to UTC, no offset
 			request.setIssueInstant(CalendarUtils.generateXMLCalendar());
 			
 			request.setSignature(new Signature());
@@ -737,6 +887,29 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 			
 		return requestDocument;
 	}
+	
+	/* Convenience method to return the Policy object matching the given policy ID in the given list. Assumes that there
+	 * is only one such matching policy, as it only returns the first match.
+	 * 
+	 */
+	private Policy getMatchingPolicy(List<Policy> listToSearch, String policyId)
+	{
+		// find the current element and replace it
+		Iterator <Policy>iter = listToSearch.iterator();
+		while(iter.hasNext())
+		{
+			Policy next = iter.next();
+			// return any policies thatmatch the given policy id
+			if(next.getPolicyId().equals(policyId))
+			{
+				this.logger.debug("Found matching Policy. Returning " + next);
+				return next;
+			}
+		}
+		
+		return null;
+	}
+	
 	
 	public void shutdown()
 	{

@@ -30,7 +30,7 @@ import com.qut.middleware.esoemanager.metadata.MetadataCache;
 
 public class RetrieveMetadataPage extends Page
 {
-	public String metadata;
+	public byte[] metadata;
 	private MetadataCache metadataCache;
 	
 	private ClickUtils clickUtils;
@@ -41,6 +41,7 @@ public class RetrieveMetadataPage extends Page
 	public RetrieveMetadataPage()
 	{
 		clickUtils = new ClickUtils();
+		this.metadata = null;
 	}
 	
 	/* (non-Javadoc)
@@ -61,10 +62,6 @@ public class RetrieveMetadataPage extends Page
 		/* Retrieve metadata from cache and serve to caller */
 		this.metadata = this.metadataCache.getCacheData();
 		
-		/* Return empty string if underlying system has not created MD yet */
-		if(metadata == null)
-			metadata = "";
-		
 		/* Set headers ready for output of xml, send as a attachment with filename */
 		this.getContext().getResponse().setContentType("text/xml");
 		this.getContext().getResponse().addHeader("Content-disposition", "attachment; filename=metadata.xml");
@@ -72,7 +69,7 @@ public class RetrieveMetadataPage extends Page
 		try
 		{
 			out = this.getContext().getResponse().getOutputStream();
-			this.getContext().getResponse().getOutputStream().write(metadata.getBytes("UTF-16"));
+			this.getContext().getResponse().getOutputStream().write(this.metadata);
 			this.getContext().getResponse().getOutputStream().flush();
 		}
 		catch (UnsupportedEncodingException e)

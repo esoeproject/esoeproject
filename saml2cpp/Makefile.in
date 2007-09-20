@@ -35,9 +35,12 @@ SHLIB_LDFLAGS=-shared -Wl,-soname,$(SONAME)
 LIBPREFIX=lib
 LIBSUFFIX=.so
 
+LIBNAME=$(LIBPREFIX)saml2$(LIBSUFFIX)
+
 INSTALL=@INSTALL@
 INSTALL_DATA=@INSTALL_DATA@
 MKDIR_P=@MKDIR_P@
+LN_S=@LN_S@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -60,7 +63,7 @@ DISTDIR=@builddir@/distribution
 TARNAME=saml2-$(VERSION)
 DISTFILES=configure Makefile.in install-sh AUTHORS LICENSE NOTICE README
 
-BIN=$(OUTDIR)/$(LIBPREFIX)saml2$(LIBSUFFIX)
+BIN=$(OUTDIR)/$(SONAME)
 OBJ=\
 $(OUTDIR)/resolver/ResourceResolver.o \
 $(OUTDIR)/identifier/IdentifierCache.o \
@@ -137,6 +140,7 @@ all: prepare $(BIN)
 
 install: installdirs all
 	$(INSTALL) $(BIN) $(DESTDIR)$(libdir)
+	$(LN_S) $(SONAME) $(DESTDIR)$(libdir)/$(LIBNAME)
 	$(INSTALL_DATA) -t $(DESTDIR)$(SPEPDATADIR)/schema $(SCHEMAS)
 
 installdirs:

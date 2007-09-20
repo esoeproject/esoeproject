@@ -1,0 +1,123 @@
+/* Copyright 2006-2007, Queensland University of Technology
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+ * use this file except in compliance with the License. You may obtain a copy of 
+ * the License at 
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0 
+ * 
+ * Unless required by applicable law or agreed to in writing, software 
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+ * License for the specific language governing permissions and limitations under 
+ * the License.
+ * 
+ * Author: Shaun Mangelsdorf
+ * Creation Date: 25/09/2006
+ * 
+ * Purpose: 
+ */
+
+#ifndef POLICYENFORCEMENTPROCESSOR_H_
+#define POLICYENFORCEMENTPROCESSOR_H_
+
+#include <unicode/unistr.h>
+
+#include "pep/Decision.h"
+#include "pep/PolicyEnforcementProcessorData.h"
+#include "pep/SessionGroupCache.h"
+#include "metadata/Metadata.h"
+#include "identifier/IdentifierGenerator.h"
+#include "metadata/KeyResolver.h"
+#include "reporting/ReportingProcessor.h"
+#include "reporting/LocalReportingProcessor.h"
+#include "sessions/SessionCache.h"
+#include "ws/WSClient.h"
+
+#include "handlers/Marshaller.h"
+#include "handlers/Unmarshaller.h"
+#include "validator/SAMLValidator.h"
+
+#include "lxacml-schema-context.hxx"
+#include "lxacml-schema-grouptarget.hxx"
+#include "lxacml-schema-saml-protocol.hxx"
+#include "lxacml-schema-saml-assertion.hxx"
+#include "saml-schema-assertion-2.0.hxx"
+#include "esoe-schema-saml-protocol.hxx"
+
+#include <string>
+
+
+#define ATTRIBUTE_ID L"lxacmlpdp:obligation:cachetargets:updateusercache"
+#define OBLIGATION_ID L"lxacmlpdp:obligation:cachetargets"
+
+
+namespace spep
+{
+	
+	class PolicyEnforcementProcessor
+	{
+		
+		public:
+		
+		PolicyEnforcementProcessor( ReportingProcessor *reportingProcessor, WSClient *wsClient, SessionGroupCache *sessionGroupCache, SessionCache *sessionCache, Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, KeyResolver *keyResolver, std::string schemaPath );
+		
+		~PolicyEnforcementProcessor();
+		
+		/**
+		 * Makes an authorization decision for the given session to access the given
+		 * resource. This method will attempt to use a local cache to make the decision
+		 * before generating a request and asking the PDP to make a decision.
+		 * 
+		 * Cache updates are performed automatically by this method.
+		 */
+		void makeAuthzDecision( PolicyEnforcementProcessorData &data );
+		
+		/**
+		 * Performs a clear on the authorization cache. All cached data for all sessions
+		 * is immediately flushed.
+		 */
+		void authzCacheClear( PolicyEnforcementProcessorData &data );
+		
+		/**
+		 * Generates a SAML document to perform an authorization query to the ESOE
+		 */
+		void generateAuthzDecisionQuery( PolicyEnforcementProcessorData &data );
+		
+		/**
+		 * Processes a SAML response and returns an authorization decision from the ESOE
+		 */
+		void processAuthzDecisionStatement( PolicyEnforcementProcessorData &data );
+		
+		/**
+		 * Processes a set of Obligations from the ESOE and performs cache updates.
+		 */
+		void processObligations( PolicyEnforcementProcessorData &data, middleware::lxacmlSchema::ObligationsType &obligations );
+
+		/**
+		 * Generates a response to a ClearAuthzCacheRequest, with the given data.
+		 */		
+		void generateClearAuthzCacheResponse( PolicyEnforcementProcessorData &data, std::wstring &inResponseTo, std::wstring &statusMessage, std::wstring &statusCodeValue );
+		
+		
+		private:
+		
+		LocalReportingProcessor _localReportingProcessor;
+		SessionGroupCache *_sessionGroupCache;
+		SessionCache *_sessionCache;
+		Metadata *_metadata;
+		saml2::IdentifierGenerator *_identifierGenerator;
+		saml2::SAMLValidator *_samlValidator;
+		WSClient *_wsClient;
+		
+		saml2::Marshaller<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType> *_lxacmlAuthzDecisionQueryMarshaller;
+		saml2::Unmarshaller<saml2::protocol::ResponseType> *_responseUnmarshaller;
+		saml2::Unmarshaller<middleware::lxacmlSAMLAssertionSchema::LXACMLAuthzDecisionStatementType> *_lxacmlAuthzDecisionStatementUnmarshaller;
+		saml2::Unmarshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType> *_clearAuthzCacheRequestUnmarshaller;
+		saml2::Marshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType> *_clearAuthzCacheResponseMarshaller;
+		saml2::Unmarshaller<middleware::lxacmlGroupTargetSchema::GroupTargetType> *_groupTargetUnmarshaller;
+		
+	};
+	
+}
+
+#endif /*POLICYENFORCEMENTPROCESSOR_H_*/

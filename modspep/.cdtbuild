@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?fileVersion 3.1.0?>
+
+<ManagedProjectBuildInfo>
+<project id="modspep.cdt.managedbuild.target.gnu.cygwin.so.1672115944" name="Shared Library (Gnu on Windows)" projectType="cdt.managedbuild.target.gnu.cygwin.so">
+<configuration artifactExtension="dll" artifactName="modspep" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" id="cdt.managedbuild.config.gnu.cygwin.so.debug.1203158868" name="Debug" parent="cdt.managedbuild.config.gnu.cygwin.so.debug">
+<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.so.debug.52595294" name="GCC Tool Chain" superClass="cdt.managedbuild.toolchain.gnu.cygwin.so.debug">
+<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.so.debug.4893741" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.so.debug">
+<option id="gnu.cpp.compiler.option.include.paths.1101213941" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="&quot;C:\util\httpd-2.0.59\include&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/ssl/include"/>
+<listOptionValue builtIn="false" value="/usr/local/site/dev/libapreq2/include"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/modspep/includes}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/boost/boost}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/spepcpp/includes}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/includes}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/src-gen}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;C:\util\libapreq2-2.08\include&quot;"/>
+<listOptionValue builtIn="false" value="/usr/include/apr-1"/>
+<listOptionValue builtIn="false" value="&quot;C:\util\httpd-2.0.59\os\win32&quot;"/>
+</option>
+<option id="gnu.cpp.compiler.option.other.other.598684282" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long" valueType="string"/>
+<option id="gnu.cpp.compiler.option.preprocessor.def.1557343880" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+<listOptionValue builtIn="false" value="U_HAVE_INTTYPES_H"/>
+</option>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.so.debug.1962336383" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.so.debug"/>
+<tool id="cdt.managedbuild.tool.gnu.c.linker.cygwin.so.debug.1864438958" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.cygwin.so.debug"/>
+<tool id="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.so.debug.1571777056" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.so.debug">
+<option id="gnu.cpp.link.option.libs.1893285881" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<listOptionValue builtIn="false" value="icudt"/>
+<listOptionValue builtIn="false" value="apreq2"/>
+<listOptionValue builtIn="false" value="icuio"/>
+<listOptionValue builtIn="false" value="icule"/>
+<listOptionValue builtIn="false" value="icuin"/>
+<listOptionValue builtIn="false" value="iculx"/>
+<listOptionValue builtIn="false" value="icuuc"/>
+<listOptionValue builtIn="false" value="icutu"/>
+<listOptionValue builtIn="false" value="apr-0"/>
+<listOptionValue builtIn="false" value="aprutil-0"/>
+<listOptionValue builtIn="false" value="spepcpp"/>
+<listOptionValue builtIn="false" value="httpd2core"/>
+</option>
+<option id="gnu.cpp.link.option.paths.130925149" superClass="gnu.cpp.link.option.paths" valueType="stringList">
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/spepcpp/Debug}&quot;"/>
+<listOptionValue builtIn="false" value="/usr/local/site/dev/libapreq2/lib"/>
+<listOptionValue builtIn="false" value="/usr/local/site/dev/icu/lib"/>
+</option>
+</tool>
+<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.so.debug.185566635" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.so.debug"/>
+<macros/>
+</toolChain>
+</configuration>
+<configuration artifactExtension="dll" artifactName="modspep" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.MakeErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.GASErrorParser" id="cdt.managedbuild.config.gnu.cygwin.so.release.1325477671" name="Release" parent="cdt.managedbuild.config.gnu.cygwin.so.release">
+<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.so.release.1505067472" name="GCC Tool Chain" superClass="cdt.managedbuild.toolchain.gnu.cygwin.so.release">
+<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.so.release.1631759386" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.so.release"/>
+<tool id="cdt.managedbuild.tool.gnu.c.compiler.cygwin.so.release.900231603" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.cygwin.so.release"/>
+<tool id="cdt.managedbuild.tool.gnu.c.linker.cygwin.so.release.765193968" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.cygwin.so.release"/>
+<tool id="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.so.release.91601767" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.cygwin.so.release"/>
+<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.so.release.292187543" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.so.release"/>
+</toolChain>
+</configuration>
+<macros/>
+</project>
+</ManagedProjectBuildInfo>

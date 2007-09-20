@@ -1,0 +1,31 @@
+{
+OpenSSL 64bit uninit data of size 8
+Memcheck:Value8
+obj:/lib64/libcrypto.so.0.9.8b
+}
+{
+OpenSSL 32bit uninit data of size 8
+Memcheck:Value4
+obj:/lib/libcrypto.so.0.9.8b
+}
+{
+OpenSSL 64bit
+Memcheck:Cond
+obj:/lib64/libcrypto.so.0.9.8b
+}
+{
+OpenSSL 32bit
+Memcheck:Cond
+obj:/lib/libcrypto.so.0.9.8b
+}
+{
+Xerces 32bit
+Memcheck:Cond
+obj:/usr/lib/libxerces-c.so.27.0
+}
+{
+Xerces 32bit 'leak'
+Memcheck:Leak
+obj:/usr/lib/libxerces-c.so.27.0
+}
+

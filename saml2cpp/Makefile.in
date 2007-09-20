@@ -1,0 +1,164 @@
+
+SHELL=/bin/sh
+
+.SUFFIXES: .cpp .o .so
+
+VERSION=@PACKAGE_VERSION@
+BINARY_VERSION=@BINARY_VERSION@
+
+SONAME=libsaml2.so.$(BINARY_VERSION)
+
+XERCESPATH=@XERCESPATH@
+XMLSECPATH=@XMLSECPATH@
+
+ifneq "$(XERCESPATH)" ""
+XERCESLIB=-L$(XERCESPATH)/lib
+XERCESINCLUDE=-I$(XERCESPATH)/include
+endif
+
+ifneq "$(XMLSECPATH)" ""
+XMLSECLIB=-L$(XMLSECPATH)/lib
+XMLSECINCLUDE=-I$(XMLSECPATH)/include
+endif
+
+CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
+CXXFLAGS=@CXXFLAGS@
+DEFS=@DEFS@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+INCLUDES=-I@srcdir@/includes -I@srcdir@/src-gen $(XERCESINCLUDE) $(XMLSECINCLUDE)
+
+# xx Edit here for other toolsets xx
+SHLIB_CXXFLAGS=-fPIC -DPIC=1
+SHLIB_LDFLAGS=-shared -Wl,-soname,$(SONAME)
+LIBPREFIX=lib
+LIBSUFFIX=.so
+
+INSTALL=@INSTALL@
+INSTALL_DATA=@INSTALL_DATA@
+MKDIR_P=@MKDIR_P@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+bindir=@bindir@
+sbindir=@sbindir@
+sysconfdir=@sysconfdir@
+libdir=@libdir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+
+OUTDIR=@builddir@/build
+SRCDIR=@srcdir@/src
+SRCGENDIR=@srcdir@/src-gen
+INCDIR=@srcdir@/includes
+SCHEMASRCDIR=@srcdir@/schema
+SPEPDATADIR=$(datadir)/spep-$(VERSION)
+
+DISTDIR=@builddir@/distribution
+TARNAME=saml2-$(VERSION)
+DISTFILES=configure Makefile.in install-sh AUTHORS LICENSE NOTICE README
+
+BIN=$(OUTDIR)/$(LIBPREFIX)saml2$(LIBSUFFIX)
+OBJ=\
+$(OUTDIR)/resolver/ResourceResolver.o \
+$(OUTDIR)/identifier/IdentifierCache.o \
+$(OUTDIR)/identifier/IdentifierGenerator.o \
+$(OUTDIR)/validator/SAMLAssertionValidator.o \
+$(OUTDIR)/validator/SAMLAuthnRequestValidator.o \
+$(OUTDIR)/validator/SAMLValidator.o \
+$(OUTDIR)/validator/SAMLRequestValidator.o \
+$(OUTDIR)/validator/SAMLResponseValidator.o \
+$(OUTDIR)/handlers/SAML2ErrorHandler.o \
+$(OUTDIR)/handlers/MetadataOutput.o \
+$(OUTDIR)/xsd/xml-schema-custom-attributevaluetype.o \
+$(OUTDIR)/xsd/xml-schema-custom.o \
+$(OUTDIR)/exceptions/InvalidParameterException.o \
+$(OUTDIR)/exceptions/InvalidSAMLResponseException.o \
+$(OUTDIR)/exceptions/InvalidSAMLAuthnRequestException.o \
+$(OUTDIR)/exceptions/IdentifierException.o \
+$(OUTDIR)/exceptions/InvalidSAMLAssertionException.o \
+$(OUTDIR)/exceptions/IdentifierCacheException.o \
+$(OUTDIR)/exceptions/InvalidSAMLRequestException.o \
+$(OUTDIR)/exceptions/MarshallerException.o \
+$(OUTDIR)/exceptions/UnmarshallerException.o \
+$(OUTDIR)/namespace/NamespacePrefixMapper.o \
+$(OUTDIR)/src-gen/xenc-schema.o \
+$(OUTDIR)/src-gen/saml-schema-assertion-2.0.o \
+$(OUTDIR)/src-gen/attributeconfig-schema.o \
+$(OUTDIR)/src-gen/spepstartup-schema-saml-metadata.o \
+$(OUTDIR)/src-gen/delegated-schema-saml-protocol.o \
+$(OUTDIR)/src-gen/esoe-schema-saml-protocol.o \
+$(OUTDIR)/src-gen/xmldsig-core-schema.o \
+$(OUTDIR)/src-gen/lxacml-schema-metadata.o \
+$(OUTDIR)/src-gen/sessiondata-schema.o \
+$(OUTDIR)/src-gen/lxacml-schema-saml-protocol.o \
+$(OUTDIR)/src-gen/saml-schema-protocol-2.0.o \
+$(OUTDIR)/src-gen/xml.o \
+$(OUTDIR)/src-gen/lxacml-schema-context.o \
+$(OUTDIR)/src-gen/lxacml-schema-grouptarget.o \
+$(OUTDIR)/src-gen/lxacml-schema-saml-assertion.o \
+$(OUTDIR)/src-gen/saml-schema-metadata-2.0.o \
+$(OUTDIR)/src-gen/lxacml-schema.o \
+$(OUTDIR)/src-gen/cacheclear-schema-saml-metadata.o
+
+OBJDIRS=\
+$(OUTDIR) \
+$(OUTDIR)/resolver \
+$(OUTDIR)/identifier \
+$(OUTDIR)/validator \
+$(OUTDIR)/handlers \
+$(OUTDIR)/xsd \
+$(OUTDIR)/exceptions \
+$(OUTDIR)/namespace \
+$(OUTDIR)/src-gen
+
+SCHEMAS=$(SCHEMASRCDIR)/lxacml-schema-saml-protocol.xsd \
+$(SCHEMASRCDIR)/esoe-schema-saml-protocol.xsd \
+$(SCHEMASRCDIR)/saml-schema-protocol-2.0.xsd \
+$(SCHEMASRCDIR)/sessiondata-schema.xsd \
+$(SCHEMASRCDIR)/lxacml-schema-grouptarget.xsd \
+$(SCHEMASRCDIR)/lxacml-schema.xsd \
+$(SCHEMASRCDIR)/spepstartup-schema-saml-metadata.xsd \
+$(SCHEMASRCDIR)/cacheclear-schema-saml-metadata.xsd \
+$(SCHEMASRCDIR)/lxacml-schema-saml-assertion.xsd \
+$(SCHEMASRCDIR)/saml-schema-metadata-2.0.xsd \
+$(SCHEMASRCDIR)/delegated-schema-saml-protocol.xsd \
+$(SCHEMASRCDIR)/xenc-schema.xsd \
+$(SCHEMASRCDIR)/saml-schema-assertion-2.0.xsd \
+$(SCHEMASRCDIR)/attributeconfig-schema.xsd \
+$(SCHEMASRCDIR)/xmldsig-core-schema.xsd \
+$(SCHEMASRCDIR)/lxacml-schema-context.xsd \
+$(SCHEMASRCDIR)/xml.xsd \
+$(SCHEMASRCDIR)/lxacml-schema-metadata.xsd
+
+all: prepare $(BIN)
+
+install: installdirs all
+	$(INSTALL) $(BIN) $(DESTDIR)$(libdir)
+	$(INSTALL_DATA) -t $(DESTDIR)$(SPEPDATADIR)/schema $(SCHEMAS)
+
+installdirs:
+	$(MKDIR_P) $(DESTDIR)$(libdir) $(DESTDIR)$(SPEPDATADIR)/schema
+
+dist:
+	$(MKDIR_P) $(DISTDIR)/$(TARNAME)
+	cp -frt $(DISTDIR)/$(TARNAME) $(SRCDIR) $(SRCGENDIR) $(INCDIR) $(SCHEMASRCDIR) $(DISTFILES)
+	tar zc -C $(DISTDIR) -f $(TARNAME).tar.gz --exclude .svn --no-anchored $(TARNAME)
+
+clean:
+	rm -f $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CXX) $(LDFLAGS) $(SHLIB_LDFLAGS) -o $@ $(OBJ)
+
+prepare:
+	$(MKDIR_P) $(OBJDIRS)
+
+$(OUTDIR)/src-gen/%.o: $(SRCGENDIR)/%.cxx
+	$(CXX) $(CXXFLAGS) $(SHLIB_CXXFLAGS) $(INCLUDES) -c -o $@ $<
+
+$(OUTDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(SHLIB_CXXFLAGS) $(INCLUDES) -c -o $@ $<
+

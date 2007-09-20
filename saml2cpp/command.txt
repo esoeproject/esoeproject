@@ -1,0 +1,36 @@
+XSD should be executed in this order:
+
+export SAML2CPP=/home/mangelsd/workspaces/esoe/saml2cpp
+1.
+xsd cxx-tree --char-type wchar_t --generate-xml-schema --custom-type date --custom-type dateTime --hxx-epilogue '#include "xsd/xml-schema-custom.h"' --output-dir $SAML2CPP/includes/xsd/ xml-schema.xsd
+2.
+xsd cxx-tree --extern-xml-schema xsd/xml-schema.xsd --generate-default-ctor --morph-anonymous --char-type wchar_t --show-sloc --generate-polymorphic --generate-serialization --namespace-map http://www.w3.org/2001/04/xmlenc#=w3::xmlenc --namespace-map http://www.w3.org/2000/09/xmldsig#=w3::xmldsig --namespace-map urn:oasis:names:tc:SAML:2.0:assertion=saml2::assertion --namespace-map urn:oasis:names:tc:SAML:2.0:metadata=saml2::metadata --namespace-map urn:oasis:names:tc:SAML:2.0:protocol=saml2::protocol --output-dir $SAML2CPP/src-gen/ $SAML2CPP/schema/*
+3.
+xsd cxx-tree --extern-xml-schema xsd/xml-schema.xsd --custom-type AttributeValueType --hxx-epilogue '#include "xsd/xml-schema-custom-attributevaluetype.h"' --generate-default-ctor --morph-anonymous --char-type wchar_t --show-sloc --generate-polymorphic --generate-serialization --namespace-map http://www.w3.org/2001/04/xmlenc#=w3::xmlenc --namespace-map http://www.w3.org/2000/09/xmldsig#=w3::xmldsig --namespace-map urn:oasis:names:tc:SAML:2.0:assertion=saml2::assertion --namespace-map urn:oasis:names:tc:SAML:2.0:metadata=saml2::metadata --namespace-map urn:oasis:names:tc:SAML:2.0:protocol=saml2::protocol --output-dir $SAML2CPP/src-gen/ $SAML2CPP/schema/lxacml-schema-context.xsd
+
+
+## Manual Customisation
+In xml-schema.h
+find
+#include <xsd/cxx/xml/error-handler.hxx>
+
+after, add
+#include <xsd/cxx/xml/dom/namespace-infomap.hxx>
+#include <xsd/cxx/tree/serialization.hxx>
+
+
+
+
+
+
+
+
+
+
+
+
+---------------
+Require libraries to compile SAML2LIB-CPP
+APR-devel
+APR-UTIL-devel
+log4cxx - http://littletux.homelinux.org/log4cxx/

@@ -1,0 +1,187 @@
+<!-- 
+	Copyright 2006-2007, Queensland University of Technology
+	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at 
+	
+	http://www.apache.org/licenses/LICENSE-2.0 
+	
+	Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+	
+	Creation Date: 26/09/2006
+-->
+<xsd:schema targetNamespace="http://www.qut.com/middleware/lxacmlSchema"
+	xmlns:lxacml="http://www.qut.com/middleware/lxacmlSchema"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:element name="PolicySet" type="lxacml:PolicySetType" />
+	<xsd:complexType name="PolicySetType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Description" minOccurs="0" />
+			<xsd:element ref="lxacml:Policy" minOccurs="0"
+				maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="Policy" type="lxacml:PolicyType" />
+	<xsd:complexType name="PolicyType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Description" />
+			<xsd:element ref="lxacml:Target" />
+			<xsd:element ref="lxacml:Rule" maxOccurs="unbounded" />
+		</xsd:sequence>
+		<xsd:attribute name="PolicyId" type="xsd:anyURI" use="required" />
+	</xsd:complexType>
+
+	<xsd:element name="Rule" type="lxacml:RuleType" />
+	<xsd:complexType name="RuleType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Description" />
+			<xsd:element ref="lxacml:Target" minOccurs="0" />
+			<xsd:element ref="lxacml:Condition" minOccurs="0" />
+		</xsd:sequence>
+		<xsd:attribute name="RuleId" type="xsd:string" use="required" />
+		<xsd:attribute name="Effect" type="lxacml:EffectType"
+			use="required" />
+	</xsd:complexType>
+
+	<xsd:element name="Target" type="lxacml:TargetType" />
+	<xsd:complexType name="TargetType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Resources" minOccurs="1" />
+			<xsd:element ref="lxacml:Actions" minOccurs="1" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="Resources" type="lxacml:ResourcesType" />
+	<xsd:complexType name="ResourcesType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Resource" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="Actions" type="lxacml:ActionsType" />
+	<xsd:complexType name="ActionsType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Action" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="Resource" type="lxacml:ResourceType" />
+	<xsd:complexType name="ResourceType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:AttributeValue" />
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="Action" type="lxacml:ActionType" />
+	<xsd:complexType name="ActionType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:AttributeValue" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="Expression" type="lxacml:ExpressionType"
+		abstract="true" />
+	<xsd:complexType name="ExpressionType" abstract="true" />
+
+	<xsd:element name="Condition" type="lxacml:ConditionType"
+		substitutionGroup="lxacml:Expression" />
+	<xsd:complexType name="ConditionType">
+		<xsd:complexContent>
+			<xsd:extension base="lxacml:ExpressionType">
+				<xsd:sequence>
+					<xsd:element ref="lxacml:Expression" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="Apply" type="lxacml:ApplyType"
+		substitutionGroup="lxacml:Expression" />
+	<xsd:complexType name="ApplyType">
+		<xsd:complexContent>
+			<xsd:extension base="lxacml:ExpressionType">
+				<xsd:sequence>
+					<xsd:element ref="lxacml:Expression" minOccurs="0"
+						maxOccurs="unbounded" />
+				</xsd:sequence>
+				<xsd:attribute name="FunctionId" type="xsd:anyURI"
+					use="required" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="AttributeDesignatorType">
+		<xsd:complexContent>
+			<xsd:extension base="lxacml:ExpressionType">
+				<xsd:attribute name="AttributeId" type="xsd:anyURI"
+					use="required" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="SubjectAttributeDesignator"
+		type="lxacml:SubjectAttributeDesignatorType"
+		substitutionGroup="lxacml:Expression" />
+	<xsd:complexType name="SubjectAttributeDesignatorType">
+		<xsd:complexContent>
+			<xsd:extension base="lxacml:AttributeDesignatorType" />
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="AttributeValue" type="lxacml:AttributeValueType"
+		substitutionGroup="lxacml:Expression" />
+	<xsd:complexType name="AttributeValueType" mixed="true">
+		<xsd:complexContent>
+			<xsd:extension base="lxacml:ExpressionType">
+				<xsd:sequence>
+					<xsd:any namespace="##any" processContents="lax"
+						minOccurs="0" maxOccurs="unbounded" />
+				</xsd:sequence>
+				<xsd:anyAttribute namespace="##any"
+					processContents="lax" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="Obligations" type="lxacml:ObligationsType" />
+	<xsd:complexType name="ObligationsType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:Obligation" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="Obligation" type="lxacml:ObligationType" />
+	<xsd:complexType name="ObligationType">
+		<xsd:sequence>
+			<xsd:element ref="lxacml:AttributeAssignment" minOccurs="0"
+				maxOccurs="unbounded" />
+		</xsd:sequence>
+		<xsd:attribute name="ObligationId" type="xsd:anyURI"
+			use="required" />
+		<xsd:attribute name="FulfillOn" type="lxacml:EffectType"
+			use="required" />
+	</xsd:complexType>
+
+	<xsd:simpleType name="EffectType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="Permit" />
+			<xsd:enumeration value="Deny" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="AttributeAssignment"
+		type="lxacml:AttributeAssignmentType" />
+	<xsd:complexType name="AttributeAssignmentType" mixed="true">
+		<xsd:complexContent>
+			<xsd:extension base="lxacml:AttributeValueType">
+				<xsd:attribute name="AttributeId" type="xsd:anyURI"
+					use="required" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+
+	<xsd:element name="Description" type="xsd:string" />
+
+</xsd:schema>

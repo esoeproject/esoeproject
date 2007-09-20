@@ -137,6 +137,7 @@ $(SCHEMASRCDIR)/xml.xsd \
 $(SCHEMASRCDIR)/lxacml-schema-metadata.xsd
 
 all: prepare $(BIN)
+	$(LN_S) $(SONAME) $(OUTDIR)/$(LIBNAME)
 
 install: installdirs all
 	$(INSTALL) $(BIN) $(DESTDIR)$(libdir)

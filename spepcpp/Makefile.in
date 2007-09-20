@@ -161,6 +161,7 @@ $(OUTDIR)/metadata/impl \
 $(OUTDIR)/attribute
 
 all: prepare $(BIN)
+	$(LN_S) $(SONAME) $(OUTDIR)/$(LIBNAME)
 
 install: installdirs all
 	$(INSTALL) $(BIN) $(DESTDIR)$(libdir)

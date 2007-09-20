@@ -1,0 +1,106 @@
+SHELL=/bin/sh
+
+.SUFFIXES: .cpp .o .so
+
+VERSION=@PACKAGE_VERSION@
+
+XERCESPATH=@XERCESPATH@
+XMLSECPATH=@XMLSECPATH@
+SAML2CPPPATH=@SAML2CPPPATH@
+SPEPCPPPATH=@SPEPCPPPATH@
+ICUPATH=@ICUPATH@
+AXIS2PATH=@AXIS2PATH@
+
+ifneq "$(XERCESPATH)" ""
+XERCESLIB=-L$(XERCESPATH)/lib
+XERCESINCLUDE=-I$(XERCESPATH)/include
+endif
+
+ifneq "$(XMLSECPATH)" ""
+XMLSECLIB=-L$(XMLSECPATH)/lib
+XMLSECINCLUDE=-I$(XMLSECPATH)/include
+endif
+
+ifneq "$(SAML2CPPPATH)" ""
+SAML2CPPLIB=-L$(SAML2CPPPATH)/build
+SAML2CPPINCLUDE=-I$(SAML2CPPPATH)/includes -I$(SAML2CPPPATH)/src-gen
+endif
+
+ifneq "$(SPEPCPPPATH)" ""
+SPEPCPPLIB=-L$(SPEPCPPPATH)/build
+SPEPCPPINCLUDE=-I$(SPEPCPPPATH)/includes
+endif
+
+ifneq "$(ICUPATH)" ""
+ICULIB=-L$(ICUPATH)/lib
+ICUINCLUDE=-I$(ICUPATH)/include
+endif
+
+ifneq "$(AXIS2PATH)" ""
+AXIS2LIB=-L$(AXIS2PATH)/lib
+AXIS2INCLUDE=-I$(AXIS2PATH)/include/axis2-1.0
+endif
+
+CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
+CXXFLAGS=@CXXFLAGS@
+DEFS=@DEFS@
+LDFLAGS=@LDFLAGS@
+LIBS=@LIBS@
+INCLUDES=-I@srcdir@/includes $(SPEPCPPINCLUDE) $(SAML2CPPINCLUDE) $(XERCESINCLUDE) $(XMLSECINCLUDE) $(ICUINCLUDE) $(AXIS2INCLUDE)
+LIBS=-lcurl -lxerces-c -lxml-security-c -lspep -lsaml2 -lboost_regex -lboost_date_time -lboost_program_options -lboost_thread -licuio -liculx -licule -licuuc -licui18n -licutu -laxis2 $(XERCESLIB) $(XMLSECLIB) $(SAML2CPPLIB) $(SPEPCPPLIB) $(ICULIB) $(AXIS2LIB)
+
+# xx Edit here for other toolsets xx
+EXESUFFIX=
+
+INSTALL=@INSTALL@
+INSTALL_DATA=@INSTALL_DATA@
+MKDIR_P=@MKDIR_P@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+bindir=@bindir@
+sbindir=@sbindir@
+sysconfdir=@sysconfdir@
+libdir=@libdir@
+
+OUTDIR=@builddir@/build
+INCDIR=@srcdir@/includes
+SRCDIR=@srcdir@/src
+
+DISTDIR=@builddir@/distribution
+TARNAME=spepd-$(VERSION)
+DISTFILES=configure Makefile.in install-sh AUTHORS LICENSE NOTICE README
+
+BIN=$(OUTDIR)/spepd$(EXESUFFIX)
+OBJ= \
+$(OUTDIR)/Main.o \
+$(OUTDIR)/StreamLogHandler.o \
+$(OUTDIR)/Daemon.o
+
+all: prepare $(BIN)
+
+install: installdirs all
+	$(INSTALL) $(BIN) $(DESTDIR)$(sbindir)
+	
+installdirs:
+	$(MKDIR_P) $(DESTDIR)$(sbindir)
+
+dist:
+	$(MKDIR_P) $(DISTDIR)/$(TARNAME)
+	cp -frt $(DISTDIR)/$(TARNAME) $(SRCDIR) $(INCDIR) $(DISTFILES)
+	tar zc -C $(DISTDIR) -f $(TARNAME).tar.gz --exclude .svn --no-anchored $(TARNAME)
+
+clean:
+	rm -f $(BIN) $(OBJ)
+
+$(BIN): $(OBJ)
+	$(CXX) $(LDFLAGS) $(LIBS) -o $@ $(OBJ)
+
+prepare: 
+	$(MKDIR_P) $(OUTDIR)
+
+$(OUTDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<
+

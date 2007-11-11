@@ -1,26 +1,28 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.61)
-AC_INIT([C++ SPEP Daemon], 0.1)
-AC_CONFIG_SRCDIR([includes/StreamLogHandler.h])
+AC_PREREQ(2.59)
+AC_INIT([SPEPD], 0.3)
+AC_CONFIG_SRCDIR([include/StreamLogHandler.h])
 #AC_CONFIG_HEADER([config.h])
+
+AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CXX
 AC_PROG_CC
-AC_PROG_INSTALL
-AC_PROG_MKDIR_P
+dnl AC_PROG_INSTALL
+dnl AC_PROG_MKDIR_P
 
 # Checks for libraries.
 
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
+dnl AC_C_CONST
 
 # Checks for library functions.
-AC_FUNC_FORK
+dnl AC_FUNC_FORK
 
 AC_ARG_WITH(
 	[xerces],
@@ -28,8 +30,8 @@ AC_ARG_WITH(
 		[--with-xerces=DIR],
 		[path to look for xerces ./include and ./lib])
 	],
-	[AC_SUBST([XERCESPATH],[$withval])],
-	[AC_SUBST([XERCESPATH],[[]])]
+	[xercespath=$withval],
+	[xercespath=]
 )
 
 AC_ARG_WITH(
@@ -38,18 +40,18 @@ AC_ARG_WITH(
 		[--with-xmlsec=DIR],
 		[path to look for xml-security-c ./include and ./lib])
 	],
-	[AC_SUBST([XMLSECPATH],[$withval])],
-	[AC_SUBST([XMLSECPATH],[[]])]
+	[xmlsecpath=$withval],
+	[xmlsecpath=]
 )
 
 AC_ARG_WITH(
 	[saml2cpp],
 	[AS_HELP_STRING(
 		[--with-saml2cpp=DIR],
-		[path to look for saml2cpp ./includes and ./src-gen])
+		[path to look for saml2cpp ./include and ./lib])
 	],
-	[AC_SUBST([SAML2CPPPATH],[$withval])],
-	[AC_SUBST([SAML2CPPPATH],[[]])]
+	[saml2path=$withval],
+	[saml2path=]
 )
 
 AC_ARG_WITH(
@@ -58,29 +60,100 @@ AC_ARG_WITH(
 		[--with-icu=DIR],
 		[path to look for ICU ./include and ./lib])
 	],
-	[AC_SUBST([ICUPATH],[$withval])],
-	[AC_SUBST([ICUPATH],[[]])]
+	[icupath=$withval],
+	[icupath=]
 )
 
 AC_ARG_WITH(
-	[axis2],
+	[boost],
 	[AS_HELP_STRING(
-		[--with-axis2=DIR],
-		[path to look for Axis2/C ./include/axis2-1.0 and ./lib])
+		[--with-boost=DIR],
+		[path to look for Boost ./include and ./lib])
 	],
-	[AC_SUBST([AXIS2PATH],[$withval])],
-	[AC_SUBST([AXIS2PATH],[[]])]
+	[boostpath=$withval],
+	[boostpath=]
+)
+
+AC_ARG_WITH(
+	[xsd],
+	[AS_HELP_STRING(
+		[--with-xsd=DIR],
+		[path to look for xsd ./libxsd header directory])
+	],
+	[xsdpath=$withval],
+	[xsdpath=]
+)
+
+AC_ARG_WITH(
+	[openssl],
+	[AS_HELP_STRING(
+		[--with-openssl=DIR],
+		[path to look for openssl ./include and ./lib])
+	],
+	[opensslpath=$withval],
+	[opensslpath=]
+)
+
+AC_ARG_WITH(
+	[curl],
+	[AS_HELP_STRING(
+		[--with-curl=DIR],
+		[path to look for cURL ./include and ./lib])
+	],
+	[curlpath=$withval],
+	[curlpath=]
 )
 
 AC_ARG_WITH(
 	[spepcpp],
 	[AS_HELP_STRING(
 		[--with-spepcpp=DIR],
-		[path to look for spepcpp ./includes])
+		[path to look for spep ./include/spep-${VERSION}])
 	],
-	[AC_SUBST([SPEPCPPPATH],[$withval])],
-	[AC_SUBST([SPEPCPPPATH],[[]])]
+	[speppath=$withval],
+	[speppath=]
 )
 
-AC_CONFIG_FILES([Makefile])
+if test -n "$xercespath"; then
+	xercesinc=-I$xercespath/include
+	xerceslib=-L$xercespath/lib
+fi
+if test -n "$xmlsecpath"; then
+	xmlsecinc=-I$xmlsecpath/include
+	xmlseclib=-L$xmlsecpath/lib
+fi
+if test -n "$boostpath"; then
+	boostinc=-I$boostpath/include
+	boostlib=-I$boostpath/lib
+fi
+if test -n "$icupath"; then
+	icuinc=-I$icupath/include
+	iculib=-L$icupath/lib
+fi
+if test -n "$xsdpath"; then
+	xsdinc=-I$xsdpath/libxsd
+fi
+if test -n "$opensslpath"; then
+	opensslinc=-I$opensslpath/include
+	openssllib=-I$opensslpath/lib
+fi
+if test -n "$curlpath"; then
+	curlinc=-I$curlpath/include
+	curllib=-L$curlpath/lib
+fi
+if test -n "$speppath"; then
+	spepinc="-I$speppath/include/spep-\$(VERSION)"
+	speplib=-L$speppath/lib
+fi
+if test -n "$saml2path"; then
+	saml2inc="-I$saml2path/include/saml2-\$(VERSION)"
+	saml2lib=-L$saml2path/lib
+fi
+
+localinc='-I${top_srcdir}/include'
+
+AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $icuinc $xsdinc $opensslinc $curlinc $saml2inc $spepinc"])
+AC_SUBST([AM_LDFLAGS],["$xerceslib $xmlseclib $boostlib $iculib $openssllib $curllib $saml2lib $speplib"])
+
+AC_CONFIG_FILES([Makefile src/Makefile include/Makefile])
 AC_OUTPUT

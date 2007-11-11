@@ -1,0 +1,59 @@
+
+lib_LTLIBRARIES = libspep.la
+libspep_la_LDFLAGS = -version-info $(VERSION_INFO) $(AM_LDFLAGS)
+libspep_la_SOURCES = spep/pep/PolicyEnforcementProcessorData.cpp \
+spep/pep/PolicyEnforcementProcessor.cpp \
+spep/pep/proxy/SessionGroupCacheProxy.cpp \
+spep/pep/proxy/SessionGroupCacheDispatcher.cpp \
+spep/pep/Decision.cpp \
+spep/pep/impl/SessionGroupCacheImpl.cpp \
+spep/ws/WSProcessor.cpp \
+spep/ws/WSProcessorData.cpp \
+spep/ws/WSClient.cpp \
+spep/ws/SOAPUtil.cpp \
+spep/UnicodeStringConversion.cpp \
+spep/identifier/proxy/IdentifierCacheProxy.cpp \
+spep/identifier/proxy/IdentifierCacheDispatcher.cpp \
+spep/authn/AuthnProcessor.cpp \
+spep/authn/AuthnProcessorData.cpp \
+spep/config/SPEPConfigData.cpp \
+spep/config/proxy/ConfigurationProxy.cpp \
+spep/config/proxy/ConfigurationDispatcher.cpp \
+spep/config/ConfigurationReader.cpp \
+spep/config/impl/ConfigurationImpl.cpp \
+spep/reporting/LocalReportingProcessor.cpp \
+spep/reporting/ReportingProcessor.cpp \
+spep/reporting/ReportingLevels.cpp \
+spep/SPEP.cpp \
+spep/Base64.cpp \
+spep/sessions/UnauthenticatedSession.cpp \
+spep/sessions/SessionCacheThread.cpp \
+spep/sessions/PrincipalSession.cpp \
+spep/sessions/proxy/SessionCacheProxy.cpp \
+spep/sessions/proxy/SessionCacheDispatcher.cpp \
+spep/sessions/impl/SessionCacheImpl.cpp \
+spep/startup/proxy/StartupProcessorProxy.cpp \
+spep/startup/proxy/StartupProcessorDispatcher.cpp \
+spep/startup/impl/StartupProcessorImpl.cpp \
+spep/ipc/Dispatcher.cpp \
+spep/ipc/Engine.cpp \
+spep/ipc/Socket.cpp \
+spep/ipc/MessageHeader.cpp \
+spep/ipc/Platform.cpp \
+spep/exceptions/AuthnException.cpp \
+spep/exceptions/AttributeException.cpp \
+spep/exceptions/PEPException.cpp \
+spep/exceptions/WSException.cpp \
+spep/exceptions/InvalidStateException.cpp \
+spep/exceptions/SPEPStartupException.cpp \
+spep/exceptions/InvalidRequestException.cpp \
+spep/exceptions/KeyResolverException.cpp \
+spep/exceptions/MetadataException.cpp \
+spep/exceptions/InvalidResponseException.cpp \
+spep/metadata/KeyResolver.cpp \
+spep/metadata/MetadataThread.cpp \
+spep/metadata/proxy/MetadataDispatcher.cpp \
+spep/metadata/proxy/MetadataProxy.cpp \
+spep/metadata/impl/MetadataImpl.cpp \
+spep/attribute/AttributeProcessorData.cpp \
+spep/attribute/AttributeProcessor.cpp

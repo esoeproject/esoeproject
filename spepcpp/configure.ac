@@ -1,38 +1,45 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.61)
-AC_INIT([C++ SPEP Library], 0.1)
-AC_CONFIG_SRCDIR([includes/Util.h])
+AC_PREREQ(2.59)
+AC_INIT([SPEP], 0.3)
+AC_CONFIG_SRCDIR([include/spep/Util.h])
 #AC_CONFIG_HEADER([config.h])
-AC_SUBST([BINARY_VERSION],[0])
+
+AC_SUBST([VERSION_INFO],[1:0:0])
+
+AM_INIT_AUTOMAKE
+AM_DISABLE_STATIC
 
 # Checks for programs.
 AC_PROG_CXX
-AC_PROG_CC
-AC_PROG_INSTALL
-AC_PROG_MKDIR_P
-AC_PROG_LN_S
+
+AM_PROG_LIBTOOL
 
 # Checks for libraries.
 
+
+dnl These were recommended by autoscan, but there's no sense checking if we ignore
+dnl the result anyway.. so for now these are commented out.
+
 # Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([netdb.h netinet/in.h sys/socket.h])
+dnl AC_HEADER_STDC
+dnl AC_CHECK_HEADERS([netdb.h netinet/in.h sys/socket.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
-AC_HEADER_STDBOOL
-AC_C_CONST
-AC_C_INLINE
-AC_TYPE_INT32_T
-AC_TYPE_SIZE_T
-AC_TYPE_SSIZE_T
+dnl AC_HEADER_STDBOOL
+dnl AC_C_CONST
+dnl AC_C_INLINE
+dnl AC_TYPE_INT32_T
+dnl AC_TYPE_SIZE_T
+dnl AC_TYPE_SSIZE_T
 
 # Checks for library functions.
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-AC_FUNC_STRTOD
-AC_CHECK_FUNCS([gethostbyname memmove memset socket strerror])
+dnl AC_FUNC_MALLOC
+dnl AC_FUNC_REALLOC
+dnl AC_FUNC_STRTOD
+dnl AC_CHECK_FUNCS([gethostbyname memmove memset socket strerror])
+
 
 AC_ARG_WITH(
 	[xerces],
@@ -40,8 +47,8 @@ AC_ARG_WITH(
 		[--with-xerces=DIR],
 		[path to look for xerces ./include and ./lib])
 	],
-	[AC_SUBST([XERCESPATH],[$withval])],
-	[AC_SUBST([XERCESPATH],[[]])]
+	[xercespath=$withval],
+	[xercespath=]
 )
 
 AC_ARG_WITH(
@@ -50,18 +57,18 @@ AC_ARG_WITH(
 		[--with-xmlsec=DIR],
 		[path to look for xml-security-c ./include and ./lib])
 	],
-	[AC_SUBST([XMLSECPATH],[$withval])],
-	[AC_SUBST([XMLSECPATH],[[]])]
+	[xmlsecpath=$withval],
+	[xmlsecpath=]
 )
 
 AC_ARG_WITH(
 	[saml2cpp],
 	[AS_HELP_STRING(
 		[--with-saml2cpp=DIR],
-		[path to look for saml2cpp ./includes and ./src-gen])
+		[path to look for saml2cpp ./include and ./lib])
 	],
-	[AC_SUBST([SAML2CPPPATH],[$withval])],
-	[AC_SUBST([SAML2CPPPATH],[[]])]
+	[saml2path=$withval],
+	[saml2path=]
 )
 
 AC_ARG_WITH(
@@ -70,19 +77,85 @@ AC_ARG_WITH(
 		[--with-icu=DIR],
 		[path to look for ICU ./include and ./lib])
 	],
-	[AC_SUBST([ICUPATH],[$withval])],
-	[AC_SUBST([ICUPATH],[[]])]
+	[icupath=$withval],
+	[icupath=]
 )
 
 AC_ARG_WITH(
-	[axis2],
+	[boost],
 	[AS_HELP_STRING(
-		[--with-axis2=DIR],
-		[path to look for Axis2/C ./include/axis2-1.0 and ./lib])
+		[--with-boost=DIR],
+		[path to look for Boost ./include and ./lib])
 	],
-	[AC_SUBST([AXIS2PATH],[$withval])],
-	[AC_SUBST([AXIS2PATH],[[]])]
+	[boostpath=$withval],
+	[boostpath=]
 )
 
-AC_CONFIG_FILES([Makefile])
+AC_ARG_WITH(
+	[xsd],
+	[AS_HELP_STRING(
+		[--with-xsd=DIR],
+		[path to look for xsd ./libxsd header directory])
+	],
+	[xsdpath=$withval],
+	[xsdpath=]
+)
+
+AC_ARG_WITH(
+	[openssl],
+	[AS_HELP_STRING(
+		[--with-openssl=DIR],
+		[path to look for openssl ./include and ./lib])
+	],
+	[opensslpath=$withval],
+	[opensslpath=]
+)
+
+AC_ARG_WITH(
+	[curl],
+	[AS_HELP_STRING(
+		[--with-curl=DIR],
+		[path to look for cURL ./include and ./lib])
+	],
+	[curlpath=$withval],
+	[curlpath=]
+)
+
+if test -n "$xercespath"; then
+	xercesinc=-I$xercespath/include
+	xerceslib=-L$xercespath/lib
+fi
+if test -n "$xmlsecpath"; then
+	xmlsecinc=-I$xmlsecpath/include
+	xmlseclib=-L$xmlsecpath/lib
+fi
+if test -n "$boostpath"; then
+	boostinc=-I$boostpath/include
+	boostlib=-I$boostpath/lib
+fi
+if test -n "$icupath"; then
+	icuinc=-I$icupath/include
+	iculib=-L$icupath/lib
+fi
+if test -n "$xsdpath"; then
+	xsdinc=-I$xsdpath/libxsd
+fi
+if test -n "$opensslpath"; then
+	opensslinc=-I$opensslpath/include
+	openssllib=-I$opensslpath/lib
+fi
+if test -n "$curlpath"; then
+	curlinc=-I$curlpath/include
+	curllib=-L$curlpath/lib
+fi
+if test -n "$saml2path"; then
+	saml2inc="-I$saml2path/include/saml2-\$(VERSION)"
+	saml2lib=-L$saml2path/lib
+fi
+
+localinc='-I${top_srcdir}/include'
+
+AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $icuinc $xsdinc $opensslinc $curlinc $saml2inc"])
+
+AC_CONFIG_FILES([Makefile include/Makefile src/Makefile])
 AC_OUTPUT

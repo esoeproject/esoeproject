@@ -19,7 +19,7 @@
 
 #include <sstream>
 
-#include "reporting/ReportingProcessor.h"
+#include "spep/reporting/ReportingProcessor.h"
 #include "APRFileLogger.h"
 
 #include "APRDefinitions.h"

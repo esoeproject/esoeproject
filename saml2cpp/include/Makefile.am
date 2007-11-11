@@ -1,0 +1,62 @@
+## 
+
+saml2includedir = $(includedir)/saml2-$(VERSION)
+nobase_saml2include_HEADERS = saml2/resolver/ResourceResolver.h \
+saml2/resolver/ExternalKeyResolver.h \
+saml2/constants/ConfirmationMethodConstants.h \
+saml2/constants/ProtocolConstants.h \
+saml2/constants/ConsentIdentifierConstants.h \
+saml2/constants/AttributeFormatConstants.h \
+saml2/constants/NameIDFormatConstants.h \
+saml2/constants/BindingConstants.h \
+saml2/constants/StatusCodeConstants.h \
+saml2/constants/VersionConstants.h \
+saml2/constants/AuthenticationContextConstants.h \
+saml2/identifier/IdentifierCache.h \
+saml2/identifier/IdentifierGenerator.h \
+saml2/validator/SAMLValidator.h \
+saml2/validator/SAMLResponseValidator.h \
+saml2/validator/SAMLRequestValidator.h \
+saml2/validator/SAMLAssertionValidator.h \
+saml2/validator/SAMLAuthnRequestValidator.h \
+saml2/SAML2Defs.h \
+saml2/handlers/SAMLDocument.h \
+saml2/handlers/Marshaller.h \
+saml2/handlers/MetadataOutput.h \
+saml2/handlers/Unmarshaller.h \
+saml2/handlers/impl/UnmarshallerImpl.h \
+saml2/handlers/impl/MarshallerImpl.h \
+saml2/handlers/SAML2ErrorHandler.h \
+saml2/xsd/xml-schema-custom.h \
+saml2/xsd/xml-schema-custom-attributevaluetype.h \
+saml2/xsd/xml-schema.hxx \
+saml2/exceptions/InvalidParameterException.h \
+saml2/exceptions/IdentifierException.h \
+saml2/exceptions/InvalidSAMLAssertionException.h \
+saml2/exceptions/UnmarshallerException.h \
+saml2/exceptions/MarshallerException.h \
+saml2/exceptions/InvalidSAMLRequestException.h \
+saml2/exceptions/IdentifierCacheException.h \
+saml2/exceptions/InvalidSAMLAuthnRequestException.h \
+saml2/exceptions/InvalidSAMLResponseException.h \
+saml2/bindings/esoe-schema-saml-protocol.hxx \
+saml2/bindings/attributeconfig-schema.hxx \
+saml2/bindings/lxacml-schema-grouptarget.hxx \
+saml2/bindings/spepstartup-schema-saml-metadata.hxx \
+saml2/bindings/lxacml-schema-saml-assertion.hxx \
+saml2/bindings/sessiondata-schema.hxx \
+saml2/bindings/xenc-schema.hxx \
+saml2/bindings/lxacml-schema-context.hxx \
+saml2/bindings/xml.hxx \
+saml2/bindings/lxacml-schema-saml-protocol.hxx \
+saml2/bindings/delegated-schema-saml-protocol.hxx \
+saml2/bindings/xmldsig-core-schema.hxx \
+saml2/bindings/saml-schema-assertion-2.0.hxx \
+saml2/bindings/saml-schema-protocol-2.0.hxx \
+saml2/bindings/lxacml-schema.hxx \
+saml2/bindings/lxacml-schema-metadata.hxx \
+saml2/bindings/saml-schema-metadata-2.0.hxx \
+saml2/bindings/cacheclear-schema-saml-metadata.hxx \
+saml2/bindings/soap-1.1-envelope.hxx \
+saml2/bindings/soap-1.2-envelope.hxx \
+saml2/namespace/NamespacePrefixMapper.h

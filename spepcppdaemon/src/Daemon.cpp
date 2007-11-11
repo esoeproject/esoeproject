@@ -26,9 +26,26 @@
 
 #include <iostream>
 
+#ifdef WIN32
+/* Windows implementation */
+
+
 void spep::daemon::Daemon::daemonize()
 {
-	
+}
+
+void spep::daemon::Daemon::closefd()
+{
+}
+
+void spep::daemon::Daemon::prepare()
+{
+}
+
+#else /*WIN32*/
+
+void spep::daemon::Daemon::daemonize()
+{
 	// TODO Do we need this for other platforms? I'm guessing not.
 	// Become a daemon.
 	int pid = fork();
@@ -64,7 +81,6 @@ void spep::daemon::Daemon::daemonize()
 		// Parent process. Terminate
 		_exit(0);
 	}
-	
 }
 
 void spep::daemon::Daemon::closefd()
@@ -78,7 +94,7 @@ void spep::daemon::Daemon::closefd()
 
 void spep::daemon::Daemon::prepare()
 {
-	
 	signal( SIGPIPE, SIG_IGN );
-	
 }
+
+#endif /*WIN32*/

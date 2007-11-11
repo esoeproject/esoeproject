@@ -19,7 +19,7 @@
 
 #include "StreamLogHandler.h"
 
-#include "reporting/ReportingProcessor.h"
+#include "spep/reporting/ReportingProcessor.h"
 
 #include <iostream>
 

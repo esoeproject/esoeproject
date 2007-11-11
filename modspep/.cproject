@@ -30,6 +30,7 @@
 <extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 </extensions>
 </storageModule>
       
@@ -41,27 +42,26 @@
 <folderInfo id="cdt.managedbuild.config.gnu.so.debug.1600767153." name="/" resourcePath="">
 <toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.so.debug.295490910" name="Linux GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.so.debug" superClass="cdt.managedbuild.toolchain.gnu.so.debug">
 <targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.so.debug.1558611162" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.so.debug"/>
-<builder autoBuildTarget="all" buildPath="${workspace_loc:/modspep/Debug}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.1529977655" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelizationNumber="3" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+<builder autoBuildTarget="all" buildPath="${workspace_loc:/modspep}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.target.gnu.builder.so.debug.1338868958" incrementalBuildTarget="install" managedBuildOn="false" name="Gnu Make Builder" parallelizationNumber="3" superClass="cdt.managedbuild.target.gnu.builder.so.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.1608004522" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.632221810" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug">
 <option id="gnu.cpp.compiler.so.debug.option.optimization.level.455093087" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.so.debug.option.debugging.level.467814168" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.warnings.pedantic.1822660683" name="Pedantic (-pedantic)" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.other.other.498128049" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -Wno-long-long" valueType="string"/>
+<option id="gnu.cpp.compiler.option.other.other.498128049" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -Wno-long-long -fpermissive" valueType="string"/>
 <option id="gnu.cpp.compiler.option.include.paths.1213197983" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="/home/mangelsd/workspaces/esoe/modspep/includes"/>
 <listOptionValue builtIn="false" value="/home/mangelsd/workspaces/esoe/saml2cpp/includes"/>
 <listOptionValue builtIn="false" value="/home/mangelsd/workspaces/esoe/saml2cpp/src-gen"/>
 <listOptionValue builtIn="false" value="/home/mangelsd/workspaces/esoe/spepcpp/includes"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/modspep/includes}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/includes}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/modspep/include}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/include}&quot;"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/icu/include"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/libapreq2/include"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/httpd/include"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/xerces-c/include"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/xml-security-c/include"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/spepcpp/includes}&quot;"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/src-gen}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/spepcpp/include}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.939730556" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.418600841" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -79,10 +79,6 @@
 <option id="gnu.cpp.link.option.libs.836779890" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="spepcpp"/>
 <listOptionValue builtIn="false" value="mcheck"/>
-<listOptionValue builtIn="false" value="axutil"/>
-<listOptionValue builtIn="false" value="axis2_engine"/>
-<listOptionValue builtIn="false" value="axis2_axiom"/>
-<listOptionValue builtIn="false" value="axis2_http_common"/>
 <listOptionValue builtIn="false" value="apreq2"/>
 <listOptionValue builtIn="false" value="boost_program_options"/>
 <listOptionValue builtIn="false" value="saml2cpp"/>

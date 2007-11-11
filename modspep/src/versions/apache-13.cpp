@@ -34,23 +34,14 @@
 #error The Apache1.3 version in use is too old to support the child_init hook.
 #endif
 
-extern "C" int modspep_type_checker( request_rec *req )
-{
-	if( std::string(req->parsed_uri.path).compare( 0, strlen(DEFAULT_URL_SPEP_WEBAPP), DEFAULT_URL_SPEP_WEBAPP ) == 0 )
-	{
-		// This is one of ours! Handle it!
-		req->handler = SPEP_HANDLER_NAME;
-		
-		return OK;
-	}
-	
-	return DECLINED;
-}
+extern "C" int modspep_type_checker( request_rec *req );
+extern "C" void modspep_child_init_apache13( server_rec *s, apr_pool_t *pool );
 
-extern "C" void modspep_child_init_apache13( server_rec *s, apr_pool_t *pool )
+extern "C" const handler_rec spep_handlers[] =
 {
-	modspep_child_init( pool, s );
-}
+		{ SPEP_HANDLER_NAME, modspep_handler },
+		{NULL}
+};
 
 extern "C" const command_rec modspep_cmds[] =
 {
@@ -78,16 +69,18 @@ extern "C" const command_rec modspep_cmds[] =
 		TAKE1,
 		"The file to log modspep.so output to."
 	},
+	{
+		"SPEPBasePath",
+		CAST_CMD_FUNC(set_spep_base_path),
+		NULL,
+		RSRC_CONF,
+		TAKE1,
+		"The base path to accept requests for SPEP endpoints. (default: /spep)"
+	},
 	{NULL}
 };
 
-extern "C" const handler_rec spep_handlers[] =
-{
-		{ SPEP_HANDLER_NAME, modspep_handler },
-		{NULL}
-};
-
-module MODULE_VAR_EXPORT spep_module = {
+MODSPEPEXPORT module spep_module = { // was MODULE_VAR_EXPORT
 		STANDARD_MODULE_STUFF,
 		NULL,		/* initializer */
 		modspep_create_dir_config,		/* create per-dir config */
@@ -116,5 +109,26 @@ module MODULE_VAR_EXPORT spep_module = {
 		NULL		/* post read-request */
 #endif
 };
+
+extern "C" int modspep_type_checker( request_rec *req )
+{
+	SPEPServerConfig *serverConfig = (SPEPServerConfig*)ap_get_module_config( req->server->module_config, &spep_module );
+
+	if( std::string(req->parsed_uri.path).compare( 0, strlen(serverConfig->instance->spepBasePath), serverConfig->instance->spepBasePath ) == 0 )
+	{
+		// This is one of ours! Handle it!
+		req->handler = SPEP_HANDLER_NAME;
+		
+		return OK;
+	}
+	
+	return DECLINED;
+}
+
+extern "C" void modspep_child_init_apache13( server_rec *s, apr_pool_t *pool )
+{
+	modspep_child_init( pool, s );
+}
+
 
 #endif /*APACHE1*/

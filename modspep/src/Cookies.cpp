@@ -77,7 +77,7 @@ apr_table_t *spep::apache::Cookies::createCookieTableFromRequest( request_rec *r
 }
 
 
-void spep::apache::Cookies::addCookie( request_rec *req, const char *name, const char *value, const char *path, const char *domain, bool secureOnly )
+void spep::apache::Cookies::addCookie( request_rec *req, const char *name, const char *value, const char *path, const char *domain, bool secureOnly, int expires )
 {
 	
 	apr_pool_t *pool = req->pool;
@@ -95,6 +95,21 @@ void spep::apache::Cookies::addCookie( request_rec *req, const char *name, const
 		cookie->path = apr_pstrdup( pool, path );
 	else
 		cookie->path = apr_pstrdup( pool, "/" );
+	
+	if( expires > 0 )
+	{
+		char timeBuffer[26];
+		/* libapreq2 expects, for example:
+		 * +15s for 15 seconds
+		 * The largest number represented by a 64-bit int is 20 digits, so
+		 * when we take the 2 extra characters, the null terminator, and the
+		 * possibility of a minus sign in front, 26 will be the size we need. 
+		 */
+		
+		snprintf( timeBuffer, 26, "%d s", expires );
+		
+		apreq_cookie_expires( cookie, timeBuffer );
+	}	
 	
 	this->_cookieStrings.push_back( apreq_cookie_as_string( cookie, pool ) );
 	
@@ -116,6 +131,7 @@ void spep::apache::Cookies::sendCookies( request_rec *req )
 		cookieStringStream << *cookieIterator;
 		
 	}
+	if( first ) return;
 	
 	std::string cookieString( cookieStringStream.str() );
 	apr_table_set( req->err_headers_out, "Set-Cookie", cookieString.c_str() );
@@ -126,6 +142,8 @@ void spep::apache::Cookies::sendCookies( request_rec *req )
 #else /*ifdef APACHE1*/
 
 #include "libapreq/apache_cookie.h"
+
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 apr_table_t *spep::apache::Cookies::createCookieTableFromRequest( request_rec *req )
 {
@@ -154,7 +172,7 @@ apr_table_t *spep::apache::Cookies::createCookieTableFromRequest( request_rec *r
 }
 
 #include <iostream>
-void spep::apache::Cookies::addCookie( request_rec *req, const char *name, const char *value, const char *path, const char *domain, bool secureOnly )
+void spep::apache::Cookies::addCookie( request_rec *req, const char *name, const char *value, const char *path, const char *domain, bool secureOnly, int expires )
 {
 	// This is a really weird API. Perl style calls from C. Nice one libapreq-1.33
 	ApacheCookie *cookie = ApacheCookie_new( req, "-name", name, "-value", value, "-domain", domain, "path", path, NULL );
@@ -173,6 +191,23 @@ void spep::apache::Cookies::addCookie( request_rec *req, const char *name, const
 		cookie->path = apr_pstrdup( pool, path );
 	else
 		cookie->path = apr_pstrdup( pool, "/" );
+	
+	if( expires > 0 )
+	{
+		boost::posix_time::ptime expiry = 
+			boost::posix_time::second_clock::universal_time() 
+			+ boost::posix_time::seconds( expires );
+		
+		boost::posix_time::time_facet *facet = new boost::posix_time::time_facet( COOKIES_EXPIRES_TIME_STRING_FORMAT );
+		
+		std::stringstream ss;
+		ss.imbue( std::locale( ss.getloc(), facet ) );
+		
+		ss << expiry << std::ends;
+		
+		std::string expiryString( ss.str() );
+		cookie->expires = apr_pstrdup( pool, expiryString.c_str() );
+	}	
 	
 	this->_cookieStrings.push_back( ApacheCookie_as_string( cookie ) );
 }

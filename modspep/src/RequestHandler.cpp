@@ -20,8 +20,8 @@
 #include "Cookies.h"
 #include "RequestHandler.h"
 
-#include "pep/PolicyEnforcementProcessorData.h"
-#include "UnicodeStringConversion.h"
+#include "spep/pep/PolicyEnforcementProcessorData.h"
+#include "spep/UnicodeStringConversion.h"
 
 spep::apache::RequestHandler::RequestHandler( spep::SPEP *spep )
 :
@@ -173,7 +173,54 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 	// cookies configured by the SPEP to be cleared upon logout, since this is potentially the
 	// first time they have come back to the SPEP since logging out.
 	
-	// TODO Cookie clear.
+	bool requireSend = false;
+	const std::vector<std::string>& logoutClearCookies = this->_spep->getSPEPConfigData()->getLogoutClearCookies();
+	for( std::vector<std::string>::const_iterator logoutClearCookieIterator = logoutClearCookies.begin();
+		logoutClearCookieIterator != logoutClearCookies.end();
+		++logoutClearCookieIterator )
+	{
+		// Throw the configured string into a stringstream
+		std::stringstream ss( *logoutClearCookieIterator );
+		
+		// Split into name, domain, path. Doc says that stringstream operator>> won't throw
+		std::string cookieNameString, cookieDomainString, cookiePathString;
+		ss >> cookieNameString >> cookieDomainString >> cookiePathString;
+
+		// Default to NULL, and then check if they were specified
+		const char *cookieName = NULL, *cookieDomain = NULL, *cookiePath = NULL;
+		// No cookie name, no clear.
+		if( cookieNameString.length() == 0 )
+		{
+			continue;
+		}
+		
+		// If the user sent this cookie.
+		if( cookies[ cookieNameString ] != NULL )
+		{
+			cookieName = cookieNameString.c_str();
+			
+			if( cookieDomainString.length() > 0 )
+			{
+				cookieDomain = cookieDomainString.c_str();
+			}
+			
+			if( cookiePathString.length() > 0 )
+			{
+				cookiePath = cookiePathString.c_str();
+			}
+			
+			// Set the cookie to an empty value.
+			cookies.addCookie( req, cookieName, "", cookiePath, cookieDomain, false );
+			
+			// Flag that we need to send the cookies, because we have set at least one.
+			requireSend = true;
+		}
+	}
+	
+	if( requireSend )
+	{
+		cookies.sendCookies( req );
+	}
 	
 	const char *base64RequestURI = ap_pbase64encode( req->pool, req->unparsed_uri );
 	char *redirectURL = apr_psprintf( req->pool, this->_spep->getSPEPConfigData()->getLoginRedirect().c_str(), base64RequestURI );

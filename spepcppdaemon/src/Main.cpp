@@ -19,21 +19,24 @@
 
 #include "Daemon.h"
 #include "StreamLogHandler.h"
-#include "config/ConfigurationReader.h"
-#include "SPEP.h"
 
-#include "ipc/Platform.h"
-#include "ipc/SocketArchive.h"
-#include "ipc/MessageHeader.h"
-#include "ipc/Engine.h"
-#include "ipc/Socket.h"
+#include "spep/config/ConfigurationReader.h"
+#include "spep/SPEP.h"
+#include "spep/Util.h"
+#include "spep/UnicodeStringConversion.h"
 
-#include "metadata/proxy/MetadataDispatcher.h"
-#include "config/proxy/ConfigurationDispatcher.h"
-#include "sessions/proxy/SessionCacheDispatcher.h"
-#include "pep/proxy/SessionGroupCacheDispatcher.h"
-#include "startup/proxy/StartupProcessorDispatcher.h"
-#include "identifier/proxy/IdentifierCacheDispatcher.h"
+#include "spep/ipc/Platform.h"
+#include "spep/ipc/SocketArchive.h"
+#include "spep/ipc/MessageHeader.h"
+#include "spep/ipc/Engine.h"
+#include "spep/ipc/Socket.h"
+
+#include "spep/metadata/proxy/MetadataDispatcher.h"
+#include "spep/config/proxy/ConfigurationDispatcher.h"
+#include "spep/sessions/proxy/SessionCacheDispatcher.h"
+#include "spep/pep/proxy/SessionGroupCacheDispatcher.h"
+#include "spep/startup/proxy/StartupProcessorDispatcher.h"
+#include "spep/identifier/proxy/IdentifierCacheDispatcher.h"
 
 #include <iostream>
 #include <fstream>
@@ -49,6 +52,49 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
+
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+// Include winsock2 before windows so it doesn't screw with our socket stuff
+#include <winsock2.h>
+#include <windows.h>
+
+int main( int argc, char **argv );
+
+int WINAPI WinMain(
+	HINSTANCE hInstance,
+	HINSTANCE hPrevInstance,
+	LPSTR lpCmdLine,
+	int nCmdShow
+	)
+{
+	LPWSTR* argList;
+	int argc = 0;
+	argList = CommandLineToArgvW( GetCommandLineW(), &argc );
+
+	if( argList == NULL )
+	{
+		std::cerr << "Failed to get command line arguments." << std::endl;
+		return 1;
+	}
+
+	spep::AutoArray< spep::CArray<char> > translatedArgs( argc );
+	char **argv = new char*[ argc + 1 ];
+	for( int i = 0; i < argc; ++i )
+	{
+		std::string currentArg = spep::UnicodeStringConversion::toString( std::wstring(argList[i]) );
+		std::size_t length = currentArg.length() + 1;
+		translatedArgs[i].resize( length );
+		currentArg.copy( translatedArgs[i].get(), length );
+
+		argv[i] = translatedArgs[i].get();
+	}
+	argv[argc] = NULL;
+
+	LocalFree( argList );
+	return main( argc, argv );
+}
+#endif
 
 int main( int argc, char **argv )
 {

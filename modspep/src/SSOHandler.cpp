@@ -17,25 +17,30 @@
  * Purpose: 
  */
 
-#include "SAML2Defs.h"
+#include "saml2/SAML2Defs.h"
 
-#include "authn/AuthnProcessorData.h"
-#include "Util.h"
-#include "UnicodeStringConversion.h"
+#include "spep/authn/AuthnProcessorData.h"
+#include "spep/Util.h"
+#include "spep/UnicodeStringConversion.h"
+#include "spep/Base64.h"
 
 #include "SSOHandler.h"
 #include "Cookies.h"
 #include "Common.h"
 
-#include "httpd.h"
-
-#include "Base64.h"
 #include "RequestParameters.h"
 
 #include <unicode/ucnv.h>
 
+#include "httpd.h"
+
 
 #define HTTP_POST_VAR_SAML_RESPONSE "SAMLResponse"
+
+extern "C"
+{
+	extern module spep_module;
+}
 
 spep::apache::SSOHandler::SSOHandler( spep::SPEP *spep )
 :
@@ -46,6 +51,11 @@ _spep( spep )
 int spep::apache::SSOHandler::handleSSOGetRequest( request_rec *req )
 {
 	RequestParameters params( req );
+	
+	Cookies cookies( req );
+	// Set expiry to 48 hours to be consistent with Java land.
+	cookies.addCookie( req, "spepAutoSubmit", "enabled", "/", NULL, false, 172800 );
+	cookies.sendCookies( req );
 	
 	const char *base64RedirectURLChars = params[ REDIRECT_URL_PARAM ];
 	spep::AuthnProcessorData data;
@@ -73,11 +83,11 @@ int spep::apache::SSOHandler::handleSSOPostRequest( request_rec *req )
 	
 	const char *base64SAMLResponse = params[HTTP_POST_VAR_SAML_RESPONSE];
 
-	Base64Decoder decoder;
+	spep::Base64Decoder decoder;
 	decoder.push( base64SAMLResponse, strlen(base64SAMLResponse) );
 	decoder.close();
 	
-	Base64Document samlResponse( decoder.getResult() );
+	spep::Base64Document samlResponse( decoder.getResult() );
 
 	long documentLength = samlResponse.getLength();
 	SAMLByte *document = new SAMLByte[ documentLength ];
@@ -108,12 +118,12 @@ int spep::apache::SSOHandler::handleSSOPostRequest( request_rec *req )
 	std::string base64RedirectURL( data.getRequestURL() );
 	if( base64RedirectURL.length() > 0 )
 	{
-		Base64Decoder decoder;
+		spep::Base64Decoder decoder;
 		decoder.push( base64RedirectURL.c_str(), base64RedirectURL.length() );
 		decoder.close();
 		
 		// Technically it's not a document, but it's all the same to Base64Decoder
-		Base64Document redirectURLDocument( decoder.getResult() );
+		spep::Base64Document redirectURLDocument( decoder.getResult() );
 		std::string redirectURL( redirectURLDocument.getData(), redirectURLDocument.getLength() );
 		
 		apr_table_set( req->headers_out, HEADER_NAME_REDIRECT_URL, redirectURL.c_str() );
@@ -137,11 +147,13 @@ int spep::apache::SSOHandler::handleSSOPostRequest( request_rec *req )
 
 int spep::apache::SSOHandler::handleRequest( request_rec *req )
 {
+	SPEPServerConfig *serverConfig = (SPEPServerConfig*)ap_get_module_config( req->server->module_config, &spep_module );
+
 	try
 	{
 		// First we need to determine where the request was headed.
 		std::string path( req->parsed_uri.path );
-		if( path.compare( DEFAULT_URL_SPEP_SSO ) == 0 )
+		if( path.compare( serverConfig->instance->spepSSOPath ) == 0 )
 		{
 			if( ! this->_spep->isStarted() )
 			{
@@ -178,11 +190,11 @@ std::string spep::apache::SSOHandler::buildAuthnRequestDocument( apr_pool_t *poo
 	
 	saml2::SAMLDocument requestDocument( data.getRequestDocument() );
 
-	Base64Encoder encoder;
+	spep::Base64Encoder encoder;
 	encoder.push( reinterpret_cast<const char*>( requestDocument.getData() ), requestDocument.getLength() );
 	encoder.close();
 	
-	Base64Document base64EncodedDocument( encoder.getResult() );
+	spep::Base64Document base64EncodedDocument( encoder.getResult() );
 	std::string encodedDocumentString( base64EncodedDocument.getData(), base64EncodedDocument.getLength() );
 	
 	std::string ssoURL = this->_spep->getMetadata()->getSingleSignOnEndpoint();

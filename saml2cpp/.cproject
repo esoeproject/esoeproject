@@ -34,7 +34,7 @@
 <folderInfo id="cdt.managedbuild.config.gnu.so.debug.1600767153." name="/" resourcePath="">
 <toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.so.debug.295490910" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.so.debug">
 <targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.so.debug.1558611162" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.so.debug"/>
-<builder autoBuildTarget="all" buildPath="${workspace_loc:/saml2cpp/Debug}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" errorParsers="org.eclipse.cdt.core.MakeErrorParser" id="cdt.managedbuild.target.gnu.builder.so.debug.630561787" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" parallelizationNumber="8" superClass="cdt.managedbuild.target.gnu.builder.so.debug"/>
+<builder autoBuildTarget="all" buildPath="${workspace_loc:/saml2cpp}" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" errorParsers="org.eclipse.cdt.core.MakeErrorParser" id="cdt.managedbuild.target.gnu.builder.so.debug.630561787" incrementalBuildTarget="install" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="false" parallelizationNumber="8" superClass="cdt.managedbuild.target.gnu.builder.so.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.1608004522" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.632221810" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug">
 <option id="gnu.cpp.compiler.so.debug.option.optimization.level.455093087" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -42,12 +42,11 @@
 <option id="gnu.cpp.compiler.option.warnings.pedantic.1822660683" name="Pedantic (-pedantic)" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
 <option id="gnu.cpp.compiler.option.other.other.498128049" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-long-long -fpermissive -fno-inline -W -Wno-format-y2k -Wpointer-arith -Wreturn-type -Wcast-qual -Wwrite-strings -Wswitch -Wcast-align -Wchar-subscripts -Winline -Wredundant-decls -Wextra -Wno-unused-parameter -ansi -fno-default-inline -Weffc++ -Woverloaded-virtual -Wsign-promo -ffor-scope -fno-gnu-keywords -fno-nonansi-builtins" valueType="string"/>
 <option id="gnu.cpp.compiler.option.include.paths.557974563" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/includes}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/include}&quot;"/>
 <listOptionValue builtIn="false" value="/home/mangelsd/workspaces/esoe/saml2cpp/includes"/>
 <listOptionValue builtIn="false" value="/home/mangelsd/workspaces/esoe/saml2cpp/src-gen"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/xerces-c/include"/>
 <listOptionValue builtIn="false" value="/usr/local/dev/xml-security-c/include"/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/saml2cpp/src-gen}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.418600841" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>

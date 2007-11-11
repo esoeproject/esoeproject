@@ -28,8 +28,20 @@
 #include "Common.h"
 
 // SPEP library
-#include "SPEP.h"
-#include "reporting/Handler.h"
+#include "spep/SPEP.h"
+#include "spep/reporting/Handler.h"
+
+SPEPInstance::SPEPInstance()
+{
+	this->port = 0;
+	this->spep = NULL;
+	this->logger = NULL;
+	this->spepBasePath = 		DEFAULT_URL_SPEP_WEBAPP;
+	this->spepSSOPath = 		DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_SSO;
+	this->spepWebServices = 	DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_WEBSERVICES;
+	this->spepAuthzCacheClear = DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_WEBSERVICES DEFAULT_URL_SPEP_AUTHZCACHECLEAR;
+	this->spepSingleLogout = 	DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_WEBSERVICES DEFAULT_URL_SPEP_SINGLELOGOUT;
+}
 
 extern "C"
 {
@@ -111,12 +123,51 @@ extern "C" const char *set_enabled_flag( cmd_parms *parms, void *cfg, int arg )
 	return NULL;
 }
 
+extern "C" const char *set_spep_base_path( cmd_parms *parms, void *cfg, const char *value )
+{
+	SPEPServerConfig *config = (SPEPServerConfig*)ap_get_module_config( parms->server->module_config, &spep_module );
+	
+	if( config == NULL )
+	{
+		return "Got NULL for module_config struct.";
+	}
+	
+	if ( value == NULL || *value == '\0' )
+	{
+		return "No value was present for the SPEP base path.";
+	}
+	
+	// Stop stupid people putting / as their spep path
+	if( *value != '/' || strlen(value) <= 1 )
+	{
+		return "SPEP base path must begin with / and must not be the root path";
+	}
+	
+	if( config->instance == NULL )
+	{
+		config->instance = new SPEPInstance;
+	}
+	
+	config->instance->spepBasePath = apr_pstrdup( parms->pool, value );
+	config->instance->spepSSOPath = apr_psprintf( parms->pool, "%s%s", value, DEFAULT_URL_SPEP_SSO );
+	config->instance->spepWebServices = apr_psprintf( parms->pool, "%s%s", value, DEFAULT_URL_SPEP_WEBSERVICES );
+	config->instance->spepAuthzCacheClear = apr_psprintf( parms->pool, "%s%s", config->instance->spepWebServices, DEFAULT_URL_SPEP_AUTHZCACHECLEAR );
+	config->instance->spepSingleLogout = apr_psprintf( parms->pool, "%s%s", config->instance->spepWebServices, DEFAULT_URL_SPEP_SINGLELOGOUT );
+	
+	return NULL;
+}
+
 void init_spep_instance( apr_pool_t *pool, SPEPServerConfig *serverConfig )
 {
+	if( serverConfig->instance == NULL )
+	{
+		serverConfig->instance = new SPEPInstance;
+	}
+	
 	if( serverConfig->instance->logger == NULL && serverConfig->logFilename != NULL )
 	{
 		// TODO This should be configurable
-		serverConfig->instance->logger = new spep::apache::APRFileLogger( pool, serverConfig->logFilename, spep::INFO );
+		serverConfig->instance->logger = new spep::apache::APRFileLogger( pool, serverConfig->logFilename, spep::DEBUG );
 	}
 	
 	if( serverConfig->instance->spep == NULL )
@@ -200,7 +251,7 @@ extern "C" int modspep_check_session( request_rec *req )
 	
 	// Check if it starts with the defined default spep webapp url
 	if( req->parsed_uri.path != NULL && 
-		std::string(req->parsed_uri.path).compare( 0, strlen(DEFAULT_URL_SPEP_WEBAPP), DEFAULT_URL_SPEP_WEBAPP ) == 0 )
+		std::string(req->parsed_uri.path).compare( 0, strlen(serverConfig->instance->spepBasePath), serverConfig->instance->spepBasePath ) == 0 )
 	{
 		return DECLINED;
 	}
@@ -219,16 +270,16 @@ extern "C" int modspep_handler( request_rec *req )
 	//SPEPDirectoryConfig *directoryConfig = (SPEPDirectoryConfig*)ap_get_module_config( req->per_dir_config, &spep_module );
 	
 	// Check if it starts with the defined default spep webapp url
-	if( std::string(req->parsed_uri.path).compare( 0, strlen(DEFAULT_URL_SPEP_WEBAPP), DEFAULT_URL_SPEP_WEBAPP ) == 0 )
+	if( std::string(req->parsed_uri.path).compare( 0, strlen(serverConfig->instance->spepBasePath), serverConfig->instance->spepBasePath ) == 0 )
 	{
-		if( std::string(req->parsed_uri.path).compare( DEFAULT_URL_SPEP_SSO ) == 0 )
+		if( std::string(req->parsed_uri.path).compare( serverConfig->instance->spepSSOPath ) == 0 )
 		{
 			spep::apache::SSOHandler handler( serverConfig->instance->spep );
 			int result = handler.handleRequest( req );
 			
 			return result;
 		}
-		else if( std::string( req->parsed_uri.path ).compare( 0, strlen(DEFAULT_URL_SPEP_WEBSERVICES), DEFAULT_URL_SPEP_WEBSERVICES ) == 0 )
+		else if( std::string( req->parsed_uri.path ).compare( 0, strlen(serverConfig->instance->spepWebServices), serverConfig->instance->spepWebServices ) == 0 )
 		{
 			spep::apache::WSHandler handler( serverConfig->instance->spep );
 			int result = handler.handleRequest( req );

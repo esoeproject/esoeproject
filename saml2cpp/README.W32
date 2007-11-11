@@ -1,0 +1,11 @@
+
+ESOE SAML2 CPP v0.3
+-------------------
+
+MSVC++ Win32 build addition:
+
+If using XSD 2.3.1, please apply the w32/xsd-2.3.1-msvc-dllexport.patch to 
+the XSD tree before attempting to build this library. It fixes a problem
+that prevents compilation due to a bug in Microsoft's implementation of the
+C++ standard.
+

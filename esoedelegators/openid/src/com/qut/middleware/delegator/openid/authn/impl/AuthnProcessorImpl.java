@@ -98,6 +98,26 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
 
+	/**
+	 * Creates OpenID AuthnProcessorImpl
+	 * @param validator SAML Validator
+	 * @param wsClient Implementation of WSClient to invoke ws queries against ESOE with
+	 * @param identiferGenerator Implementation of Identifier Generator
+	 * @param keyStoreResolver Keystore resolver to resolve local and ESOE public keys
+	 * @param responseEndpoint Endpoint to advise OpenID IDP to respond to on success.
+	 * @param defaultSiteAttributes Default attributes to be populated by OpenID delegator
+	 * @param requestedAttributes Attributes which the openID delegator should request from compatible openID IDP's
+	 * @param issuerID ID to assign as issuer element
+	 * @param principalRegistrationEndpoint URL for ESOE to direct WS connections to
+	 * @param userIdentifier User identifier in use at site, generally uid
+	 * @param httpsOffload Determines if the delegator is working behind a Layer 7 load balancer or not which is offloading SSL.
+	 * @throws ConsumerException
+	 * @throws UnmarshallerException
+	 * @throws MarshallerException
+	 * @throws ClassNotFoundException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 */
 	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeyStoreResolver keyStoreResolver, String responseEndpoint, List<OpenIDAttribute> defaultSiteAttributes, List<OpenIDAttribute> requestedAttributes, String issuerID, String principalRegistrationEndpoint, String userIdentifier, boolean httpsOffload) throws ConsumerException, UnmarshallerException, MarshallerException, ClassNotFoundException, IllegalAccessException, InstantiationException
 	{
 		this.validator = validator;

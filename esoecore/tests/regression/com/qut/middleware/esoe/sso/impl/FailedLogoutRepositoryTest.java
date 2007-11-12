@@ -17,6 +17,10 @@ import com.qut.middleware.esoe.sso.bean.impl.FailedLogoutRepositoryImpl;
 public class FailedLogoutRepositoryTest {
 
 	private FailedLogoutRepository logoutFailures;
+	FailedLogout failure1;
+	FailedLogout failure2;
+	FailedLogout failure3;
+	
 	
 	/**
 	 * @throws java.lang.Exception
@@ -25,34 +29,59 @@ public class FailedLogoutRepositoryTest {
 	public void setUp() throws  Exception
 	{
 		this.logoutFailures = new FailedLogoutRepositoryImpl();		
+		
+		failure1 = new FailedLogoutImpl();
+		failure1.setEndPoint("url.one");
+		failure1.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure1.setTimeStamp(new Date());
+		failure1.setAuthnId("743289423");
+		
+		failure2 = new FailedLogoutImpl();
+		failure2.setEndPoint("url.three");
+		failure2.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure2.setTimeStamp(new Date(System.currentTimeMillis() - 3287483));
+		failure2.setAuthnId("7894y2r7r");
+		
+		failure3 = new FailedLogoutImpl();
+		failure3.setEndPoint("url.two");
+		failure3.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure3.setTimeStamp(new Date(System.currentTimeMillis() + 43654));
+		failure3.setAuthnId("8r4");
 	}
 	
 	@Test
 	public void testAdd() 
 	{
-		byte[] doc = new String("<xml>test</xml>").getBytes();
-		FailedLogout failure = new FailedLogoutImpl();
-		failure.setEndPoint("www.test.co");
-		failure.setRequestDocument(doc);
-		Date date = new Date(System.currentTimeMillis());
-		failure.setTimeStamp(date);		
-		
-		this.logoutFailures.add(failure);
+		this.logoutFailures.add(failure1);
 		
 		assert(this.logoutFailures.getSize() == 1);
 		
 		FailedLogout returned = this.logoutFailures.getFailures().get(0);
-		assertEquals("Returned data does not match Set data. ", "www.test.co", returned.getEndPoint());
-		assertEquals("Returned data does not match Set data. ", doc, returned.getRequestDocument());
-		assertEquals("Returned data does not match Set data. ", date.getTime(), returned.getTimeStamp().getTime());
+		assertEquals("Returned data does not match Set data. ", "url.one", returned.getEndPoint());
+		assertEquals("Returned data does not match Set data. ", failure1.getRequestDocument(), returned.getRequestDocument());
+		assertEquals("Returned data does not match Set data. ", failure1.getTimeStamp().getTime(), returned.getTimeStamp().getTime());
+
+		// TEST to ensure that duplicates are detected
+		assertTrue(this.logoutFailures.containsFailure(failure1));
+		
+		// create a new failure object with the same data. It too should be detected
+		FailedLogout duplicate = new FailedLogoutImpl();
+		duplicate.setEndPoint("url.one");
+		duplicate.setAuthnId("743289423");
+		
+		assertTrue("repository does not contain expected failure", this.logoutFailures.containsFailure(duplicate));
+		
+		// make it a non duplicate to ensure it returns false
+		duplicate.setEndPoint("yew8fyewfy");
+		assertTrue(!this.logoutFailures.containsFailure(duplicate));
 	}
 
 	@Test
 	public void testClearFailures() 
 	{
-		this.logoutFailures.add(new FailedLogoutImpl());
-		this.logoutFailures.add(new FailedLogoutImpl());
-		this.logoutFailures.add(new FailedLogoutImpl());
+		this.logoutFailures.add(failure1);
+		this.logoutFailures.add(failure2);
+		this.logoutFailures.add(failure3);
 		
 		assert(this.logoutFailures.getSize() == 3);
 		
@@ -70,12 +99,13 @@ public class FailedLogoutRepositoryTest {
 		failure.setEndPoint("www.test.1");
 		failure.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure.setTimeStamp(date);		
-		
+		failure.setAuthnId("12345");		
 		
 		FailedLogout failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("www.test.2");
 		failure2.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure2.setTimeStamp(date);	
+		failure2.setAuthnId("123");
 		
 		this.logoutFailures.add(failure);
 		this.logoutFailures.add(failure2);
@@ -100,12 +130,13 @@ public class FailedLogoutRepositoryTest {
 		failure.setEndPoint("www.test.1");
 		failure.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure.setTimeStamp(date);		
-		
+		failure.setAuthnId("1234");
 		
 		FailedLogout failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("www.test.2");
 		failure2.setRequestDocument(new String("<xml>test</xml>").getBytes());
 		failure2.setTimeStamp(date);	
+		failure2.setAuthnId("123");
 		
 		this.logoutFailures.add(failure);
 		this.logoutFailures.add(failure2);

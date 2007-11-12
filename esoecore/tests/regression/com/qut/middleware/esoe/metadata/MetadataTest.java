@@ -46,7 +46,7 @@ public class MetadataTest {
 	private Map<String, KeyData> keyMap;
 	private PublicKey pubKey;
 	private Vector<String> testServiceList;
-	
+	Map<Integer,String> testServiceMap;
 	
 	@Before
 	public void setUp() throws Exception 
@@ -65,7 +65,7 @@ public class MetadataTest {
 		
 		// set cache clear service mocks
 		Map<String, Map<Integer,String>> cacheClears = new HashMap<String, Map<Integer,String>>();
-		Map<Integer,String> testServiceMap = new HashMap<Integer,String>();
+		testServiceMap = new HashMap<Integer,String>();
 		testServiceMap.put(Integer.valueOf(i++), this.spep1URL0);
 		testServiceMap.put(Integer.valueOf(i++), this.spep1URL1);
 		
@@ -76,6 +76,9 @@ public class MetadataTest {
 		
 		// set logout service mocks (using the same list for brevity)
 		Map<String, List<String>> logoutServices = new HashMap<String, List<String>>();		
+		
+		this.testServiceList = new Vector<String>();
+		this.testServiceList.add("node.one");
 		
 		logoutServices.put(this.spepID1, testServiceList);
 		logoutServices.put(this.spepID2, testServiceList);
@@ -187,7 +190,7 @@ public class MetadataTest {
 		try
 		{
 			// attempt to resolve clear cache service list
-			assertEquals(this.testServiceList, this.metadata.resolveCacheClearService(this.spepID1));
+			assertEquals(this.testServiceMap, this.metadata.resolveCacheClearService(this.spepID1));
 		
 		}
 		catch(InvalidMetadataEndpointException e)

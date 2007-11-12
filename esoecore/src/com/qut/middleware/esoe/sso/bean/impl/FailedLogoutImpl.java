@@ -31,6 +31,7 @@ public class FailedLogoutImpl implements FailedLogout
 	private String endPoint;
 	private byte[] requestDocument;
 	private Date timeStamp;
+	private String authnId;
 	
 	/*
 	 * (non-Javadoc)
@@ -90,5 +91,46 @@ public class FailedLogoutImpl implements FailedLogout
 	}
 
 	
+	public String getAuthnId() 
+	{
+		return this.authnId;
+	}
+
+	
+	public void setAuthnId(String id) 
+	{
+		this.authnId = id;		
+	}
+
+	/** Returns true IFF o represents an instance of FailedLogout AND the string values returned from
+	 * getEndpoint() and get authnId() are equal for both objects.
+	 * 
+	 */
+	@Override
+	public boolean equals(Object o)
+	{
+		// Failed logouts are more difficult to determine if one equals another. As each endpoint can recieve 
+		// many logout requests, each with different documents for different user sessions, it is not sifficient
+		// to use an endpoint as a unique identifier. The only way to uniquely identify a particular logout request
+		// is to include both endpoint and authn session id as the identifier.
+		if (o == null || this.endPoint == null || this.authnId == null)
+			return false;
+		
+		if(o instanceof FailedLogout)
+		{			
+			boolean equal = false;
+			FailedLogout comparison = (FailedLogout)o;
+			
+			// compare endpoint string field
+			equal = comparison.getEndPoint() != null && comparison.getEndPoint().equals(this.endPoint);
+			
+			// compare set authn id to distinguish between user sessions for logout
+			equal = (equal && (this.authnId.equals(comparison.getAuthnId()))  );
+					
+			return equal;
+		}
+		
+		return false;
+	}
 
 }

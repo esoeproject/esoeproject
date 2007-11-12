@@ -22,9 +22,11 @@
  */
 package com.qut.middleware.esoe.sso.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.Iterator;
+
+import javax.xml.bind.JAXBElement;
 
 import org.apache.log4j.Logger;
 
@@ -51,6 +53,7 @@ import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.schemas.protocol.LogoutRequest;
 import com.qut.middleware.saml2.schemas.protocol.Response;
+import com.qut.middleware.saml2.schemas.protocol.StatusResponseType;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 
 /** A thread used to monitor the cache of Failed LogoutRequests. Such failures occur when
@@ -76,7 +79,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 	
 	private Marshaller<LogoutRequest> logoutRequestMarshaller;
 	private Unmarshaller<LogoutRequest> logoutRequestUnmarshaller;
-	private Unmarshaller<Response> logoutResponseUnmarshaller;
+	private Unmarshaller<JAXBElement<StatusResponseType>> logoutResponseUnmarshaller;
 		
 	private String[] schemas = new String[] { ConfigurationConstants.samlProtocol };
 		
@@ -136,7 +139,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 		this.identifierGenerator = identifierGenerator;
 		this.samlValidator = samlValidator;
 		
-		this.logoutResponseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, new String[]{ConfigurationConstants.samlProtocol}, this.metadata);
+		this.logoutResponseUnmarshaller = new UnmarshallerImpl<JAXBElement<StatusResponseType>>(this.UNMAR_PKGNAMES, new String[]{ConfigurationConstants.samlProtocol}, this.metadata);
 		this.logoutRequestMarshaller = new MarshallerImpl<LogoutRequest>(this.MAR_PKGNAMES, this.schemas, this.keyStoreResolver.getKeyAlias(), this.keyStoreResolver.getPrivateKey());
 		this.logoutRequestUnmarshaller = new UnmarshallerImpl<LogoutRequest>(this.UNMAR_PKGNAMES, this.schemas, this.metadata);
 		
@@ -175,7 +178,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 			// ignore interrupts and other non-runtime exceptions
 			catch (Exception e)
 			{
-				this.logger.debug(e.getLocalizedMessage(), e);
+				this.logger.trace(e.getLocalizedMessage(), e);
 			}
 		}
 		
@@ -204,7 +207,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 			responseDocument = this.wsClient.singleLogout(logoutRequest, endPoint);
 			
 			// validate the response from the attempted target
-			Response logoutResponse = this.logoutResponseUnmarshaller.unMarshallSigned(responseDocument);
+			StatusResponseType logoutResponse = (this.logoutResponseUnmarshaller.unMarshallSigned(responseDocument)).getValue();
 
 			this.samlValidator.getResponseValidator().validate(logoutResponse);
 			
@@ -216,35 +219,42 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 		catch (SignatureValueException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.6"));  //$NON-NLS-1$
-			this.logger.debug (e);
+			this.logger.trace (e);
 
 			return result.LogoutRequestFailed;
 		}
 		catch (ReferenceValueException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.7"));  //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 
 			return result.LogoutRequestFailed;
 		}
 		catch (UnmarshallerException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.8") + endPoint); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 
 			return result.LogoutRequestFailed;
 		}
 		catch(InvalidSAMLResponseException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.17")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);			
+			this.logger.trace(e.getLocalizedMessage(), e);			
 		
 			return result.LogoutRequestFailed;
 		}
 		catch (WSClientException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.9") + endPoint);  //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
+
+			return result.LogoutRequestFailed;
+		}		
+		catch (UnsupportedOperationException e)
+		{
+			this.logger.error(Messages.getString("FailedLogoutMonitor.9") + endPoint);  //$NON-NLS-1$
+			this.logger.trace(e.getLocalizedMessage(), e);
 
 			return result.LogoutRequestFailed;
 		}		
@@ -261,7 +271,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 	{		
 		SSOProcessor.result result = SSOProcessor.result.LogoutRequestFailed;
 		
-		this.logger.warn(MessageFormat.format(Messages.getString("FailedLogoutMonitor.18"), this.updateFailures.getSize()) );  //$NON-NLS-1$
+		this.logger.debug(MessageFormat.format(Messages.getString("FailedLogoutMonitor.18"), this.updateFailures.getSize()) );  //$NON-NLS-1$
 		
 		Iterator<FailedLogout> iter = this.updateFailures.getFailures().iterator();
 
@@ -270,33 +280,6 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 		{
 			FailedLogout failure = iter.next();
 
-			// make sure the failure is valid before processing
-			
-			// don't leave requests with no timestamp in repo coz they will stay in there forever
-			Date failureDate = failure.getTimeStamp();
-			if(failureDate == null)
-			{
-				this.logger.warn(MessageFormat.format("Failure date has not been set in LogoutFailure destined for {0}. Removing from repository." , failure.getEndPoint()) ); //$NON-NLS-1$
-				iter.remove();
-				continue;
-			}
-			
-			// make sure request document has been set
-			if(failure.getRequestDocument() == null)
-			{
-				this.logger.warn(MessageFormat.format("Request document has not been set in LogoutFailure destined for {0}. Removing from repository." , failure.getEndPoint()) ); //$NON-NLS-1$
-				iter.remove();
-				continue;
-			}
-			
-			// make sure endpoint has been set
-			if(failure.getEndPoint() == null)
-			{
-				this.logger.warn(MessageFormat.format("Endpoint has not been set in LogoutFailure destined for {0}. Removing from repository." , failure.getEndPoint()) ); //$NON-NLS-1$
-				iter.remove();	
-				continue;
-			}
-			
 			// we have to regenerate the original request with updated timestamps and sigs before sending
 			// because the allowed time skew will more than likely have expired.
 			
@@ -317,7 +300,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 			if (result == SSOProcessor.result.LogoutSuccessful)
 			{
 				this.logger.info(MessageFormat.format(Messages.getString("FailedLogoutMonitor.11"),  failure.getEndPoint()) ); //$NON-NLS-1$
-				iter.remove();
+				this.updateFailures.remove(failure);
 			}
 			else
 			// see if it's time to expire the record
@@ -331,7 +314,7 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 				if (age > this.maxFailureAge)
 				{
 					this.logger.info(MessageFormat.format(Messages.getString("FailedLogoutMonitor.20"), failure.getEndPoint()) );  //$NON-NLS-1$
-					iter.remove();
+					this.updateFailures.remove(failure);
 				}
 			}
 		}
@@ -357,17 +340,17 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 		catch(UnmarshallerException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.22"));  //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 		}
 		catch(ReferenceValueException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.23")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 		}
 		catch(SignatureValueException e)
 		{
 			this.logger.error(Messages.getString("FailedLogoutMonitor.24")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 		}
 		
 		if(request != null)
@@ -386,8 +369,17 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 			catch(MarshallerException e)
 			{
 				this.logger.error(Messages.getString("FailedLogoutMonitor.25")); //$NON-NLS-1$
-				this.logger.debug(e.getLocalizedMessage(), e);
+				this.logger.trace(e.getLocalizedMessage(), e);
 			}
+		}
+		
+		try
+		{
+			this.logger.trace("Regenerated new LogoutRequest: \n" + new String(newDoc,  "UTF-16") );
+		}
+		catch(UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
 		}
 		
 		return newDoc;

@@ -19,6 +19,10 @@
  */
 package com.qut.middleware.esoe.sessions;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -26,15 +30,22 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Vector;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
 import com.qut.middleware.esoe.sessions.bean.impl.SessionConfigDataImpl;
 import com.qut.middleware.esoe.sessions.exception.ConfigurationValidationException;
+import com.qut.middleware.esoe.sessions.exception.SessionsDAOException;
+import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 import com.qut.middleware.saml2.schemas.esoe.sessions.AttributeType;
 import com.qut.middleware.saml2.schemas.esoe.sessions.HandlerType;
 import com.qut.middleware.saml2.schemas.esoe.sessions.IdentityType;
@@ -43,6 +54,25 @@ import com.qut.middleware.saml2.schemas.esoe.sessions.IdentityType;
 @SuppressWarnings("nls")
 public class SessionDataTest
 {
+	private SessionsDAO sessionsDAO;
+	private Metadata metadata;
+	
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@Before
+	public void setUp() throws Exception
+	{
+
+	}
+
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@After
+	public void tearDown() throws Exception
+	{
+	}
 
 	/**
 	 * Test method for
@@ -58,7 +88,24 @@ public class SessionDataTest
 		{
 			xml = new File(this.getClass().getResource("sessionDataValid.xml").toURI());
 
-			data = new SessionConfigDataImpl(xml);
+			String entityID = "http://test.service.com";
+			Integer entID = new Integer("1");
+			FileInputStream attribStream = new FileInputStream(xml);
+			byte[] attribPol = new byte[(int)xml.length()];
+			
+			attribStream.read(attribPol);
+			
+			this.metadata = createMock(Metadata.class);
+			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			
+			this.sessionsDAO = createMock(SessionsDAO.class);
+			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attribPol);
+			
+			replay(this.metadata);
+			replay(this.sessionsDAO);
+			
+			data = new SessionConfigDataImpl(sessionsDAO, metadata);
 
 			assertNotNull("Root of session data was null?", data.getIdentity());
 			assertEquals("Incorrect number of Identity elements unmarshalled", data.getIdentity().size(), 1);
@@ -96,6 +143,9 @@ public class SessionDataTest
 					}
 				}
 			}
+			
+			verify(this.metadata);
+			verify(this.sessionsDAO);
 		}
 		catch (ConfigurationValidationException ex)
 		{
@@ -105,6 +155,14 @@ public class SessionDataTest
 		catch (URISyntaxException ex)
 		{
 			fail("URI Syntax exception encountered.");
+		}
+		catch (SessionsDAOException e)
+		{
+			fail("SessionsDAOException "  + e.getLocalizedMessage());
+		}
+		catch (IOException e)
+		{
+			fail("IOException  "  + e.getLocalizedMessage());
 		}
 	}
 
@@ -122,7 +180,25 @@ public class SessionDataTest
 		{
 			xml = new File(this.getClass().getResource("sessionDataValid2.xml").toURI());
 
-			data = new SessionConfigDataImpl(xml);
+			String entityID = "http://test.service.com";
+			Integer entID = new Integer("1");
+			FileInputStream attribStream = new FileInputStream(xml);
+			byte[] attribPol = new byte[(int)xml.length()];
+			
+			attribStream.read(attribPol);
+			
+			this.metadata = createMock(Metadata.class);
+			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			
+			this.sessionsDAO = createMock(SessionsDAO.class);
+			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attribPol);
+			
+			replay(this.metadata);
+			replay(this.sessionsDAO);
+			
+			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+
 
 			assertNotNull("Root of session data was null?", data.getIdentity());
 			assertEquals("Incorrect number of Identity elements unmarshalled", data.getIdentity().size(), 1);
@@ -160,6 +236,8 @@ public class SessionDataTest
 					}
 				}
 			}
+			verify(this.metadata);
+			verify(this.sessionsDAO);
 		}
 		catch (ConfigurationValidationException ex)
 		{
@@ -169,6 +247,14 @@ public class SessionDataTest
 		catch (URISyntaxException ex)
 		{
 			fail("URI Syntax exception encountered.");
+		}
+		catch (SessionsDAOException e)
+		{
+			fail("SessionsDAOException "  + e.getLocalizedMessage());
+		}
+		catch (IOException e)
+		{
+			fail("IOException  "  + e.getLocalizedMessage());
 		}
 	}
 
@@ -187,9 +273,30 @@ public class SessionDataTest
 		{
 			xml = new File(this.getClass().getResource("sessionDataInvalid.xml").toURI());
 
-			data = new SessionConfigDataImpl(xml);
+			String entityID = "http://test.service.com";
+			Integer entID = new Integer("1");
+			FileInputStream attribStream = new FileInputStream(xml);
+			byte[] attribPol = new byte[(int)xml.length()];
+			
+			attribStream.read(attribPol);
+			
+			this.metadata = createMock(Metadata.class);
+			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			
+			this.sessionsDAO = createMock(SessionsDAO.class);
+			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attribPol);
+			
+			replay(this.metadata);
+			replay(this.sessionsDAO);
+			
+			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+
 
 			fail("Invalid XML passed validation.");
+			
+			verify(this.metadata);
+			verify(this.sessionsDAO);
 		}
 		catch (ConfigurationValidationException ex)
 		{
@@ -198,6 +305,14 @@ public class SessionDataTest
 		catch (URISyntaxException ex)
 		{
 			fail("URI Syntax exception encountered.");
+		}
+		catch (SessionsDAOException e)
+		{
+			fail("SessionsDAOException "  + e.getLocalizedMessage());
+		}
+		catch (IOException e)
+		{
+			fail("IOException  "  + e.getLocalizedMessage());
 		}
 
 		assertTrue("Invalid XML did not generate an exception", caught);
@@ -219,9 +334,30 @@ public class SessionDataTest
 		{
 			xml = new File(this.getClass().getResource("sessionDataInvalid2.xml").toURI());
 
-			data = new SessionConfigDataImpl(xml);
+			String entityID = "http://test.service.com";
+			Integer entID = new Integer("1");
+			FileInputStream attribStream = new FileInputStream(xml);
+			byte[] attribPol = new byte[(int)xml.length()];
+			
+			attribStream.read(attribPol);
+			
+			this.metadata = createMock(Metadata.class);
+			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			
+			this.sessionsDAO = createMock(SessionsDAO.class);
+			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attribPol);
+			
+			replay(this.metadata);
+			replay(this.sessionsDAO);
+			
+			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+
 
 			fail("Invalid XML passed validation.");
+			
+			verify(this.metadata);
+			verify(this.sessionsDAO);
 		}
 		catch (ConfigurationValidationException ex)
 		{
@@ -230,6 +366,14 @@ public class SessionDataTest
 		catch (URISyntaxException ex)
 		{
 			fail("URI Syntax exception encountered.");
+		}
+		catch (SessionsDAOException e)
+		{
+			fail("SessionsDAOException "  + e.getLocalizedMessage());
+		}
+		catch (IOException e)
+		{
+			fail("IOException  "  + e.getLocalizedMessage());
 		}
 
 		assertTrue("Invalid XML did not generate an exception", caught);
@@ -251,9 +395,30 @@ public class SessionDataTest
 		{
 			xml = new File(this.getClass().getResource("sessionDataInvalid3.xml").toURI());
 
-			data = new SessionConfigDataImpl(xml);
+			String entityID = "http://test.service.com";
+			Integer entID = new Integer("1");
+			FileInputStream attribStream = new FileInputStream(xml);
+			byte[] attribPol = new byte[(int)xml.length()];
+			
+			attribStream.read(attribPol);
+			
+			this.metadata = createMock(Metadata.class);
+			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			
+			this.sessionsDAO = createMock(SessionsDAO.class);
+			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attribPol);
+			
+			replay(this.metadata);
+			replay(this.sessionsDAO);
+			
+			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+
 
 			fail("Invalid XML passed validation.");
+			
+			verify(this.metadata);
+			verify(this.sessionsDAO);
 		}
 		catch (ConfigurationValidationException ex)
 		{
@@ -262,6 +427,14 @@ public class SessionDataTest
 		catch (URISyntaxException ex)
 		{
 			fail("URI Syntax exception encountered.");
+		}
+		catch (SessionsDAOException e)
+		{
+			fail("SessionsDAOException "  + e.getLocalizedMessage());
+		}
+		catch (IOException e)
+		{
+			fail("IOException  "  + e.getLocalizedMessage());
 		}
 
 		assertTrue("Invalid XML did not generate an exception", caught);

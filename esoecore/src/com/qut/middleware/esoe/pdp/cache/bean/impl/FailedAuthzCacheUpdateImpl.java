@@ -22,6 +22,7 @@ package com.qut.middleware.esoe.pdp.cache.bean.impl;
 import java.util.Date;
 
 import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
+import com.qut.middleware.esoe.sso.bean.FailedLogout;
 
 /** */
 public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
@@ -82,4 +83,26 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 		this.timeAttempted = when;
 	}
 
+	/** Returns true IFF o represents an instance of FailedAuthzCacheUpdate AND the string returned by the accessor getEndpoint()
+	 *  is equals for both objects.
+	 * 
+	 */
+	@Override
+	public boolean equals(Object o)
+	{
+		// It should be sufficient to say two failures are equal if the endpoint id the same, as each endpoint should 
+		// only ever recieve one cache clear at a time.
+		if (o == null || this.endPoint == null )
+			return false;
+		
+		if(o instanceof FailedAuthzCacheUpdate)
+		{			
+			FailedAuthzCacheUpdate comparison = (FailedAuthzCacheUpdate)o;
+			
+			// compare endpoint string field
+			return (comparison.getEndPoint() != null && comparison.getEndPoint().equals(this.endPoint));
+		}
+		
+		return false;
+	}
 }

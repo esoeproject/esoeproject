@@ -18,7 +18,6 @@
 		<conf name="dev" />
 		
 		<conf name="dev-release" />
-		<conf name="dev-release-shared" />
 		<conf name="dev-release-endorsed" />
 	</configurations>
 	
@@ -32,12 +31,12 @@
 	    <dependency org="apache" name="xalan" rev="latest.integration" conf="dev-release-endorsed->default"/>
 	    <dependency org="apache" name="xerces" rev="latest.integration" conf="dev-release-endorsed->default"/>
 		
-		<!-- Development release shared dependencies (excluded below) -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release-shared->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release-shared->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release-shared->default"/>
+		<!-- Development release dependencies -->
+        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
         
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev-release-shared->dev-release">
+        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev-release->dev-release">
         	<exclude org="sun" module="jaxb" />
         	<exclude org="apache" module="xalan"/>
         	<exclude org="apache" module="xerces"/>

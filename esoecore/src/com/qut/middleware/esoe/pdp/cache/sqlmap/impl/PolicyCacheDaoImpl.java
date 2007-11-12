@@ -31,7 +31,7 @@ import com.qut.middleware.esoe.pdp.cache.sqlmap.PolicyCacheDao;
 public class PolicyCacheDaoImpl extends SqlMapClientDaoSupport implements PolicyCacheDao 
 {	
 	/**
-	 * @return The date/time the policy cache was last updated, else null if no records exist.
+	 * @return The highest sequence number for policies stored in the datasource, else 0 if no sequence number can be retrieved.
 	 * 
 	 * @throws SQLException if an error occurs retrieving the data.
 	 */

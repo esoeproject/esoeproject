@@ -692,6 +692,9 @@ public class CompleteESOETest
 		replay(policyCacheDao);
 		replay(servletConfig);
 		replay(servletContext);
+		
+		Map<String, String>identifierMap = new HashMap<String, String>();
+		identifierMap.put(NameIDFormatConstants.emailAddress, "mail");
 
 		AuthzCacheUpdateFailureRepository authzCacheUpdateFailureRepository = new AuthzCacheUpdateFailureRepositoryImpl();
 
@@ -715,7 +718,7 @@ public class CompleteESOETest
 
 		DelegatedAuthenticationProcessor delegatedAuthenticationProcessor = new DelegatedAuthenticationProcessorImpl(samlValidator, sessionsProcessor, identifierGenerator, keystoreResolver, deniedIdentifiers, delegatedAuthnIdentifier);
 
-		SSOProcessor ssoProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, metadata, identifierGenerator, metadata, keystoreResolver, ConfigurationConstants.samlProtocol, ALLOWED_TIME_SKEW, SESSION_REMAINING_TIME);
+		SSOProcessor ssoProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, metadata, identifierGenerator, metadata, keystoreResolver, ALLOWED_TIME_SKEW, SESSION_REMAINING_TIME, false, identifierMap);
 
 		AuthorizationProcessor authorizationProcessor = new AuthorizationProcessorImpl(authzPolicyCache, sessionsProcessor, metadata, samlValidator, identifierGenerator, keystoreResolver, AUTHORIZATION_DEFAULT_MODE, ALLOWED_TIME_SKEW);
 

@@ -18,6 +18,7 @@
  */
 package com.qut.middleware.esoe.sso.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -79,7 +80,7 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 	private Marshaller<LogoutRequest> marshaller;
 	private Unmarshaller<JAXBElement<StatusResponseType>> unmarshaller;
 	
-	private String charset = "UTF-16";
+	private String charset = "UTF-16"; //$NON-NLS-1$
 	
 	private FailedLogoutRepository logoutFailures;
 	
@@ -196,7 +197,7 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 						byte[] request = this.generateLogoutRequest(principal.getSAMLAuthnIdentifier(), LOGOUT_REASON, indicies);
 						
 						result result = this.sendLogoutRequest(request, endPoint);
-						
+												
 						// store the state of the logout request for reporting if required
 						SSOLogoutState logoutState = new SSOLogoutStateImpl();
 						logoutState.setSPEPURL(entity);
@@ -208,6 +209,8 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 						}
 						else
 						{
+							this.recordFailure(request, endPoint, principal.getSAMLAuthnIdentifier());
+							
 							logoutState.setLogoutState(false);
 							logoutState.setLogoutStateDescription(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.12"));						 //$NON-NLS-1$
 						}
@@ -294,17 +297,13 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 		{
 			this.logger.error(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.18"));  //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
-			
-			this.recordFailure(logoutRequest, endPoint);
-			
+							
 			return result.LogoutRequestFailed;
 		}
 		catch (SignatureValueException e)
 		{
 			this.logger.error(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.19") + endPoint);  //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
-
-			this.recordFailure(logoutRequest, endPoint);
 			
 			return result.LogoutRequestFailed;
 		}
@@ -312,8 +311,6 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 		{
 			this.logger.error(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.20") + endPoint);  //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
-
-			this.recordFailure(logoutRequest, endPoint);
 			
 			return result.LogoutRequestFailed;
 		}
@@ -322,16 +319,12 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 			this.logger.error(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.21"));  //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);			
 		
-			this.recordFailure(logoutRequest, endPoint);
-		
 			return result.LogoutRequestFailed;
 		}
 		catch (WSClientException e)
 		{
 			this.logger.error(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.22") + endPoint);  //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
-			
-			this.recordFailure(logoutRequest, endPoint);
 
 			return result.LogoutRequestFailed;
 		}
@@ -385,12 +378,15 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 	
 	
 	/*
-	 * Add the failure record to the logout failure repository.
+	 * Add the failure record to the logout failure repository. If the given failure is determined to already exist in the failure
+	 * repository, the old failure is replaced with the given one.
 	 *  
-	 * @param request The request that failed to deliver. @param endPoint The end point the the request failed to
-	 * deliver to.
+	 * @param request The request that failed to deliver. 
+	 * @param endPoint The end point the the request failed to deliver to.
+	 * @param authnSessionId The session Id of the user for whom the LogoutRequest has failed. Used in comparisons with
+	 * currently held failures to determine if a failure already exists for that user on that endpoint.
 	 */
-	private synchronized void recordFailure(byte[] request, String endPoint)
+	private void recordFailure(byte[] request, String endPoint, String authnSessionId)
 	{		
 		// create an UpdateFailure object
 		FailedLogout failure = new FailedLogoutImpl();
@@ -398,12 +394,29 @@ public class LogoutAuthorityProcessor implements SSOProcessor
 		failure.setEndPoint(endPoint);
 		failure.setRequestDocument(request);
 		failure.setTimeStamp(new Date());
+		failure.setAuthnId(authnSessionId);
 		
-		// add it to failure repository
-		this.logoutFailures.add(failure);
-
-		this.logger.info(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.23") + endPoint ); //$NON-NLS-1$ 
+		try
+		{
+			String requestString = new String(request, "UTF-16");
+			this.logger.trace("Processing FailedAuthzCacheUpdate Request :\n " + requestString);
+		}
+		catch(UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
+		}
 		
-		this.logger.trace(request);	
+		// Add it to failure repository if it doesn't already exist
+		if(this.logoutFailures.containsFailure(failure))
+		{
+			this.logger.debug(MessageFormat.format(Messages.getString("LogoutAuthorityProcessor.31"), failure.getEndPoint())); //$NON-NLS-1$
+		}
+		else
+		{
+			this.logoutFailures.add(failure);
+	
+			this.logger.info(com.qut.middleware.esoe.sso.impl.Messages.getString("LogoutAuthorityProcessor.23") + endPoint ); //$NON-NLS-1$ 
+		}
+				
 	}
 }

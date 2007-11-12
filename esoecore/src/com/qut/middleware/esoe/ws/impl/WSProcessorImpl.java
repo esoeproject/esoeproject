@@ -21,7 +21,6 @@ package com.qut.middleware.esoe.ws.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
@@ -60,10 +59,18 @@ public class WSProcessorImpl implements WSProcessor
 	private AuthorizationProcessor authorizationProcessor;
 	private DelegatedAuthenticationProcessor delegAuthnProcessor;
 
-	private XMLInputFactory xmlInputFactory;
+	private static XMLInputFactory xmlInputFactory;
+	private static XMLOutputFactory xmlOutputFactory;
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(WSProcessorImpl.class.getName());
+	
+	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
+	static
+	{
+		xmlInputFactory = XMLInputFactory.newInstance();
+		xmlOutputFactory = XMLOutputFactory.newInstance();
+	}
 
 	/**
 	 * Constructor
@@ -104,8 +111,6 @@ public class WSProcessorImpl implements WSProcessor
 		this.spepProcessor = spepProcessor;
 		this.authorizationProcessor = authorizationProcessor;
 		this.delegAuthnProcessor = delegAuthnProcessor;
-
-		this.xmlInputFactory = XMLInputFactory.newInstance();
 	}
 
 	/*
@@ -167,8 +172,6 @@ public class WSProcessorImpl implements WSProcessor
 	 */
 	public OMElement policyDecisionPoint(OMElement decisionRequest) throws AxisFault
 	{
-		synchronized( this )
-		{
 		AuthorizationProcessorData data = new AuthorizationProcessorDataImpl();
 		String decisionRequestString;
 
@@ -201,7 +204,7 @@ public class WSProcessorImpl implements WSProcessor
 			this.logger.warn(Messages.getString("WSProcessorImpl.17")); //$NON-NLS-1$
 			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
 		}
-		}
+	
 	}
 
 	/*
@@ -328,7 +331,7 @@ public class WSProcessorImpl implements WSProcessor
 		try
 		{
 			request = new ByteArrayOutputStream();
-			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(request);
+			xmlWriter = WSProcessorImpl.xmlOutputFactory.createXMLStreamWriter(request);
 			requestDocument.serialize(xmlWriter);
 
 			return request.toByteArray();
@@ -360,7 +363,7 @@ public class WSProcessorImpl implements WSProcessor
 		{
 
 			responseStream = new ByteArrayInputStream(responseDocument);
-			xmlreader = this.xmlInputFactory.createXMLStreamReader(responseStream);
+			xmlreader = WSProcessorImpl.xmlInputFactory.createXMLStreamReader(responseStream);
 			builder = new StAXOMBuilder(xmlreader);
 			response = builder.getDocumentElement();
 

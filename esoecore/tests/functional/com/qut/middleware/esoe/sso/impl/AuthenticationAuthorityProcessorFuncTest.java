@@ -37,7 +37,9 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
@@ -67,6 +69,8 @@ import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
+import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
 import com.qut.middleware.saml2.exception.KeyResolutionException;
@@ -105,6 +109,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	private HttpServletRequest request;
 	private HttpServletResponse response;
 	private Principal principal;
+	private Map<String, String> identifierMap;
 
 	private String[] schemas;
 
@@ -118,8 +123,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 	private String spepKeyAlias;
 	private String spepKeyPassword;
 	private String issuer = "_bbb7b47de6cd6c227ba78c340137afcbab08cf94-efb1d452f76659a1b10519ab5d53c03c";
-	
-		
+
+	private List<String> defaultSupportedType;
+
 	public AuthenticationAuthorityProcessorFuncTest()
 	{
 		// Not Implemented
@@ -128,9 +134,11 @@ public class AuthenticationAuthorityProcessorFuncTest
 	/**
 	 * Creates a valid SAML AuthnRequest like would be supplied by an SPEP
 	 * 
-	 * @param allowCreation field to modify in the request to cause a difference in generated output.
-	 * @param tzOffset Specify an offset when creating xml timestamps. Specification says this must
-	 * be set to 0. Any variations should cause SAML validation to reject the document.
+	 * @param allowCreation
+	 *            field to modify in the request to cause a difference in generated output.
+	 * @param tzOffset
+	 *            Specify an offset when creating xml timestamps. Specification says this must be set to 0. Any
+	 *            variations should cause SAML validation to reject the document.
 	 * @return String containing SAML AuthnRequest
 	 */
 	private byte[] generateValidRequest(boolean allowCreation, int tzOffset)
@@ -153,7 +161,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			/* GregorianCalendar with the GMT time zone */
 			GregorianCalendar calendar = new GregorianCalendar(gmt);
 			XMLGregorianCalendar xmlCalendar = new XMLGregorianCalendarImpl(calendar);
-			
+
 			audienceRestriction.getAudiences().add("spep-n1.qut.edu.au");
 			audienceRestriction.getAudiences().add("spep-n2.qut.edu.au");
 			conditions.getConditionsAndOneTimeUsesAndAudienceRestrictions().add(audienceRestriction);
@@ -183,10 +191,10 @@ public class AuthenticationAuthorityProcessorFuncTest
 			result = marshaller.marshallSigned(authnRequest);
 
 			SAMLValidator validator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 100);
-			
+
 			validator.getRequestValidator().validate(authnRequest);
-			
-			return result;
+
+			return Base64.encodeBase64(result);
 		}
 		catch (Exception e)
 		{
@@ -197,8 +205,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	}
 
 	/**
-	 * Creates an Invalid SAML AuthnRequest. The genertaed request is invalid because 
-	 * SAML version is not 2.0.
+	 * Creates an Invalid SAML AuthnRequest. The genertaed request is invalid because SAML version is not 2.0.
 	 * 
 	 * @return String containing SAML AuthnRequest
 	 */
@@ -235,7 +242,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 
 			policy.setAllowCreate(true);
 			authnRequest.setNameIDPolicy(policy);
-			
+
 			authnRequest.setSignature(signature);
 			authnRequest.setSubject(subject);
 			authnRequest.setConditions(conditions);
@@ -252,7 +259,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			authnRequest.setIssuer(issuer);
 
 			result = marshaller.marshallSigned(authnRequest);
-			return result;
+			return Base64.encodeBase64(result);
 		}
 		catch (Exception e)
 		{
@@ -289,7 +296,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		try
 		{
 			// use a test keystore that currently has valid metadata
-			String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testspkeystore.ks";
+			String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testspkeystore.ks";
 
 			String keyStorePassword = "esoekspass";
 			spepKeyAlias = "54f748a6c6b8a4f8";
@@ -298,7 +305,12 @@ public class AuthenticationAuthorityProcessorFuncTest
 			keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, spepKeyAlias, spepKeyPassword);
 			privKey = keyStoreResolver.getPrivateKey();
 			pk = keyStoreResolver.resolveKey(spepKeyAlias);
-			
+			identifierMap = new HashMap<String, String>();
+			identifierMap.put(NameIDFormatConstants.emailAddress, "mail");
+
+			this.defaultSupportedType = new ArrayList<String>();
+			this.defaultSupportedType.add(NameIDFormatConstants.trans);
+
 			schemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion };
 
 			/* Supplied private/public key will be in RSA format */
@@ -308,7 +320,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			
+
 			fail("Unexpected exception on creating marshaller: " + e.getCause());
 		}
 	}
@@ -354,11 +366,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
-	public void testExecute1() throws UnmarshallerException, MarshallerException, InvalidSessionIdentifierException,
-			InvalidRequestException
+	public void testExecute1() throws UnmarshallerException, MarshallerException, InvalidSessionIdentifierException, InvalidRequestException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata,
-				identifierGenerator, metadata, keyStoreResolver, ConfigurationConstants.samlProtocol, 120, 20);
+		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 		authAuthorityProcessor.execute(null);
 	}
 
@@ -369,9 +379,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	 * PasswordProtectedTransport
 	 */
 	@Test
-	public void testExecute2() throws UnmarshallerException, MarshallerException, FileNotFoundException, IOException,
-			InvalidRequestException, InvalidSessionIdentifierException,
-			com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException
+	public void testExecute2() throws UnmarshallerException, MarshallerException, FileNotFoundException, IOException, InvalidRequestException, InvalidSessionIdentifierException, com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException
 	{
 		try
 		{
@@ -379,36 +387,33 @@ public class AuthenticationAuthorityProcessorFuncTest
 			List<String> entities = new ArrayList<String>();
 			entities.add("12345-12345");
 
-			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor,
-					this.metadata, identifierGenerator, metadata, keyStoreResolver,
-					ConfigurationConstants.samlProtocol, 120, 20);
+			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
 			data.setIssuerID("12345-12345");
-		
+			data.setSamlBinding(BindingConstants.httpPost);
+
 			data.setRequestDocument(generateValidRequest(true, 0));
 
 			expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
 			expect(query.queryAuthnSession("1234567890")).andReturn(principal).atLeastOnce();
-			
 
-			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn(
-					"https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn("https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerServiceIdentifierTypes(this.issuer, 0)).andReturn(this.defaultSupportedType);
 
 			expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
 			expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
-			
+
 			/* User originally authenticated basically within the same request timeframe */
-			expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();		
-			expect(principal.getAuthenticationContextClass()).andReturn(
-					AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
+			expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();
+			expect(principal.getAuthenticationContextClass()).andReturn(AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
 			expect(principal.getPrincipalAuthnIdentifier()).andReturn("beddoes").atLeastOnce();
-			
-			principal.addDescriptorSessionIdentifier((String)notNull(), (String)notNull());
-			
-			TimeZone utc = new SimpleTimeZone(0, ConfigurationConstants.timeZone); 
+
+			principal.addDescriptorSessionIdentifier((String) notNull(), (String) notNull());
+
+			TimeZone utc = new SimpleTimeZone(0, ConfigurationConstants.timeZone);
 			GregorianCalendar cal = new GregorianCalendar(utc);
 			// add skew offset that will keep notonorafter within allowable session range
 			cal.add(Calendar.SECOND, 1000);
@@ -420,7 +425,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID").atLeastOnce();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -428,19 +433,16 @@ public class AuthenticationAuthorityProcessorFuncTest
 
 			SSOProcessor.result result = authAuthorityProcessor.execute(data);
 
-			assertEquals("Ensure success result for response creation", SSOProcessor.result.SSOGenerationSuccessful,
-					result);
+			assertEquals("Ensure success result for response creation", SSOProcessor.result.SSOGenerationSuccessful, result);
 
 			try
 			{
 				Response samlResponse = unmarshaller.unMarshallSigned(data.getResponseDocument());
-				assertTrue(
-						"Asserts the response document InReplyTo field is the same value as the original request id",
-						samlResponse.getInResponseTo().equals(this.issuer));
-			
+				assertTrue("Asserts the response document InReplyTo field is the same value as the original request id", samlResponse.getInResponseTo().equals(this.issuer));
+
 				// now validate it
 				this.samlValidator.getResponseValidator().validate(samlResponse);
-				
+
 			}
 			catch (SignatureValueException e)
 			{
@@ -453,7 +455,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 				fail("This exception should not occur in this test");
 			}
 
-			catch(InvalidSAMLResponseException e)
+			catch (InvalidSAMLResponseException e)
 			{
 				e.printStackTrace();
 				fail("This exception should not occur in this test");
@@ -481,9 +483,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	 * previousSession
 	 */
 	@Test
-	public void testExecute2a() throws UnmarshallerException, MarshallerException, InvalidRequestException,
-			InvalidSessionIdentifierException,
-			com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException
+	public void testExecute2a() throws UnmarshallerException, MarshallerException, InvalidRequestException, InvalidSessionIdentifierException, com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException
 	{
 		try
 		{
@@ -491,45 +491,42 @@ public class AuthenticationAuthorityProcessorFuncTest
 			List<String> entities = new ArrayList<String>();
 			entities.add("12345-12345");
 
-			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor,
-					this.metadata, identifierGenerator, metadata, keyStoreResolver,
-					ConfigurationConstants.samlProtocol, 120, 20);
+			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
+			data.setSamlBinding(BindingConstants.httpPost);
 
 			data.setRequestDocument(generateValidRequest(true, 0));
 
 			expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
 			expect(query.queryAuthnSession("1234567890")).andReturn(principal).atLeastOnce();
-			
 
-			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn(
-					"https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn("https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerServiceIdentifierTypes(this.issuer, 0)).andReturn(this.defaultSupportedType);
 
 			expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
 			expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
-	
+
 			/* User originally authenticated a long time in the past */
 			expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis()).atLeastOnce();
-			expect(principal.getAuthenticationContextClass()).andReturn(AuthenticationContextConstants.previousSession)
-					.anyTimes();
+			expect(principal.getAuthenticationContextClass()).andReturn(AuthenticationContextConstants.previousSession).anyTimes();
 			expect(principal.getPrincipalAuthnIdentifier()).andReturn("beddoes").atLeastOnce();
 
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.add(Calendar.SECOND, 100);
 			expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal)).atLeastOnce();
 
-			principal.addDescriptorSessionIdentifier((String)notNull(), (String)notNull());
-			
+			principal.addDescriptorSessionIdentifier((String) notNull(), (String) notNull());
+
 			expect(sessionsProcessor.getUpdate()).andReturn(update).anyTimes();
 			expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid");
 			update.updateDescriptorList("1234567890", this.issuer);
 			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID").atLeastOnce();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567-samlid").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234568-samlid").anyTimes();
 
@@ -537,15 +534,12 @@ public class AuthenticationAuthorityProcessorFuncTest
 
 			SSOProcessor.result result = authAuthorityProcessor.execute(data);
 
-			assertEquals("Ensure success result for response creation", SSOProcessor.result.SSOGenerationSuccessful,
-					result);
+			assertEquals("Ensure success result for response creation", SSOProcessor.result.SSOGenerationSuccessful, result);
 
 			try
 			{
 				Response samlResponse = unmarshaller.unMarshallSigned(data.getResponseDocument());
-				assertTrue(
-						"Asserts the response document InReplyTo field is the same value as the original request id",
-						samlResponse.getInResponseTo().equals(this.issuer));
+				assertTrue("Asserts the response document InReplyTo field is the same value as the original request id", samlResponse.getInResponseTo().equals(this.issuer));
 			}
 			catch (SignatureValueException e)
 			{
@@ -577,13 +571,11 @@ public class AuthenticationAuthorityProcessorFuncTest
 	/**
 	 * Test method for
 	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#execute(com.qut.middleware.esoe.sso.bean.SSOProcessorData)}.
-	 * Tests for successful sso authn response creation with a timezone offset disaalowed by the specification. IE: not set to UTC+0. SAML
-	 * validation should reject the reponse creation.
+	 * Tests for successful sso authn response creation with a timezone offset disaalowed by the specification. IE: not
+	 * set to UTC+0. SAML validation should reject the reponse creation.
 	 */
 	@Test
-	public void testExecute2c() throws UnmarshallerException, MarshallerException, FileNotFoundException, IOException,
-			InvalidSessionIdentifierException,
-			com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException
+	public void testExecute2c() throws UnmarshallerException, MarshallerException, FileNotFoundException, IOException, InvalidSessionIdentifierException, com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException
 	{
 		try
 		{
@@ -591,46 +583,43 @@ public class AuthenticationAuthorityProcessorFuncTest
 			List<String> entities = new ArrayList<String>();
 			entities.add("12345-12345");
 
-			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor,
-					this.metadata, identifierGenerator, metadata, keyStoreResolver,
-					ConfigurationConstants.samlProtocol, 120, 20);
+			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
+			data.setSamlBinding(BindingConstants.httpPost);
 
 			data.setRequestDocument(generateInvalidRequest());
 
 			expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
 			expect(query.queryAuthnSession("1234567890")).andReturn(principal).atLeastOnce();
-			
 
-			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn(
-					"https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn("https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerServiceIdentifierTypes(this.issuer, 0)).andReturn(this.defaultSupportedType);
 
 			expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
 			expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
-			;
+	
 			/* User originally authenticated basically within the same request timeframe */
 			expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();
-			;
-			expect(principal.getAuthenticationContextClass()).andReturn(
-					AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
-			;
+
+			expect(principal.getAuthenticationContextClass()).andReturn(AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
+
 			expect(principal.getPrincipalAuthnIdentifier()).andReturn("beddoes").atLeastOnce();
-			
+
 			GregorianCalendar cal = new GregorianCalendar();
 			expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal)).atLeastOnce();
 
-			principal.addDescriptorSessionIdentifier((String)notNull(), (String)notNull());
-			
+			principal.addDescriptorSessionIdentifier((String) notNull(), (String) notNull());
+
 			expect(sessionsProcessor.getUpdate()).andReturn(update).anyTimes();
 			expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid");
 			update.updateDescriptorList("1234567890", this.issuer);
 			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID").atLeastOnce();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -640,16 +629,16 @@ public class AuthenticationAuthorityProcessorFuncTest
 			{
 				// authn processor will validate the request with the wrong timezone and reject it
 				authAuthorityProcessor.execute(data);
-			
+
 			}
-			catch(InvalidRequestException e)
+			catch (InvalidRequestException e)
 			{
 				return;
 			}
-		
+
 			// the SAML request was not rejected as expected
 			fail("SAML Request was not rejected.");
-			
+
 		}
 		catch (InvalidMetadataEndpointException imee)
 		{
@@ -664,6 +653,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			fail("Unexpected InvalidEntityIdentifierException: " + e.getMessage());
 		}
 	}
+
 	/**
 	 * Test method for
 	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#execute(com.qut.middleware.esoe.sso.bean.SSOProcessorData)}.
@@ -674,12 +664,11 @@ public class AuthenticationAuthorityProcessorFuncTest
 	{
 		try
 		{
-			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor,
-					this.metadata, identifierGenerator, metadata, keyStoreResolver,
-					ConfigurationConstants.samlProtocol, 120, 20);
+			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
+			data.setSamlBinding(BindingConstants.httpPost);
 
 			/* Modify document after signing to get invalid state */
 			data.setRequestDocument(generateInvalidRequest());
@@ -687,8 +676,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 			expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
 			expect(query.queryAuthnSession("1234567890")).andReturn(principal).atLeastOnce();
-			
+
 			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn("http://spep.url/assertions");
+			expect(metadata.resolveAssertionConsumerServiceIdentifierTypes(this.issuer, 0)).andReturn(this.defaultSupportedType);
 			expect(metadata.getEsoeEntityID()).andReturn("esoe").atLeastOnce();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 
@@ -703,13 +693,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 			try
 			{
 				Response samlResponse = unmarshaller.unMarshallSigned(data.getResponseDocument());
-				assertTrue(
-						"Asserts the response document InReplyTo field is the same value as the original request id",
-						samlResponse.getInResponseTo().equals("abe567de6-122wert67"));
-				assertTrue("Asserts that the response statuscode is of type requester", samlResponse.getStatus()
-						.getStatusCode().getValue().equals(StatusCodeConstants.requester));
-				assertTrue("Asserts that the statuscode has an appropriate message", samlResponse.getStatus()
-						.getStatusMessage().contains("SAML"));
+				assertTrue("Asserts the response document InReplyTo field is the same value as the original request id", samlResponse.getInResponseTo().equals("abe567de6-122wert67"));
+				assertTrue("Asserts that the response statuscode is of type requester", samlResponse.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.requester));
+				assertTrue("Asserts that the statuscode has an appropriate message", samlResponse.getStatus().getStatusMessage().contains("SAML"));
 			}
 			catch (SignatureValueException sve)
 			{
@@ -753,7 +739,8 @@ public class AuthenticationAuthorityProcessorFuncTest
 	/**
 	 * Test method for
 	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#execute(com.qut.middleware.esoe.sso.bean.SSOProcessorData)}.
-	 * Ensures that InvalidRequestException is thrown when invalid session identifier is set and session creation is not allowed
+	 * Ensures that InvalidRequestException is thrown when invalid session identifier is set and session creation is not
+	 * allowed
 	 */
 	@Test
 	public void testExecute3a()
@@ -764,12 +751,11 @@ public class AuthenticationAuthorityProcessorFuncTest
 			List<String> entities = new ArrayList<String>();
 			entities.add("12345-12345");
 
-			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor,
-					this.metadata, identifierGenerator, metadata, keyStoreResolver,
-					ConfigurationConstants.samlProtocol, 120, 20);
+			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
+			data.setSamlBinding(BindingConstants.httpPost);
 
 			/* Modify document after signing to get invalid state */
 			data.setRequestDocument(generateValidRequest(false, 0));
@@ -778,17 +764,15 @@ public class AuthenticationAuthorityProcessorFuncTest
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
 			try
 			{
-				expect(query.queryAuthnSession("1234567890")).andThrow(
-						new com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException());
+				expect(query.queryAuthnSession("1234567890")).andThrow(new com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException());
 			}
 			catch (com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException e)
 			{
 				fail("Unexpected InvalidSessionIdentifierException: " + e.getMessage());
 			}
-			
 
-			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn(
-					"https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerService(this.issuer, 0)).andReturn("https://spep.qut.edu.au/sso/aa");
+			expect(metadata.resolveAssertionConsumerServiceIdentifierTypes(this.issuer, 0)).andReturn(this.defaultSupportedType);
 
 			expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
 			expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
@@ -796,8 +780,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			/* User originally authenticated basically within the same request timeframe */
 			expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();
 			;
-			expect(principal.getAuthenticationContextClass()).andReturn(
-					AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
+			expect(principal.getAuthenticationContextClass()).andReturn(AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
 			;
 
 			expect(sessionsProcessor.getUpdate()).andReturn(update).anyTimes();
@@ -805,8 +788,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			try
 			{
 				update.updateDescriptorList("1234567890", this.issuer);
-				update.updateDescriptorSessionIdentifierList("1234567890", this.issuer,
-						"_1234567-1234567-samlsessionid");
+				update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
 			}
 			catch (com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException e)
 			{
@@ -814,7 +796,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 			}
 
 			expect(request.getServerName()).andReturn("http://esoe-unittest.code");
-			expect(metadata.getEsoeEntityID()).andReturn("esoeID");
+			expect(metadata.getEsoeEntityID()).andReturn("esoeID").atLeastOnce();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 			expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -841,13 +823,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 			try
 			{
 				Response samlResponse = unmarshaller.unMarshallSigned(data.getResponseDocument());
-				assertTrue(
-						"Asserts the response document InReplyTo field is the same value as the original request id",
-						samlResponse.getInResponseTo().equals(this.issuer));
-				assertTrue("Asserts that the response statuscode is of type requester", samlResponse.getStatus()
-						.getStatusCode().getValue().equals(StatusCodeConstants.responder));
-				assertTrue("Asserts that the statuscode has an appropriate message", samlResponse.getStatus()
-						.getStatusMessage().contains("session"));
+				assertTrue("Asserts the response document InReplyTo field is the same value as the original request id", samlResponse.getInResponseTo().equals(this.issuer));
+				assertTrue("Asserts that the response statuscode is of type requester", samlResponse.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.responder));
+				assertTrue("Asserts that the statuscode has an appropriate message", samlResponse.getStatus().getStatusMessage().contains("session"));
 			}
 			catch (SignatureValueException sve)
 			{
@@ -886,22 +864,21 @@ public class AuthenticationAuthorityProcessorFuncTest
 	{
 		try
 		{
-			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor,
-					this.metadata, identifierGenerator, metadata, keyStoreResolver,
-					ConfigurationConstants.samlProtocol, 120, 20);
+			authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap);
 			data.setHttpRequest(request);
 			data.setHttpResponse(response);
 			data.setSessionID("1234567890");
+			data.setSamlBinding(BindingConstants.httpPost);
 
 			/* Modify document after signing to get invalid state */
 			byte[] doc = generateValidRequest(true, 0);
-			doc [10] = '~';
+			doc[10] = '~';
 			data.setRequestDocument(doc);
 
 			expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 			expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
 			expect(query.queryAuthnSession("1234567890")).andReturn(principal).atLeastOnce();
-			
+
 			setUpMock();
 
 			authAuthorityProcessor.execute(data);

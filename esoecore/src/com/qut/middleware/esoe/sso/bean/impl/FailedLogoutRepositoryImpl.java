@@ -21,6 +21,8 @@ package com.qut.middleware.esoe.sso.bean.impl;
 
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.qut.middleware.esoe.sso.bean.FailedLogout;
 import com.qut.middleware.esoe.sso.bean.FailedLogoutRepository;
@@ -30,8 +32,8 @@ import com.qut.middleware.esoe.sso.bean.FailedLogoutRepository;
 public class FailedLogoutRepositoryImpl implements FailedLogoutRepository {
 
 	private List<FailedLogout> failures;
-	
-	
+	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+  
     /** Initilaizes the internal failure repository to a 0 sized list.
      * 
      * Default constructor
@@ -43,15 +45,32 @@ public class FailedLogoutRepositoryImpl implements FailedLogoutRepository {
     }
     
     
-	/** Add the cache failure object to the repository. Null parameters are ignored.
+    /* Add the Logout failure object to the repository. Null parameters are ignored. Failure objects added
+	 * MUST have all fields populated so that compare and removal operations are peroformed correctly.
+	 * If all fields are not populated an exception is thrown. See below.
 	 * 
 	 * 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.FailedLogoutRepository#add(com.qut.middleware.esoe.pdp.cache.bean.FailedLogout)
+	 * @throws IllegalArgumentException if the object that is added does not contain necessary fields.
 	 */
 	public void add(FailedLogout failure)
 	{
 		if(failure != null)
-			this.failures.add(failure);
+		{
+			if(failure.getEndPoint() == null || failure.getRequestDocument() == null || failure.getTimeStamp() == null || failure.getAuthnId() == null)
+				throw new IllegalArgumentException("Attempted to add an invalid object to repository. Please check that all fields are populated.");
+				
+			this.rwl.writeLock().lock();
+			
+			try
+			{
+				this.failures.add(failure);
+			}
+			finally
+			{
+				this.rwl.writeLock().unlock();
+			}
+		}		
 	}
 
 	
@@ -60,25 +79,59 @@ public class FailedLogoutRepositoryImpl implements FailedLogoutRepository {
 	 */
 	public void clearFailures()
 	{
-		this.failures.clear();
+		this.rwl.writeLock().lock();
+		
+		try
+		{
+			this.failures.clear();
+		}
+		finally
+		{
+			this.rwl.writeLock().unlock();
+		}
 	}
 
 	
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.FailedLogoutRepository#getFailures()
+	 * 
+	 * NOTE: This method returns a clone of the unerlying list. Modifications to the list of failures should be
+	 * performed via add() and remove().
 	 */
 	public List<FailedLogout> getFailures()
 	{
-		return this.failures;
+		this.rwl.readLock().lock();
+		
+		try
+		{
+			Vector<FailedLogout> clonedList = new Vector<FailedLogout>();
+			
+			clonedList.addAll(this.failures);
+			
+			return (Vector<FailedLogout>)clonedList.clone();
+		}
+		finally
+		{
+			this.rwl.readLock().unlock();
+		}
 	}
 	
 	
 	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.pdp.cache.bean.FailedLogoutRepository#remove(com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate)
+	 * @see com.qut.middleware.esoe.pdp.cache.bean.FailedLogoutRepository#remove(com.qut.middleware.esoe.pdp.cache.bean.FailedLogout)
 	 */
 	public void remove(FailedLogout failure)
 	{
-		this.failures.remove(failure);
+		this.rwl.writeLock().lock();
+		
+		try
+		{
+			this.failures.remove(failure);
+		}
+		finally
+		{
+			this.rwl.writeLock().unlock();
+		}
 	}
 	
 	
@@ -87,7 +140,36 @@ public class FailedLogoutRepositoryImpl implements FailedLogoutRepository {
 	 */
 	public int getSize()
 	{
-		return(this.failures == null ? 0 : this.failures.size() );
+		this.rwl.readLock().lock();
+		
+		try
+		{
+			return(this.failures == null ? 0 : this.failures.size() );
+		}
+		finally
+		{
+			this.rwl.readLock().unlock();
+		}
 	}
 
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.qut.middleware.esoe.sso.bean.FailedLogoutRepository#containsFailure(com.qut.middleware.esoe.sso.bean.FailedLogout)
+	 */
+	public boolean containsFailure(FailedLogout failure)
+	{
+		this.rwl.readLock().lock();
+		
+		try
+		{
+			return (failure != null && this.failures.contains(failure) ? true : false);
+		}
+		finally
+		{
+			this.rwl.readLock().unlock();
+		}
+	}
+
+	
 }

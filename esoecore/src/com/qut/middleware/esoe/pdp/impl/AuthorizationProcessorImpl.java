@@ -250,7 +250,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 			// the SAML ID of the request will be used to respond to
 			String inResponseTo = authzRequest.getID();
 
-			authData.setIssuerID(eval.getDescriptorID(authzRequest));
+			authData.setIssuerID(eval.getEntityID(authzRequest));
 			authData.setSubjectID(eval.getSubjectID(authzRequest));
 
 			principal = this.sessionProcessor.getQuery().querySAMLSession(authData.getSubjectID());
@@ -362,11 +362,11 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 	 * Retrieve a Policy object from the AuthzPolicyCache.
 	 * 
 	 */
-	private Vector<Policy> queryCache(String descriptorID)
+	private Vector<Policy> queryCache(String entityID)
 	{
 		this.logger.log(Level.DEBUG, Messages.getString("AuthorizationProcessorImpl.91")); //$NON-NLS-1$
 
-		return (Vector<Policy>) this.globalCache.getPolicies(descriptorID);
+		return (Vector<Policy>) this.globalCache.getPolicies(entityID);
 	}
 
 	private boolean isValidAction(String specifiedAction, List<String> policyActions, Rule currentRule)
@@ -484,12 +484,6 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 									DecisionType newDecision = this.processRule(currentRule, resource, principal);
 
-									// null return indicates the a condition contained in the rule evaluated to false.
-									// We must ignore
-									// this rule. ie: do not process this Rule any longer.
-									if (newDecision == null)
-										break;
-
 									// end processing if we hit a deny
 									if (newDecision == DecisionType.DENY)
 									{
@@ -498,8 +492,7 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 										currentDecision = DecisionType.DENY;
 
 										// we also only want to send the deny group target and authz target that matched
-										// the
-										// requested resource, so we need to clear and reset these values in policy data
+										// the  requested resource, so we need to clear and reset these values in policy data
 										// bean
 										policyData.clearTargets();
 										continueProcessing = false;

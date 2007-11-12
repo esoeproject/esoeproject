@@ -21,7 +21,6 @@ package com.qut.middleware.esoe.pdp.cache.impl;
 
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
@@ -32,10 +31,7 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 
 	private List<FailedAuthzCacheUpdate> failures;
 	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-    private final Lock readLock = this.rwl.readLock();
-    private final Lock writeLock = this.rwl.writeLock();
-	
-	
+  	
     /** Initializes the internal failure repository to a 0 sized list.
      * 
      * Default constructor
@@ -47,23 +43,31 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
     }
     
     
-	/* Add the cache failure object to the repository. Null parameters are ignored.
+	/* Add the cache failure object to the repository. Null parameters are ignored. Failure objects added
+	 * MUST have all fields populated so that compare and removal operations are peroformed correctly.
+	 * If all fields are not populated an exception is thrown. See below.
 	 * 
 	 * 
 	 * @see com.qut.middleware.esoe.pdp.cache.bean.AuthzCacheUpdateFailureRepository#add(com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate)
+	 * @throws IllegalArgumentException if the object that is added does not contain necessary fields.
 	 */
 	public void add(FailedAuthzCacheUpdate failure)
 	{
-		try
+		if(failure != null)
 		{
-			this.writeLock.lock();
-		
-			if(failure != null && !this.failures.contains(failure))
+			if(failure.getEndPoint() == null || failure.getRequestDocument() == null || failure.getTimeStamp() == null)
+				throw new IllegalArgumentException("Attempted to add an invalid object to repository. Please check that all fields are populated.");
+			
+			this.rwl.writeLock().lock();
+			
+			try
+			{			
 				this.failures.add(failure);				
-		}
-		finally
-		{
-			this.writeLock.unlock();
+			}
+			finally
+			{
+				this.rwl.writeLock().unlock();
+			}
 		}
 	}
 
@@ -73,15 +77,15 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 	 */
 	public void clearFailures()
 	{
+		this.rwl.writeLock().lock();
+	
 		try
 		{
-			this.writeLock.lock();
-		
 			this.failures.clear();
 		}
 		finally
 		{
-			this.writeLock.unlock();
+			this.rwl.writeLock().unlock();
 		}
 	}
 
@@ -93,21 +97,22 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 	 * performed via add() and remove().
 	 */
 	public List<FailedAuthzCacheUpdate> getFailures()
-	{
-		Vector<FailedAuthzCacheUpdate> clonedList = new Vector<FailedAuthzCacheUpdate>();
+	{		
+		this.rwl.readLock().lock();
 		
 		try
-		{
-			this.readLock.lock();
+		{			
+			Vector<FailedAuthzCacheUpdate> clonedList = new Vector<FailedAuthzCacheUpdate>();
 			
 			clonedList.addAll(this.failures);
+			
+			return (Vector<FailedAuthzCacheUpdate>)clonedList.clone();
 		}
 		finally
 		{
-			this.readLock.unlock();
+			this.rwl.readLock().unlock();
 		}
 		
-		return (Vector<FailedAuthzCacheUpdate>)clonedList.clone();
 	}
 
 	
@@ -116,30 +121,54 @@ public class AuthzCacheUpdateFailureRepositoryImpl implements AuthzCacheUpdateFa
 	 */
 	public void remove(FailedAuthzCacheUpdate failure)
 	{
-		try
-		{
-			this.writeLock.lock();
+		this.rwl.writeLock().lock();
 		
+		try
+		{			
 			this.failures.remove(failure);
 		}
 		finally
 		{
-			this.writeLock.unlock();
+			this.rwl.writeLock().unlock();
 		}
 	}
 
-	
+	/*
+	 * (non-Javadoc)
+	 * @see com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository#getSize()
+	 */
 	public int getSize()
 	{
+		this.rwl.readLock().lock();
+
 		try
 		{
-			this.readLock.lock();
-
 			return(this.failures == null ? 0 : this.failures.size() );
 		}
 		finally
 		{
-			this.readLock.unlock();
+			this.rwl.readLock().unlock();
 		}
 	}
+
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.qut.middleware.esoe.sso.bean.FailedLogoutRepository#containsFailure(com.qut.middleware.esoe.sso.bean.FailedLogout)
+	 */
+	public boolean containsFailure(FailedAuthzCacheUpdate failure)
+	{
+
+		this.rwl.readLock().lock();
+		
+		try
+		{
+			return (failure != null && this.failures.contains(failure) ? true : false);
+		}
+		finally
+		{
+			this.rwl.readLock().unlock();
+		}
+	}
+	
 }

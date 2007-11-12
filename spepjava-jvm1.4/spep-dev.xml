@@ -8,6 +8,7 @@
 	<servlet>
 		<servlet-name>authnServlet</servlet-name>
 		<servlet-class>com.qut.middleware.spep.servlet.AuthenticationServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet>

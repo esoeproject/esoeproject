@@ -257,7 +257,9 @@ public abstract class AuthenticationAuthorityProcessorBase implements SSOProcess
 					}
 
 					this.logger.debug(Messages.getString("AuthenticationAuthorityProcessor.31")); //$NON-NLS-1$
+					
 					data.setIssuerID(data.getAuthnRequest().getIssuer().getValue());
+					
 					if (data.getAuthnRequest().getAssertionConsumerServiceIndex() != null)
 					{
 						data.setResponseEndpointID(data.getAuthnRequest().getAssertionConsumerServiceIndex().intValue());
@@ -478,7 +480,7 @@ public abstract class AuthenticationAuthorityProcessorBase implements SSOProcess
 	 * @throws UnmarshallerException
 	 */
 	private AuthnRequest executePostBinding(SSOProcessorData data) throws SignatureValueException, ReferenceValueException, UnmarshallerException
-	{
+	{		
 		byte[] samlRequestBytes = Base64.decodeBase64(data.getRequestDocument()); //$NON-NLS-1$
 		data.setRequestCharsetName(detectCharSet(samlRequestBytes));
 		return this.unmarshaller.unMarshallSigned(samlRequestBytes);
@@ -501,18 +503,24 @@ public abstract class AuthenticationAuthorityProcessorBase implements SSOProcess
 		ByteArrayOutputStream inflatedByteStream = new ByteArrayOutputStream();
 		byte[] tmpBuffer = new byte[this.TMP_BUFFER_SIZE];
 		int writeCount = 0;
+		
+		if(data.getRequestDocument() == null || data.getRequestDocument().length <= 0)
+		{
+			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Request is invalid, no content supplied", this.UTF8);
+			throw new InvalidRequestException("Dataformat for Request is invalid");
+		}
 
 		/* Ensure the caller used Deflate encoding, we don't support other methods */
 		if (data.getSamlEncoding() != null && !data.getSamlEncoding().equals(BindingConstants.deflateEncoding))
 		{
-			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "SAML Request encoding is unsupported", data.getRequestCharsetName());
+			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "SAML Request encoding is unsupported", this.UTF8);
 			throw new InvalidRequestException("SAML Request encoding is unsupported");
 		}
 
 		/* Ensure there was no signature presented if there was create */
 		if (data.getSignature() != null)
 		{
-			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Cryptography in HTTP Request profile is not yet supported", data.getRequestCharsetName());
+			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Cryptography in HTTP Request profile is not yet supported", this.UTF8);
 			throw new InvalidRequestException("Cryptography in HTTP Request profile is not yet supported");
 		}
 
@@ -539,12 +547,12 @@ public abstract class AuthenticationAuthorityProcessorBase implements SSOProcess
 		}
 		catch (DataFormatException e)
 		{
-			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Dataformat for Request is invalid", data.getRequestCharsetName());
+			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Dataformat for Request is invalid", this.UTF8);
 			throw new InvalidRequestException("Dataformat for Request is invalid");
 		}
 		catch (IOException e)
 		{
-			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Server error when inflating request", data.getRequestCharsetName());
+			createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, "Server error when inflating request", this.UTF8);
 			throw new InvalidRequestException("Server error when inflating request");
 		}
 

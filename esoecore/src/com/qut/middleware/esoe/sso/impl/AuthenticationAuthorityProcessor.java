@@ -165,7 +165,7 @@ public class AuthenticationAuthorityProcessor extends AuthenticationAuthorityPro
 		boolean setNameID = false;
 
 		/**
-		 * If we're dealing with google inset mail identifier specially now and in special format until they correct
+		 * If we're dealing with google insert mail identifier specially now and in special format until they correct
 		 * their problems
 		 */
 		if (data.getAuthnRequest().getIssuer().getValue().contains("google"))

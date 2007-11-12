@@ -21,11 +21,14 @@ package com.qut.middleware.esoe.sessions.cache.impl;
 
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.log4j.Logger;
 
@@ -33,6 +36,7 @@ import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.util.CalendarUtils;
 
 /** 
  * Implements the session cache interface using a linked hash map as the
@@ -180,28 +184,46 @@ public class SessionCacheImpl implements SessionCache
 	 */
 	public int cleanCache(int age) 
 	{
-		Set<Entry<String, Principal>> entryList = this.sessionMap.entrySet();
-		Iterator<Entry<String, Principal>> entryIterator = entryList.iterator();
 		int numRemoved = 0;
 		
 		synchronized (this.sessionMap)
 		{
+			Set<Entry<String, Principal>> entryList = this.sessionMap.entrySet();
+			Iterator<Entry<String, Principal>> entryIterator = entryList.iterator();
+			
 			while (entryIterator.hasNext())
 			{
 				Entry<String, Principal> entry = entryIterator.next();
 
-				if(null != entry)
+				if(entry != null)
 				{
 					long now = System.currentTimeMillis();
-					long expire = (entry.getValue().getLastAccessed() + age);
+					long idle = (now - entry.getValue().getLastAccessed());
 
-					this.logger.trace(MessageFormat.format("Comparing entry expiry time of {0} against current time of {1}.", expire, now) ); //$NON-NLS-1$
+					XMLGregorianCalendar xmlCalendar = entry.getValue().getSessionNotOnOrAfter();
+					GregorianCalendar notOnOrAfterCal = xmlCalendar.toGregorianCalendar();
+
+					XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
+					GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
+
+					this.logger.trace(MessageFormat.format("Comparing session notOnOrAfter time of {0} against current time of {1}.", notOnOrAfterCal.getTime(), thisCal.getTime()) ); //$NON-NLS-1$
 					
-					if (expire < now)
+					if (thisCal.after(notOnOrAfterCal))
 					{
-						this.logger.debug("Removing expired entry from session cache"); //$NON-NLS-1$
+						this.logger.debug(MessageFormat.format("Removing expired session ID {0} from sessions cache.", entry.getValue().getSessionID()) ); //$NON-NLS-1$
 						entryIterator.remove();
-						numRemoved ++;
+					}
+					else
+					{
+						// Remove any sessions that have been idle too long
+						this.logger.trace(MessageFormat.format("Comparing session idle time of {0} against max idle time of {1}.", idle, age) ); //$NON-NLS-1$
+						
+						if (idle > age)
+						{
+							this.logger.debug(MessageFormat.format("Idle time exceeded for session ID {0}. Removing from sessions cache.", entry.getValue().getSessionID()) ); //$NON-NLS-1$
+							entryIterator.remove();
+							numRemoved ++;
+						}
 					}
 				}
 			}

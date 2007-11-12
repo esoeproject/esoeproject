@@ -21,7 +21,6 @@ package com.qut.middleware.esoe.ws.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.StringWriter;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
@@ -42,15 +41,22 @@ import com.qut.middleware.esoe.ws.exception.WSClientException;
 /** Implements web services client logic. */
 public class WSClientImpl implements WSClient
 {
-	private XMLInputFactory xmlInputFactory;
+	private static XMLInputFactory xmlInputFactory;
+	private static XMLOutputFactory xmlOutputFactory;
 	
-	
+	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
+	static
+	{
+		xmlInputFactory = XMLInputFactory.newInstance();
+		xmlOutputFactory = XMLOutputFactory.newInstance();
+	}
+		
 	/**
 	 * Constructor
 	 */
 	public WSClientImpl()
 	{
-		this.xmlInputFactory = XMLInputFactory.newInstance();
+
 	}
 
 	/*
@@ -109,7 +115,7 @@ public class WSClientImpl implements WSClient
 		try
 		{
 			targetEPR = new EndpointReference(endpoint);
-			xmlreader = this.xmlInputFactory.createXMLStreamReader(new ByteArrayInputStream(request));
+			xmlreader = WSClientImpl.xmlInputFactory.createXMLStreamReader(new ByteArrayInputStream(request));
 			builder = new StAXOMBuilder(xmlreader);
 			requestElement = builder.getDocumentElement();
 
@@ -124,7 +130,7 @@ public class WSClientImpl implements WSClient
 			response = new ByteArrayOutputStream();
 			if (resultElement != null)
 			{
-				resultElement.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(response));
+				resultElement.serialize(WSClientImpl.xmlOutputFactory.createXMLStreamWriter(response));
 			}
 			else
 			{

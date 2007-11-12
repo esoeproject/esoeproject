@@ -58,5 +58,23 @@ public interface FailedLogout
 	 */
 	public Date getTimeStamp();
 	
+	/** Get the authn identifier of the user for whom the Logout failed. This is required to determine
+	 * equality of one LogoutFailure to another.
+	 * 
+	 */
+	public String getAuthnId();
+	
+	/** Set the authn identifier of the user for whom the Logout failed. This is required to determine
+	 * equality of one LogoutFailure to another.
+	 * 
+	 */
+	public void setAuthnId(String id);
+	
+	/** Implementing classes must override java.lang.Object.equals(Object o) to include field comparison so that
+	 * calls to equals for this object are correct.
+	 * 
+	 */
+	public boolean equals(Object o);
+	
 	
 }

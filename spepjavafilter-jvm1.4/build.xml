@@ -33,13 +33,22 @@
 		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
 		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
+	
+	<target name="dev-release-resolve">
+		<ivy:configure />
+		<ivy:resolve file="ivy.xml" conf="dev-release" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
+		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
+	</target>
 
 	<!-- 
 		SPEP Filter Development environment compilation and release creation
 	-->
-	<target name="dev-release" depends="dev-jar" description="Builds a release tar ball for the filter">
+	<target name="dev-release" depends="dev-release-resolve, dev-jar" description="Builds a release tar ball for the filter">
 		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" compression="gzip">
 			<tarfileset file="${output.dev}/${output.dev.jar}.jar" />
+			<tarfileset file="../spepjava-jvm1.4/${output.dev}/spep-interfaces-jvm1.4.jar"/>
+			<tarfileset dir="${artifacts.dev-release}" />
 		</tar>
 	</target>
 

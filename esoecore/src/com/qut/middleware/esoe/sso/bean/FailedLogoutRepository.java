@@ -62,4 +62,12 @@ public interface FailedLogoutRepository {
 	 */
 	public int getSize();
 	
+	/** Returns whether or not the given failure currently exists in the repository. The comparison must return
+	 * true the given failure matches a failure in the repository according to the object's .equals() method.
+	 *  
+	 * @param failure The FailedLogout to compare to stored failures.
+	 * @return true if a match is found, esle false.
+	 */
+	public boolean containsFailure(FailedLogout failure); 
+	
 }

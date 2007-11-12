@@ -20,9 +20,9 @@
  */
 package com.qut.middleware.esoe.pdp.cache.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.security.PrivateKey;
 import java.text.MessageFormat;
-import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.log4j.Logger;
@@ -166,7 +166,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 			// ignore other non-runtime exceptions
 			catch (Exception e)
 			{
-				this.logger.debug(e.getLocalizedMessage(), e);
+				this.logger.trace(e.getLocalizedMessage(), e);
 			}
 		}
 		
@@ -223,7 +223,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		catch (SignatureValueException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitorImpl.7")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 
 			return result.Failure;
 		}
@@ -267,36 +267,8 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		// while failures in repository, send update request to associated SPEP and delete
 		while (iter.hasNext())
 		{
-			FailedAuthzCacheUpdate failure = iter.next();
-
-			// make sure the failure is valid before processing
-			if(failure != null)
-			{			
-				// don't leave requests with no timestamp in repo coz they will stay in there forever
-				Date failureDate = failure.getTimeStamp();
-				if(failureDate == null)
-				{
-					this.logger.warn(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitor.13") , failure.getEndPoint()) );  //$NON-NLS-1$
-					this.updateFailures.remove(failure);
-					continue;
-				}
-				
-				// make sure request document has been set
-				if(failure.getRequestDocument() == null)
-				{
-					this.logger.warn(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitor.14") , failure.getEndPoint()) );  //$NON-NLS-1$
-					this.updateFailures.remove(failure);	
-					continue;
-				}
-				
-				// make sure end point has been set
-				if(failure.getEndPoint() == null)
-				{
-					this.logger.warn(Messages.getString("CacheUpdateFailureMonitor.15"));  //$NON-NLS-1$
-					this.updateFailures.remove(failure);	
-					continue;
-				}
-				
+				FailedAuthzCacheUpdate failure = iter.next();
+		
 				// we have to regenerate the original request with updated timestamps and sigs before sending
 				// because the allowed time skew will more than likely have expired.
 				
@@ -325,7 +297,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 					this.logger.info(Messages.getString("CacheUpdateFailureMonitorImpl.18") + failure.getEndPoint() +Messages.getString("CacheUpdateFailureMonitorImpl.19")); //$NON-NLS-1$ //$NON-NLS-2$
 							
 					// calculate age of failure in minutes
-					int age = (int)(System.currentTimeMillis() - failureDate.getTime())  ;
+					int age = (int)(System.currentTimeMillis() - failure.getTimeStamp().getTime())  ;
 					
 					this.logger.debug(MessageFormat.format(Messages.getString("CacheUpdateFailureMonitorImpl.22"),age ,this.maxFailureAge) ); //$NON-NLS-1$ 
 					
@@ -335,11 +307,8 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 						this.updateFailures.remove(failure);	
 					}
 				}
-			}
-			else
-				iter.remove();
+			}		
 		}
-	}
 
 	
 	/* Modifies the given string representation of the ClearAuthzCacheRequest with updated timestamps
@@ -361,17 +330,17 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		catch(UnmarshallerException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitor.9"));  //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 		}
 		catch(ReferenceValueException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitor.10")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 		}
 		catch(SignatureValueException e)
 		{
 			this.logger.error(Messages.getString("CacheUpdateFailureMonitor.11")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
+			this.logger.trace(e.getLocalizedMessage(), e);
 		}
 		
 		if(request != null)
@@ -390,8 +359,17 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 			catch(MarshallerException e)
 			{
 				this.logger.error(Messages.getString("CacheUpdateFailureMonitor.12")); //$NON-NLS-1$
-				this.logger.debug(e.getLocalizedMessage(), e);
+				this.logger.trace(e.getLocalizedMessage(), e);
 			}
+		}
+		
+		try
+		{
+			this.logger.trace("Regenerated new LogoutRequest: \n" + new String(newDoc,  "UTF-16") );
+		}
+		catch(UnsupportedEncodingException e)
+		{
+			e.printStackTrace();
 		}
 		
 		return newDoc;

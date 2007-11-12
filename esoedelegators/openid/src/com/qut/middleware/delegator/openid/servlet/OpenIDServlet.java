@@ -139,7 +139,7 @@ public class OpenIDServlet extends HttpServlet
 			{
 				try
 				{
-					data.getHttpResponse().sendRedirect(this.failURL);
+					response.sendRedirect(this.failURL);
 					return;
 				}
 				catch (IOException e)

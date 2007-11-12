@@ -39,20 +39,18 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.spep.Initializer;
-import com.qut.middleware.spep.SPEP;
-import com.qut.middleware.spep.pep.PolicyEnforcementProcessor.decision;
+import com.qut.middleware.spep.SPEPProxy;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 
 /** A filter to control access to resources protected by the SPEP servlet. */
 public class SPEPFilter implements Filter
 {
-	public static final String ATTRIBUTES = "attributes"; //$NON-NLS-1$
+	public static final String ATTRIBUTES = "com.qut.middleware.spep.filter.attributes"; //$NON-NLS-1$
 
 	private FilterConfig filterConfig;
 	private static final String SPEP_CONTEXT_PARAM_NAME = "spep-context"; //$NON-NLS-1$
 	private String spepContextName;
-	
+
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(SPEPFilter.class.getName());
 
@@ -100,8 +98,8 @@ public class SPEPFilter implements Filter
 			throw new ServletException(Messages.getString("SPEPFilter.2") + " " + this.spepContextName); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
-		// Establish SPEP object.
-		SPEP spep;
+		// Establish SPEPProxy object.
+		SPEPProxy spep;
 		try
 		{
 			spep = Initializer.init(spepContext);
@@ -151,18 +149,21 @@ public class SPEPFilter implements Filter
 			String sessionID = spepCookie.getValue();
 
 			this.logger.info("Attempting to retrieve data for session with ID of " + sessionID);
-			PrincipalSession PrincipalSession = spep.getAuthnProcessor().verifySession(sessionID);
+			PrincipalSession PrincipalSession = spep.verifySession(sessionID);
 
 			if (PrincipalSession != null)
 			{
 				this.logger.info("Located session with ID of " + sessionID);
-				
-				// over write with new data if it exists
-				WORMHashMap<String, List<Object>> attributeMap = new WORMHashMap<String, List<Object>>();
-				attributeMap.putAll(PrincipalSession.getAttributes());
-				attributeMap.close();
 
-				request.getSession().setAttribute(ATTRIBUTES, attributeMap);
+				if (request.getSession().getAttribute(ATTRIBUTES) == null)
+				{
+					// over write with new data if it exists
+					WORMHashMap<String, List<Object>> attributeMap = new WORMHashMap<String, List<Object>>();
+					attributeMap.putAll(PrincipalSession.getAttributes());
+					attributeMap.close();
+
+					request.getSession().setAttribute(ATTRIBUTES, attributeMap);
+				}
 
 				/*
 				 * This section of code is critical, we must pass the PEP an exact representation of what the user is
@@ -175,23 +176,23 @@ public class SPEPFilter implements Filter
 
 				decodedResource = decode(resource);
 
-				decision authzDecision = spep.getPolicyEnforcementProcessor().makeAuthzDecision(sessionID, decodedResource);
+				SPEPProxy.decision authzDecision = spep.makeAuthzDecision(sessionID, decodedResource);
 
 				// the authz processor may destroy the session if the PDP determines that the client
 				// session is no longer valid, so we have to check it again
-				if ((PrincipalSession = spep.getAuthnProcessor().verifySession(sessionID)) != null)
+				if ((PrincipalSession = spep.verifySession(sessionID)) != null)
 					validSession = true;
 
 				if (validSession)
 				{
-					if (authzDecision == decision.permit)
+					if (authzDecision == SPEPProxy.decision.permit)
 					{
 						this.logger.info("PDP advised for session ID of " + sessionID + " that access to resource " + decodedResource + " was permissable");
 						chain.doFilter(request, response);
 						return;
 					}
 					else
-						if (authzDecision == decision.deny)
+						if (authzDecision == SPEPProxy.decision.deny)
 						{
 							this.logger.info("PDP advised for session ID of " + sessionID + " that access to resource " + decodedResource + " was denied, forcing response of" + HttpServletResponse.SC_FORBIDDEN);
 							response.setStatus(javax.servlet.http.HttpServletResponse.SC_FORBIDDEN);
@@ -199,7 +200,7 @@ public class SPEPFilter implements Filter
 							return;
 						}
 						else
-							if (authzDecision == decision.error)
+							if (authzDecision == SPEPProxy.decision.error)
 							{
 								this.logger.info("PDP advised for session ID of " + sessionID + " that access to resource " + decodedResource + " was in error, forcing response of" + HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 								response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -218,13 +219,12 @@ public class SPEPFilter implements Filter
 			this.logger.debug("Invalidating session for ID of " + sessionID);
 			request.getSession().invalidate();
 		}
-		
-		/* 
-		 * If we get to this stage, the user has not got a session established with this SPEP and lazy init attempts failed. 
-		 * We proceed to clear the cookies configured by the SPEP to be cleared upon logout, since this is potentially the
-		 * first time they have come back to the SPEP since logging out.
-		 */
 
+		/*
+		 * If we get to this stage, the user has not got a session established with this SPEP. We proceed to clear the
+		 * cookies configured by the SPEP to be cleared upon logout, since this is potentially the first time they have
+		 * come back to the SPEP since logging out.
+		 */
 		List<Cookie> clearCookies = new Vector<Cookie>();
 		if (cookies != null)
 		{
@@ -250,35 +250,45 @@ public class SPEPFilter implements Filter
 			}
 		}
 
-		// Add the cookies to be cleared into the response object.
+		/* Add the cookies to be cleared into the response object. */
 		for (Cookie c : clearCookies)
 			response.addCookie(c);
-		
+
 		/*
-		 * At this stage a determination needs to be made about allowing the request to pass SPEP without being hindered due to lazy session initialization being configured
-		 * if it isn't or we won't allow the request to pass for the logical reasons below they will be forced to authenticate.
+		 * Remove any principal object details which may be in the session, this state can occur if the user has removed
+		 * their spepSession cookie but retained their jsessionid cookie
+		 */
+		request.getSession().removeAttribute(ATTRIBUTES);
+
+		/*
+		 * At this stage a determination needs to be made about allowing the request to pass SPEP without being hindered
+		 * due to lazy session initialization being configured if it isn't or we won't allow the request to pass for the
+		 * logical reasons below they will be forced to authenticate.
 		 */
 		if (spep.isLazyInit())
 		{
 			this.logger.info("Lazy init is enabled on this SPEP instance, determining if request should be interrogated by SPEP");
-			
-			/* We are being lazy in starting sessions, determine if user has already authenticated with an IDP (the ESOE), if so we enforce a session (value is not important just that the cookie exists), if not figure out if user is accessing something
-			 * that has been configured to force a session to be established before it is accessible
+
+			/*
+			 * We are being lazy in starting sessions, determine if user has already authenticated with an IDP (the
+			 * ESOE), if so we enforce a session (value is not important just that the cookie exists), if not figure out
+			 * if user is accessing something that has been configured to force a session to be established before it is
+			 * accessible
 			 */
-			if(globalESOECookie == null)
+			if (globalESOECookie == null)
 			{
 				this.logger.debug("globalESOECookie was not set for this request");
-				
+
 				boolean matchedLazyInitResource = false;
 				resource = request.getRequestURI();
 				if (request.getQueryString() != null)
 					resource = resource + "?" + request.getQueryString(); //$NON-NLS-1$
-				
+
 				decodedResource = decode(resource);
-				
-				for(String lazyInitResource : spep.getLazyInitResources())
+
+				for (String lazyInitResource : spep.getLazyInitResources())
 				{
-					if(decodedResource.matches(lazyInitResource))
+					if (decodedResource.matches(lazyInitResource))
 					{
 						matchedLazyInitResource = true;
 						this.logger.info("Lazy session init attempt matched initialization query of " + lazyInitResource + " from request of " + decodedResource);
@@ -286,11 +296,11 @@ public class SPEPFilter implements Filter
 					else
 						this.logger.debug("Lazy session init attempt failed to match initialization query of " + lazyInitResource + " from request of " + decodedResource);
 				}
-				
+
 				// If we still have no reason to engage spep functionality for this request let the request pass
-				if(matchedLazyInitResource)
+				if (matchedLazyInitResource)
 				{
-					if(spep.getLazyInitDefaultAction().equals(SPEP.defaultAction.Deny))
+					if (spep.getLazyInitDefaultAction().equals(SPEPProxy.defaultAction.deny))
 					{
 						this.logger.info("No reason to invoke SPEP for access to resource " + decodedResource + " could be determined due to lazyInit, forwarding request to application");
 						chain.doFilter(request, response);
@@ -299,7 +309,7 @@ public class SPEPFilter implements Filter
 				}
 				else
 				{
-					if(spep.getLazyInitDefaultAction().equals(SPEP.defaultAction.Permit))
+					if (spep.getLazyInitDefaultAction().equals(SPEPProxy.defaultAction.permit))
 					{
 						this.logger.info("No reason to invoke SPEP for access to resource " + decodedResource + " could be determined due to lazyInit, forwarding request to application");
 						chain.doFilter(request, response);
@@ -308,7 +318,7 @@ public class SPEPFilter implements Filter
 				}
 			}
 		}
-		
+
 		/*
 		 * All attempts to provide resource access have failed, invoke SPEP to provide secure session establishment
 		 * Current request is B64 encoded and appended to request for SPEP to redirect users back to content dynamically
@@ -318,18 +328,23 @@ public class SPEPFilter implements Filter
 			requested = request.getRequestURI() + "?" + request.getQueryString();
 		else
 			requested = request.getRequestURI();
-		
-		String base64RequestURI = new String(Base64.encodeBase64(requested.getBytes()));
 
-		// Determine if the request was directed to the service URL, if so redirect to that point. If not redirect to the local node.
+		/*
+		 * Determine if the request was directed to the service URL, if so redirect to that point. If not redirect to
+		 * the local node.
+		 */
 		serviceHost = new URL(spep.getServiceHost());
 
 		if (request.getServerName().equals(serviceHost.getHost()))
 		{
+			/* Ensures that SSL offloading in Layer 7 environments is correctly handled */
+			requested = spep.getServiceHost() + requested;
+			String base64RequestURI = new String(Base64.encodeBase64(requested.getBytes()));
 			redirectURL = MessageFormat.format(spep.getServiceHost() + spep.getSsoRedirect(), new Object[] { base64RequestURI });
 		}
 		else
 		{
+			String base64RequestURI = new String(Base64.encodeBase64(requested.getBytes()));
 			redirectURL = MessageFormat.format(spep.getSsoRedirect(), new Object[] { base64RequestURI });
 		}
 

@@ -5,9 +5,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.notNull;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assert.*;
 import java.io.File;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -73,7 +71,7 @@ public class LogoutFailureMonitorTest {
 	@Before
 	public void setUp() throws Exception
 	{	
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
@@ -100,7 +98,7 @@ public class LogoutFailureMonitorTest {
 	}
 
 	@Test
-	public final void testCacheUpdateFailureMonitorImpl() throws Exception
+	public final void testFailureMonitorImpl() throws Exception
 	{
 		this.monitor = new FailedLogoutMonitor(failures, samlValidator, metadata, this.keyStoreResolver, this.idGenerator, webServiceClient, retryInterval, maxAge);		
 		
@@ -123,13 +121,13 @@ public class LogoutFailureMonitorTest {
 		// or ONE success (this is because we cannot differentiate between failures and so can not correctly
 		// set the inResponseTo field when generating responses). 
 		
-		// no timestamp == invalid. This should be removed from the repo by monitor BEFORE the call to
-		// singleLogout is made, and so should not affect our mock invocations.
 		FailedLogout failure1 = new FailedLogoutImpl();
 		failure1.setEndPoint("blah.com");
 		// generate a SAML authnID to use
 		authnID1 = this.idGenerator.generateSAMLID();
 		failure1.setRequestDocument(this.generateLogoutRequest(authnID1));
+		failure1.setAuthnId("12345");
+		failure1.setTimeStamp(new Date());
 		
 		// represents a successful endpoint
 		FailedLogout failure2 = new FailedLogoutImpl();
@@ -137,27 +135,33 @@ public class LogoutFailureMonitorTest {
 		// generate a SAML authnID to use
 		authnID2 = this.idGenerator.generateSAMLID();
 		failure2.setRequestDocument(this.generateLogoutRequest(authnID2));
-		failure2.setTimeStamp(new Date(System.currentTimeMillis()));
 		
 		failures.add(failure1);
-		failures.add(failure2);
 	
+		// failure two is an invalid failure object as it has missing fields, shouldnt be added by repo
+		try
+		{
+			failures.add(failure2);
+			
+			// dont want to get here
+			fail("Expected Exception was not thrown for Illegal Failure addition");
+		}
+		catch(IllegalArgumentException e)
+		{
+			// cool, as expected
+		}
+		
 		// return a success response when the singleLogout call is made
-		expect(webServiceClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(this.generateSuccessLogoutResponse(authnID2)).once();
+		expect(webServiceClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(this.generateSuccessLogoutResponse(authnID2)).atLeastOnce();
 		replay(webServiceClient);
 	
 		this.monitor = new FailedLogoutMonitor(failures, samlValidator, metadata, this.keyStoreResolver, this.idGenerator, webServiceClient, retryInterval, maxAge);		
 		
 		assertTrue(this.monitor.isAlive());		
 		
-		// before first poll both should be in repos
-		assertEquals("Failure repository size is incorrect", 2, this.failures.getSize());
-		
-		// must be longer than retry interval set in constructor
-		Thread.sleep(5000);
-				
-		// after first poll no failures should remain, as both the invalid and successful ones have been removed 
-		assertEquals("Failure repository size is incorrect", 0, this.failures.getSize());
+		// before first poll only the valid should be in repo
+		assertEquals("Failure repository size is incorrect", 1, this.failures.getSize());
+	
 	}
 	
 	/* One failure should be removed from the repository, as the failure date has not been set.
@@ -179,22 +183,25 @@ public class LogoutFailureMonitorTest {
 		failure1.setTimeStamp(new Date(System.currentTimeMillis()));
 		// generate a SAML authnID to use
 		authnID1 = this.idGenerator.generateSAMLID();
+		failure1.setRequestDocument(this.generateLogoutRequest(authnID1));
+		failure1.setAuthnId(authnID1);
 		
-		// no endpoint == invalid. This should be removed from the repo by monitor BEFORE the call to
-		// singleLogout is made, and so should not affect our mock invocations.
 		FailedLogout failure2 = new FailedLogoutImpl();
 		// generate a SAML authnID to use
 		authnID1 = this.idGenerator.generateSAMLID();
+		failure2.setEndPoint("unsuccessful.com.2");		
 		failure2.setRequestDocument(this.generateLogoutRequest(authnID1));
 		failure2.setTimeStamp(new Date(System.currentTimeMillis()));
-			
+		failure2.setAuthnId(authnID1);
+		
 		// represents an unsuccessful endpoint
 		FailedLogout failure3 = new FailedLogoutImpl();
-		failure3.setEndPoint("unsuccessful.com");
+		failure3.setEndPoint("unsuccessful.com");		
 		// generate a SAML authnID to use
 		authnID2 = this.idGenerator.generateSAMLID();
 		failure3.setRequestDocument(this.generateLogoutRequest(authnID2));
 		failure3.setTimeStamp(new Date(System.currentTimeMillis()));
+		failure3.setAuthnId("123");
 		
 		failures.add(failure1);
 		failures.add(failure2);
@@ -210,18 +217,6 @@ public class LogoutFailureMonitorTest {
 		
 		// before first poll all 3 should be in repo
 		assertEquals("Failure repository size is incorrect", 3, this.failures.getSize());
-		
-		// must be longer than retry interval set in constructor
-		Thread.sleep(5000);
-				
-		// after first poll only the one failure should remain, as both the invalid ones have been removed 
-		assertEquals("Failure repository size is incorrect", 1, this.failures.getSize());
-		
-		// the unsuccessful send should remain until it expires (int maxAge = 10 seconds)
-		Thread.sleep(8000);
-				
-		// all entries should be expired or otherwise removed
-		assertEquals("Failure repository size is incorrect", 0, this.failures.getSize());
 		
 	}
 	
@@ -274,7 +269,7 @@ public class LogoutFailureMonitorTest {
 		String MAR_PKGNAMES = LogoutRequest.class.getPackage().getName();
 		String[] logoutSchemas = new String[] { ConfigurationConstants.samlProtocol };
 		
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
@@ -323,7 +318,7 @@ public class LogoutFailureMonitorTest {
 		String MAR_PKGNAMES = LogoutRequest.class.getPackage().getName();
 		String[] logoutSchemas = new String[] { ConfigurationConstants.samlProtocol };
 		
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";

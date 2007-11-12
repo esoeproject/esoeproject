@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.easymock.EasyMock.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +42,7 @@ import org.springframework.ldap.support.LdapContextSource;
 
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.authn.bean.impl.AuthnIdentityAttributeImpl;
+import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
@@ -62,6 +64,7 @@ import com.qut.middleware.esoe.sessions.impl.QueryImpl;
 import com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl;
 import com.qut.middleware.esoe.sessions.impl.TerminateImpl;
 import com.qut.middleware.esoe.sessions.impl.UpdateImpl;
+import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
@@ -93,6 +96,8 @@ public class SessionsTest
 	private SessionConfigData sessionConfigData;
 	private Handler ldapHandler;
 	private IdentifierGenerator generator;
+	private SessionsDAO sessionsDAO;
+	private Metadata metadata;
 
 	/**
 	 * @throws java.lang.Exception
@@ -128,7 +133,24 @@ public class SessionsTest
 		this.generator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
 		this.sessionCache = new SessionCacheImpl();
 
-		this.sessionConfigData = new SessionConfigDataImpl(xmlConfig);
+		FileInputStream attributeStream = new FileInputStream(xmlConfig);
+		byte[] attributeData = new byte[(int)xmlConfig.length()];
+		attributeStream.read(attributeData);
+		
+		String entityID = "http://test.service.com";
+		Integer entID = new Integer("1");
+		
+		this.metadata = createMock(Metadata.class);
+		expect(metadata.getEsoeEntityID()).andReturn(entityID);
+		
+		this.sessionsDAO = createMock(SessionsDAO.class);
+		expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+		expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attributeData);
+		
+		replay(this.metadata);
+		replay(this.sessionsDAO);
+
+		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata);
 
 		this.resolver = new IdentityResolverImpl(new Vector<Handler>(0,1));
 		this.ldapHandler = new LDAPHandlerImpl(template, this.IDENTIFIER, this.SEARCH_BASE, this.sessionConfigData);
@@ -252,7 +274,7 @@ public class SessionsTest
 			id1.getValues().add("Level 1");
 			AuthnIdentityAttribute id2 = new AuthnIdentityAttributeImpl();
 			id2.setName("uid");
-			id2.getValues().add("jimbob");
+			id2.getValues().add(principalName1);
 			
 			authnIdentity.add(id1);
 			authnIdentity.add(id2);
@@ -273,7 +295,7 @@ public class SessionsTest
 
 		Map<String,IdentityAttribute> attributes = principal1.getAttributes();
 		List<String> uids = new Vector<String>(0,1);
-		uids.add("beddoes");
+		uids.add(principalName1);
 		IdentityAttribute uidAttribute = attributes.get("uid");
 		List<Object> uidValues = uidAttribute.getValues();
 		assertTrue("Didn't return expected value for 'uid'", uidValues.containsAll(uids));

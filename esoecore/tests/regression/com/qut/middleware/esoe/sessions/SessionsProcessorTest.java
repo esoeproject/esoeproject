@@ -25,19 +25,26 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.authn.bean.impl.AuthnIdentityAttributeImpl;
+import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
@@ -60,6 +67,7 @@ import com.qut.middleware.esoe.sessions.impl.QueryImpl;
 import com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl;
 import com.qut.middleware.esoe.sessions.impl.TerminateImpl;
 import com.qut.middleware.esoe.sessions.impl.UpdateImpl;
+import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -83,6 +91,8 @@ public class SessionsProcessorTest
 	private IdentityResolver identityResolver;
 	private IdentifierGenerator identiferGenerator;
 	private IdentifierCache identifierCache;
+	private SessionsDAO sessionsDAO;
+	private Metadata metadata;
 
 	/**
 	 * @throws java.lang.Exception
@@ -93,8 +103,26 @@ public class SessionsProcessorTest
 		File config = new File(this.getClass().getResource("sessionDataNoAction.xml").toURI());
 
 		this.sessionCache = new SessionCacheImpl();
+		
+		File attributePolicy = new File("tests" + File.separatorChar + "testdata" + File.separatorChar + "ReleasedAttributes.xml");
+		FileInputStream attributeStream = new FileInputStream(attributePolicy);
+		byte[] attributeData = new byte[(int)attributePolicy.length()];
+		attributeStream.read(attributeData);
+		
+		String entityID = "http://test.service.com";
+		Integer entID = new Integer("1");
+		
+		this.metadata = createMock(Metadata.class);
+		expect(metadata.getEsoeEntityID()).andReturn(entityID);
+		
+		this.sessionsDAO = createMock(SessionsDAO.class);
+		expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+		expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attributeData);
+		
+		replay(this.metadata);
+		replay(this.sessionsDAO);
 
-		this.sessionConfigData = new SessionConfigDataImpl(config);
+		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata);
 
 		Handler handler = new NullHandlerImpl();
 
@@ -140,6 +168,17 @@ public class SessionsProcessorTest
 
 		this.processor = new SessionsProcessorImpl(this.create, this.query, this.terminate, this.update);
 	}
+	
+	/**
+	 * @throws java.lang.Exception
+	 */
+	@After
+	public void tearDown() throws Exception
+	{
+		verify(sessionsDAO);
+		verify(metadata);
+	}
+
 
 	/**
 	 * Test method for {@link com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl#getCreate()}.

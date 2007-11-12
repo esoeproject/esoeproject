@@ -38,6 +38,6 @@
 		<page path="manager/help.htm" classname="com.qut.middleware.esoemanager.pages.HelpPage" />
 	</pages>
 
-	<mode value="debug" />
+	<mode value="production" />
 
 </click-app>

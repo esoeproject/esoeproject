@@ -48,10 +48,12 @@ import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.assertion.StatementAbstractType;
 import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmation;
 import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmationDataType;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.Actions;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.AttributeAssignment;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligation;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligations;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.assertion.LXACMLAuthzDecisionStatement;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.context.Action;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.context.Attribute;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.context.AttributeValue;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.context.DecisionType;
@@ -377,7 +379,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 			try
 			{
 				// Generate a query based on the session and resource being requested.
-				decisionRequest = generateAuthzDecisionQuery(principalSession, resource);
+				decisionRequest = generateAuthzDecisionQuery(principalSession, resource, action);
 			}
 			catch (MarshallerException e)
 			{
@@ -603,7 +605,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		}
 	}
 
-	private byte[] generateAuthzDecisionQuery(PrincipalSession principalSession, String resourceString) throws MarshallerException
+	private byte[] generateAuthzDecisionQuery(PrincipalSession principalSession, String resourceString, String action) throws MarshallerException
 	{
 		this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.30")); //$NON-NLS-1$
 		byte[] requestDocument = null;
@@ -624,10 +626,21 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		subjectAttributeValue.getContent().add(esoeSessionIndex); // .. to the session
 		subjectAttribute.setAttributeValue(subjectAttributeValue);
 		subject.setAttribute(subjectAttribute);
-
+		
 		Request request = new Request();
 		request.setResource(resource);
 		request.setSubject(subject);
+
+		if(action != null)
+		{
+			Action requestAction = new Action();
+			Attribute actionAttribute = new Attribute();
+			AttributeValue actionAttributeValue = new AttributeValue();
+			actionAttributeValue.getContent().add(action); // .. to the session
+			actionAttribute.setAttributeValue(actionAttributeValue);
+			requestAction.setAttribute(actionAttribute);
+			request.setAction(requestAction);
+		}
 
 		// SPEP <Issuer> tag
 		NameIDType issuer = new NameIDType();

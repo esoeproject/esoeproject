@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app>
-	<description>ESOE development environment web application</description>
+	<description>
+		ESOE Core
+	</description>
 
 	<!-- Explicitly set Xerces and Xalan implementations to avoid performance bottlenecks in ESOE -->
-	<system-property javax.xml.parsers.DocumentBuilderFactory="org.apache.xerces.jaxp.DocumentBuilderFactoryImpl" />
-	<system-property javax.xml.parsers.SAXParserFactory="org.apache.xerces.jaxp.SAXParserFactoryImpl" />
-	<system-property javax.xml.transform.TransformerFactory="org.apache.xalan.processor.TransformerFactoryImpl" />
-	<system-property javax.xml.validation.SchemaFactory="org.apache.xerces.jaxp.validation.XMLSchemaFactory" />
+	<system-property
+		javax.xml.parsers.DocumentBuilderFactory="org.apache.xerces.jaxp.DocumentBuilderFactoryImpl" />
+	<system-property
+		javax.xml.parsers.SAXParserFactory="org.apache.xerces.jaxp.SAXParserFactoryImpl" />
+	<system-property
+		javax.xml.transform.TransformerFactory="org.apache.xalan.processor.TransformerFactoryImpl" />
+	<system-property
+		javax.xml.validation.SchemaFactory="org.apache.xerces.jaxp.validation.XMLSchemaFactory" />
 
 	<!-- Instantiate spring loader listener for servlet 2.4 compliant containers -->
 	<listener>
-		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+		<listener-class>
+			org.springframework.web.context.ContextLoaderListener
+		</listener-class>
 	</listener>
 
 	<!-- Specify the context configuration path -->
@@ -22,25 +30,33 @@
 	<!-- Servlets defined for the ESOE -->
 	<servlet>
 		<servlet-name>esoeAuthentication</servlet-name>
-		<servlet-class>com.qut.middleware.esoe.authn.servlet.AuthnServlet</servlet-class>
+		<servlet-class>
+			com.qut.middleware.esoe.authn.servlet.AuthnServlet
+		</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet>
 		<servlet-name>esoeSSO</servlet-name>
-		<servlet-class>com.qut.middleware.esoe.sso.servlet.SSOAAServlet</servlet-class>
+		<servlet-class>
+			com.qut.middleware.esoe.sso.servlet.SSOAAServlet
+		</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet>
 		<servlet-name>esoeSSOLogout</servlet-name>
-		<servlet-class>com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet</servlet-class>
+		<servlet-class>
+			com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet
+		</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet>
 		<servlet-name>esoeWS</servlet-name>
-		<servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class>
+		<servlet-class>
+			org.apache.axis2.transport.http.AxisServlet
+		</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
@@ -64,4 +80,9 @@
 		<servlet-name>esoeWS</servlet-name>
 		<url-pattern>/ws/*</url-pattern>
 	</servlet-mapping>
+
+	<error-page>
+		<error-code>500</error-code>
+		<location>/web/failure.htm</location>
+	</error-page>
 </web-app>

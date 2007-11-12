@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"
+	debug="true">
+
+	<appender name="spep-core-logger"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="${spep.data}/logging/spep.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="spep-authn-logger"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="${spep.data}/logging/spep-authn.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="spep-authz-logger"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="${spep.data}/logging/spep-authz.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="saml2-logger"
+		class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="${spep.data}/logging/saml2.log" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
+		</layout>
+	</appender>
+
+	<logger name="com.qut.middleware.spep">
+		<level value="INFO" />
+		<appender-ref ref="spep-core-logger" />
+	</logger>
+
+	<logger name="spep.authn">
+		<level value="INFO" />
+		<appender-ref ref="spep-authn-logger" />
+	</logger>
+
+	<logger name="spep.authz">
+		<level value="INFO" />
+		<appender-ref ref="spep-authz-logger" />
+	</logger>
+
+	<logger name="com.qut.middleware.saml2">
+		<level value="INFO" />
+		<appender-ref ref="saml2-logger" />
+	</logger>
+
+</log4j:configuration>
+

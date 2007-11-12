@@ -108,6 +108,9 @@ public interface SPEP
 	 */
 	public String getEsoeGlobalTokenName();
 	
+	/**
+	 * @return The default action for lazy session init.
+	 */
 	public defaultAction getLazyInitDefaultAction();
 
 }

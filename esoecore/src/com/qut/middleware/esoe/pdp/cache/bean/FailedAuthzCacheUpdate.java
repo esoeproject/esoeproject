@@ -72,4 +72,11 @@ public interface FailedAuthzCacheUpdate
 	 */
 	public Date getTimeStamp();
 	
+	/** Implementing classes must override java.lang.Object.equals(Object o) to include field comparison so that
+	 * calls to .equals for this object is correct.
+	 * 
+	 */
+	public boolean equals(Object o);
+	
+	
 }

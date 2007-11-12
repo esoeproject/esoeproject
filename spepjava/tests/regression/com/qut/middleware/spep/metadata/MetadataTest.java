@@ -160,12 +160,6 @@ public class MetadataTest
 		esoeAuthzService2.setBinding("binding");
 		esoeAuthzService2.setLocation(this.esoeAuthzServiceLocation2);
 		esoeAuthzService2.setResponseLocation("http://pdp.esoe.url/pdpResponse");
-				
-		this.esoeAuthnQueryServiceLocation = "http://authn.esoe.url/authnQuery";
-		EndpointType esoeAuthnQueryService = new EndpointType();
-		esoeAuthnQueryService.setBinding("binding");
-		esoeAuthnQueryService.setLocation(this.esoeAuthnQueryServiceLocation);
-		esoeAuthnQueryService.setResponseLocation("http://authn.esoe.url/authnQueryResponse");
 		
 		IDPSSODescriptor esoeIDPDescriptor = new IDPSSODescriptor();
 		esoeIDPDescriptor.setID("idp.esoe.url");
@@ -197,11 +191,6 @@ public class MetadataTest
 		esoeLXACMLPDPDescriptor.getAuthzServices().add(esoeAuthzService2);		
 		esoeLXACMLPDPDescriptor.getProtocolSupportEnumerations().add("http");
 		
-		AuthnAuthorityDescriptor esoeAuthnAuthorityDescriptor = new AuthnAuthorityDescriptor();
-		esoeAuthnAuthorityDescriptor.setID("authn.esoe.url");
-		esoeAuthnAuthorityDescriptor.getProtocolSupportEnumerations().add("http");
-		esoeAuthnAuthorityDescriptor.getAuthnQueryServices().add(esoeAuthnQueryService);
-		
 		KeyDescriptor keyDescriptor = new KeyDescriptor();
 		KeyInfo keyInfo = new KeyInfo();
 		KeyTypes keyType = KeyTypes.SIGNING;
@@ -231,7 +220,6 @@ public class MetadataTest
 		esoeEntityDescriptor.setID(this.esoeIdentifier);
 		esoeEntityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(esoeIDPDescriptor);
 		esoeEntityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(esoeAttributeAuthorityDescriptor);
-		esoeEntityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(esoeAuthnAuthorityDescriptor);
 
 		String[] extensionSchema = new String[]{ConfigurationConstants.samlMetadata, ConfigurationConstants.lxacmlMetadata};
 		Marshaller<LXACMLPDPDescriptor> extensionMarshaller = new MarshallerImpl<LXACMLPDPDescriptor>(LXACMLPDPDescriptor.class.getPackage().getName(), extensionSchema);
@@ -244,7 +232,7 @@ public class MetadataTest
 		 // added an SPSSO Descriptor to fake metadata. This will be used by the SPEP
 		// to extract the location of it's OWN assertionConsumerLocation
 		this.spepSPDescriptor = new SPSSODescriptor();
-		this.spepSPDescriptor.setID(this.spepIdentifier);
+		this.spepSPDescriptor.setID("f3342345235tyg");
 		this.spepSPDescriptor.getSingleLogoutServices().add(esoeIDPSingleLogoutService);
 		this.spepSPDescriptor.getProtocolSupportEnumerations().add("http");
 		
@@ -264,7 +252,7 @@ public class MetadataTest
 		
 		// the entity descriptor that holds the spep info
 		EntityDescriptor spepEntityDescriptor = new EntityDescriptor();
-		spepEntityDescriptor.setEntityID("uhfew8f9eyfwefyw");
+		spepEntityDescriptor.setEntityID(this.spepIdentifier);
 		spepEntityDescriptor.setID("f879d6sf87safp87we6f");
 		
 		spepEntityDescriptor.getIDPDescriptorAndSSODescriptorAndRoleDescriptors().add(spepSPDescriptor);
@@ -281,6 +269,10 @@ public class MetadataTest
 		Marshaller<EntitiesDescriptor> entitiesDescriptorMarshaller = new MarshallerImpl<EntitiesDescriptor>(EntitiesDescriptor.class.getPackage().getName(), this.schemas, this.keyName, this.key);
 		
 		byte[] metadataDocument = entitiesDescriptorMarshaller.marshallSigned(entitiesDescriptor);
+		
+		FileOutputStream output = new FileOutputStream(tempFile);
+		output.write(metadataDocument);
+		output.close();
 	}
 
 	/**

@@ -23,9 +23,11 @@ package com.qut.middleware.esoe.sessions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.easymock.EasyMock.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ import org.junit.Test;
 import org.springframework.ldap.LdapTemplate;
 import org.springframework.ldap.support.LdapContextSource;
 
+import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
@@ -44,8 +47,10 @@ import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.bean.impl.SessionConfigDataImpl;
 import com.qut.middleware.esoe.sessions.exception.ConfigurationValidationException;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
+import com.qut.middleware.esoe.sessions.exception.SessionsDAOException;
 import com.qut.middleware.esoe.sessions.identity.pipeline.Handler;
 import com.qut.middleware.esoe.sessions.identity.pipeline.impl.LDAPHandlerImpl;
+import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 
 public class LDAPHandlerImplTest
 {
@@ -62,6 +67,9 @@ public class LDAPHandlerImplTest
 	private String LDAP_USER_PASSWORD;
 	private String LDAP_ADMIN_USER;
 	private String LDAP_ADMIN_USER_PASSWORD;
+	private SessionsDAO sessionsDAO;
+	private Metadata metadata;
+	private SessionConfigData sessionConfigData;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -102,13 +110,28 @@ public class LDAPHandlerImplTest
 
 		LdapTemplate template = new LdapTemplate(context);
 		
-		SessionConfigData sessionData = null;
-		
 		try
 		{
 			File xmlConfig = new File(this.getClass().getResource("sessiondata.xml").toURI()); //$NON-NLS-1$
 			
-			sessionData = new SessionConfigDataImpl(xmlConfig);
+			FileInputStream attributeStream = new FileInputStream(xmlConfig);
+			byte[] attributeData = new byte[(int)xmlConfig.length()];
+			attributeStream.read(attributeData);
+			
+			String entityID = "http://test.service.com";
+			Integer entID = new Integer("1");
+			
+			this.metadata = createMock(Metadata.class);
+			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			
+			this.sessionsDAO = createMock(SessionsDAO.class);
+			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attributeData);
+			
+			replay(this.metadata);
+			replay(this.sessionsDAO);
+
+			this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata);
 		}
 		catch(URISyntaxException ex)
 		{
@@ -118,8 +141,16 @@ public class LDAPHandlerImplTest
 		{
 			fail("Failed to parse session data"); //$NON-NLS-1$
 		}
+		catch (IOException e)
+		{
+			fail("IOException "  + e.getLocalizedMessage()); //$NON-NLS-1$
+		}
+		catch (SessionsDAOException e)
+		{
+			fail("SessionsDAOException " + e.getLocalizedMessage()); //$NON-NLS-1$
+		}
 
-		Handler handler = new LDAPHandlerImpl(template, this.IDENTIFIER, this.SEARCH_BASE, sessionData);
+		Handler handler = new LDAPHandlerImpl(template, this.IDENTIFIER, this.SEARCH_BASE, sessionConfigData);
 
 		IdentityData data = new IdentityDataImpl();
 		data.setPrincipalAuthnIdentifier("beddoes"); //$NON-NLS-1$

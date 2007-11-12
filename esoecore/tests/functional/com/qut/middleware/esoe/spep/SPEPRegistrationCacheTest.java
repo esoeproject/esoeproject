@@ -92,7 +92,7 @@ public class SPEPRegistrationCacheTest
 	 */
 	@Test 
 	public void testRegisterSPEP1() throws InvalidRequestException, DatabaseFailureNoSuchSPEPException, DatabaseFailureException, SPEPCacheUpdateException
-	{
+	{	
 		// setup a data type to be returned by mocked object
 		SPEPRegistrationData data = new SPEPRegistrationData();
 		data.setIpAddress("1.1.1.1");
@@ -101,12 +101,15 @@ public class SPEPRegistrationCacheTest
 		data.setEnvironment("TEST");
 		data.setVersion("1.0");		
 		
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		expect(this.sqlConfig.getSPEPRegistration((SPEPRegistrationQueryData)notNull())).andReturn(data).once();
 
 		// because the record exists, we expect the process will update the record
 		this.sqlConfig.updateSPEPRegistration((SPEPRegistrationData)notNull());
 		expectLastCall().once();
+		
+		Integer entID = new Integer("1");
+		expect(this.sqlConfig.getEntID("http://test.server")).andReturn(entID);
 		
 		replay(this.sqlConfig);		
 		
@@ -116,7 +119,7 @@ public class SPEPRegistrationCacheTest
 		String system = "system";
 		String environment = "environment";
 		String version = "version";
-		String issuerNameID = "nameID";
+		String issuerNameID = "http://test.server";
 		String ipAddress = "ipaddr.xxx";
 
 		request.setID("spep.test.url");
@@ -147,12 +150,15 @@ public class SPEPRegistrationCacheTest
 	@Test 
 	public void testRegisterSPEP2() throws InvalidRequestException, DatabaseFailureNoSuchSPEPException, DatabaseFailureException, SPEPCacheUpdateException
 	{		
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		expect(this.sqlConfig.getSPEPRegistration((SPEPRegistrationQueryData)notNull())).andReturn(null).once();
 
 		// because the record does not exist, we expect the process will insert the record
 		this.sqlConfig.insertSPEPRegistration((SPEPRegistrationData)notNull());
 		expectLastCall().once();
+		
+		Integer entID = new Integer("1");
+		expect(this.sqlConfig.getEntID("http://test.server")).andReturn(entID);
 		
 		replay(this.sqlConfig);		
 		
@@ -162,7 +168,7 @@ public class SPEPRegistrationCacheTest
 		String system = "system";
 		String environment = "environment";
 		String version = "version";
-		String issuerNameID = "nameID";
+		String issuerNameID = "http://test.server";
 		String ipAddress = "ipaddr.xxx";
 
 		request.setID("spep.test.url");
@@ -193,8 +199,14 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = DatabaseFailureNoSuchSPEPException.class)
 	public void testRegisterSPEP3() throws InvalidRequestException, DatabaseFailureNoSuchSPEPException, DatabaseFailureException, SPEPCacheUpdateException
 	{
-			//expect(this.sqlConfig.getSPEPRegistration((SPEPRegistrationQueryData)notNull())).andReturn(arg0);
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(0)).atLeastOnce();
+		this.sqlConfig.insertSPEPRegistration((SPEPRegistrationData)notNull());
+		expectLastCall().once();
+		
+		Integer entID = new Integer("1");
+		expect(this.sqlConfig.getEntID("http://test.server")).andThrow(new DatabaseFailureNoSuchSPEPException("no such spep"));
+		
+		expect(this.sqlConfig.getSPEPRegistration((SPEPRegistrationQueryData)notNull())).andReturn(null);
+		
 		replay(this.sqlConfig);
 		
 		
@@ -204,7 +216,7 @@ public class SPEPRegistrationCacheTest
 		String system = "system";
 		String environment = "environment";
 		String version = "version";
-		String issuerNameID = "nameID";
+		String issuerNameID = "http://test.server";
 		String ipAddress = "ipaddr.xxx";
 
 		request.setID("spep.test.url");
@@ -234,7 +246,7 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = InvalidRequestException.class)
 	public void testRegisterSPEP4() throws Exception
 	{
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		replay(this.sqlConfig);
 				
 		ValidateInitializationRequest request = new ValidateInitializationRequest();
@@ -272,7 +284,7 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = InvalidRequestException.class)
 	public void testRegisterSPEP5() throws Exception
 	{
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		replay(this.sqlConfig);
 				
 		ValidateInitializationRequest request = new ValidateInitializationRequest();
@@ -310,7 +322,7 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = InvalidRequestException.class)
 	public void testRegisterSPEP6() throws Exception
 	{
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		replay(this.sqlConfig);
 				
 		ValidateInitializationRequest request = new ValidateInitializationRequest();
@@ -347,7 +359,7 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = InvalidRequestException.class)
 	public void testRegisterSPEP8() throws Exception
 	{
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		replay(this.sqlConfig);
 				
 		ValidateInitializationRequest request = new ValidateInitializationRequest();
@@ -385,7 +397,7 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = InvalidRequestException.class)
 	public void testRegisterSPEP7() throws Exception
 	{
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		replay(this.sqlConfig);
 				
 		ValidateInitializationRequest request = new ValidateInitializationRequest();
@@ -423,7 +435,7 @@ public class SPEPRegistrationCacheTest
 	@Test (expected = InvalidRequestException.class)
 	public void testRegisterSPEP9() throws Exception
 	{
-		expect(this.sqlConfig.querySPEPExists((SPEPRegistrationQueryData)notNull())).andReturn(new Integer(1)).atLeastOnce();
+
 		replay(this.sqlConfig);
 				
 		ValidateInitializationRequest request = new ValidateInitializationRequest();

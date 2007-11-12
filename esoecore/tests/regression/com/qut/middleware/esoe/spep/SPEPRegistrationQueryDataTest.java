@@ -11,8 +11,8 @@ public class SPEPRegistrationQueryDataTest {
 
 	private SPEPRegistrationQueryData data;
 	
-	private String descID = "784789434275945";
-	private String nodeID = "0";
+	private Integer entID = new Integer("11");
+	private String nodeID = "1";
 	
 	@Before
 	public void setUp() throws Exception 
@@ -23,9 +23,9 @@ public class SPEPRegistrationQueryDataTest {
 	@Test
 	public void testGetDescriptorID()
 	{
-		this.data.setEntID(this.descID);
+		this.data.setEntID(this.entID);
 		
-		assertEquals(this.descID, this.data.getDescriptorID());
+		assertEquals(this.entID, this.data.getEntID());
 	}
 
 	

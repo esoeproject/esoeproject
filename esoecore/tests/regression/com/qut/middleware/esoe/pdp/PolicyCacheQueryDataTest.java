@@ -26,7 +26,7 @@ public class PolicyCacheQueryDataTest
 		
 		this.queryData.setSequenceId(new BigDecimal(id) );
 		
-		assertEquals(this.queryData.getSequenceId(), id);
+		assertEquals(this.queryData.getSequenceId().longValue(), id);
 	}
 
 	@Test

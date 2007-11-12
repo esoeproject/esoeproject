@@ -114,7 +114,7 @@ public class SPEPProcessorTest
 		this.endpoints.put(0,"http://spep.qut.edu.au/ws/Service");
 		this.endpoints.put(1,"http://spep2.qut.edu.au/ws/Service");
 
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator
 				+ "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";

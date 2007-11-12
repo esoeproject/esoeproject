@@ -294,7 +294,7 @@ public class SSOLogoutServlet extends HttpServlet
 		{
 			for (Cookie cookie : cookies)
 			{
-				this.logger.debug("Processing client cookie: " + cookie.getValue()); //$NON-NLS-1$
+				this.logger.debug("Processing cookie name: " + cookie.getName() + " Value: " + cookie.getValue()); //$NON-NLS-1$
 
 				if (cookie.getName().equals(this.sessionTokenName))
 				{

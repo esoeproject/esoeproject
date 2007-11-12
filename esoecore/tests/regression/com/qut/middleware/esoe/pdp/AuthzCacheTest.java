@@ -30,15 +30,6 @@ public class AuthzCacheTest
 		this.testCache = new AuthzPolicyCacheImpl();		
 	}
 
-
-	@Test
-	public void testAuthzCache()
-	{		
-		Object test = this.testCache.getCache();
-		
-		assertNotNull(test);
-	}
-
 	@Test
 	public void testAdd1()
 	{
@@ -80,9 +71,8 @@ public class AuthzCacheTest
 		this.testCache.add("urn:1234", pSet);
 		
 		Vector<Policy> returned = (Vector<Policy>)this.testCache.getPolicies("urn:1234");
-		
 		assertEquals("Check returned policy size of set. ", 1, returned.size()) ;
-		
+				
 	}
 
 	@Test
@@ -98,23 +88,22 @@ public class AuthzCacheTest
 		this.testCache.add("urn:1234", pSet);
 		// removing a non existent policy should return false
 		assertTrue("Remove non existent policy returned true. ", !this.testCache.remove("blah") );
-	
+		// check the list size to ensure its as expected
+		assertTrue("Size after remove incorrect", this.testCache.getSize() == 1);
+		
 		// removing the policy we just added should return true
 		assertTrue("Remove existing cache object returned false. ", this.testCache.remove("urn:1234"));
 		
+		// check the list size to ensure its as expected
+		assertTrue("Size after remove incorrect",  this.testCache.getSize() == 0);
+		
 	}
 
-	@Test
-	public void testGetCache()
-	{
-		assertNotNull(this.testCache.getCache());
-	}
-	
-	
+		
 	@Test
 	public void testSetCache()
 	{
-		Map newCache = new HashMap();
+		Map<String, List<Policy>> newCache = new HashMap<String, List<Policy>>();
 		Policy test1 = new Policy();
 		test1.setPolicyId("1");
 		test1.setDescription("Test policy ");
@@ -127,14 +116,21 @@ public class AuthzCacheTest
 		test3.setPolicyId("3");
 		test3.setDescription("Test policy 3, yeah");
 		
-		Vector policies = new Vector();
+		Vector<Policy> policies = new Vector<Policy>();
 		policies.add(test1);
 		policies.add(test2);
 		policies.add(test3);
 		
 		newCache.put("1", policies);
+		
+		// test adding same policies under different entity to ensure no mix of data
+		newCache.put("2", policies);
 			
 		this.testCache.setCache(newCache);		
+		
+		assertEquals(this.testCache.getSize(), 2);
+		assertEquals(this.testCache.getPolicies("1").size(), 3);
+		assertEquals(this.testCache.getPolicies("2").size(), 3);
 	}
 
 
@@ -158,6 +154,11 @@ public class AuthzCacheTest
 	{
 		private AuthzPolicyCache cache;
 		boolean running = true;
+		
+		public ReadThread()
+		{
+			// for whiny hudson
+		}
 		
 		public ReadThread(AuthzPolicyCache cache)
 		{
@@ -189,6 +190,11 @@ public class AuthzCacheTest
 	{
 		private AuthzPolicyCache cache;
 		boolean running = true;
+		
+		public WriteThread()
+		{
+			// for whiny hudson
+		}
 		
 		public WriteThread(AuthzPolicyCache cache)
 		{

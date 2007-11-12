@@ -19,6 +19,8 @@ package com.qut.middleware.delegator.openid.authn.bean.impl;
  * Purpose: Implementation of AuthnProcessorData
  */
 
+import static org.easymock.EasyMock.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 

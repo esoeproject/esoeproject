@@ -1,6 +1,9 @@
 package com.qut.middleware.esoe.pdp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,11 +17,30 @@ import com.qut.middleware.esoe.pdp.cache.impl.AuthzCacheUpdateFailureRepositoryI
 public class AuthzCacheUpdateFailureRepositoryTest
 {
 
-	AuthzCacheUpdateFailureRepository testRepo = new AuthzCacheUpdateFailureRepositoryImpl();
+	AuthzCacheUpdateFailureRepository testRepo;
+	FailedAuthzCacheUpdate failure1;
+	FailedAuthzCacheUpdate failure2 ;
+	FailedAuthzCacheUpdate failure3 ;
 	
 	@Before
 	public void setUp() throws Exception
 	{
+		this.testRepo = new AuthzCacheUpdateFailureRepositoryImpl();
+		
+		failure1 = new FailedAuthzCacheUpdateImpl();
+		failure1.setEndPoint("url.one");
+		failure1.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure1.setTimeStamp(new Date());
+		
+		failure2 = new FailedAuthzCacheUpdateImpl();
+		failure2.setEndPoint("url.three");
+		failure2.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure2.setTimeStamp(new Date(System.currentTimeMillis() - 3287483));
+		
+		failure3 = new FailedAuthzCacheUpdateImpl();
+		failure3.setEndPoint("url.two");
+		failure3.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure3.setTimeStamp(new Date(System.currentTimeMillis() + 43654));
 	}
 
 	@After
@@ -29,9 +51,7 @@ public class AuthzCacheUpdateFailureRepositoryTest
 	@Test
 	public final void testAdd()
 	{
-		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
-		
-		testRepo.add(failure);
+		testRepo.add(failure1);
 
 		assertTrue(testRepo.getSize() == 1);
 		
@@ -40,10 +60,7 @@ public class AuthzCacheUpdateFailureRepositoryTest
 	@Test
 	public final void testClearFailures()
 	{
-		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
-		FailedAuthzCacheUpdate failure2 = new FailedAuthzCacheUpdateImpl();
-		
-		testRepo.add(failure);
+		testRepo.add(failure1);
 		testRepo.add(failure2);
 
 		assertTrue(testRepo.getSize() == 2);
@@ -56,42 +73,32 @@ public class AuthzCacheUpdateFailureRepositoryTest
 	@Test
 	public final void testGetFailures()
 	{
-		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
+		testRepo.add(failure1);
+		testRepo.add(failure2);
 		
-		testRepo.add(failure);
-
-		assertTrue(testRepo.getFailures().indexOf(failure) != 1);
+		assertTrue("Expected failure was not found", testRepo.containsFailure(failure1));
 	}
 
 	@Test
 	public final void testRemove()
 	{
-		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
-		FailedAuthzCacheUpdate failure2 = new FailedAuthzCacheUpdateImpl();
-		
-		testRepo.add(failure);
+		testRepo.add(failure1);
 		testRepo.add(failure2);
 	
+		assertEquals("Unexpected repo size", 2, testRepo.getSize());
+		
 		testRepo.remove(failure2);
 		
-		assertTrue(testRepo.getFailures().indexOf(failure) == 0);
+		assertEquals("Unexpected repo size", 1,  testRepo.getSize());
 		
-		assertTrue(testRepo.getFailures().indexOf(failure2) == -1);
-		
-		testRepo.remove(failure);
-		
-		assertTrue(testRepo.getFailures().indexOf(failure) == -1);
-		
-		assertTrue(testRepo.getSize() == 0);
+		// make sure it no longer contains the removed failure, but does contain the other
+		assertTrue("Unexpected failure found in repo",  ! testRepo.containsFailure(failure2));
+		assertTrue("Unexpected failure found in repo",  testRepo.containsFailure(failure1));
 	}
 
 	@Test
 	public final void testGetSize()
 	{
-		FailedAuthzCacheUpdate failure1 = new FailedAuthzCacheUpdateImpl();
-		FailedAuthzCacheUpdate failure2 = new FailedAuthzCacheUpdateImpl();
-		FailedAuthzCacheUpdate failure3 = new FailedAuthzCacheUpdateImpl();
-		
 		testRepo.add(failure1);
 		testRepo.add(failure2);
 		testRepo.add(failure3);

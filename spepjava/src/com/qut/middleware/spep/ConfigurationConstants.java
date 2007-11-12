@@ -79,4 +79,6 @@ public class ConfigurationConstants
 	public static final String SPEP_WEBSERVICE_NAME = "spep"; //$NON-NLS-1$
 	/** Name of the attribute in the servlet context that contains the SPEP object */
 	public static final String SERVLET_CONTEXT_NAME = "SPEP.instance"; //$NON-NLS-1$
+	/** Name of the attribute in the servlet context that contains the SPEPProxy object */
+	public static final String SPEP_PROXY = "SPEPProxy.instance"; //$NON-NLS-1$
 }

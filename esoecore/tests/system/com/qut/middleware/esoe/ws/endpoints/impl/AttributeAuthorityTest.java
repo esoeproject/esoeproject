@@ -68,7 +68,7 @@ public class AttributeAuthorityTest
 	@Before
 	public void setup() throws Exception
 	{
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "secure" + File.separator + "esoekeystore.ks";
+		String keyStorePath = "secure" + File.separator + "esoekeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";

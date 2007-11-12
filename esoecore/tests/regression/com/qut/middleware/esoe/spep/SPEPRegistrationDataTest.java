@@ -19,7 +19,7 @@ public class SPEPRegistrationDataTest {
 	private Date dateUpdated = new Date();
 	private String ipAddress = "1.1.1.4";
 	private String nodeID = "0";
-	private String descriptorID= "_8943284097409";
+	private Integer entID = new Integer("11");
 	private String environment = "Env";
 	private String version = "1.0";
 	
@@ -67,9 +67,9 @@ public class SPEPRegistrationDataTest {
 	@Test
 	public void testGetDescriptorID()
 	{
-		this.data.setEntID(this.descriptorID);
+		this.data.setEntID(this.entID);
 		
-		assertEquals(this.descriptorID, this.data.getDescriptorID());
+		assertEquals(this.entID, this.data.getEntID());
 	}
 
 	@Test

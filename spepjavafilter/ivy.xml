@@ -23,17 +23,19 @@
 
 	<dependencies>
 		<!-- Development release dependencies -->
+        <dependency org="esoeproject" name="spep-interfaces" rev="latest.integration" conf="dev-release->dev"/>
         <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
         
         <!-- Development dependencies -->
+        <dependency org="apache" name="commons-collections" rev="latest.integration" conf="dev->default"/>
         <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev->default"/>
         <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>  
         <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>  
         
-        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
+         <dependency org="esoeproject" name="spep-interfaces" rev="latest.integration" conf="dev->dev"/>
         
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev->dev"/>
-        <dependency org="esoeproject" name="spep" rev="latest.integration" conf="dev->dev"/>	
+        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
         
 	</dependencies>
 

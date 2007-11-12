@@ -50,7 +50,7 @@ import com.qut.middleware.spep.authn.impl.AuthnProcessorImpl;
 import com.qut.middleware.spep.exception.SPEPInitializationException;
 import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
 import com.qut.middleware.spep.impl.SPEPImpl;
-import com.qut.middleware.spep.SPEP;
+import com.qut.middleware.spep.impl.SPEPProxyImpl;
 import com.qut.middleware.spep.impl.StartupProcessorImpl;
 import com.qut.middleware.spep.metadata.KeyStoreResolver;
 import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
@@ -378,6 +378,10 @@ public class Initializer
 			// Store the SPEP object in the servlet context.
 			context.setAttribute(ConfigurationConstants.SERVLET_CONTEXT_NAME, spep);
 			
+			// Create a SPEPProxyImpl for use in external classloaders as a dynamic proxy and store in servlet context
+			SPEPProxyImpl spepProxy = new SPEPProxyImpl(spep);
+			context.setAttribute(ConfigurationConstants.SPEP_PROXY, spepProxy);
+						
 			// Create the SPEP startup processor
 			try
 			{

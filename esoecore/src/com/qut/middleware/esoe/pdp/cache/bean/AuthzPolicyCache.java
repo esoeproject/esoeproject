@@ -32,7 +32,7 @@ public interface AuthzPolicyCache
 	public final static long SEQUENCE_UNINITIALIZED = -1647l;
 	
 	/**
-	 * Add a policy object to the cache.
+	 * Add a policy object to the cache. The implementation must ignore null values.
 	 * 
 	 * @param entityID
 	 *            The entity ID (value of <Issuer>) that will be used to retrieve the policy set.
@@ -56,16 +56,17 @@ public interface AuthzPolicyCache
 	 * 
 	 * @param entityID
 	 *            The entityID of the policies to retrieve.
-	 * @return The policy object if exists, else null.
+	 * @return A zero or more sized List of policies associated with the given entity.
 	 */
 	public List<Policy> getPolicies(String entityID);
 
 	/**
-	 * Get the map representation of the cache. The cache object is a map of policy ID strings to the corresponding
-	 * policy set object. The implementation of this method MUST ensure that the returned reference is synchronized.
+	 * Get the map representation of the cache. The cache object is a map of entity ID strings to the corresponding
+	 * List of Policy objects. The implementation of this method MUST ensure that the returned reference is synchronized.
 	 * contents.
 	 * 
-	 * @return The cache map.
+	 * @deprecated Removed in .04 beta.
+	 * @return A copy of the internal map maintained by this cache obkect.
 	 */
 	public Map<String, List<Policy>> getCache();
 
@@ -90,6 +91,7 @@ public interface AuthzPolicyCache
 	 * of SEQUENCE_UNINITIALIZED as initialized by the implementing constructor.  
 	 */
 	public long getBuildSequenceId();
+	
 	/**
 	 *  Retrieve the number of PolicySet objects stored in the cache.
 	 *  

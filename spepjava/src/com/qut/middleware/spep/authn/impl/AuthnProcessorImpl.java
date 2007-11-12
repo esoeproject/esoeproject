@@ -141,7 +141,8 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 *             if the unmarshallers cannot be created.
 	 * @throws MalformedURLException 
 	 */
-	public AuthnProcessorImpl(AttributeProcessor attributeProcessor, Metadata metadata, SessionCache sessionCache, SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver, String serviceURL, String ssoRedirect, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex) throws MarshallerException, UnmarshallerException, MalformedURLException
+	public AuthnProcessorImpl(AttributeProcessor attributeProcessor, Metadata metadata, SessionCache sessionCache, SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver, 
+			String serviceURL, String ssoRedirect, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex) throws MarshallerException, UnmarshallerException, MalformedURLException
 	{
 		if (attributeProcessor == null)
 		{
@@ -166,6 +167,18 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		if (keyStoreResolver == null)
 		{
 			throw new IllegalArgumentException(Messages.getString("AuthnProcessorImpl.49")); //$NON-NLS-1$
+		}
+		if (keyStoreResolver == null)
+		{
+			throw new IllegalArgumentException(Messages.getString("AuthnProcessorImpl.49")); //$NON-NLS-1$
+		}
+		if (serviceURL == null)
+		{
+			throw new IllegalArgumentException("Supplied serviceURL was null"); //$NON-NLS-1$
+		}
+		if (ssoRedirect == null)
+		{
+			throw new IllegalArgumentException("Supplied ssoRedirect was null"); //$NON-NLS-1$
 		}
 		if (attributeConsumingServiceIndex < 0 || attributeConsumingServiceIndex > Long.MAX_VALUE / 1000)
 		{

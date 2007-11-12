@@ -66,12 +66,13 @@ public class SSOAAServlet extends HttpServlet
 	private final String SAML_RELAY_STATE = "RelayState";
 	private final String SAML_SIG_ALGORITHM = "SigAlg";
 	private final String SAML_REQUEST_SIGNATURE = "Signature";
-	
+
 	private final String SAML_RESPONSE_TEMPLATE = "samlResponseTemplate.html"; //$NON-NLS-1$
 
 	private MessageFormat samlMessageFormat;
 	protected SSOProcessor authAuthorityProcessor;
-	protected String sessionTokenName, commonDomainTokenName, authnRedirectURL, authnDynamicURLParam, ssoURL, sessionDomain, commonDomain;
+	protected String sessionTokenName, commonDomainTokenName, authnRedirectURL, authnDynamicURLParam, ssoURL,
+			sessionDomain, commonDomain;
 
 	private final String samlResponseTemplate;
 
@@ -146,7 +147,7 @@ public class SSOAAServlet extends HttpServlet
 			String sigAlg = request.getParameter(this.SAML_SIG_ALGORITHM);
 			String signature = request.getParameter(this.SAML_REQUEST_SIGNATURE);
 
-			if (samlRequest != null)
+			if (samlRequest != null && samlRequest.length() > 0)
 			{
 				this.logger.debug(Messages.getString("SSOAAServlet.33")); //$NON-NLS-1$
 				data = new SSOProcessorDataImpl();
@@ -162,7 +163,7 @@ public class SSOAAServlet extends HttpServlet
 				data.setHttpResponse(response);
 
 				processCookies(request, data);
-				
+
 				processRequest(request, response, data);
 			}
 			else
@@ -186,16 +187,17 @@ public class SSOAAServlet extends HttpServlet
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		/* Determine if this is a HTTP Post binding SAML AuthnRequest */
-		
+
 		SSOProcessorData data;
-		String samlRequest = request.getParameter(this.SAML_REQUEST_ELEMENT);
-		String relayState = request.getParameter(this.SAML_RELAY_STATE);
-		
+		String samlRequest;
+		String relayState;
+
 		this.logger.debug(Messages.getString("SSOAAServlet.32")); //$NON-NLS-1$
 
 		data = new SSOProcessorDataImpl();
 
 		samlRequest = request.getParameter(this.SAML_REQUEST_ELEMENT);
+		relayState = request.getParameter(this.SAML_RELAY_STATE);
 
 		if (samlRequest == null)
 		{
@@ -203,7 +205,7 @@ public class SSOAAServlet extends HttpServlet
 			generateErrorResponse(response, Messages.getString("SSOAAServlet.1")); //$NON-NLS-1$
 			return;
 		}
-		
+
 		this.logger.debug(Messages.getString("SSOAAServlet.33")); //$NON-NLS-1$
 		data.setSamlBinding(BindingConstants.httpPost);
 		data.setRequestDocument(samlRequest.getBytes());
@@ -309,6 +311,14 @@ public class SSOAAServlet extends HttpServlet
 			PrintWriter writer = response.getWriter();
 			String responseRelayState;
 
+			response.setContentType("text/html");
+
+			/* Set cookie to allow javascript enabled browsers to autosubmit, ensures navigation with the back button is not broken because auto submit is active for only a very short period */
+			Cookie autoSubmit = new Cookie("esoeAutoSubmit", "enabled");
+			autoSubmit.setMaxAge(172800); //set expiry to be 48 hours just to make sure we still work with badly configured clocks skewed from GMT
+			autoSubmit.setPath("/");
+			response.addCookie(autoSubmit);
+
 			this.logger.debug(Messages.getString("SSOAAServlet.45")); //$NON-NLS-1$
 
 			if (data.getResponseDocument() == null)
@@ -318,9 +328,9 @@ public class SSOAAServlet extends HttpServlet
 			}
 
 			this.logger.trace(Messages.getString("SSOAAServlet.47") + data.getResponseDocument()); //$NON-NLS-1$
-			
+
 			responseRelayState = data.getRelayState();
-			if(responseRelayState == null)
+			if (responseRelayState == null)
 				responseRelayState = new String("");
 
 			/* Encode SAML Response in base64 */
@@ -394,7 +404,7 @@ public class SSOAAServlet extends HttpServlet
 			this.authnDynamicURLParam = props.getProperty(ConfigurationConstants.AUTHN_DYNAMIC_URL_PARAM);
 			this.ssoURL = props.getProperty(ConfigurationConstants.SSO_URL);
 			this.sessionDomain = props.getProperty(ConfigurationConstants.ESOE_SESSION_DOMAIN);
-			this.commonDomain =  props.getProperty(ConfigurationConstants.COMMON_DOMAIN);
+			this.commonDomain = props.getProperty(ConfigurationConstants.COMMON_DOMAIN);
 
 			if (this.sessionTokenName == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.13") //$NON-NLS-1$
@@ -415,11 +425,11 @@ public class SSOAAServlet extends HttpServlet
 			if (this.sessionDomain == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
 						+ ConfigurationConstants.ESOE_SESSION_DOMAIN + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
-			
+
 			if (this.commonDomainTokenName == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
 						+ ConfigurationConstants.COMMON_DOMAIN_TOKEN_NAME + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
-			
+
 			if (this.commonDomain == null)
 				throw new IllegalArgumentException(Messages.getString("SSOAAServlet.19") //$NON-NLS-1$
 						+ ConfigurationConstants.COMMON_DOMAIN + Messages.getString("SSOAAServlet.20")); //$NON-NLS-1$
@@ -477,18 +487,19 @@ public class SSOAAServlet extends HttpServlet
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets the common domain cookie
+	 * 
 	 * @param data
 	 */
 	private void setCommonCookie(SSOProcessorData data)
 	{
 		Cookie commonDomainCookie = new Cookie(this.commonDomainTokenName, data.getCommonCookieValue());
 		commonDomainCookie.setDomain(this.commonDomain);
-		commonDomainCookie.setMaxAge(-1); //negative indicates session scope cookie
+		commonDomainCookie.setMaxAge(-1); // negative indicates session scope cookie
 		commonDomainCookie.setPath("/");
-		
+
 		data.getHttpResponse().addCookie(commonDomainCookie);
 	}
 

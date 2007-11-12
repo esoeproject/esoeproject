@@ -66,12 +66,6 @@ public class InitializerTest
 		context.setAttribute((String)notNull(), capture(captureSPEP));
 		expectLastCall().anyTimes();
 		
-		
-		
-		
-		InputStream attributeConfigStream = new FileInputStream( "webapp" + File.separator + "descriptors" + File.separator + "attributeProcessor.xml");
-		expect(context.getResourceAsStream("/WEB-INF/attributeProcessor.xml")).andReturn(attributeConfigStream).once();
-		
 		InputStream spKeyStoreStream = new FileInputStream("tests" + File.separator + "testdata" + File.separator + "testspkeystore.ks");
 		expect(context.getResourceAsStream("/WEB-INF/spkeystore.ks")).andReturn(spKeyStoreStream).once();
 		
@@ -133,7 +127,7 @@ public class InitializerTest
 		expect(context.getAttribute((String)notNull())).andReturn(null).anyTimes();
 				
 		InputStream configStream = new FileInputStream(System.getProperty("user.dir") + File.separator + "webapp" + File.separator + "descriptors" + File.separator + "spep.config");
-		expect(context.getResourceAsStream("/WEB-INF/spep.config")).andReturn(null).once();
+		expect(context.getResourceAsStream("/WEB-INF/spepvars.config")).andReturn(null).once();
 		
 		replay(context);
 		

@@ -19,15 +19,15 @@
  */
 package com.qut.middleware.esoe.aa;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.easymock.EasyMock.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.net.URL;
-import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
@@ -35,7 +35,6 @@ import java.util.GregorianCalendar;
 import java.util.Vector;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
@@ -48,7 +47,6 @@ import com.qut.middleware.esoe.aa.impl.AttributeAuthorityProcessorImpl;
 import com.qut.middleware.esoe.crypto.KeyStoreResolver;
 import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
 import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.metadata.impl.MetadataImpl;
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Query;
@@ -73,8 +71,7 @@ import com.qut.middleware.esoe.sessions.impl.QueryImpl;
 import com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl;
 import com.qut.middleware.esoe.sessions.impl.TerminateImpl;
 import com.qut.middleware.esoe.sessions.impl.UpdateImpl;
-import com.qut.middleware.esoe.spep.SPEPProcessor;
-import com.qut.middleware.esoe.spep.Startup;
+import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
@@ -115,6 +112,7 @@ public class AttributeAuthorityProcessorTest
 	private PrivateKey key;
 	private String keyName;
 	private Marshaller<AttributeQuery> attributeQueryMarshaller;
+	private SessionsDAO sessionsDAO;
 
 	/**
 	 * @throws java.lang.Exception
@@ -127,7 +125,25 @@ public class AttributeAuthorityProcessorTest
 		this.xmlConfigFile = new File(this.getClass().getResource("sessiondata.xml").toURI());
 		this.schemaPath = this.getClass().getResource(ConfigurationConstants.sessionData);
 		
-		this.sessionConfigData = new SessionConfigDataImpl(this.xmlConfigFile);
+		File attributePolicy = new File("tests" + File.separatorChar + "testdata" + File.separatorChar + "ReleasedAttributes.xml");
+		FileInputStream attributeStream = new FileInputStream(attributePolicy);
+		byte[] attributeData = new byte[(int)attributePolicy.length()];
+		attributeStream.read(attributeData);
+		
+		String entityID = "http://test.service.com";
+		Integer entID = new Integer("1");
+		
+		this.metadata = createMock(Metadata.class);
+		expect(metadata.getEsoeEntityID()).andReturn(entityID);
+		
+		this.sessionsDAO = createMock(SessionsDAO.class);
+		expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
+		expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attributeData);
+		
+		replay(this.metadata);
+		replay(this.sessionsDAO);
+
+		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata);
 		
 		this.sessionCache = new SessionCacheImpl();
 		this.identityResolver = new IdentityResolverImpl(new Vector<Handler>(0,1));
@@ -145,7 +161,7 @@ public class AttributeAuthorityProcessorTest
 		
 		this.identifierGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
 		
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";

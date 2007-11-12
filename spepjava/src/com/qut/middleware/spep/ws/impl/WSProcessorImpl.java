@@ -49,7 +49,15 @@ import com.qut.middleware.spep.ws.WSProcessor;
 /** */
 public class WSProcessorImpl implements WSProcessor
 {
-	private XMLInputFactory xmlInputFactory;
+	private  static XMLInputFactory xmlInputFactory;
+	private  static XMLOutputFactory xmlOutputFactory;
+	
+	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
+	static
+	{
+		xmlInputFactory = XMLInputFactory.newInstance();
+		xmlOutputFactory = XMLOutputFactory.newInstance();
+	}
 
 	private Logger logger = Logger.getLogger(WSProcessorImpl.class.getName());
 
@@ -58,7 +66,7 @@ public class WSProcessorImpl implements WSProcessor
 	 */
 	public WSProcessorImpl()
 	{
-		this.xmlInputFactory = XMLInputFactory.newInstance();
+		
 	}
 
 	/* (non-Javadoc)
@@ -103,13 +111,13 @@ public class WSProcessorImpl implements WSProcessor
 	public OMElement singleLogout(OMElement request) throws AxisFault
 	{
 		byte[] requestDocument = null, responseDocument = null;
+		AuthnProcessorData data = new AuthnProcessorDataImpl();
 		try
 		{
 			requestDocument = readRequest(request);
 			this.logger.debug(Messages.getString("WSProcessorImpl.8") + requestDocument); //$NON-NLS-1$
 
 			SPEP spep = initSPEP();
-			AuthnProcessorData data = new AuthnProcessorDataImpl();
 			data.setRequestDocument(requestDocument);
 			spep.getAuthnProcessor().logoutPrincipal(data);
 			
@@ -126,6 +134,8 @@ public class WSProcessorImpl implements WSProcessor
 		}
 		catch (Exception e)
 		{
+			responseDocument = data.getResponseDocument();
+			
 			if (responseDocument != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.7") + responseDocument); //$NON-NLS-1$
@@ -179,7 +189,7 @@ public class WSProcessorImpl implements WSProcessor
 		try
 		{
 			writer = new ByteArrayOutputStream();
-			xmlWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(writer);
+			xmlWriter = WSProcessorImpl.xmlOutputFactory.createXMLStreamWriter(writer);
 			requestDocument.serialize(xmlWriter);
 
 			return writer.toByteArray();
@@ -207,7 +217,7 @@ public class WSProcessorImpl implements WSProcessor
 		try
 		{
 			reader = new ByteArrayInputStream(responseDocument);
-			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
+			xmlreader = WSProcessorImpl.xmlInputFactory.createXMLStreamReader(reader);
 			builder = new StAXOMBuilder(xmlreader);
 			response = builder.getDocumentElement();
 

@@ -47,7 +47,7 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	/** Set the subject ID string for the authorization data. The subjectID is used to identify
 	 * a SAML 2.0 <code>Principal</code>.
 	 * 
-	 * @param ID The subject identifier of the opensaml 2.0 principal.
+	 * @param ID The subject identifier of the SAML 2.0 principal.
 	 */
 	public void setSubjectID(String ID);
 	
@@ -61,34 +61,34 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	
 
 	/**
-	 * Set the opensaml 2.0 compliant request document associated with this authorization data.
+	 * Set the SAML 2.0 compliant request document associated with this authorization data.
 	 * 
-	 * @param request A valid, opensaml 2.0 compliant xml request containing request data.
+	 * @param request A valid, SAML 2.0 compliant xml request containing request data.
 	 */
 	public void setRequestDocument(byte[] request);
 	
 	
 	/**
-	 * Get the opensaml 2.0 compliant response document associated with this authorization data.
+	 * Get the SAML 2.0 compliant response document associated with this authorization data.
 	 * 
-	 * @param response A valid, opensaml 2.0 compliant xml response containing response data.
+	 * @param response A valid, SAML 2.0 compliant xml response containing response data.
 	 */
 	public void setResponseDocument(byte[] response);
 	
 	
 	/**
-	 * Get the opensaml 2.0 compliant response document associated with this authorization data.
+	 * Get the SAML 2.0 compliant response document associated with this authorization data.
 	 * 
-	 * @return The opensaml 2.0 response document as set by setResponseDocument, else null if not exists.
+	 * @return The SAML 2.0 response document as set by setResponseDocument, else null if not exists.
 	 */
 	public byte[] getResponseDocument();
 	
 	
 	
 	/**
-	 * Set the opensaml 2.0 compliant request document associated with this authorization data.
+	 * Set the SAML 2.0 compliant request document associated with this authorization data.
 	 * 
-	 * @return The opensaml 2.0 request document as set by setRequestDocument, else null if not exists.
+	 * @return The SAML 2.0 request document as set by setRequestDocument, else null if not exists.
 	 *        
 	 */
 	public byte[] getRequestDocument();

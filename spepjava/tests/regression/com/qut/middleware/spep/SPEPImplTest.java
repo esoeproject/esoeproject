@@ -103,24 +103,6 @@ public class SPEPImplTest {
 
 	
 	@Test
-	public void testGetTokenDomain()
-	{
-		this.spep.setTokenDomain(this.tokenDomain);
-		
-		assertEquals(this.tokenDomain, this.spep.getTokenDomain());
-	}
-
-	
-	@Test
-	public void testGetLoginRedirect()
-	{
-		this.spep.setLoginRedirect(this.loginRedirect);
-		
-		assertEquals(this.loginRedirect, this.spep.getServiceHost());
-	}
-
-	
-	@Test
 	public void testGetDefaultUrl() 
 	{
 		this.spep.setDefaultURL(this.defaultUrl);

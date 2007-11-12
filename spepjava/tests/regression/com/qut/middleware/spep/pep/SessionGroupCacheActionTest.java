@@ -58,6 +58,8 @@ public class SessionGroupCacheActionTest
 	{
 		this.sessionGroupCache = new SessionGroupCacheImpl(decision.deny);
 		this.principalSession = createMock(PrincipalSession.class);
+		expect(principalSession.getEsoeSessionID()).andReturn("1234567890").atLeastOnce();
+		replay(principalSession);
 
 		String groupTarget1 = "/.*.jsp";
 		List<String> authzTargets1 = new Vector<String>();
@@ -115,6 +117,8 @@ public class SessionGroupCacheActionTest
 	{
 		this.sessionGroupCache = new SessionGroupCacheImpl(decision.permit);
 		this.principalSession = createMock(PrincipalSession.class);
+		expect(principalSession.getEsoeSessionID()).andReturn("1234567890").atLeastOnce();
+		replay(principalSession);
 
 		String groupTarget1 = "/.*.jsp";
 		List<String> authzTargets1 = new Vector<String>();
@@ -171,6 +175,8 @@ public class SessionGroupCacheActionTest
 	{
 		this.sessionGroupCache = new SessionGroupCacheImpl(decision.deny);
 		this.principalSession = createMock(PrincipalSession.class);
+		expect(principalSession.getEsoeSessionID()).andReturn("1234567890").atLeastOnce();
+		replay(principalSession);
 
 		String groupTarget1 = "/.*.jsp";
 		List<String> authzTargets1 = new Vector<String>();
@@ -226,6 +232,8 @@ public class SessionGroupCacheActionTest
 	{
 		this.sessionGroupCache = new SessionGroupCacheImpl(decision.permit);
 		this.principalSession = createMock(PrincipalSession.class);
+		expect(principalSession.getEsoeSessionID()).andReturn("1234567890").atLeastOnce();
+		replay(principalSession);
 
 		String groupTarget1 = "/.*.jsp";
 		List<String> authzTargets1 = new Vector<String>();

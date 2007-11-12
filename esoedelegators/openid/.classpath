@@ -18,7 +18,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoetools"/>
-	<classpathentry kind="lib" path="lib/dev/stax-api.jar"/>
 	<classpathentry kind="lib" path="lib/dev/wstx.jar"/>
+	<classpathentry kind="lib" path="lib/dev/easymock.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -127,7 +127,7 @@ public class SessionCacheImpl implements SessionCache
 
 			if (thisCal.getTime().before(principalSession.getSessionNotOnOrAfter()))
 			{
-				this.logger.info("Continuing with cached session " + principalSession.getEsoeSessionID() + " current time is: " + thisCal.getTime() + " sessionNotOnAfter was set to: " + principalSession.getSessionNotOnOrAfter());
+				this.logger.debug("Continuing with cached session " + principalSession.getEsoeSessionID() + " current time is: " + thisCal.getTime() + " sessionNotOnAfter was set to: " + principalSession.getSessionNotOnOrAfter());
 				return principalSession;
 			}
 

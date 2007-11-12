@@ -25,7 +25,8 @@
 
 	<dependencies>
 		<!-- Development release dependencies -->
-        <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev-release->default"/>
+		<dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev-release->default"/>
+         <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
         
         <!-- Development dependencies -->
         <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev->default"/>

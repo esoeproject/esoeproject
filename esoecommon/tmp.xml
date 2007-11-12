@@ -1,0 +1,36 @@
+﻿<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.intient.com/irukandji/Task"
+	xmlns:task="http://www.intient.com/irukandji/Task"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:element name="task">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:choice maxOccurs="unbounded">
+					<xsd:element ref="task:command-list" maxOccurs="unbounded"/>
+					<xsd:sequence>
+						<xsd:element ref="task:prerequisites" maxOccurs="1"/>
+						<xsd:element ref="task:command" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:choice>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="command-list">
+		<xsd:complexType>
+				<xsd:choice maxOccurs="unbounded">
+					<xsd:element ref="task:command-list" maxOccurs="unbounded"/>
+					<xsd:sequence>
+						<xsd:element ref="task:prerequisites" maxOccurs="1"/>
+						<xsd:element ref="task:command" maxOccurs="unbounded"/>
+					</xsd:sequence>
+				</xsd:choice>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="prerequisites" type="xsd:string" />
+	<xsd:element name="command" type="xsd:string" />
+
+</xsd:schema>

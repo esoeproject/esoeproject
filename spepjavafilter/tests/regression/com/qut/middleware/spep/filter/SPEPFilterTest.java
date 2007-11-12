@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.notNull;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
@@ -50,10 +51,9 @@ import org.junit.Test;
 
 import com.qut.middleware.spep.Capture;
 import com.qut.middleware.spep.ConfigurationConstants;
-import com.qut.middleware.spep.SPEP;
+import com.qut.middleware.spep.SPEPProxy;
 import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
-import com.qut.middleware.spep.pep.PolicyEnforcementProcessor.decision;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 
 /**
@@ -67,9 +67,12 @@ public class SPEPFilterTest
 	
 	private String spepContext = "/spep";
 	private String requestURI = "/secure/admin.jsp";
-	private String loginRedirect = "https://spep.imaginarycorp.com/spep/sso";
+	private String serviceHost = "http://spep.imaginarycorp.com";
+	private String serverName = "http://spep.imaginarycorp.com";
 	private String spepTokenName = "spep-session";
+	private String ssoRedirect = "/spep/ssp?rd={0}";
 	private String sessionID = "_9587198273948qoierjoiqwjeroiuqwer-uqopwiejfiajsdlkgalskjfdalsdfj";
+	private String esoeGlobalTokenName = "_saml_idp";
 	private Map<String, List<Object>> attributes;
 
 	/**
@@ -124,8 +127,8 @@ public class SPEPFilterTest
 		response.setStatus( HttpServletResponse.SC_INTERNAL_SERVER_ERROR );
 		expectLastCall().atLeastOnce();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.FALSE ).once();
 		
@@ -164,7 +167,7 @@ public class SPEPFilterTest
 	 * Test method for {@link com.qut.middleware.spep.filter.SPEPFilter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)}.
 	 */
 	@Test
-	public void testDoFilterUnauthenticated() 
+	public void testDoFilterUnauthenticated() throws Exception
 	{
 		FilterConfig filterConfig = createMock( FilterConfig.class );
 		expect( filterConfig.getInitParameter( this.spepContextName ) ).andReturn( this.spepContext ).once();
@@ -180,11 +183,12 @@ public class SPEPFilterTest
 		
 		expect( request.getCookies() ).andReturn( new Cookie[]{} ).anyTimes();
 		expect( request.getRequestURI() ).andReturn( this.requestURI ).anyTimes();
+		expect( request.getQueryString() ).andReturn( null ).anyTimes();
+		expect( request.getServerName() ).andReturn( this.serverName ).anyTimes();
 		
 		try
 		{
-		
-			response.sendRedirect( this.loginRedirect );
+			response.sendRedirect( (String)notNull() );
 			expectLastCall().atLeastOnce();
 		}
 		catch(Exception e)
@@ -192,12 +196,14 @@ public class SPEPFilterTest
 			e.printStackTrace();
 		}
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).once();
-		expect( spep.getServiceHost() ).andReturn( this.loginRedirect ).atLeastOnce();
+		expect( spep.getServiceHost() ).andReturn( this.serverName ).atLeastOnce();
 		expect( spep.getLogoutClearCookies() ).andReturn( new Vector<Cookie>() ).anyTimes();
+		expect(spep.isLazyInit()).andReturn(false);
+		expect( spep.getSsoRedirect() ).andReturn( this.serviceHost ).anyTimes();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -217,13 +223,8 @@ public class SPEPFilterTest
 			
 			spepFilter.doFilter( request, response, chain );
 		}
-		catch(Exception e)
-		{
-			e.getCause().printStackTrace();
-		}
 		finally
 		{
-			/*
 			verify( filterConfig );
 			verify( servletContext );
 			verify( spepServletContext );
@@ -231,8 +232,6 @@ public class SPEPFilterTest
 			verify( response );
 			verify( spep );
 			verify( chain );
-			*/
-			
 		}
 	}
 
@@ -270,21 +269,26 @@ public class SPEPFilterTest
 		
 		expect( request.getCookies() ).andReturn( new Cookie[]{(Cookie)cookie1.clone(), (Cookie)cookie3.clone()} ).anyTimes();
 		expect( request.getRequestURI() ).andReturn( this.requestURI ).anyTimes();
+		expect (request.getQueryString()).andReturn(null);
+		expect( request.getServerName() ).andReturn( this.serverName ).anyTimes();
 		
 		Capture<Cookie> captureCookies = new Capture<Cookie>(); 
 		response.addCookie( capture( captureCookies ) );
 		expectLastCall().anyTimes();
 		
-		response.sendRedirect( this.loginRedirect );
+		response.sendRedirect( (String) notNull() );
 		expectLastCall().atLeastOnce();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
-		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).once();
-		expect( spep.getServiceHost() ).andReturn( this.loginRedirect ).atLeastOnce();
+		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).anyTimes();
+		expect( spep.getServiceHost() ).andReturn( this.serviceHost ).anyTimes();
 		expect( spep.getLogoutClearCookies() ).andReturn( clearCookies ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
+		expect( spep.isLazyInit() ).andReturn( false ).anyTimes();
+		expect( spep.getEsoeGlobalTokenName() ).andReturn( esoeGlobalTokenName ).anyTimes();
+		expect( spep.getSsoRedirect()).andReturn(ssoRedirect).anyTimes();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -378,21 +382,26 @@ public class SPEPFilterTest
 		
 		expect( request.getCookies() ).andReturn( new Cookie[]{(Cookie)cookie1.clone(), (Cookie)cookie3.clone()} ).anyTimes();
 		expect( request.getRequestURI() ).andReturn( this.requestURI ).anyTimes();
+		expect (request.getQueryString()).andReturn(null);
+		expect( request.getServerName() ).andReturn( this.serverName ).anyTimes();
 		
 		Capture<Cookie> captureCookies = new Capture<Cookie>(); 
 		response.addCookie( capture( captureCookies ) );
 		expectLastCall().anyTimes();
 		
-		response.sendRedirect( this.loginRedirect );
+		response.sendRedirect( (String)notNull() );
 		expectLastCall().atLeastOnce();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).once();
-		expect( spep.getServiceHost() ).andReturn( this.loginRedirect ).atLeastOnce();
+		expect( spep.getServiceHost() ).andReturn( this.serviceHost ).atLeastOnce();
 		expect( spep.getLogoutClearCookies() ).andReturn( clearCookies ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
+		expect(spep.isLazyInit()).andReturn(false);
+		expect( spep.getEsoeGlobalTokenName() ).andReturn( esoeGlobalTokenName ).anyTimes();
+		expect( spep.getSsoRedirect()).andReturn(ssoRedirect).anyTimes();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -484,25 +493,20 @@ public class SPEPFilterTest
 		session.setAttribute( eq(this.attributesName), capture( captureAttributes ) );
 		expectLastCall().once();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
 		expect( spep.getLogoutClearCookies() ).andReturn( new Vector<Cookie>() ).anyTimes();
-		
-		AuthnProcessor authnProcessor = createMock( AuthnProcessor.class );
-		expect( spep.getAuthnProcessor() ).andReturn( authnProcessor ).anyTimes();
+		expect( spep.getEsoeGlobalTokenName() ).andReturn( esoeGlobalTokenName ).anyTimes();
 		
 		PrincipalSession principalSession = createMock( PrincipalSession.class );
-		expect( authnProcessor.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
+		expect( spep.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
 		
 		expect( principalSession.getAttributes() ).andReturn( this.attributes );
 		
-		PolicyEnforcementProcessor policyEnforcementProcessor = createMock( PolicyEnforcementProcessor.class );
-		expect( spep.getPolicyEnforcementProcessor() ).andReturn( policyEnforcementProcessor ).anyTimes();
-		
-		expect( policyEnforcementProcessor.makeAuthzDecision( eq( sessionID ), eq( this.requestURI ) ) ).andReturn( decision.permit ).once();
+		expect( spep.makeAuthzDecision( eq( sessionID ), eq( this.requestURI ) ) ).andReturn( SPEPProxy.decision.permit ).once();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -518,9 +522,7 @@ public class SPEPFilterTest
 		replay( response );
 		replay( spep );
 		replay( chain );
-		replay( authnProcessor );
 		replay( principalSession );
-		replay( policyEnforcementProcessor );
 		replay( session );
 		
 		try
@@ -555,9 +557,7 @@ public class SPEPFilterTest
 			verify( response );
 			verify( spep );
 			verify( chain );
-			verify( authnProcessor );
 			verify( principalSession );
-			verify( policyEnforcementProcessor );
 			verify( session );
 		}
 	}
@@ -597,25 +597,20 @@ public class SPEPFilterTest
 		session.setAttribute( eq(this.attributesName), capture( captureAttributes ) );
 		expectLastCall().once();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
 		expect( spep.getLogoutClearCookies() ).andReturn( new Vector<Cookie>() ).anyTimes();
-		
-		AuthnProcessor authnProcessor = createMock( AuthnProcessor.class );
-		expect( spep.getAuthnProcessor() ).andReturn( authnProcessor ).anyTimes();
-		
+		expect( spep.getEsoeGlobalTokenName() ).andReturn( esoeGlobalTokenName ).anyTimes();
+			
 		PrincipalSession principalSession = createMock( PrincipalSession.class );
-		expect( authnProcessor.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
+		expect( spep.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
 		
 		expect( principalSession.getAttributes() ).andReturn( this.attributes );
 		
-		PolicyEnforcementProcessor policyEnforcementProcessor = createMock( PolicyEnforcementProcessor.class );
-		expect( spep.getPolicyEnforcementProcessor() ).andReturn( policyEnforcementProcessor ).anyTimes();
-		
-		expect( policyEnforcementProcessor.makeAuthzDecision( eq( sessionID ), eq( decodedResource ) ) ).andReturn( decision.permit ).once();
+		expect( spep.makeAuthzDecision( eq( sessionID ), eq( decodedResource ) ) ).andReturn( SPEPProxy.decision.permit ).once();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -631,9 +626,7 @@ public class SPEPFilterTest
 		replay( response );
 		replay( spep );
 		replay( chain );
-		replay( authnProcessor );
 		replay( principalSession );
-		replay( policyEnforcementProcessor );
 		replay( session );
 		
 		try
@@ -668,9 +661,7 @@ public class SPEPFilterTest
 			verify( response );
 			verify( spep );
 			verify( chain );
-			verify( authnProcessor );
 			verify( principalSession );
-			verify( policyEnforcementProcessor );
 			verify( session );
 		}
 	}
@@ -711,25 +702,21 @@ public class SPEPFilterTest
 		session.setAttribute( eq(this.attributesName), capture( captureAttributes ) );
 		expectLastCall().once();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
 		expect( spep.getLogoutClearCookies() ).andReturn( new Vector<Cookie>() ).anyTimes();
-		
-		AuthnProcessor authnProcessor = createMock( AuthnProcessor.class );
-		expect( spep.getAuthnProcessor() ).andReturn( authnProcessor ).anyTimes();
+		expect( spep.getEsoeGlobalTokenName() ).andReturn( esoeGlobalTokenName ).anyTimes();
 		
 		PrincipalSession principalSession = createMock( PrincipalSession.class );
-		expect( authnProcessor.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
+		expect( spep.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
 		
 		expect( principalSession.getAttributes() ).andReturn( this.attributes );
 		
-		PolicyEnforcementProcessor policyEnforcementProcessor = createMock( PolicyEnforcementProcessor.class );
-		expect( spep.getPolicyEnforcementProcessor() ).andReturn( policyEnforcementProcessor ).anyTimes();
 		
-		expect( policyEnforcementProcessor.makeAuthzDecision( eq( sessionID ), eq( this.requestURI ) ) ).andReturn( decision.deny ).once();
+		expect( spep.makeAuthzDecision( eq( sessionID ), eq( this.requestURI ) ) ).andReturn( SPEPProxy.decision.deny ).once();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -742,9 +729,7 @@ public class SPEPFilterTest
 		replay( response );
 		replay( spep );
 		replay( chain );
-		replay( authnProcessor );
 		replay( principalSession );
-		replay( policyEnforcementProcessor );
 		replay( session );
 		
 		try
@@ -779,9 +764,7 @@ public class SPEPFilterTest
 			verify( response );
 			verify( spep );
 			verify( chain );
-			verify( authnProcessor );
 			verify( principalSession );
-			verify( policyEnforcementProcessor );
 			verify( session );
 		}
 	}
@@ -820,25 +803,21 @@ public class SPEPFilterTest
 		session.setAttribute( eq(this.attributesName), capture( captureAttributes ) );
 		expectLastCall().once();
 		
-		SPEP spep = createMock( SPEP.class );
-		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SERVLET_CONTEXT_NAME) ) ).andReturn( spep ).anyTimes();
+		SPEPProxy spep = createMock( SPEPProxy.class );
+		expect( spepServletContext.getAttribute( eq(ConfigurationConstants.SPEP_PROXY) ) ).andReturn( spep ).anyTimes();
 		
 		expect( spep.isStarted() ).andReturn( Boolean.TRUE ).anyTimes();
 		expect( spep.getTokenName() ).andReturn( this.spepTokenName ).anyTimes();
 		expect( spep.getLogoutClearCookies() ).andReturn( new Vector<Cookie>() ).anyTimes();
-		
-		AuthnProcessor authnProcessor = createMock( AuthnProcessor.class );
-		expect( spep.getAuthnProcessor() ).andReturn( authnProcessor ).anyTimes();
-		
+		expect( spep.getEsoeGlobalTokenName() ).andReturn( esoeGlobalTokenName ).anyTimes();
+
 		PrincipalSession principalSession = createMock( PrincipalSession.class );
-		expect( authnProcessor.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
+		expect( spep.verifySession( this.sessionID ) ).andReturn( principalSession ).anyTimes();
 		
 		expect( principalSession.getAttributes() ).andReturn( this.attributes );
 		
-		PolicyEnforcementProcessor policyEnforcementProcessor = createMock( PolicyEnforcementProcessor.class );
-		expect( spep.getPolicyEnforcementProcessor() ).andReturn( policyEnforcementProcessor ).anyTimes();
 		
-		expect( policyEnforcementProcessor.makeAuthzDecision( eq( sessionID ), eq( this.requestURI ) ) ).andReturn( decision.error ).once();
+		expect( spep.makeAuthzDecision( eq( sessionID ), eq( this.requestURI ) ) ).andReturn( SPEPProxy.decision.error ).once();
 		
 		SPEPFilter spepFilter = new SPEPFilter();
 		
@@ -851,9 +830,7 @@ public class SPEPFilterTest
 		replay( response );
 		replay( spep );
 		replay( chain );
-		replay( authnProcessor );
 		replay( principalSession );
-		replay( policyEnforcementProcessor );
 		replay( session );
 		
 		try
@@ -888,9 +865,7 @@ public class SPEPFilterTest
 			verify( response );
 			verify( spep );
 			verify( chain );
-			verify( authnProcessor );
 			verify( principalSession );
-			verify( policyEnforcementProcessor );
 			verify( session );
 		}
 	}

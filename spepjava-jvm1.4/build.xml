@@ -40,10 +40,6 @@
 		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
 		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
 
-		<ivy:resolve file="ivy.xml" conf="dev-release-shared" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release.shared}/[artifact].[ext]" conf="dev-release-shared" />
-		<ivy:report conf="dev-release-shared" graph="false" todir="${basedir}/${artifacts.dev-release.shared}" />
-
 		<ivy:resolve file="ivy.xml" conf="dev-release-endorsed" />
 		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release.endorsed}/[artifact].[ext]" conf="dev-release-endorsed" />
 		<ivy:report conf="dev-release-endorsed" graph="false" todir="${basedir}/${artifacts.dev-release.endorsed}" />
@@ -55,11 +51,6 @@
 	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the SPEP (generally utilised by ESOE Startup)">
 		<copy file="../spepjava/spep.config" todir="${output.dev}/${output.dev.tar}" />
 		<copy file="${output.dev}/${output.dev.war}" todir="${output.dev}/${output.dev.tar}" />
-
-		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/shared/lib -->
-		<copy file="${output.dev}/${output.dev.spep.jar}.jar" todir="${artifacts.dev-release.shared}" />
-		<copy file="${output.dev}/${output.dev.saml2.jar}.jar" todir="${artifacts.dev-release.shared}" />
-		<tar destfile="${output.dev}/${output.dev.tar}/${output.dev.shared.tar}.tar.gz" basedir="${artifacts.dev-release.shared}" compression="gzip" />
 
 		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/common/endorsed (we need to also grab some JAXB components that aren't translated)-->
 		<copy file="${output.dev}/${output.dev.jaxb.jar}.jar" todir="${artifacts.dev-release.endorsed}" />
@@ -76,6 +67,12 @@
 	
 	<target name="dev-war" depends="dev-jar, dev-release-resolve" description="Assembles SPEP war">
 		<war destfile="${output.dev}/${output.dev.war}" webxml="${war.dev.descriptor}">
+			
+			<lib file="${output.dev}/${output.dev.jaxb.jar}.jar"/>
+			<lib file="${output.dev}/${output.dev.spep.jar}.jar"/>
+			<lib file="${output.dev}/${output.dev.saml2.jar}.jar"/>
+			<lib dir="${artifacts.dev-release}"/>
+			
 			<classes dir="../spepjava/${webapp.classes}">
 				<include name="**/*" />
 			</classes>
@@ -102,7 +99,7 @@
 		</jar>
 	</target>
 
-	<target name="dev-jar-spepjava" depends="translate-spepjava" description="Assembles JVM 1.4 compliant SPEPJava and SAML2Lib-j  jar">
+	<target name="dev-jar-spepjava" depends="translate-spepjava, translate-spepjavainterfaces" description="Assembles JVM 1.4 compliant SPEPJava and SAML2Lib-j  jar">
 		<jar destfile="${output.dev}/${output.dev.spep.jar}.jar">
 			<fileset dir="${build.spepjava}">
 				<include name="**/*" />
@@ -115,6 +112,14 @@
 			<fileset dir="${build.spepjava}">
 				<include name="**/*" />
 				<exclude name="**/middleware/spep/**" />
+			</fileset>
+		</jar>
+		
+		<jar destfile="${output.dev}/${output.dev.spep.interfaces.jar}.jar">
+			<fileset dir="${build.spepjavainterfaces}">
+				<include name="**/*" />
+				<exclude name="**/middleware/saml2/**" />
+				<exclude name="**/org/**" />
 			</fileset>
 		</jar>
 	</target>
@@ -136,7 +141,22 @@
 
 	<target name="translate-spepjava" depends="setup, dev-resolve, translate-resolve">
 		<retrotranslator destdir="${build.spepjava}" verify="true">
-			<jarfileset dir="${artifacts.spepjava}" includes="**/*.jar" />
+			<jarfileset dir="${artifacts.spepjava}" includes="**/*" excludes="**/spep-interfaces.jar" />
+			<classpath location="${java142.home}/jre/lib/rt.jar" />
+			<classpath>
+				<pathelement location="${ant.retrotranslator_concurrent}" />
+				<pathelement location="${ant.retrotranslator_runtime}" />
+				<pathelement location="${ant.retrotranslator_transformer}" />
+				<fileset dir="${artifacts}/dev">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</retrotranslator>
+	</target>
+	
+	<target name="translate-spepjavainterfaces" depends="setup, dev-resolve, translate-resolve">
+		<retrotranslator destdir="${build.spepjavainterfaces}" verify="true">
+			<jarfileset dir="${artifacts.spepjavainterfaces}" includes="**/*" />
 			<classpath location="${java142.home}/jre/lib/rt.jar" />
 			<classpath>
 				<pathelement location="${ant.retrotranslator_concurrent}" />
@@ -163,6 +183,7 @@
 
 		<!-- SPEP Java from SPEPJava -->
 		<copy file="../spepjava/dist/dev/spep.jar" todir="${artifacts.spepjava}" />
+		<copy file="../spepjava/dist/dev/spep-interfaces.jar" todir="${artifacts.spepjavainterfaces}" />
 
 	</target>
 
@@ -176,6 +197,7 @@
 		<mkdir dir="${artifacts.jaxb}" />
 		<mkdir dir="${artifacts.saml2java}" />
 		<mkdir dir="${artifacts.spepjava}" />
+		<mkdir dir="${artifacts.spepjavainterfaces}" />
 		<mkdir dir="${output.dev}" />
 		<mkdir dir="${artifacts.dev-release.shared}" />
 		<mkdir dir="${artifacts.dev-release.endorsed}" />

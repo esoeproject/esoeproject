@@ -38,10 +38,6 @@
 		<ivy:resolve file="ivy.xml" conf="dev-release" />
 		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
 		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
-		
-		<ivy:resolve file="ivy.xml" conf="dev-release-shared" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release.shared}/[artifact].[ext]" conf="dev-release-shared" />
-		<ivy:report conf="dev-release-shared" graph="false" todir="${basedir}/${artifacts.dev-release.shared}" />
 			
 		<ivy:resolve file="ivy.xml" conf="dev-release-endorsed" />
 		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release.endorsed}/[artifact].[ext]" conf="dev-release-endorsed" />
@@ -54,6 +50,11 @@
 		<ivy:publish resolver="local-resolver" forcedeliver="true">
 			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
 		</ivy:publish>
+		
+		<ivy:resolve file="ivy2.xml" />
+		<ivy:publish resolver="local-resolver" forcedeliver="true">
+			<artifacts pattern="${basedir}/${output.dev}/[artifact].[ext]" />
+		</ivy:publish>
 	</target>
 
 	<!-- 
@@ -62,10 +63,6 @@
 	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the SPEP">
 		<copy file="spep.config" todir="${output.dev}/${output.dev.tar}" />
 		<copy file="${output.dev}/${output.dev.war}" todir="${output.dev}/${output.dev.tar}"/>
-		
-		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/shared/lib -->
-		<copy file="${output.dev}/${output.dev.jar}.jar" todir="${artifacts.dev-release.shared}" />
-		<tar destfile="${output.dev}/${output.dev.tar}/${output.dev.shared.tar}.tar.gz" basedir="${artifacts.dev-release.shared}" compression="gzip"/>
 		
 		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/common/endorsed -->
 		<tar destfile="${output.dev}/${output.dev.tar}/${output.dev.endorsed.tar}.tar.gz" basedir="${artifacts.dev-release.endorsed}" compression="gzip"/>
@@ -82,6 +79,10 @@
 			<classes dir="${webapp.classes}">
 				<include name="**/*" />
 			</classes>
+			
+			<lib file="${output.dev}/${output.dev.jar}.jar"/>
+			<lib dir="${artifacts.dev-release}"/>
+			
 			<webinf dir="${webapp.descriptors}">
 				<include name="**/*.xml" />
 				<exclude name="spep-*.xml" />
@@ -114,8 +115,18 @@
 				<include name="**/*" />
 			</fileset>
 		</jar>
+		
+		<jar destfile="${output.dev}/${output.interfaces.jar}.jar">
+			<fileset dir="${output.dev.build}">
+				<include name="com/qut/middleware/spep/SPEPProxy.class" />
+				<include name="com/qut/middleware/spep/SPEPProxy$decision.class" />
+				<include name="com/qut/middleware/spep/SPEPProxy$defaultAction.class" />			
+				<include name="com/qut/middleware/spep/ConfigurationConstants.class" />
+				<include name="com/qut/middleware/spep/sessions/PrincipalSession.class" />
+			</fileset>
+		</jar>
 	</target>
-
+	
 	<target name="dev-build" depends="setup" description="Compiles SPEP code base">
 		<javac destdir="${output.dev.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
 			<classpath>

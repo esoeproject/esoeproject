@@ -26,7 +26,6 @@ import java.util.List;
 
 import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
 
-/** */
 public interface AuthzCacheUpdateFailureRepository
 {
 	/** Add a failure object to the repository. The implementation should check for
@@ -61,5 +60,13 @@ public interface AuthzCacheUpdateFailureRepository
 	 * @return num failures.
 	 */
 	public int getSize();
+	
+	/** Returns whether or not the given failure currently exists in the repository. The comparison must return
+	 * true the given failure matches a filure in the repository according to the object's .equals() method.
+	 * 
+	 * @param failure The FailedAuthzCacheUpdate to compare to stored failures.
+	 * @return true if a match is found, else false.
+	 */
+	public boolean containsFailure(FailedAuthzCacheUpdate failure); 
 	
 }

@@ -25,6 +25,7 @@
 		<!-- Development release dependencies -->
         <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release->default"/>
         <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
         
         <dependency org="esoeproject" name="esoecrypto" rev="latest.integration" conf="dev-release->dev-release"/>
         <dependency org="esoeproject" name="esoetools" rev="latest.integration" conf="dev-release->dev-release"/>

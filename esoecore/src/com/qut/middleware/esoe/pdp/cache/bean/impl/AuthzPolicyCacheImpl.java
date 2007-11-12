@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache;
@@ -36,9 +35,7 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	private Map<String, List<Policy>> cache;
 	
 	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-    private final Lock readLock = this.rwl.readLock();
-    private final Lock writeLock = this.rwl.writeLock();
-	private long sequenceId;
+    private volatile long sequenceId;
     
 	/**
 	 * Default constructor
@@ -60,10 +57,10 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public void add(String entityID, List<Policy> policies)
 	{
+		this.rwl.writeLock().lock();
+		
 		try
-		{
-			this.writeLock.lock();
-						
+		{						
 			Vector<Policy> clonedList = new Vector<Policy>();
 			
 			if(policies != null)
@@ -73,7 +70,7 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 		}
 		finally
 		{
-			this.writeLock.unlock();
+			this.rwl.writeLock().unlock();
 		}
 	}
 	
@@ -84,16 +81,8 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public Map<String, List<Policy>> getCache()
 	{
-		try
-		{
-			this.readLock.lock();			
-						
-			return this.cache;
-		}
-		finally
-		{
-			this.readLock.unlock();
-		}
+		// Removed		
+		return null;
 	}
 	
 
@@ -102,10 +91,10 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public List<Policy> getPolicies(String entityID)
 	{		
+		this.rwl.readLock().lock();
+		
 		try
-		{
-			this.readLock.lock();
-			
+		{	
 			Vector<Policy> clonedList = new Vector<Policy>();
 			List<Policy>policies = this.cache.get(entityID);
 		
@@ -116,7 +105,7 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 		}
 		finally
 		{
-			this.readLock.unlock();
+			this.rwl.readLock().unlock();
 		}
 		
 	}
@@ -127,15 +116,15 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public boolean remove(String entityID)
 	{
+		this.rwl.writeLock().lock();
+		
 		try
 		{
-			this.writeLock.lock();
-			
 			return (this.cache.remove(entityID) != null);
 		}
 		finally
 		{
-			this.writeLock.unlock();
+			this.rwl.writeLock().unlock();
 		}
 	}
 
@@ -145,16 +134,17 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public void setCache(Map<String, List<Policy>> newData)
 	{
+		this.rwl.writeLock().lock();
+		
 		try
 		{
-			this.writeLock.lock();
 			
 			if(newData != null)
 				this.cache = newData;
 		}
 		finally
 		{
-			this.writeLock.unlock();
+			this.rwl.writeLock().unlock();
 		}
 		
 	}
@@ -166,15 +156,15 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public long getBuildSequenceId()
 	{
+		this.rwl.readLock().lock();
+		
 		try
 		{
-			this.readLock.lock();
-		
 			return this.sequenceId;
 		}
 		finally
 		{
-			this.readLock.unlock();
+			this.rwl.readLock().unlock();
 		}
 		
 	}
@@ -185,15 +175,15 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public void setBuildSequenceId(long sequenceId)
 	{
+		this.rwl.writeLock().lock();
+		
 		try
 		{
-			this.writeLock.lock();
-		
 			this.sequenceId = sequenceId;
 		}
 		finally
 		{
-			this.writeLock.unlock();
+			this.rwl.writeLock().unlock();
 		}
 	}
 
@@ -203,15 +193,15 @@ public class AuthzPolicyCacheImpl implements AuthzPolicyCache
 	 */
 	public int getSize()
 	{
-		try
-		{
-			this.readLock.lock();
+		this.rwl.readLock().lock();
 		
+		try
+		{		
 			return this.cache.size();
 		}
 		finally
 		{
-			this.readLock.unlock();
+			this.rwl.readLock().unlock();
 		}
 	}
 

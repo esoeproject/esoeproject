@@ -74,7 +74,7 @@ public class CacheUpdateFailureMonitorTest
 	@Before
 	public void setUp() throws Exception
 	{
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
@@ -108,7 +108,8 @@ public class CacheUpdateFailureMonitorTest
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
 		failure.setEndPoint("blah.com");
 		failure.setRequestDocument(generateClearCacheRequest(this.issuerIDRequest1));
-	
+		failure.setTimeStamp(new Date());
+		
 		FailedAuthzCacheUpdate failure2 = new FailedAuthzCacheUpdateImpl();
 		failure2.setEndPoint("somewhere.else.com");
 		failure2.setRequestDocument(generateClearCacheRequest(this.issuerIDRequest2));
@@ -128,7 +129,9 @@ public class CacheUpdateFailureMonitorTest
 	
 	/* This first failure will be removed from the repositoryafter first poll, as the failure date has not been set.
 	 * 
-	 */
+	 * THIS TEST is no longer required as the removal of invalif failure objects has been taken out of the
+	 * monitor. Invalid failures are no longer permitted by the failure repository.
+	 *
 	@SuppressWarnings("nls")
 	@Test
 	public final void testRemoveInvalidFailure() throws Exception
@@ -155,13 +158,8 @@ public class CacheUpdateFailureMonitorTest
 		replay(webServiceClient);
 		
 		assertTrue(this.testMonitor.isAlive());		
-		
-		// must be longer than retry interval set in constructor, but less than max age
-		Thread.sleep(3000);
-		
-		// failure repository should have decreased in size by 1
-		assertEquals("Failure repository size is incorrect", 1, this.failures.getSize());
-	}
+	
+	}*/
 
 
 	/** Test the behaviour of the monitor with regards to removing successfully sent entries.
@@ -203,43 +201,6 @@ public class CacheUpdateFailureMonitorTest
 	}
 	
 	
-
-	/** Test the behaviour of the monitor when it recieves a Valid, but failure response. Should leave
-	 * failure in repository.
-	 *
-	 */
-	@Test
-	public void testBehaviour2a() throws Exception
-	{		
-		// create a new one with a longer expiry time
-		this.testMonitor = new CacheUpdateFailureMonitor(failures, metadata, webServiceClient, keyStoreResolver, new IdentifierGeneratorImpl(new IdentifierCacheImpl()), retryInterval, 10);		
-		
-		assertTrue(this.testMonitor.isAlive());
-		
-		try
-		{
-			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.noAvailableIDP)).anyTimes();
-		
-		}
-		catch(WSClientException e)
-		{
-			// cant get one with the mocked class unless we explicitly throw it
-		}
-		
-		replay(webServiceClient);
-		
-		Thread.sleep(this.retryInterval * 1500);
-		
-		// failure repository should have decreased in size by 1. One for invalid entry.
-		assertEquals("Failure repository size after sleep is incorrect", 1, this.failures.getSize());
-		
-		// sleep some more
-		Thread.sleep(this.retryInterval * 1500);
-
-		assertEquals("Failure repository size after sleep is incorrect", 1, this.failures.getSize());
-		
-	}
-	
 	
 	/** Test the behaviour of the monitor when it recieves an invalid response. Should leave
 	 * failure in repository.
@@ -266,18 +227,12 @@ public class CacheUpdateFailureMonitorTest
 		
 		Thread.sleep(this.retryInterval * 1500);
 		
-		// failure repository should have decreased in size by 1. One for invalid entry.
-		assertEquals("Failure repository size after sleep 1 is incorrect", 1, this.failures.getSize());
-		
-		// sleep some more
-		Thread.sleep(2000);
-	
 		// add a new failure with invalid request document, it should stay until it expires.
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
 		failure.setEndPoint("new.invalid.com");
 		failure.setRequestDocument(new String("<hello />").getBytes());
 		failure.setTimeStamp(new Date(System.currentTimeMillis()));
-		
+
 		this.failures.add(failure);
 
 		//	sleep some more
@@ -287,42 +242,7 @@ public class CacheUpdateFailureMonitorTest
 		assertEquals("Failure repository size after sleep 2 is incorrect", 1, this.failures.getSize());
 		
 	}
-
-	
-	/** Test the behaviour of the monitor and provide some block coverage tests.
-	 *
-	 */
-	@Test
-	public void testBehaviour3() throws Exception
-	{
-		this.testMonitor = new CacheUpdateFailureMonitor(failures, metadata, webServiceClient, keyStoreResolver, new IdentifierGeneratorImpl(new IdentifierCacheImpl()), retryInterval, maxAge);		
 		
-		assertTrue(this.testMonitor.isAlive());
-		
-		try
-		{
-			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andThrow(new WSClientException("WS error")).anyTimes();
-		
-		}
-		catch(WSClientException e)
-		{
-			// continue processing
-		}
-		
-		replay(webServiceClient);
-		
-		// before
-		assertEquals("Failure repository size before sleep is incorrect", 2, this.failures.getSize());
-		
-		// sleep the test thread so we can observe failure monitor thread behaviour. 
-		Thread.sleep(this.retryInterval * 2000);		
-
-		// failure should remain
-		assertEquals("Failure repository size after sleep is incorrect", 1, this.failures.getSize());
-		
-	}
-	
-	
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction1() throws Exception
 	{

@@ -58,10 +58,11 @@ import com.qut.middleware.test.Modify;
 @SuppressWarnings(value = { "unqualified-field-access", "nls" })
 public class SSOAAServletTest
 {
-	public SSOAAServletTest()
-	{
-		writer = new PrintWriter(new ByteArrayOutputStream()); 
-	}
+	private final String SAML_REQUEST_ELEMENT = "SAMLRequest"; //$NON-NLS-1$
+	private final String SAML_REQUEST_ENCODING = "SAMLEncoding";
+	private final String SAML_RELAY_STATE = "RelayState";
+	private final String SAML_SIG_ALGORITHM = "SigAlg";
+	private final String SAML_REQUEST_SIGNATURE = "Signature";
 	
 	
 	private SSOAAServlet ssoAAServlet;
@@ -80,6 +81,11 @@ public class SSOAAServletTest
 	String configTestFile = "tests/testdata/test.config";
 	
 	private WebApplicationContext webApplicationContext;
+	
+	public SSOAAServletTest()
+	{
+		writer = new PrintWriter(new ByteArrayOutputStream()); 
+	}
 
 	/**
 	 * @throws java.lang.Exception
@@ -158,6 +164,12 @@ public class SSOAAServletTest
 		
 		response.sendRedirect((String)notNull());
 		
+		expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(null);
+		expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
+		expect(request.getParameter(this.SAML_REQUEST_ENCODING)).andReturn(null);
+		expect(request.getParameter(this.SAML_SIG_ALGORITHM)).andReturn(null);
+		expect(request.getParameter(this.SAML_REQUEST_SIGNATURE)).andReturn(null);
+		
 		setUpMock();
 		
 		ssoAAServlet = new SSOAAServlet();
@@ -196,6 +208,8 @@ public class SSOAAServletTest
 
 		expect(request.getSession()).andReturn(session).anyTimes();	
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
+		
+		response.addCookie((Cookie)notNull());
 		
 		try
 		{
@@ -378,7 +392,8 @@ public class SSOAAServletTest
 		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
-		expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
+		expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(this.SAML_REQUEST);
+		expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
 		
 		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());
 
@@ -387,7 +402,7 @@ public class SSOAAServletTest
 		
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
 		expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andReturn(SSOProcessor.result.ForceAuthn);
-		response.sendRedirect(matches("https://esoe-dev.qut.edu.au:8443/signin.*"));
+		response.sendRedirect(matches("https://esoe:8443/signin.*"));
 
 		setUpMock();
 
@@ -430,7 +445,8 @@ public class SSOAAServletTest
 		expect(request.getSession()).andReturn(session).anyTimes();
 		
 		// here we'll will return null datatypes for force the error response
-		expect(request.getParameter("SAMLRequest")).andReturn(null).anyTimes();
+		expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(null);
+		expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
 					
 		response.sendError(eq(500), (String)notNull());
 
@@ -479,10 +495,13 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
 			session.removeAttribute(SSOProcessorData.SESSION_NAME);
 			expect(request.getCookies()).andReturn(cookies).anyTimes();
 			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andReturn(SSOProcessor.result.SSOGenerationSuccessful);
+			
+			response.addCookie((Cookie)notNull());
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -528,7 +547,8 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
 			session.removeAttribute(SSOProcessorData.SESSION_NAME);
 			expect(request.getCookies()).andReturn(null).anyTimes();
 			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andReturn(
@@ -580,7 +600,8 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
 			expect(request.getCookies()).andReturn(null).anyTimes();
 			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andThrow(
 					new InvalidSessionIdentifierException("mock"));
@@ -631,7 +652,8 @@ public class SSOAAServletTest
 		try
 		{
 			expect(request.getSession()).andReturn(session).anyTimes();
-			expect(request.getParameter("SAMLRequest")).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(this.SAML_REQUEST);
+			expect(request.getParameter(this.SAML_RELAY_STATE)).andReturn(null);
 			expect(request.getCookies()).andReturn(null).anyTimes();
 			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andThrow(
 					new InvalidRequestException("mock"));

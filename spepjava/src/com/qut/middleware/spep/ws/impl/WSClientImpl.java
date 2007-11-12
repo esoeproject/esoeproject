@@ -37,7 +37,6 @@ import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.log4j.Logger;
 
-import com.qut.middleware.spep.authn.impl.AuthnProcessorImpl;
 import com.qut.middleware.spep.ws.Messages;
 import com.qut.middleware.spep.ws.WSClient;
 import com.qut.middleware.spep.ws.exception.WSClientException;
@@ -45,19 +44,25 @@ import com.qut.middleware.spep.ws.exception.WSClientException;
 /** */
 public class WSClientImpl implements WSClient
 {
-	private XMLInputFactory xmlInputFactory;
+	private static XMLInputFactory xmlInputFactory;
+	private static XMLOutputFactory xmlOutputFactory;
 
 	/* Local logging instance */
 	private Logger logger = Logger.getLogger(WSClientImpl.class.getName());
+	
+	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
+	static
+	{
+		xmlInputFactory = XMLInputFactory.newInstance();
+		xmlOutputFactory = XMLOutputFactory.newInstance();
+	}
 
 	/**
 	 * Constructor
 	 * @param reportingProcessor 
 	 */
 	public WSClientImpl()
-	{
-		this.xmlInputFactory = XMLInputFactory.newInstance();
-		
+	{	
 		this.logger.info(Messages.getString("WSClientImpl.7")); //$NON-NLS-1$
 	}
 	
@@ -153,7 +158,7 @@ public class WSClientImpl implements WSClient
 		{
 			targetEPR = new EndpointReference(endpoint);
 			reader = new ByteArrayInputStream(request);
-			xmlreader = this.xmlInputFactory.createXMLStreamReader(reader);
+			xmlreader = WSClientImpl.xmlInputFactory.createXMLStreamReader(reader);
 			builder = new StAXOMBuilder(xmlreader);
 			requestElement = builder.getDocumentElement();
 
@@ -170,7 +175,7 @@ public class WSClientImpl implements WSClient
 			writer = new ByteArrayOutputStream();
 			if (resultElement != null)
 			{
-				resultElement.serialize(XMLOutputFactory.newInstance().createXMLStreamWriter(writer));
+				resultElement.serialize(WSClientImpl.xmlOutputFactory.createXMLStreamWriter(writer));
 			}
 			else
 			{

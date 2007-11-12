@@ -38,6 +38,6 @@
 			classname="com.qut.middleware.esoestartup.pages.RegisterESOEHelpPage" />
 	</pages>
 
-	<mode value="debug" />
+	<mode value="production" />
 
 </click-app>

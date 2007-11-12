@@ -66,7 +66,7 @@ public class AuthenticationServletTest
 	private AuthnProcessor authnProcessor;
 	private Metadata metadata;
 	private String tokenName;
-	private String tokenDomain;
+	private String serviceHost;
 	private byte[] authnRequest;
 	private String singleSignOnEndpoint;
 	private String defaultRequestURL;
@@ -78,7 +78,7 @@ public class AuthenticationServletTest
 	public void setUp() throws Exception
 	{
 		this.tokenName = "spep-session";
-		this.tokenDomain = "spep-dev.qut.edu.au";
+		this.serviceHost = "spep-dev.qut.edu.au";
 		this.authnRequest = new String("This is an authn request.").getBytes();
 		this.singleSignOnEndpoint = "this is the single sign-on endpoint";
 		this.defaultRequestURL = "http://this.is.the.default/url";
@@ -92,7 +92,7 @@ public class AuthenticationServletTest
 		expect(this.spep.getAuthnProcessor()).andReturn(this.authnProcessor).anyTimes();
 		expect(this.spep.getMetadata()).andReturn(this.metadata).anyTimes();
 		expect(this.spep.getTokenName()).andReturn(this.tokenName).anyTimes();
-		expect(this.spep.getTokenDomain()).andReturn(this.tokenDomain).anyTimes();
+		expect(this.spep.getServiceHost()).andReturn(this.serviceHost).anyTimes();
 		expect(this.spep.getDefaultUrl()).andReturn(this.defaultRequestURL).anyTimes();
 		expect(this.spep.isStarted()).andReturn(Boolean.TRUE).anyTimes();
 		
@@ -356,7 +356,6 @@ public class AuthenticationServletTest
 		assertNotNull(spepCookie);
 		assertEquals(this.tokenName, spepCookie.getName());
 		assertEquals(sessionID, spepCookie.getValue());
-		assertEquals(this.tokenDomain, spepCookie.getDomain());
 		
 		endMock();
 	}
@@ -419,7 +418,6 @@ public class AuthenticationServletTest
 		assertNotNull(spepCookie);
 		assertEquals(this.tokenName, spepCookie.getName());
 		assertEquals(sessionID, spepCookie.getValue());
-		assertEquals(this.tokenDomain, spepCookie.getDomain());
 		
 		endMock();
 	}

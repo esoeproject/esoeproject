@@ -136,13 +136,13 @@ public class RequestEvaluator
 	}
 	
 	
-	/** Get the descriptorID from the given LXACMLAuthzDecisionQuery.
+	/** Get the entityID from the given LXACMLAuthzDecisionQuery.
 	 * 
 	 * @param authzRequest The authz request as suplied by an SPEP.
 	 * @return The descriptor ID
 	 * @throws InvalidRequestException
 	 */
-	public String getDescriptorID(LXACMLAuthzDecisionQuery authzRequest) throws InvalidRequestException
+	public String getEntityID(LXACMLAuthzDecisionQuery authzRequest) throws InvalidRequestException
 	{
 		String value = null;
 				

@@ -42,6 +42,7 @@ import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -130,6 +131,9 @@ public class AuthnProcessorTest
 	private int attributeConsumingIndex;
 	private String assertionConsumerServiceLocation;
 	private KeyStoreResolver keyStoreResolver;
+	private String serviceHost;
+	private String ssoURL;
+	private HttpServletRequest request;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -154,6 +158,8 @@ public class AuthnProcessorTest
 		
 		this.requestURL = "http://spep.url/request";
 		this.assertionConsumerServiceLocation = "http://spep.url/service/sso";
+		this.serviceHost = "http://spep.url/service/sso";
+		this.ssoURL = "/service/sso";
 		
 		UnauthenticatedSession unauthenticatedSession = new UnauthenticatedSessionImpl();
 		unauthenticatedSession.setRequestURL(this.requestURL);
@@ -164,6 +170,9 @@ public class AuthnProcessorTest
 		expect(this.identifierCache.containsIdentifier((String)notNull())).andReturn(true).anyTimes();
 		this.identifierCache.registerIdentifier((String)notNull());
 		expectLastCall().anyTimes();
+		
+		this.request = createMock(HttpServletRequest.class);
+		expect(this.request.getServerName()).andReturn("spep.url").anyTimes();
 
 		this.sessionID = "123412384091283985721938798271394871234871298579-9012385987129347912837491827349871234987";
 		this.sessionID2 = "123412384091283985721938798271394871234871298579-9012385987129347912837491827349871234987234";
@@ -192,7 +201,7 @@ public class AuthnProcessorTest
 		this.assertionConsumerIndex = 0;
 		this.attributeConsumingIndex = 0;
 		
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.assertionConsumerIndex, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, this.attributeConsumingIndex);
 	}
 	
 	private void startMock()
@@ -202,6 +211,7 @@ public class AuthnProcessorTest
 		replay(this.identifierGenerator);
 		replay(this.identifierCache);
 		replay(this.attributeProcessor);
+		replay(this.request);
 	}
 	
 	private void endMock()
@@ -211,6 +221,7 @@ public class AuthnProcessorTest
 		verify(this.identifierGenerator);
 		verify(this.identifierCache);
 		verify(this.attributeProcessor);
+		verify(this.request);
 	}
 
 	/**
@@ -331,6 +342,12 @@ public class AuthnProcessorTest
 	@Test(expected = AuthenticationException.class)
 	public void testProcessAuthnResponse1c() throws Exception
 	{
+		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(this.identifierCache);	
+		String samlSessionID = idGenerator.generateSAMLSessionID();
+		String samlSessionIndex = idGenerator.generateSAMLSessionID();
+		
+		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(samlSessionID)).andReturn(null);
+		
 		this.sessionCache.putPrincipalSession(eq(this.sessionID), capture(this.captureprincipalSession));
 		expectLastCall().atLeastOnce();
 
@@ -338,12 +355,7 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument;
-		
-		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(this.identifierCache);
-		String samlSessionID = idGenerator.generateSAMLSessionID();
-		String samlSessionIndex = idGenerator.generateSAMLSessionID();
-		
+		byte[] responseDocument;	
 		
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, 2);
 		response.setInResponseTo(this.inResponseTo);
@@ -563,6 +575,8 @@ public class AuthnProcessorTest
 		startMock();
 
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
+		data.setRequest(this.request);
+
 
 		this.authnProcessor.generateAuthnRequest(data);
 		byte[] requestDocument = data.getRequestDocument();
@@ -812,7 +826,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction1() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(null, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.assertionConsumerIndex, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(null, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, this.attributeConsumingIndex);
 	}
 	
 	/** Test invalid constructor arguments.
@@ -820,7 +834,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction2() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, null, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.assertionConsumerIndex, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, null, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, this.attributeConsumingIndex);
 	}
 	
 	/** Test invalid constructor arguments.
@@ -828,7 +842,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction3() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, null, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.assertionConsumerIndex, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, null, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, this.attributeConsumingIndex);
 	}
 	
 	/** Test invalid constructor arguments.
@@ -836,7 +850,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction4() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, null, this.identifierGenerator, keyStoreResolver, this.assertionConsumerIndex, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, null, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, this.attributeConsumingIndex);
 	}
 	
 	/** Test invalid constructor arguments.
@@ -844,7 +858,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction5() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, null, this.keyStoreResolver, this.assertionConsumerIndex, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, null, this.keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, this.attributeConsumingIndex);
 	}
 	
 	/** Test invalid constructor arguments.
@@ -852,7 +866,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction6() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, -1133, this.attributeConsumingIndex);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, -1133, this.attributeConsumingIndex);
 	}
 	
 	/** Test invalid constructor arguments.
@@ -860,7 +874,7 @@ public class AuthnProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction7() throws Exception
 	{
-		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.assertionConsumerIndex, -3847584);
+		this.authnProcessor = new AuthnProcessorImpl(this.attributeProcessor, this.metadata, this.sessionCache, this.samlValidator, this.identifierGenerator, keyStoreResolver, this.serviceHost, this.ssoURL, this.assertionConsumerIndex, -3847584);
 	}
 	
 	

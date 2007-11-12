@@ -8,12 +8,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.GregorianCalendar;
@@ -28,7 +25,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.annotation.ExpectedException;
 import org.w3._2000._09.xmldsig_.Signature;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
@@ -48,7 +44,6 @@ import com.qut.middleware.esoe.sessions.bean.impl.IdentityAttributeImpl;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
 import com.qut.middleware.saml2.VersionConstants;
-import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
 import com.qut.middleware.saml2.exception.KeyResolutionException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
@@ -93,10 +88,11 @@ public class AuthorizationProcessorTest
 	Map<String, List<Policy>> database;
 	Unmarshaller<PolicySet> policySetUnmarshaller;
 	Unmarshaller<Response> responseUnmarshaller;
-	Marshaller requestMarshaller;
+	Marshaller<LXACMLAuthzDecisionQuery> requestMarshaller;
 	Metadata metadata;
 	SPEPProcessor spepProcessor;
 
+	String authnIdentifier = "zitelli";
 	String samlIdentifier = "5564840920";
 	Map<String, IdentityAttribute> attributeList;
 	private SAMLValidator validator;
@@ -138,7 +134,7 @@ public class AuthorizationProcessorTest
 		// this.cache = new AuthzPolicyCacheImpl();
 		setupPolicyCache();
 
-		String keyStorePath = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
+		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
@@ -186,6 +182,7 @@ public class AuthorizationProcessorTest
 
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -320,6 +317,7 @@ public class AuthorizationProcessorTest
 		byte[] responseXml;
 		Result result;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier).anyTimes();
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -476,6 +474,7 @@ public class AuthorizationProcessorTest
 		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier).anyTimes();
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -542,6 +541,7 @@ public class AuthorizationProcessorTest
 
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -628,6 +628,7 @@ public class AuthorizationProcessorTest
 		attributeList.put("type", typeAttr);
 		attributeList.put("username", userAttr);
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -677,6 +678,7 @@ public class AuthorizationProcessorTest
 		attributeList.put("username", userAttr);
 		attributeList.put("email", emailAttr);
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -725,6 +727,7 @@ public class AuthorizationProcessorTest
 		attributeList.put("username", userAttr);
 		attributeList.put("email", emailAttr);
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -761,6 +764,7 @@ public class AuthorizationProcessorTest
 
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query);
@@ -795,6 +799,7 @@ public class AuthorizationProcessorTest
 		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query);
@@ -834,6 +839,7 @@ public class AuthorizationProcessorTest
 
 		try
 		{
+			expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 			expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 			expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 			expect(this.sessionsProcessor.getQuery()).andReturn(this.query);
@@ -895,6 +901,7 @@ public class AuthorizationProcessorTest
 
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -985,6 +992,7 @@ public class AuthorizationProcessorTest
 
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -1103,6 +1111,7 @@ public class AuthorizationProcessorTest
 
 		AuthorizationProcessor.result requestResult;
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -1199,6 +1208,7 @@ public class AuthorizationProcessorTest
 		userAttr.addValue("beddoes");
 		attributeList.put("username", userAttr);
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -1239,6 +1249,7 @@ public class AuthorizationProcessorTest
 		userAttr.addValue("beddoes");
 		attributeList.put("username", userAttr);
 
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
 		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier);
 		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
 		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
@@ -1262,7 +1273,7 @@ public class AuthorizationProcessorTest
 	{
 		this.database = new HashMap<String, List<Policy>>();
 
-		String path = System.getProperty("user.dir") + File.separator + "tests" + File.separator + "testdata" + File.separator;
+		String path = "tests" + File.separator + "testdata" + File.separator;
 
 		// map of policy sets and associated test SPEP ID's
 		String filenames[] = new String[] { path + "PolicySetSimple.xml", // };

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<xsd:task xmlns="http://www.intient.com"
+	xmlns:xsi="http://www.intient.com/schemas/Task"
+	xsi:schemaLocation="file://C:\Documents and Settings\Admin\workspace\Irukandji\schema\task.xsd">
+
+	<xsd:element name="stdout" type="xsd:string">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="match" type="xsd:string" />
+		</xsd:complexType>
+	</xsd:element>
+
+
+	<rule operator="equals">
+		<stdout id="1" />
+		<value>Address: (.+)</value>
+	</rule>
+
+	<xsd:element name="stdout">
+		<xsd:simpleType>
+			<xsd:attribute name="id" type="xsd:string" />
+		</xsd:simpleType>
+	</xsd:element>
+	
+</xsd:task>

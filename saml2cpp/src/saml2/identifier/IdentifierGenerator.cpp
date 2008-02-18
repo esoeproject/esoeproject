@@ -18,6 +18,14 @@
  * Purpose: Implementation of all identifier generator functionality to SAML2lib-cpp
  */
 
+/* Local Codebase */
+#include "saml2/SAML2Defs.h"
+#include "saml2/identifier/IdentifierGenerator.h"
+#include "saml2/identifier/IdentifierCache.h"
+#include "saml2/exceptions/InvalidParameterException.h"
+#include "saml2/exceptions/IdentifierException.h"
+#include "saml2/exceptions/IdentifierCacheException.h"
+
 /* Boost */
 #include <boost/date_time/string_convert.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -29,14 +37,6 @@
 #include <string>
 #include <time.h>
 #include <stdio.h>
-
-/* Local Codebase */
-#include "saml2/identifier/IdentifierGenerator.h"
-#include "saml2/identifier/IdentifierCache.h"
-#include "saml2/exceptions/InvalidParameterException.h"
-#include "saml2/exceptions/IdentifierException.h"
-#include "saml2/exceptions/IdentifierCacheException.h"
-#include "saml2/SAML2Defs.h"
 
 namespace saml2
 {

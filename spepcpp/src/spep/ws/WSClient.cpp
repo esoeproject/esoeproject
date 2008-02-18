@@ -214,31 +214,31 @@ int spep::WSClient::debugCallback( CURL *curl, curl_infotype info, char *msg, st
 		
 		case CURLINFO_HEADER_IN:
 		//The data is header (or header-like) data received from the peer.
-		ss << "curl-header-in: " << std::string( msg, len );
-		wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//ss << "curl-header-in: " << std::string( msg, len );
+		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
 		break;
 		
 		case CURLINFO_HEADER_OUT:
 		//The data is header (or header-like) data sent to the peer.
-		ss << "curl-header-out: " << std::string( msg, len );
-		wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//ss << "curl-header-out: " << std::string( msg, len );
+		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
 		break;
 		
 		case CURLINFO_DATA_IN:
 		//The data is protocol data received from the peer.
-		ss << "curl-data-in: len=" << len << std::ends;
-		wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//ss << "curl-data-in: len=" << len << std::ends;
+		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
 		break;
 		
 		case CURLINFO_DATA_OUT:
 		//The data is protocol data sent to the peer.
-		ss << "curl-data-out: len=" << len << std::ends;
-		wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//ss << "curl-data-out: len=" << len << std::ends;
+		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
 		break;
 		
 		default:
-		ss << "curl-unknown-message: [suppressing output]";
-		wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//ss << "curl-unknown-message: [suppressing output]";
+		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
 		break;
 	}
 	

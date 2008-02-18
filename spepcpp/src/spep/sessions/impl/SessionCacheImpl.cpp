@@ -18,10 +18,10 @@
  */
 
 #include "spep/sessions/impl/SessionCacheImpl.h"
-#include "spep/Exceptions.h"
 
 #include "saml2/exceptions/InvalidParameterException.h"
 #include "spep/exceptions/InvalidStateException.h"
+#include "spep/exceptions/InvalidSessionIdentifierException.h"
 
 #include <iterator>
 

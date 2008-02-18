@@ -18,6 +18,11 @@
  * Purpose: Implementation of XSD customisation to use the Boost gregorian date class
  */
 
+/* Local codebase */
+#include "saml2/SAML2Defs.h"
+#include "saml2/exceptions/InvalidParameterException.h"
+#include "saml2/xsd/xml-schema.hxx"
+
 /* Boost */
 #include <boost/regex.hpp>
 #include <boost/date_time/posix_time/time_formatters.hpp>
@@ -29,11 +34,6 @@
 /* Xerces */
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/util/XMLString.hpp>
-
-/* Local codebase */
-#include "saml2/exceptions/InvalidParameterException.h"
-#include "saml2/xsd/xml-schema.hxx"
-#include "saml2/SAML2Defs.h"
 
 namespace xml = xsd::cxx::xml;
 

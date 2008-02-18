@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([SPEPD], 0.3)
+AC_INIT([SPEPD], 0.4)
 AC_CONFIG_SRCDIR([include/StreamLogHandler.h])
 #AC_CONFIG_HEADER([config.h])
 
@@ -72,6 +72,16 @@ AC_ARG_WITH(
 	],
 	[boostpath=$withval],
 	[boostpath=]
+)
+
+AC_ARG_WITH(
+	[boost-suffix],
+	[AS_HELP_STRING(
+		[--with-boost-suffix=SUFFIX],
+		[value to append to Boost library names when linking])
+	],
+	[boostsuffix=$withval],
+	[boostsuffix=]
 )
 
 AC_ARG_WITH(
@@ -154,6 +164,7 @@ localinc='-I${top_srcdir}/include'
 
 AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $icuinc $xsdinc $opensslinc $curlinc $saml2inc $spepinc"])
 AC_SUBST([AM_LDFLAGS],["$xerceslib $xmlseclib $boostlib $iculib $openssllib $curllib $saml2lib $speplib"])
+AC_SUBST([BOOST_SUFFIX],["$boostsuffix"])
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile])
 AC_OUTPUT

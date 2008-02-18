@@ -55,7 +55,7 @@ _wsClient( wsClient )
 	std::vector<std::string> lxacmlGroupTargetSchemaList;
 	lxacmlGroupTargetSchemaList.push_back( ConfigurationConstants::lxacmlGroupTarget );
 	
-	_lxacmlAuthzDecisionQueryMarshaller = new saml2::MarshallerImpl<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType>( schemaPath, lxacmlSchemaList, "LXACMLAuthzDecisionQuery", "http://www.qut.com/middleware/lxacmlSAMLProtocolSchema", keyResolver->getSPEPKeyName(), keyResolver->getSPEPPrivateKey() );
+	_lxacmlAuthzDecisionQueryMarshaller = new saml2::MarshallerImpl<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType>( schemaPath, lxacmlSchemaList, "LXACMLAuthzDecisionQuery", "http://www.qut.com/middleware/lxacmlSAMLProtocolSchema", keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
 	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( schemaPath, lxacmlSchemaList, metadata );
 	_lxacmlAuthzDecisionStatementUnmarshaller = new saml2::UnmarshallerImpl<middleware::lxacmlSAMLAssertionSchema::LXACMLAuthzDecisionStatementType>( schemaPath, lxacmlSchemaList, metadata );
 	_groupTargetUnmarshaller = new saml2::UnmarshallerImpl<middleware::lxacmlGroupTargetSchema::GroupTargetType>( schemaPath, lxacmlGroupTargetSchemaList );
@@ -67,7 +67,7 @@ _wsClient( wsClient )
 	cacheClearSchemaList.push_back( ConfigurationConstants::samlProtocol );
 	
 	_clearAuthzCacheRequestUnmarshaller = new saml2::UnmarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType>( schemaPath, cacheClearSchemaList, metadata );
-	_clearAuthzCacheResponseMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType>( schemaPath, cacheClearSchemaList, "ClearAuthzCacheResponse", "http://www.qut.com/middleware/ESOEProtocolSchema", keyResolver->getSPEPKeyName(), keyResolver->getSPEPPrivateKey() );
+	_clearAuthzCacheResponseMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType>( schemaPath, cacheClearSchemaList, "ClearAuthzCacheResponse", "http://www.qut.com/middleware/ESOEProtocolSchema", keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
 }
 
 spep::PolicyEnforcementProcessor::~PolicyEnforcementProcessor()
@@ -139,7 +139,7 @@ void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcemen
 	this->_localReportingProcessor.log( ERROR, "An error occurred during authz processing. Returning error condition" );
 }
 
-DOMDocument* spep::PolicyEnforcementProcessor::authzCacheClear( middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType *request )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheClear( middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType *request )
 {
 	std::wstring statusCodeValue;
 	std::wstring statusMessage;
@@ -239,7 +239,7 @@ DOMDocument* spep::PolicyEnforcementProcessor::authzCacheClear( middleware::ESOE
 	return this->generateClearAuthzCacheResponse( request->ID(), statusMessage, statusCodeValue );
 }
 
-DOMDocument* spep::PolicyEnforcementProcessor::generateClearAuthzCacheResponse( std::wstring &inResponseTo, std::wstring &statusMessage, std::wstring &statusCodeValue )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::generateClearAuthzCacheResponse( std::wstring &inResponseTo, std::wstring &statusMessage, std::wstring &statusCodeValue )
 {
 	
 	// Build the XML object.
@@ -273,7 +273,7 @@ DOMDocument* spep::PolicyEnforcementProcessor::generateClearAuthzCacheResponse( 
 	return responseDocument;
 }
 
-DOMDocument* spep::PolicyEnforcementProcessor::generateAuthzDecisionQuery( spep::PolicyEnforcementProcessorData &data )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::generateAuthzDecisionQuery( spep::PolicyEnforcementProcessorData &data )
 {
 	this->_localReportingProcessor.log( DEBUG, "About to generate authz decision query." );
 	

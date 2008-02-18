@@ -29,22 +29,49 @@
 
 #include "spep/Util.h"
 
-#define CONFIGURATION_SPEPDAEMONPORT "spepDaemonPort"
-#define CONFIGURATION_SPEPIDENTIFIER "spepIdentifier"
+// Keystore settings
+#define CONFIGURATION_KEYSTOREPATH "keystorePath"
+#define CONFIGURATION_KEYSTOREPASSWORD "keystorePassword"
+#define CONFIGURATION_SPEPKEYALIAS "spepKeyAlias"
+#define CONFIGURATION_SPEPKEYPASSWORD "spepKeyPassword"
+#define CONFIGURATION_METADATAKEYALIAS "metadataKeyAlias"
+
+// Mandatory config
+#define CONFIGURATION_SCHEMAPATH "schemaPath"
 #define CONFIGURATION_ESOEIDENTIFIER "esoeIdentifier"
+#define CONFIGURATION_SPEPIDENTIFIER "spepIdentifier"
 #define CONFIGURATION_METADATAURL "metadataUrl"
 #define CONFIGURATION_SERVERINFO "serverInfo"
 #define CONFIGURATION_NODEIDENTIFIER "nodeIdentifier"
 #define CONFIGURATION_ATTRIBUTECONSUMINGSERVICEINDEX "attributeConsumingServiceIndex"
 #define CONFIGURATION_ASSERTIONCONSUMERSERVICEINDEX "assertionConsumerServiceIndex"
 #define CONFIGURATION_AUTHZCACHEINDEX "authzCacheIndex"
-#define CONFIGURATION_STARTUPRETRYINTERVAL "startupRetryInterval"
-#define CONFIGURATION_TOKENNAME "tokenName"
-#define CONFIGURATION_TOKENDOMAIN "tokenDomain"
+#define CONFIGURATION_SERVICEHOST "serviceHost"
 #define CONFIGURATION_IPADDRESSES "ipAddresses"
 #define CONFIGURATION_LOGINREDIRECT "loginRedirect"
 #define CONFIGURATION_DEFAULTURL "defaultUrl"
 #define CONFIGURATION_LOGOUTCLEARCOOKIE "logoutClearCookie"
+#define CONFIGURATION_SPEPDAEMONPORT "spepDaemonPort"
+
+// Attribute -> environment config
+#define CONFIGURATION_ATTRIBUTERENAME "attributeRename"
+#define CONFIGURATION_USERNAMEATTRIBUTE "usernameAttribute"
+#define CONFIGURATION_ATTRIBUTENAMEPREFIX "attributeNamePrefix"
+#define CONFIGURATION_ATTRIBUTEVALUESEPARATOR "attributeValueSeparator"
+
+// Extra config
+#define CONFIGURATION_CABUNDLE "caBundle"
+
+// Lazy session init
+#define CONFIGURATION_LAZYINIT "lazyInit"
+#define CONFIGURATION_LAZYINITDEFAULTACTION "lazyInitDefaultAction"
+#define CONFIGURATION_LAZYINITRESOURCE "lazyInit-resource"
+
+// Advanced options
+#define CONFIGURATION_SSOREDIRECT "ssoRedirect"
+#define CONFIGURATION_SPEPTOKENNAME "spepTokenName"
+#define CONFIGURATION_COMMONDOMAINTOKENNAME "commonDomainTokenName"
+#define CONFIGURATION_STARTUPRETRYINTERVAL "startupRetryInterval"
 #define CONFIGURATION_METADATAINTERVAL "metadataInterval"
 #define CONFIGURATION_ALLOWEDTIMESKEW "allowedTimeSkew"
 #define CONFIGURATION_IDENTIFIERCACHEINTERVAL "identifierCacheInterval"
@@ -52,17 +79,12 @@
 #define CONFIGURATION_SESSIONCACHETIMEOUT "sessionCacheTimeout"
 #define CONFIGURATION_SESSIONCACHEINTERVAL "sessionCacheInterval"
 #define CONFIGURATION_DEFAULTPOLICYDECISION "defaultPolicyDecision"
-#define CONFIGURATION_ATTRIBUTENAMEPREFIX "attributeNamePrefix"
-#define CONFIGURATION_ATTRIBUTEVALUESEPARATOR "attributeValueSeparator"
-#define CONFIGURATION_SCHEMAPATH "schemaPath"
-#define CONFIGURATION_KEYPATH "keyPath"
-#define CONFIGURATION_SPEPKEYALIAS "spepKeyAlias"
-#define CONFIGURATION_SPEPPRIVATEKEYFILENAME "spepPrivateKeyFilename"
-#define CONFIGURATION_SPEPPUBLICKEYFILENAME "spepPublicKeyFilename"
-#define CONFIGURATION_METADATAPUBLICKEYFILENAME "metadataPublicKeyFilename"
-#define CONFIGURATION_ATTRIBUTERENAME "attributeRename"
-#define CONFIGURATION_USERNAMEATTRIBUTE "usernameAttribute"
-#define CONFIGURATION_CABUNDLE "caBundle"
+
+//#define CONFIGURATION_TOKENDOMAIN "tokenDomain"
+//#define CONFIGURATION_KEYPATH "keyPath"
+//#define CONFIGURATION_SPEPPRIVATEKEYFILENAME "spepPrivateKeyFilename"
+//#define CONFIGURATION_SPEPPUBLICKEYFILENAME "spepPublicKeyFilename"
+//#define CONFIGURATION_METADATAPUBLICKEYFILENAME "metadataPublicKeyFilename"
 
 #define MESSAGE_CONFIG_BUFFER_SIZE 512
 #define MESSAGE_CONFIG_VARIABLE_NOT_PRESENT "The property %s was not present in the configuration file."

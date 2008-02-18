@@ -58,7 +58,7 @@ int spep::apache::SSOHandler::handleSSOGetRequest( request_rec *req )
 	cookies.sendCookies( req );
 	
 	const char *base64RedirectURLChars = params[ REDIRECT_URL_PARAM ];
-	spep::AuthnProcessorData data;
+	//spep::AuthnProcessorData data;
 	std::string base64RedirectURL;
 	
 	if( base64RedirectURLChars != NULL )
@@ -66,7 +66,56 @@ int spep::apache::SSOHandler::handleSSOGetRequest( request_rec *req )
 		base64RedirectURL = std::string( base64RedirectURLChars );
 	}
 	
-	std::string authnRequestDocument( this->buildAuthnRequestDocument( req->pool, base64RedirectURL ) );
+	// Try and get the hostname from the Host: header in the request.
+	const char *hostname = apr_table_get( req->headers_in, "Host" );
+	// Failing that, use the ServerName that apache determined
+	if( hostname == NULL )
+	{
+		hostname = req->server->server_hostname;
+	}
+	
+	// Check that we have a port to use - needs to come from the connection
+	// VirtualHosted apache servers don't keep port info in each vhost.
+#ifdef APACHE1
+	int port = req->connection->local_addr.sin_port;
+#else
+	int port = req->connection->local_addr->port;
+#endif
+	if( port == 0 )
+	{
+		hostname = NULL;
+	}
+	
+	// Parse the service host URL so we can compare.
+	apr_uri_t *uri = static_cast<apr_uri_t*>( apr_pcalloc( req->pool, sizeof(apr_uri_t) ) );
+	apr_uri_parse( req->pool, this->_spep->getSPEPConfigData()->getServiceHost().c_str(), uri );
+	
+	std::string baseRequestURL;
+	
+	// If we didn't get a hostname (or port), or it was the same as the service host.
+	if( hostname == NULL || std::strcmp( uri->hostinfo, hostname ) == 0 )
+	{
+		baseRequestURL = this->_spep->getSPEPConfigData()->getServiceHost(); 
+	}
+	else
+	{
+		// Use mod_ssl to detemine if this was a https request, otherwise assume http.
+		const char *scheme = isSecureRequest(req) ? "https" : "http";
+		// Prepend the scheme to the hostname
+		char *baseRequestURLChars = apr_psprintf( req->pool, "%s://%s", scheme, hostname );
+		
+		// If it's on a non-standard port, append a port to the base URL
+		if( ( !isSecureRequest(req) && port != 80 ) 
+			|| ( isSecureRequest(req) && port != 443 ) )
+		{
+			baseRequestURLChars = apr_psprintf( req->pool, "%s:%d", baseRequestURLChars, port );
+		}
+		
+		baseRequestURL = baseRequestURLChars;
+	}
+	
+	// Build the authentication request document
+	std::string authnRequestDocument( this->buildAuthnRequestDocument( req->pool, base64RedirectURL, baseRequestURL ) );
 	
 	ap_set_content_type( req, HTTP_POST_REQUEST_DOCUMENT_CONTENT_TYPE );
 	req->status = HTTP_OK;
@@ -109,9 +158,15 @@ int spep::apache::SSOHandler::handleSSOPostRequest( request_rec *req )
 	Cookies cookies;
 	
 	const char *tokenName = this->_spep->getSPEPConfigData()->getTokenName().c_str();
-	const char *tokenDomain = this->_spep->getSPEPConfigData()->getTokenDomain().c_str();
+	std::string tokenDomain( apr_table_get( req->headers_in, "Host" ) ); 
+		//this->_spep->getSPEPConfigData()->getTokenDomain().c_str();
+	if( tokenDomain.find_first_of( ':' ) != std::string::npos )
+	{
+		tokenDomain = tokenDomain.substr( 0, tokenDomain.find_first_of( ':' ) );
+	}
+	
 	bool secure = isSecureRequest( req );
-	cookies.addCookie( req, tokenName, data.getSessionID().c_str(), NULL, tokenDomain, secure );
+	cookies.addCookie( req, tokenName, data.getSessionID().c_str(), NULL, tokenDomain.c_str(), secure );
 	cookies.sendCookies( req );
 	
 	// Establish return URL..
@@ -181,10 +236,11 @@ int spep::apache::SSOHandler::handleRequest( request_rec *req )
 	}
 }
 
-std::string spep::apache::SSOHandler::buildAuthnRequestDocument( apr_pool_t *pool, std::string &base64RedirectURL )
+std::string spep::apache::SSOHandler::buildAuthnRequestDocument( apr_pool_t *pool, const std::string &base64RedirectURL, const std::string& baseRequestURL )
 {
 	AuthnProcessorData data;
 	data.setRequestURL( base64RedirectURL );
+	data.setBaseRequestURL( baseRequestURL );
 	
 	this->_spep->getAuthnProcessor()->generateAuthnRequest( data );
 	

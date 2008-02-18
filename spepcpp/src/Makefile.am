@@ -1,6 +1,7 @@
 
 lib_LTLIBRARIES = libspep.la
-libspep_la_LDFLAGS = -version-info $(VERSION_INFO) $(AM_LDFLAGS)
+libspep_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
+#-version-info $(VERSION_INFO) 
 libspep_la_SOURCES = spep/pep/PolicyEnforcementProcessorData.cpp \
 spep/pep/PolicyEnforcementProcessor.cpp \
 spep/pep/proxy/SessionGroupCacheProxy.cpp \
@@ -50,7 +51,9 @@ spep/exceptions/InvalidRequestException.cpp \
 spep/exceptions/KeyResolverException.cpp \
 spep/exceptions/MetadataException.cpp \
 spep/exceptions/InvalidResponseException.cpp \
+spep/exceptions/InvalidSessionIdentifierException.cpp \
 spep/metadata/KeyResolver.cpp \
+spep/metadata/JKSKeystore.cpp \
 spep/metadata/MetadataThread.cpp \
 spep/metadata/proxy/MetadataDispatcher.cpp \
 spep/metadata/proxy/MetadataProxy.cpp \

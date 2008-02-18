@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="axiom.lib axutil.lib axis2_parser.lib libcurl.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1D.lib xerces-c_2D.lib saml2.lib ws2_32.lib"
+				AdditionalDependencies="libcurl.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1D.lib xerces-c_2D.lib saml2.lib ws2_32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="Z:\workspaces\esoe\saml2cpp\w32\vc8\Debug"
 				GenerateDebugInformation="true"
@@ -115,7 +115,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;Z:\workspaces\esoe\saml2cpp\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;BUILDING_SPEP"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -133,7 +134,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libcurl.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib saml2.lib ws2_32.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="z:\workspaces\esoe\saml2cpp\w32\vc8\Release"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -259,7 +262,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\spep\exceptions\InvalidSessionIdentifierException.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\spep\exceptions\InvalidStateException.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\spep\metadata\JKSKeystore.cpp"
 				>
 			</File>
 			<File

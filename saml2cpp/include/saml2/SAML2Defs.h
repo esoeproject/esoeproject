@@ -22,7 +22,11 @@
 #define CONSTANTS_H_
 
 /* TODO: Make this different for unix / windows */
+#ifdef WIN32
+#define FILE_SEPERATOR "\\"
+#else //WIN32
 #define FILE_SEPERATOR "/"
+#endif //WIN32
 
 /* SAML2lib Byte Typedef */
 typedef unsigned char SAMLByte;
@@ -61,7 +65,11 @@ typedef unsigned char SAMLByte;
 #define MAX_BYTES 20
 #define MAX_CHARS (MAX_BYTES * 2) + 1
 #define HEX_FORMAT "%02x"
+#ifdef WIN32
+#define TIME_FORMAT "%y%m%d%H%M%S"
+#else //WIN32
 #define TIME_FORMAT "%s"
+#endif //WIN32
 #define XS_ID_DELIM "_"
 #define ID_DELIM "-"
 

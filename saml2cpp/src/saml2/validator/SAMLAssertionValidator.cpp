@@ -18,6 +18,14 @@
  * Purpose: Implementation of SAML Assertion validation
  */
  
+/* Local Codebase */
+#include "saml2/SAML2Defs.h"
+#include "saml2/constants/VersionConstants.h"
+#include "saml2/exceptions/IdentifierCacheException.h"
+#include "saml2/exceptions/InvalidSAMLAssertionException.h"
+#include "saml2/exceptions/InvalidParameterException.h"
+#include "saml2/validator/SAMLAssertionValidator.h"
+
  /* Boost */
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
@@ -25,13 +33,6 @@
 
 /* STL */
 #include <string>
-
-/* Local Codebase */
-#include "saml2/constants/VersionConstants.h"
-#include "saml2/exceptions/IdentifierCacheException.h"
-#include "saml2/exceptions/InvalidSAMLAssertionException.h"
-#include "saml2/exceptions/InvalidParameterException.h"
-#include "saml2/validator/SAMLAssertionValidator.h"
 
 namespace saml2
 {

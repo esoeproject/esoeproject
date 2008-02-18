@@ -43,7 +43,7 @@ namespace spep { namespace apache {
 		spep::SPEP *_spep;
 		int handleSSOGetRequest( request_rec *req );
 		int handleSSOPostRequest( request_rec *req );
-		std::string buildAuthnRequestDocument( apr_pool_t *pool, std::string &base64RedirectURL );
+		std::string buildAuthnRequestDocument( apr_pool_t *pool, const std::string &base64RedirectURL, const std::string& baseRequestURL );
 		apr_status_t parseGetRequestQueryString( request_rec *req, apr_table_t *queryParams );
 		
 		SSOHandler( const SSOHandler& other );

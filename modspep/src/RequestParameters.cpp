@@ -126,7 +126,7 @@ _req( req )
 	}
 	else
 	{
-		if( apreq_parse_query_string( req->pool, _params, req->args ) != APR_SUCCESS )
+		if( req->args == NULL || apreq_parse_query_string( req->pool, _params, req->args ) != APR_SUCCESS )
 		{
 			_params = NULL;
 		}

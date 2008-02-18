@@ -114,6 +114,7 @@ struct SPEPInstance
 /// Per-server config struct.
 struct SPEPServerConfig
 {
+	apr_pool_t *serverPool;
 	const char *logFilename;
 	SPEPInstance *instance;
 };
@@ -129,7 +130,7 @@ extern "C" const char *set_log_string( cmd_parms *parms, void* cfg, const char *
 extern "C" const char *set_enabled_flag( cmd_parms *parms, void *cfg, int arg );
 extern "C" const char *set_spep_base_path( cmd_parms *parms, void *cfg, const char *value );
 
-void init_spep_instance( apr_pool_t *pool, SPEPServerConfig *serverConfig );
+spep::SPEP* init_spep_instance( SPEPServerConfig *serverConfig );
 
 /**
  * create and merge methods for per-dir and per-server config

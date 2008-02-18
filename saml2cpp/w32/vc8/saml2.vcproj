@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
@@ -115,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;BUILDING_SAML2"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -133,6 +133,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -320,6 +321,14 @@
 			</File>
 			<File
 				RelativePath="..\..\src\saml2\bindings\sessiondata-schema.cxx"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\saml2\bindings\soap-1.1-envelope.cxx"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\saml2\bindings\soap-1.2-envelope.cxx"
 				>
 			</File>
 			<File

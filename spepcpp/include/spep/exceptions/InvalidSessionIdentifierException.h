@@ -17,16 +17,25 @@
  * Purpose: 
  */
 
-#ifndef EXCEPTIONS_H_
-#define EXCEPTIONS_H_
+#ifndef INVALIDSESSIONIDENTIFIEREXCEPTION_H_
+#define INVALIDSESSIONIDENTIFIEREXCEPTION_H_
+
+#include <exception>
 
 namespace spep
 {
 	
-	class InvalidSessionIdentifierException
+	class InvalidSessionIdentifierException : public std::exception 
 	{
+		private:
+		const char *_what;
+		
+		public:
+		InvalidSessionIdentifierException();
+		virtual ~InvalidSessionIdentifierException() throw();
+		virtual const char *what() const throw();
 	};
 	
 }
 
-#endif /*EXCEPTIONS_H_*/
+#endif /*INVALIDSESSIONIDENTIFIEREXCEPTION_H_*/

@@ -148,7 +148,7 @@
 		"		<ul>\n" \
 		"			<li>For most web browsers this process is automatic, you will be taken to your original resource upon completion.</li>\n" \
 		"			<li>The verification process is <strong>encrypted</strong> to protect your digital identity.</li>\n" \
-		"			<li>The verification process should take no more then 10 seconds to complete.</li>\n" \
+		"			<li>The verification process should take no more than 20 seconds to complete.</li>\n" \
 		"			<li>The verification process is required only once per session for each unique site you visit</li>\n" \
 		"		</ul>\n" \
 		"	</p>\n" \
@@ -157,7 +157,7 @@
 		"			<p>Your browser does not support Javascript or it is not enabled. For the best experience we recommend you <strong>enable Javascript for this site</strong> or change to a Javascript enabled browser. You <strong>MUST</strong> manually click the button below.</p>\n" \
 		"		</noscript>\n" \
 		"	<br/>\n" \
-		"	<p>If you\'re navigating using the browser back or forward buttons you can safely skip over this page, your session is already valid and won\'t be effected.</p>\n" \
+		"	<p>If you\'re navigating using the browser back or forward buttons you can safely skip over this page, your session is already valid and won\'t be affected.</p>\n" \
 		"	<br/>\n" \
 		"	<br/>\n" \
 		"	<p><small>If you\'re having problems, or using an older browser please see the <a href=\"#\" onclick=\"toggle(); return false\">extended functionality</small></a>.</p>\n" \
@@ -166,6 +166,7 @@
 		"		<input type=\"hidden\" name=\"SAMLRequest\" value=\"%s\"/>\n" \
 		"		<div id=\"nonjavascript\">\n" \
 		"			<ul>\n" \
+		"			<li><p>Some common causes of requiring this extended functionality include having <strong>javascript</strong> or <strong>cookies</strong> disabled. Please ensure both of these technologies are enabled in your browser</p></li>\n" \
 		"			<li>\n" \
 		"				<p><small>If the automated process is not functioning for you please click this button: <input type=\"submit\" value=\"Verify Identity\" /></small></p>\n" \
 		"			</li>\n" \

@@ -57,7 +57,7 @@ namespace spep
 		 * Constructor
 		 * @param schemaPath A std::string representation of the absolute path to schema files on the file system
 		 */
-		AuthnProcessor( ReportingProcessor *reportingProcessor, AttributeProcessor *attributeProcessor, Metadata *metadata, SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyStoreResolver, std::wstring spepIdentifier, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex );
+		AuthnProcessor( ReportingProcessor *reportingProcessor, AttributeProcessor *attributeProcessor, Metadata *metadata, SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyStoreResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex );
 		
 		/**
 		 * Destructor
@@ -100,6 +100,7 @@ namespace spep
 		 */
 		std::pair<bool, std::string> processAuthnStatement( const saml2::assertion::AuthnStatementType&, const saml2::assertion::AssertionType& );
 		DOMDocument* generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo = L"" );
+		static std::string hostnameFromURL( std::string url );
 		
 		LocalReportingProcessor _localReportingProcessor;
 		AttributeProcessor *_attributeProcessor;
@@ -109,6 +110,8 @@ namespace spep
 		saml2::IdentifierGenerator *_identifierGenerator;
 		KeyResolver *_keyResolver;
 		std::wstring _spepIdentifier;
+		std::string _ssoRedirect;
+		std::string _serviceHost;
 		int _attributeConsumingServiceIndex;
 		int _assertionConsumerServiceIndex;
 		

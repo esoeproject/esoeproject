@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([SAML2], 0.3)
+AC_INIT([SAML2], 0.4)
 AC_CONFIG_SRCDIR([include/saml2/SAML2Defs.h])
 
-AC_SUBST([VERSION_INFO],[1:0:0])
+#AC_SUBST([VERSION_INFO],[1:0:0])
 
 AM_INIT_AUTOMAKE
 AM_DISABLE_STATIC

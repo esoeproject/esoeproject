@@ -80,7 +80,7 @@ spep::SPEP* spep::SPEP::initializeClient( int spepDaemonPort, std::vector<spep::
 	spep->_attributeProcessor = new AttributeProcessor( spep->_reportingProcessor, spep->_metadata, spep->_spepConfigData->getKeyResolver(), spep->_identifierGenerator, spep->_wsClient, spep->_samlValidator, spep->_spepConfigData->getSchemaPath(), spep->_spepConfigData->getAttributeRenameMap() );
 	spep->_sessionCache = new spep::ipc::SessionCacheProxy( spep->_clientSocket );
 	
-	spep->_authnProcessor = new AuthnProcessor( spep->_reportingProcessor, spep->_attributeProcessor, spep->_metadata, spep->_sessionCache, spep->_samlValidator, spep->_identifierGenerator, spep->_spepConfigData->getKeyResolver(), spep->_spepConfigData->getSPEPIdentifier(), spep->_spepConfigData->getSchemaPath(), spep->_spepConfigData->getAttributeConsumingServiceIndex(), spep->_spepConfigData->getAssertionConsumerServiceIndex() );
+	spep->_authnProcessor = new AuthnProcessor( spep->_reportingProcessor, spep->_attributeProcessor, spep->_metadata, spep->_sessionCache, spep->_samlValidator, spep->_identifierGenerator, spep->_spepConfigData->getKeyResolver(), spep->_spepConfigData->getSPEPIdentifier(), spep->_spepConfigData->getSSORedirect(), spep->_spepConfigData->getServiceHost(), spep->_spepConfigData->getSchemaPath(), spep->_spepConfigData->getAttributeConsumingServiceIndex(), spep->_spepConfigData->getAssertionConsumerServiceIndex() );
 	
 	spep->_sessionGroupCache = new spep::ipc::SessionGroupCacheProxy( spep->_clientSocket );
 	spep->_policyEnforcementProcessor = new PolicyEnforcementProcessor( spep->_reportingProcessor, spep->_wsClient, spep->_sessionGroupCache, spep->_sessionCache, spep->_metadata, spep->_identifierGenerator, spep->_samlValidator, spep->_spepConfigData->getKeyResolver(), spep->_spepConfigData->getSchemaPath() );
@@ -134,7 +134,7 @@ void spep::SPEP::reinitializeClient()
 	{
 		delete this->_authnProcessor;
 	}
-	this->_authnProcessor = new AuthnProcessor( this->_reportingProcessor, this->_attributeProcessor, this->_metadata, this->_sessionCache, this->_samlValidator, this->_identifierGenerator, this->_spepConfigData->getKeyResolver(), this->_spepConfigData->getSPEPIdentifier(), this->_spepConfigData->getSchemaPath(), this->_spepConfigData->getAttributeConsumingServiceIndex(), this->_spepConfigData->getAssertionConsumerServiceIndex() );
+	this->_authnProcessor = new AuthnProcessor( this->_reportingProcessor, this->_attributeProcessor, this->_metadata, this->_sessionCache, this->_samlValidator, this->_identifierGenerator, this->_spepConfigData->getKeyResolver(), this->_spepConfigData->getSPEPIdentifier(), this->_spepConfigData->getSSORedirect(), this->_spepConfigData->getServiceHost(), this->_spepConfigData->getSchemaPath(), this->_spepConfigData->getAttributeConsumingServiceIndex(), this->_spepConfigData->getAssertionConsumerServiceIndex() );
 	
 	if( this->_policyEnforcementProcessor != NULL )
 	{
@@ -210,7 +210,7 @@ spep::SPEP* spep::SPEP::initializeServer( spep::ConfigurationReader &configurati
 	spep->_attributeProcessor = new AttributeProcessor( spep->_reportingProcessor, spep->_metadata, spep->_spepConfigData->getKeyResolver(), spep->_identifierGenerator, spep->_wsClient, spep->_samlValidator, schemaPath, spep->_spepConfigData->getAttributeRenameMap() );
 	spep->_sessionCache = new SessionCacheImpl( spep->_reportingProcessor );
 	spep->_sessionCacheThread = new SessionCacheThread( spep->_reportingProcessor, spep->_sessionCache, sessionCacheTimeout, sessionCacheInterval );
-	spep->_authnProcessor = new AuthnProcessor( spep->_reportingProcessor, spep->_attributeProcessor, spep->_metadata, spep->_sessionCache, spep->_samlValidator, spep->_identifierGenerator, spep->_spepConfigData->getKeyResolver(), spepIdentifier, schemaPath, attributeConsumingServiceIndex, assertionConsumerServiceIndex );
+	spep->_authnProcessor = new AuthnProcessor( spep->_reportingProcessor, spep->_attributeProcessor, spep->_metadata, spep->_sessionCache, spep->_samlValidator, spep->_identifierGenerator, spep->_spepConfigData->getKeyResolver(), spepIdentifier, spep->_spepConfigData->getSSORedirect(), spep->_spepConfigData->getServiceHost(), schemaPath, attributeConsumingServiceIndex, assertionConsumerServiceIndex );
 	spep->_sessionGroupCache = new SessionGroupCacheImpl( spep->_reportingProcessor, defaultPolicyDecision );
 	spep->_policyEnforcementProcessor = new PolicyEnforcementProcessor( spep->_reportingProcessor, spep->_wsClient, spep->_sessionGroupCache, spep->_sessionCache, spep->_metadata, spep->_identifierGenerator, spep->_samlValidator, spep->_spepConfigData->getKeyResolver(), schemaPath );
 	spep->_startupProcessor = new StartupProcessorImpl( spep->_reportingProcessor, spep->_wsClient, spep->_metadata, spep->_spepConfigData->getKeyResolver(), spep->_identifierGenerator, spep->_samlValidator, schemaPath, spepIdentifier, spep->_spepConfigData->getIPAddresses(), nodeID, authzCacheIndex, startupRetryInterval );
@@ -369,6 +369,37 @@ bool spep::SPEP::isStarted()
 	// Return quickly if we have a cached 'started' result.
 	if( this->_isStarted ) return true;
 	
+	StartupResult result = this->_startupProcessor->allowProcessing();
+	switch (result)
+	{
+		case STARTUP_NONE:
+		this->_startupProcessor->beginSPEPStart();
+		break;
+		
+		case STARTUP_WAIT:
+		break;
+		
+		case STARTUP_ALLOW:
+		this->_isStarted = true;
+		return true;
+		
+		case STARTUP_FAIL:
+		break;
+	}
+	
+	return false;
+	
+	/* This section is disabled to resolve a bug where the SPEP may not come back to life in a 
+	 * timely fashion if the daemon dies and is restarted. Causing processes to block here will
+	 * starve the web server of connections and consequently a cache clear request will never
+	 * be able to get through, causing startup to fail until the web server is restarted.
+	 */
+#if 0
+	this->checkConnection();
+
+	// Return quickly if we have a cached 'started' result.
+	if( this->_isStarted ) return true;
+	
 	// We want to sleep for a longer time in "client" mode since the query will be going over a socket.
 	long timeDelay;
 	if( this->_mode == SPEP_MODE_CLIENT )
@@ -417,4 +448,6 @@ bool spep::SPEP::isStarted()
 		
 		boost::thread::sleep( nextCheck );
 	}
+	
+#endif /*0*/
 }

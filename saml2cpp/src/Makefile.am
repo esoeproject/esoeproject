@@ -1,7 +1,8 @@
 
 lib_LTLIBRARIES = libsaml2.la
 
-libsaml2_la_LDFLAGS = -version-info $(VERSION_INFO) $(AM_LDFLAGS)
+libsaml2_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
+#-version-info $(VERSION_INFO) 
 libsaml2_la_SOURCES = saml2/resolver/ResourceResolver.cpp \
 saml2/resolver/ExternalKeyResolver.cpp \
 saml2/identifier/IdentifierCache.cpp \

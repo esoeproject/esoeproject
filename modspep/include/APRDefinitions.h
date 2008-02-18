@@ -33,6 +33,7 @@
 #include "apr_strings.h"
 #include "apr_uri.h"
 #include "apr_tables.h"
+#include "apr_pools.h"
 
 #include "apr_time.h"
 
@@ -96,14 +97,19 @@ typedef apr_int32_t apr_fileperms_t;
 
 typedef const char *(*cmd_func)();
 
+typedef uri_components apr_uri_t;
+
 #define apr_psprintf 	ap_psprintf
 #define apr_pstrdup		ap_pstrdup
 #define apr_pcalloc		ap_pcalloc
+#define apr_pool_find	ap_pool_find
 
 #define apr_table_get 	ap_table_get
 #define apr_table_make 	ap_make_table
 #define apr_table_set 	ap_table_set
 #define apr_table_setn	ap_table_setn
+
+#define apr_uri_parse ap_parse_uri_components
 
 #define APR_WRITE		1
 #define APR_CREATE		2

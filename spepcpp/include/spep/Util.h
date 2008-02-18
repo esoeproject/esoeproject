@@ -20,16 +20,16 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
+// For wstring workaround.
+#include "saml2/SAML2Defs.h"
+#include <iostream>
+
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/xtime.hpp>
 
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
-
-// For wstring workaround.
-#include "saml2/SAML2Defs.h"
-#include <iostream>
 
 XERCES_CPP_NAMESPACE_USE
 
@@ -140,22 +140,6 @@ namespace spep
 		
 		char* get() { return _ptr; };
 		
-	};
-	
-	class DOMDocumentAutoRelease
-	{
-		private:
-		DOMDocument *_domDoc;
-		
-		public:
-		//DOMDocumentAutoRelease():_domDoc(NULL){}
-		DOMDocumentAutoRelease( DOMDocument* domDoc ):_domDoc(domDoc){}
-		explicit DOMDocumentAutoRelease( DOMDocumentAutoRelease &copy ){ _domDoc = copy._domDoc; copy._domDoc = NULL; }
-		~DOMDocumentAutoRelease(){ if( _domDoc != NULL ) _domDoc->release(); }
-		
-		DOMDocument *get() { return _domDoc; }
-		DOMDocument* operator*() { return _domDoc; }
-		DOMDocument* operator->() { return _domDoc; }
 	};
 	
 	/**
@@ -296,5 +280,25 @@ namespace spep
 #define SPEPEXPORT 
 #define SPEPCONSTANT 
 #endif /*SPEPEXPORT*/
+
+namespace spep
+{
+	// This relies on the DOMDocument definition above, so we need to define it here.
+	class DOMDocumentAutoRelease
+	{
+		private:
+		DOMDocument *_domDoc;
+		
+		public:
+		//DOMDocumentAutoRelease():_domDoc(NULL){}
+		DOMDocumentAutoRelease( DOMDocument* domDoc ):_domDoc(domDoc){}
+		explicit DOMDocumentAutoRelease( DOMDocumentAutoRelease &copy ){ _domDoc = copy._domDoc; copy._domDoc = NULL; }
+		~DOMDocumentAutoRelease(){ if( _domDoc != NULL ) _domDoc->release(); }
+		
+		DOMDocument *get() { return _domDoc; }
+		DOMDocument* operator*() { return _domDoc; }
+		DOMDocument* operator->() { return _domDoc; }
+	};
+}
 
 #endif /*UTIL_H_*/

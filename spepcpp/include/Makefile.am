@@ -38,7 +38,6 @@ spep/startup/StartupProcessor.h \
 spep/startup/proxy/StartupProcessorProxy.h \
 spep/startup/proxy/StartupProcessorDispatcher.h \
 spep/startup/impl/StartupProcessorImpl.h \
-spep/Exceptions.h \
 spep/ipc/SocketArchive.h \
 spep/ipc/Dispatcher.h \
 spep/ipc/MessageHeader.h \
@@ -53,6 +52,7 @@ spep/exceptions/SPEPStartupException.h \
 spep/exceptions/MetadataException.h \
 spep/exceptions/PEPException.h \
 spep/exceptions/AuthnException.h \
+spep/exceptions/InvalidSessionIdentifierException.h \
 spep/exceptions/InvalidStateException.h \
 spep/exceptions/InvalidRequestException.h \
 spep/exceptions/WSException.h \
@@ -62,6 +62,7 @@ spep/exceptions/KeyResolverException.h \
 spep/metadata/Metadata.h \
 spep/metadata/MetadataThread.h \
 spep/metadata/KeyResolver.h \
+spep/metadata/JKSKeystore.h \
 spep/metadata/proxy/MetadataProxy.h \
 spep/metadata/proxy/MetadataDispatcher.h \
 spep/metadata/impl/MetadataImpl.h \

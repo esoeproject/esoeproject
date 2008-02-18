@@ -52,7 +52,7 @@ _attributeRenameMap()
 	schemaList.push_back( ConfigurationConstants::samlAssertion );
 	schemaList.push_back( ConfigurationConstants::samlProtocol );
 	
-	_attributeQueryMarshaller = new saml2::MarshallerImpl<saml2::protocol::AttributeQueryType>( schemaPath, schemaList, "AttributeQuery", "urn:oasis:names:tc:SAML:2.0:protocol", keyResolver->getSPEPKeyName(), keyResolver->getSPEPPrivateKey() );
+	_attributeQueryMarshaller = new saml2::MarshallerImpl<saml2::protocol::AttributeQueryType>( schemaPath, schemaList, "AttributeQuery", "urn:oasis:names:tc:SAML:2.0:protocol", keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
 	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( schemaPath, schemaList, this->_metadata );
 	
 	for( std::map<std::string,std::string>::const_iterator iter = attributeRenameMap.begin();
@@ -127,7 +127,7 @@ void spep::AttributeProcessor::doAttributeProcessing(spep::PrincipalSession &pri
 	}
 }
 
-DOMDocument* spep::AttributeProcessor::buildAttributeQuery( spep::PrincipalSession &principalSession, const std::wstring &samlID )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::AttributeProcessor::buildAttributeQuery( spep::PrincipalSession &principalSession, const std::wstring &samlID )
 {
 	std::vector<std::string> identifierList;
 	

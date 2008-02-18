@@ -23,6 +23,13 @@
 #include "spep/pep/PolicyEnforcementProcessorData.h"
 #include "spep/UnicodeStringConversion.h"
 
+#include <unicode/regex.h>
+#include <unicode/parseerr.h>
+
+#include <boost/date_time/local_time/local_time.hpp>
+
+#include <cstring>
+
 spep::apache::RequestHandler::RequestHandler( spep::SPEP *spep )
 :
 _spep( spep )
@@ -50,6 +57,14 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 	}
 	
 	spep::SPEPConfigData *spepConfigData = this->_spep->getSPEPConfigData();
+	
+	char *properURI = apr_pstrdup( req->pool, req->parsed_uri.path );
+	if( req->parsed_uri.query != NULL )
+	{
+		properURI = apr_psprintf( req->pool, "%s?%s", properURI, req->parsed_uri.query );
+	}
+	
+	ap_unescape_url( properURI );
 	
 	Cookies cookies( req );
 	const char *cookieValue = cookies[ spepConfigData->getTokenName() ];
@@ -122,14 +137,6 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 			}
 			
 			// Perform authorization on the URI requested.
-			char *properURI = apr_pstrdup( req->pool, req->parsed_uri.path );
-			if( req->parsed_uri.query != NULL )
-			{
-				properURI = apr_psprintf( req->pool, "%s?%s", properURI, req->parsed_uri.query );
-			}
-			
-			ap_unescape_url( properURI );
-			
 			spep::PolicyEnforcementProcessorData pepData;
 			pepData.setESOESessionID( principalSession.getESOESessionID() );
 			pepData.setResource( properURI );
@@ -222,8 +229,110 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 		cookies.sendCookies( req );
 	}
 	
-	const char *base64RequestURI = ap_pbase64encode( req->pool, req->unparsed_uri );
-	char *redirectURL = apr_psprintf( req->pool, this->_spep->getSPEPConfigData()->getLoginRedirect().c_str(), base64RequestURI );
+	// Lazy init code.
+	if( spepConfigData->isLazyInit() )
+	{
+		
+		std::string globalESOECookieName( spepConfigData->getGlobalESOECookieName() );
+		if( cookies[ globalESOECookieName ] == NULL )
+		{
+			bool matchedLazyInitResource = false;
+			UnicodeString properURIUnicode( spep::UnicodeStringConversion::toUnicodeString( properURI ) );
+			
+			std::vector<UnicodeString>::const_iterator lazyInitResourceIterator;
+			for( lazyInitResourceIterator = spepConfigData->getLazyInitResources().begin();
+				lazyInitResourceIterator != spepConfigData->getLazyInitResources().end();
+				++lazyInitResourceIterator )
+			{
+				// TODO Opportunity for caching of compiled regex patterns is here.
+				UParseError parseError;
+				UErrorCode errorCode = U_ZERO_ERROR;
+				// Perform the regular expression matching here.
+				UBool result = RegexPattern::matches( *lazyInitResourceIterator, properURIUnicode, parseError, errorCode );
+				
+				if ( U_FAILURE( errorCode ) )
+				{
+					// TODO throw u_errorName( errorCode )
+					return HTTP_INTERNAL_SERVER_ERROR;
+				}
+				
+				// FALSE is defined by ICU. This line for portability.
+				if (result != FALSE)
+				{
+					matchedLazyInitResource = true;
+					break;
+				}
+			}
+			
+			if( matchedLazyInitResource )
+			{
+				if( !spepConfigData->isLazyInitDefaultPermit() )
+				{
+					return DECLINED;
+				}
+			}
+			else
+			{
+				if( spepConfigData->isLazyInitDefaultPermit() )
+				{
+					return DECLINED;
+				}
+			}
+		}
+	}
+	
+	boost::posix_time::ptime epoch( boost::gregorian::date( 1970, 1, 1 ) );
+	boost::posix_time::time_duration timestamp = boost::posix_time::microsec_clock::local_time() - epoch;
+	boost::posix_time::time_duration::tick_type currentTimeMillis = timestamp.total_milliseconds();
+	
+	apr_uri_t *uri = static_cast<apr_uri_t*>( apr_pcalloc( req->pool, sizeof(apr_uri_t) ) );
+	apr_uri_parse( req->pool, this->_spep->getSPEPConfigData()->getServiceHost().c_str(), uri );
+	
+	const char *hostname = apr_table_get( req->headers_in, "Host" );
+	if( hostname == NULL )
+	{
+		hostname = req->server->server_hostname;
+	}
+	
+	const char *format = NULL;
+	const char *base64RequestURI = NULL;
+	// If we can't determine our own hostname, just fall through to the service host.
+	// If the service host was requested obviously we want that.
+	if( hostname == NULL || std::strcmp( uri->hostinfo, hostname ) == 0 )
+	{
+		// Join the service hostname and requested URI to form the return URL
+		char *returnURL = apr_psprintf( req->pool, "%s%s", 
+				this->_spep->getSPEPConfigData()->getServiceHost().c_str(), req->unparsed_uri );
+		
+		// Base64 encode this so that the HTTP redirect doesn't corrupt it.
+		base64RequestURI = ap_pbase64encode( req->pool, returnURL );
+		
+		// Create the format string for building the redirect URL.
+		format = apr_psprintf( req->pool, "%s%s", this->_spep->getSPEPConfigData()->getServiceHost().c_str(), 
+					this->_spep->getSPEPConfigData()->getSSORedirect().c_str() );
+	}
+	else
+	{
+		base64RequestURI = ap_pbase64encode( req->pool, req->unparsed_uri );
+		// getSSORedirect() will only give us a temporary.. dup it into the pool so we don't lose it when we leave this scope.
+		format = apr_pstrdup( req->pool, this->_spep->getSPEPConfigData()->getSSORedirect().c_str() );
+	}
+	
+	char *redirectURL = apr_psprintf( req->pool, format, base64RequestURI );
+	
+	std::stringstream timestampParameter;
+	if( strchr( redirectURL, '?' ) != NULL )
+	{
+		// Query string already exists.. append the timestamp as another parameter
+		timestampParameter << "&ts=" << currentTimeMillis;
+		redirectURL = apr_psprintf( req->pool, "%s%s", redirectURL, timestampParameter.str().c_str() );
+	}
+	else
+	{
+		// No query string. Add one with the timestamp as a parameter.
+		timestampParameter << "?ts=" << currentTimeMillis;
+		redirectURL = apr_psprintf( req->pool, "%s%s", redirectURL, timestampParameter.str().c_str() );
+	}
 	
 	apr_table_setn( req->headers_out, "Location", redirectURL );
 	return HTTP_MOVED_TEMPORARILY;

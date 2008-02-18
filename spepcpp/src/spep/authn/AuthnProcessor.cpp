@@ -17,8 +17,7 @@
  * Purpose: Implements the web browser SSO and single logout SAML profiles
  */
 
-#include <openssl/rand.h>
-
+#include "spep/Util.h"
 #include "spep/authn/AuthnProcessor.h"
 
 #include "saml2/exceptions/InvalidSAMLResponseException.h"
@@ -36,7 +35,9 @@
 #include "spep/exceptions/AuthnException.h"
 #include "spep/exceptions/InvalidResponseException.h"
 
-spep::AuthnProcessor::AuthnProcessor( spep::ReportingProcessor *reportingProcessor, spep::AttributeProcessor *attributeProcessor, spep::Metadata *metadata, spep::SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyResolver, std::wstring spepIdentifier, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex )
+#include <openssl/rand.h>
+
+spep::AuthnProcessor::AuthnProcessor( spep::ReportingProcessor *reportingProcessor, spep::AttributeProcessor *attributeProcessor, spep::Metadata *metadata, spep::SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex )
 :
 _localReportingProcessor( reportingProcessor->localReportingProcessor("spep::AuthnProcessor") ),
 _attributeProcessor( attributeProcessor ),
@@ -46,6 +47,8 @@ _samlValidator( samlValidator ),
 _identifierGenerator( identifierGenerator ),
 _keyResolver( keyResolver ),
 _spepIdentifier( spepIdentifier ),
+_ssoRedirect( ssoRedirect ),
+_serviceHost( hostnameFromURL( serviceHost ) ),
 _attributeConsumingServiceIndex( attributeConsumingServiceIndex ),
 _assertionConsumerServiceIndex( assertionConsumerServiceIndex ),
 _authnRequestMarshaller( NULL ),
@@ -55,13 +58,19 @@ _logoutRequestUnmarshaller( NULL )
 	std::vector<std::string> authnSchemaList;
 	authnSchemaList.push_back( ConfigurationConstants::samlProtocol );
 	authnSchemaList.push_back( ConfigurationConstants::samlAssertion );
-	_authnRequestMarshaller = new saml2::MarshallerImpl<saml2::protocol::AuthnRequestType>( schemaPath, authnSchemaList, "AuthnRequest", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyName(), this->_keyResolver->getSPEPPrivateKey() );
+	_authnRequestMarshaller = new saml2::MarshallerImpl<saml2::protocol::AuthnRequestType>( schemaPath, authnSchemaList, "AuthnRequest", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey() );
 	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( schemaPath, authnSchemaList, metadata );
 	
 	std::vector<std::string> logoutSchemaList;
 	logoutSchemaList.push_back( ConfigurationConstants::samlProtocol );
-	_logoutResponseMarshaller = new saml2::MarshallerImpl<saml2::protocol::ResponseType>( schemaPath, logoutSchemaList, "LogoutResponse", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyName(), this->_keyResolver->getSPEPPrivateKey() );
-	_logoutRequestUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::LogoutRequestType>( schemaPath, logoutSchemaList, metadata ); 
+	_logoutResponseMarshaller = new saml2::MarshallerImpl<saml2::protocol::ResponseType>( schemaPath, logoutSchemaList, "LogoutResponse", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey() );
+	_logoutRequestUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::LogoutRequestType>( schemaPath, logoutSchemaList, metadata );
+	
+	std::size_t pos = _ssoRedirect.find( '?', 0 );
+	if( pos != 0 )
+	{
+		_ssoRedirect = _ssoRedirect.substr( 0, pos );
+	}
 }
 
 spep::AuthnProcessor::~AuthnProcessor()
@@ -84,6 +93,29 @@ spep::AuthnProcessor::~AuthnProcessor()
 	if( _logoutRequestUnmarshaller != NULL )
 	{
 		delete _logoutRequestUnmarshaller;
+	}
+}
+
+std::string spep::AuthnProcessor::hostnameFromURL( std::string url )
+{
+	std::size_t start = url.find( "://", 0 );
+	if( start != std::string::npos )
+	{
+		start += 3;
+
+		std::size_t end = url.find( ":", start );
+		if( end != std::string::npos )
+		{
+			return url.substr( start, (end-start) );
+		}
+		else
+		{
+			return url.substr( start );
+		}
+	}
+	else
+	{
+		throw saml2::InvalidParameterException( __FILE__, __LINE__, "The URL parameter was invalid.. It did not meet the format requirements of a URL" );
 	}
 }
 
@@ -240,8 +272,16 @@ void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data 
 	authnRequest.Version( saml2::versions::SAML_20 );
 	
 	authnRequest.ID( authnRequestSAMLID );
-	authnRequest.AssertionConsumerServiceIndex( this->_assertionConsumerServiceIndex );
 	authnRequest.AttributeConsumingServiceIndex( this->_attributeConsumingServiceIndex );
+	
+	if( this->_serviceHost.compare( hostnameFromURL( data.getBaseRequestURL() ) ) == 0 )
+	{
+		authnRequest.AssertionConsumerServiceIndex( this->_assertionConsumerServiceIndex );
+	}
+	else
+	{
+		authnRequest.AssertionConsumerServiceURL( spep::UnicodeStringConversion::toWString( data.getBaseRequestURL() + this->_ssoRedirect ) );
+	}
 	
 	saml2::assertion::NameIDType issuer( this->_spepIdentifier );
 	authnRequest.Issuer( issuer );
@@ -350,7 +390,7 @@ spep::PrincipalSession spep::AuthnProcessor::verifySession( std::string &session
 	return clientSession;
 }
 
-DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2::protocol::LogoutRequestType *logoutRequest )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2::protocol::LogoutRequestType *logoutRequest )
 {
 	PrincipalSession principalSession;
 	
@@ -373,10 +413,10 @@ DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2::protocol::LogoutReque
 	}
 	catch (std::exception &ex)
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Unknown error trying to process logout request. Message was: ") + ex.what() );
+		this->_localReportingProcessor.log( ERROR, std::string("Error trying to retrieve session from the session cache. Message was: ") + ex.what() );
 		
 		// Can't return null, no pointer type
-		return generateLogoutResponse( saml2::statuscode::REQUESTOR, L"Unable to unmarshal the supplied logout request document", requestSAMLID );
+		return generateLogoutResponse( saml2::statuscode::UNKNOWN_PRINCIPAL, L"The principal specified in the logout request is not known at this node.", requestSAMLID );
 	}
 	
 	// TODO Check if only specific sessions should be terminated.
@@ -390,7 +430,7 @@ DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2::protocol::LogoutReque
 	
 }
 
-DOMDocument* spep::AuthnProcessor::generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo )
 {
 	this->_localReportingProcessor.log( DEBUG, "Generating Logout Response document with status code: " + UnicodeStringConversion::toString( statusCodeValue ) + " and status message: " + UnicodeStringConversion::toString( statusMessage ) );
 	

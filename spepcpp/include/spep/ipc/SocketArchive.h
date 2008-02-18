@@ -122,6 +122,14 @@ namespace spep
 				void load(long double &d)
 				{ DEBUG_LOADING_TYPE(long double); _sa->loadPrimitiveFloatingPoint(d); }
 				
+				void load(void*& buf, std::size_t& len)
+				{
+					DEBUG_LOADING_TYPE(void[]);
+					load( len );
+					buf = new char[len];
+					_sa->load_binary( buf, len );
+				}
+				
 				void load(boost::posix_time::ptime &ptime)
 				{
 					DEBUG_LOADING_TYPE(boost::posix_time::ptime);
@@ -293,6 +301,10 @@ namespace spep
 				template <class T>
 				SocketArchiveInput &operator >>(T &t)
 				{ load(t); return *this; }
+				
+				template <class T, class U>
+				SocketArchiveInput &operator ()(T &t, U &u)
+				{ load((void*&)t,(std::size_t&)u); return *this; }
 				/*@}*/
 				
 				private:
@@ -364,6 +376,13 @@ namespace spep
 				
 				void save(long double d)
 				{ DEBUG_SAVING_TYPE( long double ); _sa->savePrimitiveFloatingPoint(SOCKET_ARCHIVE_DOUBLE_FORMAT, d); }
+				
+				void save(void* buf, std::size_t len)
+				{
+					DEBUG_SAVING_TYPE( void[] );
+					save( len );
+					_sa->save_binary( buf, len );
+				}
 				
 				void save(boost::posix_time::ptime &ptime)
 				{
@@ -482,6 +501,10 @@ namespace spep
 				template <class T>
 				SocketArchiveOutput &operator <<(T &t)
 				{ save(t); return *this; }
+				
+				template <class T, class U>
+				SocketArchiveOutput &operator ()(T *&t, U &u)
+				{ save((void*&)t,(std::size_t&)u); return *this; }
 				/*@}*/
 			
 				private:

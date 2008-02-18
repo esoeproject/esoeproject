@@ -50,19 +50,7 @@ namespace spep
 		KeyResolver( const KeyResolver &other );
 		KeyResolver& operator=( const KeyResolver &other );
 		
-		KeyResolver( std::string path, std::string spepKeyName );
-		/**
-		 * Loads the SPEP public key from the PEM file specified
-		 */
-		void loadSPEPPublicKey( std::string file );
-		/**
-		 * Loads the SPEP private key from the PEM file specified
-		 */
-		void loadSPEPPrivateKey( std::string file );
-		/**
-		 * Loads the Metadata public key from the PEM file specified
-		 */
-		void loadMetadataKey( std::string file );
+		KeyResolver( std::string keystorePath, std::string keystorePassword, std::string spepKeyAlias, std::string spepKeyPassword, std::string metadataKeyAlias );
 		/**
 		 * Returns the SPEP public key
 		 */
@@ -74,17 +62,13 @@ namespace spep
 		/**
 		 * Returns the key pair name for the SPEP key.
 		 */
-		std::string getSPEPKeyName();
+		std::string getSPEPKeyAlias();
 		/**
 		 * Returns the metadata key
 		 */
 		XSECCryptoKey* getMetadataKey();
 		
 		private:
-		/**
-		 * Loads a key from the file specified
-		 */
-		bool loadKey( char *&keyData, int &fsize, std::string &file );
 		/**
 		 * Loads the SPEP public key from the data stored internally - usually called after deserialization
 		 */
@@ -103,24 +87,29 @@ namespace spep
 		template <class Archive>
 		void serialize( Archive &ar, const unsigned int version )
 		{
-			ar & _path;
-			ar & _spepKeyName;
-			ar & _spepPublicKeyData;
-			ar & _spepPrivateKeyData;
-			ar & _metadataKeyData;
+			ar & _spepKeyAlias;
+			ar( _spepPublicKeyData, _spepPublicKeyLength );
+			ar( _spepPrivateKeyData, _spepPrivateKeyLength );
+			ar( _metadataKeyData, _metadataKeyLength );
 		}
 		
 		XSECCryptoKey* _spepPublicKey;
-		std::string _spepPublicKeyData; // for serialization
+		// for serialization
+		char *_spepPublicKeyData;
+		std::size_t _spepPublicKeyLength;
 		
 		XSECCryptoKey* _spepPrivateKey;
-		std::string _spepPrivateKeyData; // for serialization
+		// for serialization
+		char *_spepPrivateKeyData;
+		std::size_t _spepPrivateKeyLength;
 		
 		XSECCryptoKey* _metadataKey;
-		std::string _metadataKeyData; // for serialization
+		// for serialization
+		char *_metadataKeyData;
+		std::size_t _metadataKeyLength;
 		
-		std::string _spepKeyName;
-		std::string _path;
+		std::string _spepKeyAlias;
+
 		
 	};
 	

@@ -1,6 +1,6 @@
 #
 #
-# Enterprise Sign On Engine (ESOE), Service Provider Enforcement Point (SPEP) global configuration file
+# Enterprise Sign On Engine (ESOE), Apache/IIS Service Provider Enforcement Point (SPEP) global configuration file
 #
 # Changing values in this file WILL effect the way the SPEP operates in production, please change with
 # care and in consultation with configuration documentation.
@@ -9,92 +9,89 @@
 # Date: 04/12/2006
 #
 
-## ESOE Startup/Manager will advise details below this line
+###########################################################################################################
+#
+# Deployment specific configuration
+####
 
-# The unique identifier of the service. NOTE: This is not the same as the index node ID
-spepIdentifier=
+# KeyStore 1
+keystorePath=/usr/local/etc/spep/spepKeystore.ks
+keystorePassword=
+spepKeyAlias=
+spepKeyPassword=
+metadataKeyAlias=
+
+# Path to look for schema documents as installed by the SAML2 library.
+schemaPath=/usr/local/share/saml2-0.4/schema
 
 # The unique identifier of the authenticating ESOE.
 esoeIdentifier=
 
-# The URL to retrieve the metadata document from
+# The unique identifier of the service.
+spepIdentifier=
+
+# The URL to retrieve the metadata document from.
 metadataUrl=
-
-# Path to look for schema documents as installed by the SAML2 library.
-schemaPath=/usr/local/share/saml2-0.3/schema
-
-# Path containing the SPEP key pair and trusted metadata cert
-keyPath=/usr/local/etc/spep/keys
-
-# Private key alias for this SPEP
-spepKeyAlias=
-
-# Key filenames. These should exist in keyPath specified above, and correspond to 
-# the keys issued by ESOE manager.
-spepPrivateKeyFilename=spep.key
-spepPublicKeyFilename=spep.crt
-
-metadataPublicKeyFilename=metadata.crt
 
 # String description of the service
 serverInfo=Default SPEP Deployment. Please change this message.
 
-# Unique identifier of this service node
+# Unique identifier of this service node assigned by ESOE.
 nodeIdentifier=
 
-# Indicies of this service node. Usually these will be the same as the node identifier.
+# Indicies of this service node - in default setups these are the same as the node identifier.
 attributeConsumingServiceIndex=
 assertionConsumerServiceIndex=
 authzCacheIndex=
 
+# Address of the service host in use without any application path 
+# e.g. https://myserver.company.com 
+# or https://myotherserver.company.com:8443 
+#
+# NOT https://myserver.company.com/myapp/
+serviceHost=https://example.com
 
-## Administrators must configure details below this line
+# IP addresses of this host SPEP
+ipAddresses=
 
-# Port for the SPEP daemon to listen on.
+# The URL to redirect unauthenticated users to. For a default setup this will be your host URL
+# with /spep/sso?redirectURL=%s appended
+loginRedirect=https://example.com/spep/sso?redirectURL=%s
+
+# Default URL of the service
+defaultUrl=https://example.com/index.htm
+
+# Specify cookies to clear when am authentication session is destroyed
+# Strings are of the format: cookie_name [space] cookie_domain (optional) [space] cookie_path (optional)
+# For example:
+#logoutClearCookie=MYAPP_SESSION example.com /myapp
+#
+logoutClearCookie=spepSession
+
+# Port for the SPEP daemon to listen on. This is a required value, but is not used in IIS SPEPs.
 spepDaemonPort=7142
 
-# Attribute renaming. Changes the name of an attribute as set by LDAP. This is
-# generally used to support legacy apps that expect attributes to be pushed into
+# Attribute renaming. Changes the name of an attribute as set by ESOE.
+#
+# This is generally used to support legacy apps that expect attributes to be pushed into
 # the web environment with specific names. 
+#
 # The rename parameter syntax is space separated such as:
 #attributeRename=OriginalName NewName
+#
 # For example:
 #attributeRename=uid username
-# This renames the attribute called "uid" to "username" (without quotes)
+# This example renames the attribute called "uid" to "username" (without quotes)
 
 # Username attribute - the username to tell the web server is logged in.
 # as an example - in Apache, this is mapped to REMOTE_USER
 # Attribute renames are applied BEFORE this, so you will need to use the "new name"
 # of the attribute if you have renamed it.
-usernameAttribute=username
+usernameAttribute=uid
 
 # Prefix to add to attribute names before inserting into the web environment.
 attributeNamePrefix=SPEP_ATTR_
 attributeValueSeparator=|
-
-# Authentication token (cookie) name and domain. 
-# tokenName should be chosen such that it does not conflict with any other cookies
-# set by your system.
-# tokenDomain should be set to your service hostname, not the node hostname 
-tokenName=spep-session
-tokenDomain=
-
-# IP addresses of the SPEP host. This is for informational and auditing purposes
-ipAddresses=
-
-# The URL to redirect unauthenticated users to. By default this is 
-# https://your.service.host/spep/sso?redirectURL=%s
-# The %s is used at runtime to pass the redirect URL to the SPEP so that the user
-# may be returned to the location they originally requested.
-loginRedirect=https://www.example.com/spep/sso?redirectURL=%s
-
-# Default URL of the service. This is the default location to which users are directed
-# when they are authenticated but SPEP does not have a redirect URL for them.
-defaultUrl=https://www.example.com/secure/index.html
-
-# Specify cookies to clear when an authentication session is destroyed
-# strings are of the format: cookie_name [space] cookie_domain (optional) [space] cookie_path (optional)
-#logoutClearCookie=spep-session
 
 # CA Bundle file to be used by cURL. For a proper installation of cURL on a Unix-like
 # platform, this often will not need to be set. However if you need to customise your
@@ -102,45 +99,64 @@ defaultUrl=https://www.example.com/secure/index.html
 # signed by an internal CA) this parameter will be useful.
 #caBundle=/etc/pki/tls/certs/ca-bundle.crt
 
+###########################################################################################################
+#
+# You should not need to edit anything below this line, advanced changes only
+####
 
+# Is the SPEP configured in lazy initialization mode
+lazyInit=false
 
-## Configured time intervals. The defaults are usually reasonable.
+# deny | permit - Lazy Init default mode, if a lazyinit-resource is not matched what action should 
+# the filter take on access to the resource (inverted when there is a match as specified by resources below)
+lazyInitDefaultAction=Deny
+
+# Forced Initialization Queries.
+# This is only populated when SPEP is acting in a lazy mode, regex patterns may be applied here
+# Extreme caution to carefully validate your web application access requirements is recommended with 
+# the system is in lazyInit mode
+#
+# Name/Value parameters from the query string make up part of the matching, /secure.jsp.* should be 
+# used to match for example /secure.jsp?custID=1234
+#
+# Values here should contain the path and query string of your application, 
+# eg for https://myspep.company.org/myapp you would enter /myapp/secure.php.* to match any request for 
+# resources located at https://myspep.company.org/myapp/secure.php
+#
+# Different to Java config, these are not numbered. They MUST all be called lazyInit-resource
+#lazyInit-resource=
+#lazyInit-resource=
+
+# SSO web application redirect (relative)
+ssoRedirect=/spep/sso?redirectURL=%s
+
+# Authentication token name for SPEP session cookie
+spepTokenName=spepSession
+
+# Identifier name for site wide identifier indicating ESOE has authenticated this users session
+commonDomainTokenName=_saml_idp
 
 # Interval in seconds after which to retry the SPEP Startup request, if startup fails
-startupRetryInterval=60
+startupRetryInterval=20
 
-# Interval in seconds between polling the metadata URL for an updated metadata document
+# Interval in seconds between polling the metadata URL for the metadata document
 metadataInterval=120
 
-# Allowed time in seconds that a document will remain valid from the time of creation
+# Allowed time in seconds that a SAML document will remain valid from the time of creation
 allowedTimeSkew=60
 
-# Time in seconds between polling the SAML identifier cache for expired identifiers
+# Time in seconds between polling the identifier cache for expired identifiers
 identifierCacheInterval=3600
 
-# Time in seconds that a SAML identifier will remain cached. This should be sufficiently
-# long as this cache is used to prevent replay attacks. For security reasons, it MUST be
-# longer than a minute, or else your web service may be vulnerable. The default is
-# generally pretty reasonable.
+# Time in seconds that an identifier will remain active
 identifierCacheTimeout=36000
 
-# Time that sessions which have yet to complete an authentication event are considered valid.
+# Time that sessions which have yet to complete an authentication event are considered valid
 sessionCacheTimeout=120
 
 # Time in seconds that session cache cleanup will run looking for expired unauthenticated sessions
 # and sessions which have expired as dictated by the ESOE
-sessionCacheInterval=60
+sessionCacheInterval=120
 
-
-###########################################################################################################
-###########################################################################################################
-
-####
-# You should not need to edit anything below this line
-# Advanced users only
-####
-
-# Default authorization policy for queries with no definite outcome. This is the fallback value
-# that will be used when no policy exists for a given resource.
+# Default authorization policy to apply when due to problems with PDP or other unusal situations occurs access control result can't be computed
 defaultPolicyDecision=deny
-

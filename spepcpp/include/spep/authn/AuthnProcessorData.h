@@ -41,6 +41,12 @@ namespace spep
 		 */
 		void setRequestURL( const std::string &requestURL );
 		std::string getRequestURL();
+		
+		/**
+		 * Sets the base URL for the host the request was made to.
+		 */
+		void setBaseRequestURL( const std::string& baseRequestURL );
+		std::string getBaseRequestURL();
 
 		/**
 		 * Sets the local session ID assigned to the session by the authentication processor
@@ -64,6 +70,7 @@ namespace spep
 		
 		private:
 		std::string _requestURL;
+		std::string _baseRequestURL;
 		std::string _sessionID;
 		saml2::SAMLDocument _requestDocument;
 		saml2::SAMLDocument _responseDocument;

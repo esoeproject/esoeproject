@@ -18,6 +18,14 @@
  * Purpose: Implementation of SAML Request validation
  */
  
+/* Local Codebase */
+#include "saml2/SAML2Defs.h"
+#include "saml2/constants/VersionConstants.h"
+#include "saml2/exceptions/IdentifierCacheException.h"
+#include "saml2/exceptions/InvalidSAMLRequestException.h"
+#include "saml2/exceptions/InvalidParameterException.h"
+#include "saml2/validator/SAMLRequestValidator.h"
+
 /* Boost */
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <boost/date_time/posix_time/posix_time_duration.hpp>
@@ -28,13 +36,6 @@
 
 /* XSD */
 #include "saml2/bindings/saml-schema-protocol-2.0.hxx"
-
-/* Local Codebase */
-#include "saml2/constants/VersionConstants.h"
-#include "saml2/exceptions/IdentifierCacheException.h"
-#include "saml2/exceptions/InvalidSAMLRequestException.h"
-#include "saml2/exceptions/InvalidParameterException.h"
-#include "saml2/validator/SAMLRequestValidator.h"
 
 #include "limits.h"
 

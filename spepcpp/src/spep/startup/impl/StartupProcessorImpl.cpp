@@ -86,7 +86,7 @@ _identifierGenerator( identifierGenerator )
 	std::vector<std::string> spepStartupSchemas;
 	spepStartupSchemas.push_back( ConfigurationConstants::esoeProtocol );
 	
-	this->_validateInitializationRequestMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ValidateInitializationRequestType>( schemaPath, spepStartupSchemas, "ValidateInitializationRequest", "http://www.qut.com/middleware/ESOEProtocolSchema", this->_keyResolver->getSPEPKeyName(), this->_keyResolver->getSPEPPrivateKey() );
+	this->_validateInitializationRequestMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ValidateInitializationRequestType>( schemaPath, spepStartupSchemas, "ValidateInitializationRequest", "http://www.qut.com/middleware/ESOEProtocolSchema", this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey() );
 	this->_validateInitializationResponseUnmarshaller = new saml2::UnmarshallerImpl<middleware::ESOEProtocolSchema::ValidateInitializationResponseType>( schemaPath, spepStartupSchemas, this->_metadata );
 }
 
@@ -94,7 +94,7 @@ spep::StartupProcessorImpl::~StartupProcessorImpl()
 {
 }
 	
-DOMDocument* spep::StartupProcessorImpl::buildRequest( const std::wstring &samlID )
+XERCES_CPP_NAMESPACE::DOMDocument* spep::StartupProcessorImpl::buildRequest( const std::wstring &samlID )
 {
 	this->_localReportingProcessor.log( spep::DEBUG, "Going to build SPEP startup request." );
 	
@@ -205,7 +205,9 @@ void spep::StartupProcessorImpl::doStartup()
 	{
 		// Locking here might improve efficiency, because a startup request in progress will block all requests
 		// for "started" status until it is finished - saves returning a value and having them sleep to retry.
-		ScopedLock lock( this->_startupResultMutex );
+		
+		// Disabled to fix startup issue in #SPEPC-5
+		//ScopedLock lock( this->_startupResultMutex );
 		
 		// Generate the request document
 		std::wstring samlID( this->_identifierGenerator->generateSAMLID() );

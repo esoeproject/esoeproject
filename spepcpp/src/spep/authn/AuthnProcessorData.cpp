@@ -29,6 +29,16 @@ void spep::AuthnProcessorData::setRequestURL( const std::string &requestURL )
 	_requestURL = requestURL;
 }
 
+std::string spep::AuthnProcessorData::getBaseRequestURL()
+{
+	return _baseRequestURL;
+}
+
+void spep::AuthnProcessorData::setBaseRequestURL( const std::string& baseRequestURL )
+{
+	_baseRequestURL = baseRequestURL;
+}
+
 std::string spep::AuthnProcessorData::getSessionID()
 {
 	return _sessionID;

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([modspep], 0.4)
+AC_INIT([modspep], 0.5)
 AC_CONFIG_SRCDIR([include/Cookies.h])
 AC_CONFIG_HEADER([config.h])
 

@@ -52,6 +52,7 @@ spep/exceptions/KeyResolverException.cpp \
 spep/exceptions/MetadataException.cpp \
 spep/exceptions/InvalidResponseException.cpp \
 spep/exceptions/InvalidSessionIdentifierException.cpp \
+spep/exceptions/KeystoreException.cpp \
 spep/metadata/KeyResolver.cpp \
 spep/metadata/JKSKeystore.cpp \
 spep/metadata/MetadataThread.cpp \

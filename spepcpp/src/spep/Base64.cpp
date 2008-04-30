@@ -42,6 +42,8 @@ _document(),
 _closed( false ),
 _base64( BIO_new( BIO_f_base64() ) )
 {
+	BIO_set_flags( _base64, BIO_FLAGS_BASE64_NO_NL );
+	
 	// Ensure that after this object is instantiated, it can be used immediately.
 	BIO *mem = BIO_new( BIO_s_mem() );
 	_base64 = BIO_push( _base64, mem );

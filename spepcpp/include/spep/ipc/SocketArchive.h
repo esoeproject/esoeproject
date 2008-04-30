@@ -236,7 +236,10 @@ namespace spep
 					load( keyData.modulus );
 					load( keyData.exponent );
 					load( keyData.keyName );
-					load( (unsigned int&) keyData.type );
+					
+					unsigned int type;
+					load( type );
+					keyData.type = static_cast<saml2::KeyData::KeyType>(type);
 				}
 				
 				template <class K, class V>
@@ -447,7 +450,9 @@ namespace spep
 					save( keyData.modulus );
 					save( keyData.exponent );
 					save( keyData.keyName );
-					save( (unsigned int&) keyData.type );
+					
+					unsigned int type = static_cast<unsigned int>(keyData.type);
+					save( type );
 				}
 				
 				template <class K, class V>

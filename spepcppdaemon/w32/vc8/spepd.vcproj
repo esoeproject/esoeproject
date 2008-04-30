@@ -60,11 +60,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="spep.lib shell32.lib"
+				AdditionalDependencies="saml2.lib spep.lib shell32.lib libcurl.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="Z:\workspaces\esoe\spepcpp\w32\vc8\Debug;Z:\workspaces\esoe\saml2cpp\w32\vc8\Debug"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -115,6 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="Z:\workspaces\esoe\saml2cpp\include;Z:\workspaces\esoe\spepcpp\include;&quot;$(ProjectDir)\..\..\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -133,9 +134,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="saml2.lib spep.lib shell32.lib libcurl.lib"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="Z:\workspaces\esoe\spepcpp\w32\vc8\Release;Z:\workspaces\esoe\saml2cpp\w32\vc8\Release"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"

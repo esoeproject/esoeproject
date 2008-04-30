@@ -22,7 +22,7 @@ spepKeyPassword=
 metadataKeyAlias=
 
 # Path to look for schema documents as installed by the SAML2 library.
-schemaPath=/usr/local/share/saml2-0.4/schema
+schemaPath=/usr/local/share/saml2-0.5/schema
 
 # The unique identifier of the authenticating ESOE.
 esoeIdentifier=
@@ -152,7 +152,7 @@ identifierCacheInterval=3600
 identifierCacheTimeout=36000
 
 # Time that sessions which have yet to complete an authentication event are considered valid
-sessionCacheTimeout=120
+sessionCacheTimeout=3600
 
 # Time in seconds that session cache cleanup will run looking for expired unauthenticated sessions
 # and sessions which have expired as dictated by the ESOE

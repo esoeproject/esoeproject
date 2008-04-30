@@ -44,6 +44,9 @@ typedef int in_addr_t; // Missing type
 typedef int socklen_t; // Missing type
 typedef std::size_t ssize_t;
 
+#define EAGAIN WSAETIMEDOUT
+#define EWOULDBLOCK WSAETIMEDOUT
+
 #else /*WIN32*/
 
 /* *nix includes */
@@ -183,7 +186,15 @@ namespace spep { namespace ipc {
 		 * @throw SocketException if an error occurred
 		 */
 		static socket_t acceptSocket( socket_t sock );
-		
+
+		/**
+		 * Sets the read timeout on the socket
+		 * @param sock The socket
+		 * @param waitMillis The time to wait for a connection, in milliseconds
+		 * @throw SocketException if an error occurred
+		 */
+		static void setReadTimeout( socket_t sock, int waitMillis );
+
 		/**
 		 * Reads data from the given socket
 		 * @param sock The socket

@@ -33,10 +33,10 @@ namespace spep { namespace ipc {
 	{
 		
 		private:
-		ClientSocket *_clientSocket;
+		ClientSocketPool *_socketPool;
 			
 		public:
-		IdentifierCacheProxy( ClientSocket *clientSocket );
+		IdentifierCacheProxy( ClientSocketPool *socketPool );
 		
 		/// @see saml2::IdentifierCache
 		/**@{*/

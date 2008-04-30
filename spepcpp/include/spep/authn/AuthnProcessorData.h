@@ -35,6 +35,8 @@ namespace spep
 	{
 		
 		public:
+			
+		AuthnProcessorData();
 		
 		/**
 		 * Sets the URL originally request by the user agent, before authentication was invoked.
@@ -68,12 +70,19 @@ namespace spep
 		void setResponseDocument( const saml2::SAMLDocument& responseDocument );
 		const saml2::SAMLDocument& getResponseDocument();
 		
+		/**
+		 * Sets whether or not to disable attribute querying for this session
+		 */
+		void setDisableAttributeQuery( bool value );
+		bool getDisableAttributeQuery();
+		
 		private:
 		std::string _requestURL;
 		std::string _baseRequestURL;
 		std::string _sessionID;
 		saml2::SAMLDocument _requestDocument;
 		saml2::SAMLDocument _responseDocument;
+		bool _disableAttributeQuery;
 		
 	};
 	

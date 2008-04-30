@@ -98,7 +98,7 @@ namespace spep
 		 * Processes an AuthnStatement. If valid, the unauthenticated session is terminated and an 
 		 * authenticated session (PrincipalSession) created.
 		 */
-		std::pair<bool, std::string> processAuthnStatement( const saml2::assertion::AuthnStatementType&, const saml2::assertion::AssertionType& );
+		std::pair<bool, std::string> processAuthnStatement( const saml2::assertion::AuthnStatementType&, const saml2::assertion::AssertionType&, bool disableAttributeQuery );
 		DOMDocument* generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo = L"" );
 		static std::string hostnameFromURL( std::string url );
 		

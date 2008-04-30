@@ -144,6 +144,7 @@ int spep::apache::SSOHandler::handleSSOPostRequest( request_rec *req )
 	
 	spep::AuthnProcessorData data;
 	data.setResponseDocument( saml2::SAMLDocument( document, documentLength ) );
+	data.setDisableAttributeQuery( this->_spep->getSPEPConfigData()->disableAttributeQuery() );
 	
 	try
 	{

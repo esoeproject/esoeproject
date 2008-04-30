@@ -1,4 +1,5 @@
-/* Copyright 2006-2007, Queensland University of Technology
+/*
+ * Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -12,35 +13,32 @@
  * the License.
  * 
  * Author: Shaun Mangelsdorf
- * Creation Date: Aug 8, 2007
+ * Creation Date: Mar 14, 2008
  * 
  * Purpose: 
  */
 
-#ifndef STARTUPPROCESSORPROXY_H_
-#define STARTUPPROCESSORPROXY_H_
+#ifndef KEYSTOREEXCEPTION_H_
+#define KEYSTOREEXCEPTION_H_
 
-#include "spep/Util.h"
-#include "spep/ipc/Socket.h"
+#include <exception>
 
-#include "spep/startup/StartupProcessor.h"
+namespace spep
+{
 
-namespace spep { namespace ipc {
-	
-	class SPEPEXPORT StartupProcessorProxy : public spep::StartupProcessor
+	class KeystoreException : public std::exception
 	{
 		
 		private:
-		ClientSocketPool *_socketPool;
+		const char *_what;
 		
 		public:
-		StartupProcessorProxy( ClientSocketPool *socketPool );
-		virtual ~StartupProcessorProxy();
+		KeystoreException( const char *what );
+		virtual ~KeystoreException() throw();
+		virtual const char *what() const throw();
 		
-		virtual spep::StartupResult allowProcessing();
-		virtual void beginSPEPStart();
 	};
 	
-} }
+}
 
-#endif /*STARTUPPROCESSORPROXY_H_*/
+#endif /*KEYSTOREEXCEPTION_H_*/

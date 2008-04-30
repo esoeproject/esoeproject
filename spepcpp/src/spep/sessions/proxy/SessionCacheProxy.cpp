@@ -34,57 +34,73 @@ static const char *terminateUnauthenticatedSession = SESSIONCACHE_terminateUnaut
 static const char *terminateExpiredSessions = SESSIONCACHE_terminateExpiredSessions;
 
 
-spep::ipc::SessionCacheProxy::SessionCacheProxy( spep::ipc::ClientSocket *clientSocket )
+spep::ipc::SessionCacheProxy::SessionCacheProxy( spep::ipc::ClientSocketPool *socketPool )
 :
-_clientSocket(clientSocket)
+_socketPool(socketPool)
 {}
 
 void spep::ipc::SessionCacheProxy::getPrincipalSession(spep::PrincipalSession &principalSession, std::string sessionID)
 {
 	std::string dispatch(::getPrincipalSession);
-	principalSession = _clientSocket->makeRequest<PrincipalSession, std::string>( dispatch, sessionID );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	principalSession = clientSocket->makeRequest<PrincipalSession, std::string>( dispatch, sessionID );
 }
 
 void spep::ipc::SessionCacheProxy::getPrincipalSessionByEsoeSessionID(spep::PrincipalSession &principalSession, std::wstring esoeSessionIndex)
 {
 	std::string dispatch(::getPrincipalSessionByEsoeSessionID);
-	principalSession = _clientSocket->makeRequest<PrincipalSession, std::wstring>( dispatch, esoeSessionIndex );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	principalSession = clientSocket->makeRequest<PrincipalSession, std::wstring>( dispatch, esoeSessionIndex );
 }
 
 void spep::ipc::SessionCacheProxy::insertPrincipalSession(std::string sessionID, spep::PrincipalSession &principalSession)
 {
 	std::string dispatch(::insertPrincipalSession);
 	SessionCache_InsertClientSessionCommand command( sessionID, principalSession );
-	_clientSocket->makeNonBlockingRequest( dispatch, command );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest( dispatch, command );
 }
 
 void spep::ipc::SessionCacheProxy::terminatePrincipalSession(std::wstring sessionID)
 {
 	std::string dispatch(::terminatePrincipalSession);
-	_clientSocket->makeNonBlockingRequest( dispatch, sessionID );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest( dispatch, sessionID );
 }
 
 void spep::ipc::SessionCacheProxy::getUnauthenticatedSession(spep::UnauthenticatedSession &unauthenticatedSession, std::wstring requestID)
 {
 	std::string dispatch(::getUnauthenticatedSession);
 	std::wstring requestIDLocal = requestID;
-	unauthenticatedSession = _clientSocket->makeRequest<UnauthenticatedSession, std::wstring>( dispatch, requestIDLocal );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	unauthenticatedSession = clientSocket->makeRequest<UnauthenticatedSession, std::wstring>( dispatch, requestIDLocal );
 }
 
 void spep::ipc::SessionCacheProxy::insertUnauthenticatedSession(spep::UnauthenticatedSession &unauthenticatedSession)
 {
 	std::string dispatch(::insertUnauthenticatedSession);
-	_clientSocket->makeNonBlockingRequest( dispatch, unauthenticatedSession );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest( dispatch, unauthenticatedSession );
 }
 
 void spep::ipc::SessionCacheProxy::terminateUnauthenticatedSession(std::wstring requestID)
 {
 	std::string dispatch(::terminateUnauthenticatedSession);
-	_clientSocket->makeNonBlockingRequest( dispatch, requestID );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest( dispatch, requestID );
 }
 
 void spep::ipc::SessionCacheProxy::terminateExpiredSessions( int sessionCacheTimeout )
 {
 	std::string dispatch(::terminateExpiredSessions);
-	_clientSocket->makeNonBlockingRequest( dispatch, sessionCacheTimeout );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest( dispatch, sessionCacheTimeout );
 }

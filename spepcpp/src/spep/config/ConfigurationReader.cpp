@@ -84,6 +84,11 @@ void spep::ConfigurationReader::addOptions( boost::program_options::options_desc
 		( CONFIGURATION_SESSIONCACHETIMEOUT, OPTION_TYPE_INTEGER_SINGLE(), "" )
 		( CONFIGURATION_SESSIONCACHEINTERVAL, OPTION_TYPE_INTEGER_SINGLE(), "" )
 		( CONFIGURATION_DEFAULTPOLICYDECISION, OPTION_TYPE_STRING_SINGLE(), "" )
+		
+		// Disabling functionality
+		( CONFIGURATION_DISABLEATTRIBUTEQUERY, OPTION_TYPE_STRING_SINGLE(), "" )
+		( CONFIGURATION_DISABLEPOLICYENFORCEMENT, OPTION_TYPE_STRING_SINGLE(), "" )
+		( CONFIGURATION_DISABLESPEPSTARTUP, OPTION_TYPE_STRING_SINGLE(), "" )
 	;
 
 }
@@ -316,6 +321,11 @@ spep::ConfigurationReader::ConfigurationReader( boost::program_options::variable
 	this->setIntegerValue( variablesMap, CONFIGURATION_SESSIONCACHETIMEOUT );
 	this->setIntegerValue( variablesMap, CONFIGURATION_SESSIONCACHEINTERVAL );
 	this->setStringValue( variablesMap, CONFIGURATION_DEFAULTPOLICYDECISION );
+	
+	// Disabling functionality
+	this->setStringValue( variablesMap, CONFIGURATION_DISABLEATTRIBUTEQUERY, "false" );
+	this->setStringValue( variablesMap, CONFIGURATION_DISABLEPOLICYENFORCEMENT, "false" );
+	this->setStringValue( variablesMap, CONFIGURATION_DISABLESPEPSTARTUP, "false" );
 }
 
 bool spep::ConfigurationReader::isValid()

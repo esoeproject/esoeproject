@@ -45,14 +45,15 @@ namespace saml2
 		
 		void IdentifierCache::registerIdentifier(std::string identifier)
 		{
+			/* Lock automatically released when it goes out of scope */
+			boost::recursive_mutex::scoped_lock lock (mutex);				
+
 			if(this->containsIdentifier(identifier))
 				SAML2LIB_IDC_EX("Attempt to register identifier that already exists");
 				
 			time_t rawtime;
 			time ( &rawtime );
 			
-			/* Lock automatically released when it goes out of scope */
-			boost::recursive_mutex::scoped_lock lock (mutex);				
 			this->cacheData.insert( std::make_pair ( identifier, rawtime ) );
 		}
 	

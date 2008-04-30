@@ -20,13 +20,23 @@
 #ifndef DAEMON_H_
 #define DAEMON_H_
 
+#include <vector>
+#include <string>
+
 namespace spep{ namespace daemon{
 	
 	class Daemon
 	{
 		
-		static void closefd();
 		public:
+#ifndef WIN32
+		static std::vector<std::string> pidFileList;
+#endif //!WIN32
+		
+		/**
+		 * Performs anything that needs to occur before initializing the daemon
+		 */
+		static void begin();
 		/**
 		 * Become a daemon.
 		 */

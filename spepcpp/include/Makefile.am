@@ -59,6 +59,7 @@ spep/exceptions/WSException.h \
 spep/exceptions/AttributeException.h \
 spep/exceptions/InvalidResponseException.h \
 spep/exceptions/KeyResolverException.h \
+spep/exceptions/KeystoreException.h \
 spep/metadata/Metadata.h \
 spep/metadata/MetadataThread.h \
 spep/metadata/KeyResolver.h \

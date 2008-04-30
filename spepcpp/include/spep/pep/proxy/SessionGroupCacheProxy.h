@@ -31,14 +31,14 @@ namespace spep{ namespace ipc{
 	{
 		
 		public:
-		SessionGroupCacheProxy( spep::ipc::ClientSocket *clientSocket );
+		SessionGroupCacheProxy( spep::ipc::ClientSocketPool *socketPool );
 		virtual ~SessionGroupCacheProxy();
 		virtual void updateCache( std::wstring &sessionID, UnicodeString groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision );
 		virtual void clearCache( std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets );
 		virtual Decision makeCachedAuthzDecision( std::wstring sessionID, UnicodeString resource );
 		
 		private:
-		spep::ipc::ClientSocket *_clientSocket;
+		spep::ipc::ClientSocketPool *_socketPool;
 		
 	};
 	

@@ -24,28 +24,34 @@ static const char *registerIdentifier = IDENTIFIERCACHE_registerIdentifier;
 static const char *containsIdentifier = IDENTIFIERCACHE_containsIdentifier;
 static const char *cleanCache = IDENTIFIERCACHE_cleanCache;
 
-spep::ipc::IdentifierCacheProxy::IdentifierCacheProxy( spep::ipc::ClientSocket *clientSocket )
+spep::ipc::IdentifierCacheProxy::IdentifierCacheProxy( spep::ipc::ClientSocketPool *socketPool )
 :
-_clientSocket( clientSocket )
+_socketPool( socketPool )
 {
 }
 
 void spep::ipc::IdentifierCacheProxy::registerIdentifier(std::string identifier)
 {
 	std::string dispatch( ::registerIdentifier );
-	_clientSocket->makeNonBlockingRequest( dispatch, identifier );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest( dispatch, identifier );
 }
 
 bool spep::ipc::IdentifierCacheProxy::containsIdentifier(std::string identifier)
 {
 	std::string dispatch( ::containsIdentifier );
-	return _clientSocket->makeRequest<bool>( dispatch, identifier );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest<bool>( dispatch, identifier );
 }
 
 int spep::ipc::IdentifierCacheProxy::cleanCache(long age)
 {
 	std::string dispatch( ::cleanCache );
-	return _clientSocket->makeRequest<int>( dispatch, age );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest<int>( dispatch, age );
 }
 
 spep::ipc::IdentifierCacheProxy::~IdentifierCacheProxy()

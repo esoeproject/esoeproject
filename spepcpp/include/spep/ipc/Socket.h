@@ -21,6 +21,8 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include "saml2/identifier/IdentifierGenerator.h"
+
 #include "spep/Util.h"
 #include "spep/ipc/Platform.h"
 #include "spep/ipc/Engine.h"
@@ -29,13 +31,17 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <queue>
 
 #include <boost/thread/thread.hpp>
+#include <boost/thread/condition.hpp>
 
 namespace spep
 {
 	namespace ipc
 	{
+		// To solve cyclic dependency
+		class ClientSocketPool;
 		
 		/**
 		 * IPC client socket. Connects to a loopback address, makes requests 
@@ -49,15 +55,15 @@ namespace spep
 			
 			void reconnect( int retry );
 
+			ClientSocketPool* _pool;
 			platform::socket_t _socket;
 			Engine *_engine;
 			int _port;
 			Mutex _mutex;
-			long _connectionSequenceID;
 			
 			public:
-			ClientSocket( int port );
-			long getConnectionSequenceID();
+			ClientSocket( ClientSocketPool* pool, int port );
+			int getSocketID();
 			
 			/**
 			 * Makes a request and awaits a reply
@@ -127,6 +133,35 @@ namespace spep
 			
 		};
 		
+		class ClientSocketPool
+		{
+			private:
+			std::queue<ClientSocket*> _free;
+			boost::condition _condition;
+			Mutex _mutex;
+			std::string _serviceID;
+			
+			public:
+			ClientSocketPool( int port, std::size_t n );
+			ClientSocket* get();
+			void release( ClientSocket* socket );
+			const std::string& getServiceID();
+			void setServiceID( const std::string& serviceID );
+		};
+		
+		class ClientSocketLease
+		{
+			private:
+			ClientSocketPool *_pool;
+			ClientSocket *_socket;
+			
+			public:
+			ClientSocketLease( ClientSocketPool* pool );
+			~ClientSocketLease();
+			ClientSocket* operator->();
+			ClientSocket* operator*();
+		};
+		
 		/**
 		 * IPC server socket. Listens on a loopback address, receives and dispatches
 		 * and sends replies where expected.
@@ -148,6 +183,7 @@ namespace spep
 				try
 				{
 					platform::bindLoopbackSocket( socket, port );
+					platform::setReadTimeout( socket, 500 );
 				}
 				catch (SocketException e)
 				{
@@ -181,6 +217,7 @@ namespace spep
 			
 			Dispatcher& _dispatcher;
 			platform::socket_t _socket;
+			std::string _id;
 				
 			public:
 			
@@ -192,12 +229,17 @@ namespace spep
 			ServerSocket(Dispatcher &dispatcher, int port)
 			: _dispatcher( dispatcher ),
 			_socket ( newSocket( port ) )
-			{}
+			{
+				saml2::IdentifierCache identifierCache;
+				saml2::IdentifierGenerator identifierGenerator( &identifierCache );
+				
+				_id = identifierGenerator.generateSessionID();
+			}
 			
 			/**
 			 * Body of listen method. Blocks indefinitely.
 			 */
-			void listen()
+			void listen( bool *running )
 			{
 				
 				try
@@ -210,21 +252,24 @@ namespace spep
 					throw;
 				}
 				
-				for(;;)
+				while( *running )
 				{
 					// accept a connection..
 					platform::socket_t clientSocket = platform::acceptSocket( _socket );
 					
-					// .. and fire off a thread for it
-					ServerSocketThread threadFunction( *this, clientSocket );
-					
-					/* What's happening here?
-					 * Well according to the boost thread api docs, the constructor
-					 * for the thread object fires off the thread in the background
-					 * and the destructor detaches the thread so that it cleans
-					 * itself up with it's done. That's the exact behaviour we want.
-					 */
-					delete ( new boost::thread( threadFunction ) );
+					if( platform::validSocket( clientSocket ) )
+					{
+						// .. and fire off a thread for it
+						ServerSocketThread threadFunction( *this, clientSocket );
+						
+						/* What's happening here?
+						 * Well according to the boost thread api docs, the constructor
+						 * for the thread object fires off the thread in the background
+						 * and the destructor detaches the thread so that it cleans
+						 * itself up with it's done. That's the exact behaviour we want.
+						 */
+						delete ( new boost::thread( threadFunction ) );
+					}
 				}
 			}
 			
@@ -235,6 +280,7 @@ namespace spep
 			void run(platform::socket_t socket)
 			{
 				Engine engine( socket );
+				engine.sendObject( _id );
 				for(;;)
 				{
 					try

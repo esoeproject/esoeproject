@@ -31,7 +31,7 @@ namespace spep { namespace ipc {
 	 * Base class for IPC exceptions. Methods are purposely not declared virtual, since
 	 * this must be able to be serialized via the templated serialize() function.
 	 */
-	class SPEPEXPORT IPCException : std::exception
+	class SPEPEXPORT IPCException : public std::exception
 	{
 		friend class spep::ipc::access;
 		

@@ -224,7 +224,7 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 		for( authnStatementIterator = assertionIterator->AuthnStatement().begin(); authnStatementIterator != assertionIterator->AuthnStatement().end(); authnStatementIterator++ )
 		{
 			// Process it
-			std::pair<bool,std::string> resultPair = processAuthnStatement( *authnStatementIterator, *assertionIterator );
+			std::pair<bool,std::string> resultPair = processAuthnStatement( *authnStatementIterator, *assertionIterator, data.getDisableAttributeQuery() );
 			
 			// The first of the pair is a "success" value. If it's false, something failed.
 			if (! resultPair.first)
@@ -312,7 +312,7 @@ void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data 
 	this->_localReportingProcessor.log( DEBUG, "Created unauthenticated session for new AuthnRequest. SAML ID: " + UnicodeStringConversion::toString( authnRequestSAMLID ) );
 }
 
-std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const saml2::assertion::AuthnStatementType& authnStatement, const saml2::assertion::AssertionType& assertion )
+std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const saml2::assertion::AuthnStatementType& authnStatement, const saml2::assertion::AssertionType& assertion, bool disableAttributeQuery )
 {
 	bool result = false;
 	PrincipalSession principalSession;
@@ -340,15 +340,22 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 	principalSession.setESOESessionID( esoeSessionID );
 	principalSession.addESOESessionIndexAndLocalSessionID( esoeSessionIndex, sessionID );
 	
-	try
+	if( disableAttributeQuery )
 	{
-		this->_localReportingProcessor.log( DEBUG, "Doing attribute processing for session: " + sessionID );
-		this->_attributeProcessor->doAttributeProcessing( principalSession );
+		this->_localReportingProcessor.log( DEBUG, "Skipping attribute processing because it is disabled for session: " + sessionID );
 	}
-	catch ( std::exception &e )
+	else
 	{
-		this->_localReportingProcessor.log( ERROR, "Failed attribute processing for session: " + sessionID + ". Can't continue authentication." );
-		return std::make_pair( result, sessionID );
+		try
+		{
+			this->_localReportingProcessor.log( DEBUG, "Doing attribute processing for session: " + sessionID );
+			this->_attributeProcessor->doAttributeProcessing( principalSession );
+		}
+		catch ( std::exception &e )
+		{
+			this->_localReportingProcessor.log( ERROR, "Failed attribute processing for session: " + sessionID + ". Can't continue authentication." );
+			return std::make_pair( result, sessionID );
+		}
 	}
 	
 	try

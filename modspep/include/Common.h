@@ -142,6 +142,8 @@ extern "C" void* modspep_create_server_config( apr_pool_t *pool, server_rec *ser
 extern "C" void* modspep_merge_server_config( apr_pool_t *pool, void *BASE, void *ADD );
 /** @} */
 
+apr_status_t modspep_cleanup_config( void *data );
+
 extern "C" void modspep_child_init( apr_pool_t *pchild, server_rec *s );
 extern "C" int modspep_check_session( request_rec *req );
 extern "C" int modspep_handler( request_rec *req );

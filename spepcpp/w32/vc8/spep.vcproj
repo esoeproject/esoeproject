@@ -122,6 +122,7 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4251,4275"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -279,6 +280,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\spep\exceptions\KeyResolverException.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\spep\exceptions\KeystoreException.cpp"
 				>
 			</File>
 			<File

@@ -49,6 +49,9 @@ namespace spep
 			ar & _started;
 			ar & _lazyInit;
 			ar & _lazyInitDefaultPermit;
+			ar & _disableAttributeQuery;
+			ar & _disablePolicyEnforcement;
+			ar & _disableSPEPStartup;
 			ar & _defaultUrl;
 			ar & _loginRedirect;
 			ar & _ssoRedirect;
@@ -75,6 +78,9 @@ namespace spep
 		bool isStarted();
 		bool isLazyInit();
 		bool isLazyInitDefaultPermit();
+		bool disableAttributeQuery();
+		bool disablePolicyEnforcement();
+		bool disableSPEPStartup();
 		void setStarted( bool started );
 		std::string getDefaultUrl();
 		std::string getLoginRedirect();
@@ -102,6 +108,9 @@ namespace spep
 		bool _started;
 		bool _lazyInit;
 		bool _lazyInitDefaultPermit;
+		bool _disableAttributeQuery;
+		bool _disablePolicyEnforcement;
+		bool _disableSPEPStartup;
 		std::string _defaultUrl;
 		std::string _loginRedirect;
 		std::string _ssoRedirect;

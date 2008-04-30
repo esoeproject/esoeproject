@@ -31,10 +31,10 @@ namespace spep{ namespace ipc{
 	{
 		
 		private:
-		spep::ipc::ClientSocket *_clientSocket;
+		spep::ipc::ClientSocketPool *_socketPool;
 		
 		public:
-		ConfigurationProxy( spep::ipc::ClientSocket *clientSocket );
+		ConfigurationProxy( spep::ipc::ClientSocketPool *socketPool );
 		virtual ~ConfigurationProxy();
 
 		virtual spep::SPEPConfigData getSPEPConfigData();

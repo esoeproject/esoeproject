@@ -38,7 +38,7 @@ namespace spep { namespace ipc {
 		typedef std::vector< XSECCryptoKey* > CryptoKeyPointerList;
 		
 		public:
-		MetadataProxy( spep::ipc::ClientSocket *clientSocket );
+		MetadataProxy( spep::ipc::ClientSocketPool *socketPool );
 		virtual ~MetadataProxy();
 		
 		virtual const std::wstring getSPEPIdentifier() const;
@@ -53,7 +53,7 @@ namespace spep { namespace ipc {
 		virtual XSECKeyInfoResolver* clone() const;
 				
 		private:
-		spep::ipc::ClientSocket *_clientSocket;
+		spep::ipc::ClientSocketPool *_socketPool;
 		CryptoKeyPointerList _cryptoKeyList;
 		
 	};

@@ -27,6 +27,7 @@
  */
 
 #include "spep/metadata/JKSKeystore.h"
+#include "spep/exceptions/KeystoreException.h"
 
 #include <fstream>
 #include <cstring>
@@ -49,6 +50,15 @@
 
 #define KEYSTORE_ENTRY_PRIVATE_KEY 1
 #define KEYSTORE_ENTRY_TRUSTED_CERT 2
+
+#define KEYSTORE_ERROR_NO_FILE "Unable to open Keystore. File does not exist or is not readable."
+#define KEYSTORE_ERROR_NO_CERT_CHAIN "No certificate chain for the specified alias."
+#define KEYSTORE_ERROR_CORRUPT_MAGIC "Keystore magic number does not match. Possibly corrupt?"
+#define KEYSTORE_ERROR_BAD_VERSION "Keystore version does not match the expected version number."
+#define KEYSTORE_ERROR_UNEXPECTED_EOF "Unexpected end of file while trying to parse the keystore."
+#define KEYSTORE_ERROR_UNKNOWN_ENTRY_TYPE "Unknown entry type was encountered. Unable to continue parsing."
+#define KEYSTORE_ERROR_CORRUPT_SIGNATURE "Hash value does not match the signed value in the keystore. Possibly corrupt?"
+#define KEYSTORE_ERROR_CORRUPT_KEY "Private key data could not be validated. Wrong password?"
 
 namespace spep
 {
@@ -135,7 +145,7 @@ namespace spep
 			return iter->second;
 		}
 		
-		throw std::exception();
+		throw KeystoreException( KEYSTORE_ERROR_NO_CERT_CHAIN );
 	}
 	
 	/**
@@ -211,7 +221,7 @@ namespace spep
 	{
 		// Open the keystore file.
 		std::ifstream keystoreInput( filename.c_str(), std::ios::in | std::ios::binary );
-		if( !keystoreInput.good() ) throw std::exception();
+		if( !keystoreInput.good() ) throw KeystoreException( KEYSTORE_ERROR_NO_FILE );
 	
 		// Seek to end and store the length of the file
 		keystoreInput.seekg( 0, std::ios::end );
@@ -262,11 +272,11 @@ namespace spep
 		// Check the magic and version numbers
 		if( magic != KEYSTORE_MAGIC_NUMBER )
 		{
-			throw std::exception();
+			throw KeystoreException( KEYSTORE_ERROR_CORRUPT_MAGIC );
 		}
 		if( KEYSTORE_UNEXPECTED_VERSION(version) )
 		{
-			throw std::exception();
+			throw KeystoreException( KEYSTORE_ERROR_BAD_VERSION );
 		}
 	
 		// For 'count' entries, parse the entry.
@@ -281,7 +291,7 @@ namespace spep
 		const JKSSignature *sig = reinterpret_cast<const JKSSignature*>( ptr );
 	
 		// Calculate the signature based on the data that was processed.
-		std::size_t hashLength;
+		unsigned int hashLength;
 		unsigned char hashValue[20];
 	
 		const EVP_MD *hashType = EVP_sha1();
@@ -299,28 +309,28 @@ namespace spep
 		{
 			if( hashValue[i] != sig->value[i] )
 			{
-				throw std::exception();
+				throw KeystoreException( KEYSTORE_ERROR_CORRUPT_SIGNATURE );
 			}
 		}
 	}
 	
 	const unsigned char* JKSKeystore::parseKeyEntry( const unsigned char *data, std::size_t length )
 	{
-		if( length < sizeof(JKSEntry) ) throw std::exception();
+		if( length < sizeof(JKSEntry) ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 		// Interpret the start of this entry as an "entry" and grab the type
 		const JKSEntry *entry = reinterpret_cast<const JKSEntry*>( data );
 		uint32_t entryType = fourByteToUnsignedInt( entry->type );
 	
 		std::size_t remainingLength = length - (entry->alias - data);
-		if( remainingLength < sizeof(JKSAliasEntry) ) throw std::exception();
+		if( remainingLength < sizeof(JKSAliasEntry) ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 		// All entries have an alias, so parse and store the alias
 		const JKSAliasEntry *alias = reinterpret_cast<const JKSAliasEntry*>( entry->alias );
 		uint16_t aliasLength = twoByteToUnsignedInt( alias->length );
 	
 		remainingLength = length - (alias->data - data);
-		if( remainingLength < aliasLength ) throw std::exception();
+		if( remainingLength < aliasLength ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 		std::string keyAlias( reinterpret_cast<const char*>(alias->data), static_cast<uint32_t>(aliasLength) );
 	
@@ -335,7 +345,7 @@ namespace spep
 		// Check the type of the entry
 		if( entryType == KEYSTORE_ENTRY_PRIVATE_KEY )
 		{
-			if( remainingLength < sizeof( JKSDataEntry ) ) throw std::exception();
+			if( remainingLength < sizeof( JKSDataEntry ) ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 			// Grab the data entry
 			const JKSDataEntry *pkeyEntry = reinterpret_cast<const JKSDataEntry*>( next );
 	
@@ -343,7 +353,7 @@ namespace spep
 			uint32_t pkeyLength = fourByteToUnsignedInt( pkeyEntry->length );
 	
 			remainingLength = length - (pkeyEntry->data - data);
-			if( remainingLength < pkeyLength ) throw std::exception();
+			if( remainingLength < pkeyLength ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 			// And parse it as a private key.
 			this->parsePrivateKey( keyAlias, creationTime, pkeyEntry->data, pkeyLength );
@@ -351,7 +361,7 @@ namespace spep
 			next = &(pkeyEntry->data[pkeyLength]);
 	
 			remainingLength = length - (next - data);
-			if( remainingLength < sizeof(uint32_t) ) throw std::exception();
+			if( remainingLength < sizeof(uint32_t) ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 			// Get the number of certificates that follow this private key
 			uint32_t certCount = fourByteToUnsignedInt( next );
@@ -374,7 +384,7 @@ namespace spep
 		else
 		{
 			// Unknown entry type is an error condition. We can't continue.
-			throw std::exception();
+			throw KeystoreException( KEYSTORE_ERROR_UNKNOWN_ENTRY_TYPE );
 		}
 	}
 	
@@ -409,7 +419,7 @@ namespace spep
 		const unsigned char *ekey = &(seed[20]);
 		const unsigned char *checksum = &(seed[20 + keyLength]);
 		unsigned char hashValue[20];
-		std::size_t hashLength;
+		unsigned int hashLength;
 	
 		// Initialize the vector and hash function
 		std::memcpy( hashValue, seed, sizeof(hashValue) );
@@ -455,7 +465,7 @@ namespace spep
 			if( hashValue[i] != checksum[i] )
 			{
 				// Hash didn't match. Wrong password / corrupt
-				throw std::exception();
+				throw KeystoreException( KEYSTORE_ERROR_CORRUPT_KEY );
 			}
 		}
 		
@@ -468,20 +478,20 @@ namespace spep
 	
 	const unsigned char* JKSKeystore::parseTrustedCertEntry( const std::string& alias, uint64_t creationTime, const unsigned char *data, uint32_t length, bool chain )
 	{
-		if( length < sizeof( JKSAliasEntry ) ) throw std::exception();
+		if( length < sizeof( JKSAliasEntry ) ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 		// Trusted cert has an encoding name, stored the same way as an alias. Parse that.
 		const JKSAliasEntry *encodingEntry = reinterpret_cast<const JKSAliasEntry*>( data );
 	
 		uint16_t encodingLength = twoByteToUnsignedInt( encodingEntry->length );
 	
 		uint32_t remainingLength = length - (encodingEntry->data - data);
-		if( remainingLength < encodingLength ) throw std::exception();
+		if( remainingLength < encodingLength ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 		std::string encoding( reinterpret_cast<const char*>( encodingEntry->data ), static_cast<std::size_t>( encodingLength ) );
 		const unsigned char *next = &(encodingEntry->data[encodingLength]);
 	
 		remainingLength = length - (next - data);
-		if( remainingLength < sizeof( JKSDataEntry ) ) throw std::exception();
+		if( remainingLength < sizeof( JKSDataEntry ) ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 		// The remainder of the entry is the certificate data.
 		const JKSDataEntry *certEntry = reinterpret_cast<const JKSDataEntry*>( next );
@@ -489,7 +499,7 @@ namespace spep
 		uint32_t certLength = fourByteToUnsignedInt( certEntry->length );
 	
 		remainingLength = length - (certEntry->data - data);
-		if( remainingLength < certLength ) throw std::exception();
+		if( remainingLength < certLength ) throw KeystoreException( KEYSTORE_ERROR_UNEXPECTED_EOF );
 	
 		// Parse the certificate data.
 		this->parseTrustedCert( alias, creationTime, encoding, certEntry->data, certLength, chain );

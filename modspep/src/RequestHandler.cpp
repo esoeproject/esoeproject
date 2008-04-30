@@ -81,59 +81,68 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 			principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 			validSession = true;
 		}
-		catch( spep::ipc::IPCException e )
+		catch( std::exception& e )
 		{
 		}
 		
 		if( validSession )
 		{
-			
-			// Put attributes into the environment.
-			
-			std::string usernameAttribute = spepConfigData->getUsernameAttribute();
-			
-			std::string attributeValueSeparator = spepConfigData->getAttributeValueSeparator();
-			std::string attributeNamePrefix = spepConfigData->getAttributeNamePrefix();
-			for( spep::PrincipalSession::AttributeMapType::iterator attributeIterator = principalSession.getAttributeMap().begin();
-				attributeIterator != principalSession.getAttributeMap().end();
-				++attributeIterator )
+			// If attribute querying is not disabled...
+			if( !this->_spep->getSPEPConfigData()->disableAttributeQuery() )
 			{
+				// Put attributes into the environment.
 				
-				std::string name = spep::UnicodeStringConversion::toString( attributeIterator->first );
-				std::string envName = attributeNamePrefix + name;
+				std::string usernameAttribute = spepConfigData->getUsernameAttribute();
 				
-				std::stringstream valueStream;
-				bool first = true;
-				for( std::vector<UnicodeString>::iterator attributeValueIterator = attributeIterator->second.begin(); 
-					attributeValueIterator != attributeIterator->second.end(); 
-					++attributeValueIterator )
+				std::string attributeValueSeparator = spepConfigData->getAttributeValueSeparator();
+				std::string attributeNamePrefix = spepConfigData->getAttributeNamePrefix();
+				for( spep::PrincipalSession::AttributeMapType::iterator attributeIterator = principalSession.getAttributeMap().begin();
+					attributeIterator != principalSession.getAttributeMap().end();
+					++attributeIterator )
 				{
-					std::string value = spep::UnicodeStringConversion::toString( *attributeValueIterator );
 					
-					if( first )
+					std::string name = spep::UnicodeStringConversion::toString( attributeIterator->first );
+					std::string envName = attributeNamePrefix + name;
+					
+					std::stringstream valueStream;
+					bool first = true;
+					for( std::vector<UnicodeString>::iterator attributeValueIterator = attributeIterator->second.begin(); 
+						attributeValueIterator != attributeIterator->second.end(); 
+						++attributeValueIterator )
 					{
-						valueStream << value;
-						first = false;
+						std::string value = spep::UnicodeStringConversion::toString( *attributeValueIterator );
+						
+						if( first )
+						{
+							valueStream << value;
+							first = false;
+						}
+						else
+						{
+							valueStream << attributeValueSeparator << value;
+						}
 					}
-					else
+					
+					std::string envValue = valueStream.str();
+					
+					// Insert the attribute name/value pair into the subprocess environment.
+					apr_table_set( req->subprocess_env, envName.c_str(), envValue.c_str() );
+					
+					if( name.compare( usernameAttribute ) == 0 )
 					{
-						valueStream << attributeValueSeparator << value;
-					}
-				}
-				
-				std::string envValue = valueStream.str();
-				
-				// Insert the attribute name/value pair into the subprocess environment.
-				apr_table_set( req->subprocess_env, envName.c_str(), envValue.c_str() );
-				
-				if( name.compare( usernameAttribute ) == 0 )
-				{
 #ifndef APACHE1
-					req->user = apr_pstrdup( req->pool, envValue.c_str() );
+						req->user = apr_pstrdup( req->pool, envValue.c_str() );
 #else
-					req->connection->user = apr_pstrdup( req->pool, envValue.c_str() );
+						req->connection->user = apr_pstrdup( req->pool, envValue.c_str() );
 #endif
+					}
 				}
+			}
+			
+			if( this->_spep->getSPEPConfigData()->disablePolicyEnforcement() )
+			{
+				// No need to perform authorization, just let them in.
+				return DECLINED;
 			}
 			
 			// Perform authorization on the URI requested.
@@ -150,7 +159,7 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 				principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 				validSession = true;
 			}
-			catch( spep::ipc::IPCException e )
+			catch( std::exception& e )
 			{
 			}
 			

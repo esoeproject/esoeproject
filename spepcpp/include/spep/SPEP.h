@@ -90,7 +90,7 @@ namespace spep
 		
 		SPEPMode _mode;
 		bool _isStarted;
-		long _connectionSequenceID;
+		std::string _serviceID;
 		
 		Mutex _mutex;
 		
@@ -98,7 +98,7 @@ namespace spep
 		saml2::IdentifierGenerator *_identifierGenerator;
 		saml2::SAMLValidator *_samlValidator;
 		
-		spep::ipc::ClientSocket *_clientSocket;
+		spep::ipc::ClientSocketPool *_socketPool;
 		
 		AuthnProcessor *_authnProcessor;
 		AttributeProcessor *_attributeProcessor;

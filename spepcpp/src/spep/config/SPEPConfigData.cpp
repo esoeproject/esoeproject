@@ -35,6 +35,9 @@ spep::SPEPConfigData::SPEPConfigData( const spep::SPEPConfigData &other )
 _started( other._started ),
 _lazyInit( other._lazyInit ),
 _lazyInitDefaultPermit( other._lazyInitDefaultPermit ),
+_disableAttributeQuery( other._disableAttributeQuery ),
+_disablePolicyEnforcement( other._disablePolicyEnforcement ),
+_disableSPEPStartup( other._disableSPEPStartup ),
 _defaultUrl( other._defaultUrl ),
 _loginRedirect( other._loginRedirect ),
 _ssoRedirect( other._ssoRedirect ),
@@ -65,15 +68,25 @@ spep::SPEPConfigData::SPEPConfigData( const spep::ConfigurationReader& config )
 	
 	// Grab the required config values from the ConfigurationReader instance.
 	std::string lazyInitString( config.getStringValue( CONFIGURATION_LAZYINIT ) );
-	std::transform( lazyInitString.begin(), lazyInitString.end(), lazyInitString.begin(), ::tolower );
-	
+	std::string disableAttributeQueryString( config.getStringValue( CONFIGURATION_DISABLEATTRIBUTEQUERY, "false" ) );
+	std::string disablePolicyEnforcementString( config.getStringValue( CONFIGURATION_DISABLEPOLICYENFORCEMENT, "false" ) );
+	std::string disableSPEPStartupString( config.getStringValue( CONFIGURATION_DISABLESPEPSTARTUP, "false" ) );
 	std::string lazyInitDefaultAction( config.getStringValue( CONFIGURATION_LAZYINITDEFAULTACTION, std::string() ) );
+	
+	std::transform( lazyInitString.begin(), lazyInitString.end(), lazyInitString.begin(), ::tolower );
+	std::transform( disableAttributeQueryString.begin(), disableAttributeQueryString.end(), disableAttributeQueryString.begin(), ::tolower );
+	std::transform( disablePolicyEnforcementString.begin(), disablePolicyEnforcementString.end(), disablePolicyEnforcementString.begin(), ::tolower );
+	std::transform( disableSPEPStartupString.begin(), disableSPEPStartupString.end(), disableSPEPStartupString.begin(), ::tolower );
 	std::transform( lazyInitDefaultAction.begin(), lazyInitDefaultAction.end(), lazyInitDefaultAction.begin(), ::tolower );
 	
 	this->_lazyInit = ( lazyInitString.compare( "true" ) == 0 );
-	bool x = ( lazyInitDefaultAction.compare( std::string("permit") ) == 0 );
-	this->_lazyInitDefaultPermit = x;
+	this->_lazyInitDefaultPermit = ( lazyInitDefaultAction.compare( "permit" ) == 0 );
 	this->_defaultUrl = config.getStringValue( CONFIGURATION_DEFAULTURL );
+	
+	this->_disableAttributeQuery = ( disableAttributeQueryString.compare( "true" ) == 0 );
+	this->_disablePolicyEnforcement = ( disablePolicyEnforcementString.compare( "true" ) == 0 );
+	this->_disableSPEPStartup = ( disableSPEPStartupString.compare( "true" ) == 0 );
+	
 	this->_loginRedirect = config.getStringValue( CONFIGURATION_LOGINREDIRECT );
 	this->_ssoRedirect = config.getStringValue( CONFIGURATION_SSOREDIRECT );
 	this->_tokenName = config.getStringValue( CONFIGURATION_SPEPTOKENNAME );
@@ -139,6 +152,9 @@ spep::SPEPConfigData& spep::SPEPConfigData::operator=( const spep::SPEPConfigDat
 	this->_started = other._started;
 	this->_lazyInit = other._lazyInit;
 	this->_lazyInitDefaultPermit = other._lazyInitDefaultPermit;
+	this->_disableAttributeQuery = other._disableAttributeQuery;
+	this->_disablePolicyEnforcement = other._disablePolicyEnforcement;
+	this->_disableSPEPStartup = other._disableSPEPStartup;
 	this->_defaultUrl = other._defaultUrl;
 	this->_loginRedirect = other._loginRedirect;
 	this->_ssoRedirect = other._ssoRedirect;
@@ -166,6 +182,8 @@ spep::SPEPConfigData& spep::SPEPConfigData::operator=( const spep::SPEPConfigDat
 
 bool spep::SPEPConfigData::isStarted()
 {
+	if( this->_disableSPEPStartup ) return true;
+	
 	return this->_started;
 }
 
@@ -177,6 +195,21 @@ bool spep::SPEPConfigData::isLazyInit()
 bool spep::SPEPConfigData::isLazyInitDefaultPermit()
 {
 	return this->_lazyInitDefaultPermit;
+}
+
+bool spep::SPEPConfigData::disableAttributeQuery()
+{
+	return this->_disableAttributeQuery;
+}
+
+bool spep::SPEPConfigData::disablePolicyEnforcement()
+{
+	return this->_disablePolicyEnforcement;
+}
+
+bool spep::SPEPConfigData::disableSPEPStartup()
+{
+	return this->_disableSPEPStartup;
 }
 
 void spep::SPEPConfigData::setStarted( bool started )

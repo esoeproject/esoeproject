@@ -25,9 +25,9 @@ static const char *clearCache = SESSIONGROUPCACHE_clearCache;
 static const char *makeCachedAuthzDecision = SESSIONGROUPCACHE_makeCachedAuthzDecision;
 
 
-spep::ipc::SessionGroupCacheProxy::SessionGroupCacheProxy( spep::ipc::ClientSocket *clientSocket )
+spep::ipc::SessionGroupCacheProxy::SessionGroupCacheProxy( spep::ipc::ClientSocketPool *socketPool )
 :
-_clientSocket( clientSocket )
+_socketPool( socketPool )
 {
 }
 
@@ -39,18 +39,24 @@ void spep::ipc::SessionGroupCacheProxy::updateCache( std::wstring &sessionID, Un
 {
 	std::string dispatch( ::updateCache );
 	SessionGroupCache_UpdateCacheCommand command( sessionID, groupTarget, authzTargets, decision );
-	_clientSocket->makeNonBlockingRequest<SessionGroupCache_UpdateCacheCommand>( dispatch, command );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest<SessionGroupCache_UpdateCacheCommand>( dispatch, command );
 }
 
 void spep::ipc::SessionGroupCacheProxy::clearCache( std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets )
 {
 	std::string dispatch( ::clearCache );
-	_clientSocket->makeNonBlockingRequest< std::map< UnicodeString, std::vector<UnicodeString> > >( dispatch, groupTargets );
+
+	ClientSocketLease clientSocket( _socketPool );
+	clientSocket->makeNonBlockingRequest< std::map< UnicodeString, std::vector<UnicodeString> > >( dispatch, groupTargets );
 }
 
 spep::Decision spep::ipc::SessionGroupCacheProxy::makeCachedAuthzDecision( std::wstring sessionID, UnicodeString resource )
 {
 	std::string dispatch( ::makeCachedAuthzDecision );
 	SessionGroupCache_MakeCachedAuthzDecisionCommand command( sessionID, resource );
-	return _clientSocket->makeRequest< spep::Decision, SessionGroupCache_MakeCachedAuthzDecisionCommand >( dispatch, command );
+	
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< spep::Decision, SessionGroupCache_MakeCachedAuthzDecisionCommand >( dispatch, command );
 }

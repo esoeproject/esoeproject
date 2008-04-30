@@ -53,52 +53,372 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+
+
+bool SPEPDaemonIsRunning = true;
+
+void doInit( spep::ConfigurationReader &configuration, std::vector<spep::Handler*> &handlers, bool verbose, bool debug );
+
+// Dirty, but it will let us log errors before the logging system is initialized properly.
+// Hopefully this will disappear when there is a better logging library in place.
+void directLog( std::vector<spep::Handler*> &handlers, const std::string& message )
+{
+	for( std::vector<spep::Handler*>::iterator iter = handlers.begin(); iter != handlers.end(); ++iter )
+	{
+		(*iter)->log( "Startup", spep::FATAL, message );
+	}
+}
+
+void parseConfig( boost::program_options::variables_map& configFileVariableMap, std::istream& configFileInput, std::vector<spep::Handler*>& handlers )
+{
+	// Set up the configuration parameters.
+	boost::program_options::options_description configDescription( "spep configuration options" );
+	spep::ConfigurationReader::addOptions( configDescription );
+	
+	try
+	{
+		// Parse and store it in the variable map
+		boost::program_options::store(
+			boost::program_options::parse_config_file(configFileInput, configDescription),
+			configFileVariableMap
+		);
+	}
+	catch( boost::program_options::ambiguous_option& ex )
+	{
+		std::cerr << "Ambiguous option while reading the configuration. Error was: " << ex.what() << std::endl;
+		directLog( handlers, "Ambiguous option while reading the configuration." );
+		directLog( handlers, std::string("Error was: ") + ex.what() );
+		exit(2);
+	}
+	catch( boost::program_options::invalid_syntax& ex )
+	{
+		std::cerr << "Invalid syntax while reading the configuration. Error was: " << ex.what() << std::endl;
+		directLog( handlers, "Invalid syntax while reading the configuration." );
+		directLog( handlers, std::string("Error was: ") + ex.what() );
+		exit(2);
+	}
+	catch( boost::program_options::unknown_option& ex )
+	{
+		std::cerr << "Unknown option while reading the configuration. Error was: " << ex.what() << std::endl;
+		directLog( handlers, "Unknown option while reading the configuration." );
+		directLog( handlers, std::string("Error was: ") + ex.what() );
+		exit(2);
+	}
+	catch( boost::program_options::error& ex )
+	{
+		std::cerr << "Unexpected error occurred reading the configuration." << std::endl;
+		directLog( handlers, "Unexpected error occurred reading the configuration." );
+		exit(2);
+	}
+	catch( std::exception& ex )
+	{
+		std::cerr << "Error occurred reading the configuration. Error was: " << ex.what() << std::endl;
+		directLog( handlers, "Error occurred reading the configuration." );
+		directLog( handlers, std::string("Error was: ") + ex.what() );
+		exit(2);
+	}
+}
+
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 // Include winsock2 before windows so it doesn't screw with our socket stuff
 #include <winsock2.h>
 #include <windows.h>
+#include <winsvc.h>
 
-int main( int argc, char **argv );
 
-int WINAPI WinMain(
-	HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine,
-	int nCmdShow
-	)
+#define 	REGISTRY_KEY_SOFTWARE 		"Software"
+#define 	REGISTRY_KEY_ESOEPROJECT 	"ESOE Project"
+#define 	REGISTRY_KEY_SPEP 			"SPEP"
+
+#define		SPEPSERVICE_NAME			"SPEP Service"
+#define		SPEPSERVICE_DESCRIPTION		"Handles the caching of data for SPEP protected services."
+
+void WINAPI ServiceMain( DWORD argc, LPSTR *argv );
+
+
+class SPEPService
 {
-	LPWSTR* argList;
-	int argc = 0;
-	argList = CommandLineToArgvW( GetCommandLineW(), &argc );
+	public:
+	static bool isInited;
+	static SERVICE_STATUS serviceStatus;
+	static SERVICE_STATUS_HANDLE serviceStatusHandle;
 
-	if( argList == NULL )
+	static void WINAPI ServiceControlHandler( DWORD code )
 	{
-		std::cerr << "Failed to get command line arguments." << std::endl;
-		return 1;
+		if( code == SERVICE_CONTROL_STOP )
+		{
+			serviceStatus.dwWin32ExitCode = NO_ERROR;
+			updateStatus( SERVICE_STOPPED );
+			SPEPDaemonIsRunning = false;
+		}
 	}
 
-	spep::AutoArray< spep::CArray<char> > translatedArgs( argc );
-	char **argv = new char*[ argc + 1 ];
-	for( int i = 0; i < argc; ++i )
+	static void updateStatus( DWORD status )
 	{
-		std::string currentArg = spep::UnicodeStringConversion::toString( std::wstring(argList[i]) );
-		std::size_t length = currentArg.length() + 1;
-		translatedArgs[i].resize( length );
-		currentArg.copy( translatedArgs[i].get(), length );
+		if( !isInited )
+		{
+			serviceStatusHandle = RegisterServiceCtrlHandler( SPEPSERVICE_NAME, ServiceControlHandler );
+			isInited = true;
+		}
 
-		argv[i] = translatedArgs[i].get();
+		serviceStatus.dwCurrentState = status;
+		SetServiceStatus( serviceStatusHandle, &serviceStatus );
 	}
-	argv[argc] = NULL;
+};
 
-	LocalFree( argList );
-	return main( argc, argv );
+class ServiceController
+{
+	private:
+	SC_HANDLE _scManager;
+	public:
+	ServiceController()
+	{
+		_scManager = OpenSCManager( NULL, NULL, SC_MANAGER_ALL_ACCESS );
+	}
+
+	bool registerService( const std::string& serviceName, const std::string& description, const std::string& filename )
+	{
+		if( _scManager == NULL ) return false;
+
+		SC_HANDLE service = CreateService( _scManager,
+			serviceName.c_str(),
+			description.c_str(),
+			SERVICE_ALL_ACCESS,
+			SERVICE_WIN32_OWN_PROCESS,
+			SERVICE_AUTO_START,
+			SERVICE_ERROR_NORMAL,
+			filename.c_str(),
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			NULL );
+
+		return( service != NULL );
+	}
+
+	bool unregisterService( const std::string& serviceName )
+	{
+		if( _scManager == NULL ) return false;
+
+		SC_HANDLE service = OpenService( _scManager, serviceName.c_str(), SERVICE_ALL_ACCESS );
+
+		if( service == NULL ) return false;
+
+		return DeleteService(service) != 0;
+	}
+};
+
+bool SPEPService::isInited = false;
+SERVICE_STATUS SPEPService::serviceStatus;
+SERVICE_STATUS_HANDLE SPEPService::serviceStatusHandle;
+
+/*
+ * This is only used locally, that's why it's defined in the .cpp file
+ */
+class RegistryKey
+{
+	private:
+	HKEY _hKey;
+	LONG _result;
+	
+	public:
+	RegistryKey( HKEY parent, const char *name, REGSAM samDesired = KEY_READ )
+	{
+		this->_result = RegOpenKeyEx( parent, name, 0, samDesired, &(this->_hKey) );
+	}
+	
+	RegistryKey( const RegistryKey& parent, const char *name, REGSAM samDesired = KEY_READ )
+	{
+		this->_result = RegOpenKeyEx( parent._hKey, name, 0, samDesired, &(this->_hKey) );
+	}
+	
+	~RegistryKey()
+	{
+		if( this->valid() )
+		{
+			RegCloseKey( this->_hKey );
+		}
+	}
+	
+	bool valid()
+	{
+		// Yeah, I laughed too.
+		return ( this->_result == ERROR_SUCCESS );
+	}
+	
+	std::string queryValueString( const char *name, DWORD keyType = REG_SZ )
+	{
+		DWORD keyDataLength = 0;
+		DWORD keyTypeParam = keyType;
+		
+		// One call to get the size
+		RegQueryValueEx( this->_hKey, name, NULL, &keyTypeParam, NULL, &keyDataLength );
+		spep::CArray<char> keyData( keyDataLength + 1 );
+		
+		keyTypeParam = keyType;
+		
+		// One call to get the value
+		RegQueryValueEx( this->_hKey, name, NULL, &keyTypeParam, reinterpret_cast<PBYTE>(keyData.get()), &keyDataLength );
+		keyData[ keyDataLength ] = '\0';
+		
+		return std::string( keyData.get(), keyDataLength );
+	}
+};
+
+int main( int argc, char** argv )
+{
+	if( argc > 1 )
+	{
+		ServiceController sc;
+
+		std::string arg( argv[1] );
+		if( arg.compare("-i") == 0 )
+		{
+			std::cout << "Going to install service... ";
+
+			TCHAR path[ MAX_PATH ];
+			GetModuleFileName( NULL, path, sizeof(path) );
+
+			if( sc.registerService( SPEPSERVICE_NAME, SPEPSERVICE_NAME, path ) )
+			{
+				std::cout << "done." << std::endl;
+			}
+			else
+			{
+				std::cout << "FAILED." << std::endl;
+			}
+		}
+		else if( arg.compare("-u") == 0 )
+		{
+			std::cout << "Going to uninstall service... ";
+			if( sc.unregisterService( SPEPSERVICE_NAME ) )
+			{
+				std::cout << "done." << std::endl;
+			}
+			else
+			{
+				std::cout << "FAILED." << std::endl;
+			}
+		}
+		else if( arg.compare("-x") == 0 )
+		{
+			ServiceMain(argc,argv);
+		}
+		else
+		{
+			std::cout << "Usage: " << argv[0] << " [-i | -u | -x]" << std::endl;
+			std::cout << "  -i   Install service" << std::endl;
+			std::cout << "  -u   Uninstall service" << std::endl;
+			std::cout << "  -x   Debug service" << std::endl;
+			return 1;
+		}
+
+		return 0;
+	}
+	
+	SERVICE_TABLE_ENTRY serviceTable[] = {
+			{ "SPEP Service", &ServiceMain },
+			{ NULL, NULL }
+	};
+	
+	StartServiceCtrlDispatcher( serviceTable );
 }
-#endif
+
+void WINAPI ServiceMain( DWORD argc, LPSTR *argv )
+{
+	std::memset( &SPEPService::serviceStatus, 0, sizeof(SPEPService::serviceStatus) );
+	SPEPService::serviceStatus.dwServiceType = SERVICE_WIN32;
+	SPEPService::serviceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+
+	SPEPService::updateStatus( SERVICE_START_PENDING );
+
+	std::vector<spep::Handler*> handlers;
+	
+	std::auto_ptr<spep::daemon::StreamLogHandler> logHandler;
+	std::auto_ptr<std::ostream> stream;
+	
+	std::string logFilename;
+
+	boost::program_options::variables_map configFileVariableMap;
+	bool readConfig = false;
+	
+	// Open the registry to get the filename
+	RegistryKey rKeySoftware( HKEY_LOCAL_MACHINE, REGISTRY_KEY_SOFTWARE, KEY_ENUMERATE_SUB_KEYS );
+	if( rKeySoftware.valid() )
+	{
+		RegistryKey rKeyESOEProject( rKeySoftware, REGISTRY_KEY_ESOEPROJECT, KEY_ENUMERATE_SUB_KEYS );
+		if( rKeyESOEProject.valid() )
+		{
+			RegistryKey rKeySPEP( rKeyESOEProject, REGISTRY_KEY_SPEP, KEY_READ );
+			if( rKeySPEP.valid() )
+			{
+				std::string configFilename( rKeySPEP.queryValueString( "ConfigFile" ) );
+				logFilename = ( rKeySPEP.queryValueString( "LogFile" ) );
+
+				if( logFilename.length() != 0 )
+				{
+					stream.reset( new std::ofstream( logFilename.c_str() ) );
+					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, spep::DEBUG ) );
+
+					handlers.push_back( logHandler.get() );
+				}
+
+				// Read the file
+				std::ifstream configFileInput( configFilename.c_str() );
+				
+				if( configFileInput.good() )
+				{
+					parseConfig( configFileVariableMap, configFileInput, handlers );
+					
+					readConfig = true;
+				}
+				else
+				{
+					directLog( handlers, "The config file specified in the registry key doesn't exist." );
+					return;
+				}
+			}
+			else
+			{
+				directLog( handlers, "Couldn't open HKEY_LOCAL_MACHINE\Software\ESOE Project\SPEP" );
+				return;
+			}
+		}
+		else
+		{
+			directLog( handlers, "Couldn't open HKEY_LOCAL_MACHINE\Software\ESOE Project" );
+			return;
+		}
+	}
+	else
+	{
+		directLog( handlers, "Couldn't open HKEY_LOCAL_MACHINE\Software" );
+		return;
+	}
+	
+	// Config wasn't read
+	if( !readConfig )
+	{
+		directLog( handlers, "No config file could be read. Terminating." );
+		return;
+	}
+
+	// Initialize curl. This is needed on win32 platforms to make sure sockets function properly.
+	curl_global_init( CURL_GLOBAL_ALL );
+	
+	// Get configuration
+	spep::ConfigurationReader configReader( configFileVariableMap );
+	
+	SPEPService::updateStatus( SERVICE_RUNNING );
+	doInit( configReader, handlers, false, false );
+}
+
+#else //WIN32
 
 int main( int argc, char **argv )
 {
-	
 	boost::program_options::options_description commandLineDescription( "spepd options" );
 	// Declare command line arguments
 	commandLineDescription.add_options()
@@ -107,6 +427,7 @@ int main( int argc, char **argv )
 		( "log-file,l", boost::program_options::value< std::string >(), "file to send log output to" )
 		( "debug", "run in debug mode (don't fork to become daemon)" )
 		( "verbose,v", "run in verbose mode (display some messages on startup to describe what is happening)" )
+		( "pid-file,p", boost::program_options::value< std::vector<std::string> >(), "file to store pid when starting" )
 	;
 	boost::program_options::variables_map commandLineVariableMap;
 	// Parse and store command line args in the variable map
@@ -125,10 +446,27 @@ int main( int argc, char **argv )
 	}
 	
 	bool verbose = (commandLineVariableMap.count("help") != 0);
+	bool debug = (commandLineVariableMap.count("debug") != 0);
 	
-	// Set up the configuration parameters.
-	boost::program_options::options_description configDescription( "spepd configuration options" );
-	spep::ConfigurationReader::addOptions( configDescription );
+	std::vector<spep::Handler*> handlers;
+	
+	std::auto_ptr<spep::daemon::StreamLogHandler> logHandler;
+	std::auto_ptr<std::ostream> stream;
+	
+	if( commandLineVariableMap.count("log-file") )
+	{
+		std::string filename( commandLineVariableMap["log-file"].as<std::string>() );
+		stream.reset( new std::ofstream( filename.c_str() ) );
+		if( ! stream->good() )
+		{
+			std::cerr << "Couldn't open output stream for " << filename << std::endl;
+			exit(3);
+		}
+		
+		// TODO This should be configurable.
+		logHandler.reset( new spep::daemon::StreamLogHandler( *stream, spep::INFO ) );
+		handlers.push_back( logHandler.get() );
+	}
 	
 	// Load config
 	boost::program_options::variables_map configFileVariableMap;
@@ -151,15 +489,23 @@ int main( int argc, char **argv )
 			exit(1);
 		}
 		
-		// Parse and store it in the variable map
-		boost::program_options::store(
-			boost::program_options::parse_config_file(configFileInput, configDescription),
-			configFileVariableMap
-		);
+		parseConfig( configFileVariableMap, configFileInput, handlers );
 		
 		// File will be closed when configFileInput object is deleted
 	}
 	
+	const std::vector<std::string> &pidFileList = commandLineVariableMap["pid-file"].as< std::vector<std::string> >();
+	// Loop through every pid file specified.
+	for( std::vector<std::string>::const_iterator pidFileIterator = pidFileList.begin(); pidFileIterator != pidFileList.end(); ++pidFileIterator )
+	{
+		if( verbose )
+		{
+			std::cout << "Writing PID to " << *pidFileIterator << std::endl << std::flush;
+		}
+		
+		spep::daemon::Daemon::pidFileList.push_back( *pidFileIterator );
+	}
+
 	if( verbose )
 	{
 		std::cout << "Finished reading configuration." << std::endl << std::flush;
@@ -170,6 +516,14 @@ int main( int argc, char **argv )
 	// Validate everything
 	spep::ConfigurationReader configuration( configFileVariableMap );
 	
+	doInit( configuration, handlers, verbose, debug );
+}
+
+#endif //WIN32
+
+
+void doInit( spep::ConfigurationReader &configuration, std::vector<spep::Handler*> &handlers, bool verbose, bool debug )
+{
 	if( configuration.isValid() )
 	{
 		if( verbose )
@@ -180,6 +534,8 @@ int main( int argc, char **argv )
 	else
 	{
 		std::cerr << "Error validating configuration" << std::endl;
+		directLog( handlers, "Error occurred during startup. Config was invalid." );
+		
 		exit(2);
 	}
 	
@@ -187,7 +543,7 @@ int main( int argc, char **argv )
 	spep::daemon::Daemon::prepare();
 	
 	// Then become a daemon, unless we're in debug mode
-	if( !commandLineVariableMap.count("debug") )
+	if( !debug )
 	{
 		if( verbose )
 		{
@@ -197,33 +553,26 @@ int main( int argc, char **argv )
 		spep::daemon::Daemon::daemonize();
 	}
 	
-	std::auto_ptr<spep::daemon::StreamLogHandler> logHandler;
-	std::auto_ptr<std::ostream> stream;
-	std::vector<spep::Handler*> handlers;
-	
-	if( commandLineVariableMap.count("log-file") )
-	{
-		std::string filename( commandLineVariableMap["log-file"].as<std::string>() );
-		stream.reset( new std::ofstream( filename.c_str() ) );
-		if( ! stream->good() )
-		{
-			std::cerr << "Couldn't open output stream for " << filename << std::endl;
-			exit(3);
-		}
-		
-		// TODO This should be configurable.
-		logHandler.reset( new spep::daemon::StreamLogHandler( *stream, spep::INFO ) );
-		handlers.push_back( logHandler.get() );
-	}
-	
 	std::auto_ptr<spep::daemon::StreamLogHandler> debugHandler;
-	if( commandLineVariableMap.count("debug") )
+	if( debug )
 	{
 		debugHandler.reset( new spep::daemon::StreamLogHandler( std::cout, spep::DEBUG ) );
 		handlers.push_back( debugHandler.get() );
 	}
 	
-	std::auto_ptr<spep::SPEP> spep( spep::SPEP::initializeServer( configuration, handlers ) );
+	std::auto_ptr<spep::SPEP> spep;
+	try
+	{
+		spep.reset( spep::SPEP::initializeServer( configuration, handlers ) );
+	}
+	catch( std::exception& ex )
+	{
+		std::cout << "Error occurred during startup. Error was: " << ex.what() << std::endl;
+		directLog( handlers, "Error occurred during startup." );
+		directLog( handlers, std::string("Error encountered: ") + ex.what() );
+		
+		return;
+	}
 	
 	std::vector<spep::ipc::Dispatcher*> dispatcherList;
 	
@@ -246,5 +595,5 @@ int main( int argc, char **argv )
 	
 	int port = configuration.getIntegerValue( CONFIGURATION_SPEPDAEMONPORT );
 	spep::ipc::ServerSocket<spep::ipc::ExceptionCatchingDispatcher> serverSocket( dispatcher, port );
-	serverSocket.listen();
+	serverSocket.listen( &SPEPDaemonIsRunning );
 }

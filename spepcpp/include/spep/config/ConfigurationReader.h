@@ -80,6 +80,11 @@
 #define CONFIGURATION_SESSIONCACHEINTERVAL "sessionCacheInterval"
 #define CONFIGURATION_DEFAULTPOLICYDECISION "defaultPolicyDecision"
 
+// Disabling functionality
+#define CONFIGURATION_DISABLEATTRIBUTEQUERY "disableAttributeQuery"
+#define CONFIGURATION_DISABLEPOLICYENFORCEMENT "disablePolicyEnforcement"
+#define CONFIGURATION_DISABLESPEPSTARTUP "disableSPEPStartup"
+
 //#define CONFIGURATION_TOKENDOMAIN "tokenDomain"
 //#define CONFIGURATION_KEYPATH "keyPath"
 //#define CONFIGURATION_SPEPPRIVATEKEYFILENAME "spepPrivateKeyFilename"

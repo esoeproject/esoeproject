@@ -22,9 +22,9 @@
 
 static const char *getSPEPConfigData = CONFIGURATION_getSPEPConfigData;
 
-spep::ipc::ConfigurationProxy::ConfigurationProxy( spep::ipc::ClientSocket *clientSocket )
+spep::ipc::ConfigurationProxy::ConfigurationProxy( spep::ipc::ClientSocketPool *socketPool )
 :
-_clientSocket( clientSocket )
+_socketPool( socketPool )
 {
 }
 
@@ -33,7 +33,8 @@ spep::SPEPConfigData spep::ipc::ConfigurationProxy::getSPEPConfigData()
 	std::string dispatch( ::getSPEPConfigData );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< spep::SPEPConfigData >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< spep::SPEPConfigData >( dispatch, noData );
 }
 
 spep::ipc::ConfigurationProxy::~ConfigurationProxy()

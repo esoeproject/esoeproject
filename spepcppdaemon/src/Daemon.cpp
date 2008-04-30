@@ -25,16 +25,11 @@
 #include <cstdlib>
 
 #include <iostream>
+#include <fstream>
 
 #ifdef WIN32
-/* Windows implementation */
-
 
 void spep::daemon::Daemon::daemonize()
-{
-}
-
-void spep::daemon::Daemon::closefd()
 {
 }
 
@@ -44,9 +39,10 @@ void spep::daemon::Daemon::prepare()
 
 #else /*WIN32*/
 
+std::vector<std::string> spep::daemon::Daemon::pidFileList;
+
 void spep::daemon::Daemon::daemonize()
 {
-	// TODO Do we need this for other platforms? I'm guessing not.
 	// Become a daemon.
 	int pid = fork();
 	if( pid == 0 )
@@ -55,8 +51,9 @@ void spep::daemon::Daemon::daemonize()
 		pid = fork();
 		if( pid == 0 )
 		{
-			// Child process. Close file descriptors and return safely.
-			Daemon::closefd();
+			
+			// Child process.
+			setsid();
 			return;
 		}
 		else if( pid == -1 )
@@ -66,7 +63,21 @@ void spep::daemon::Daemon::daemonize()
 		}
 		else
 		{
-			// Parent process. Terminate
+			// Parent process. Write child PID and terminate
+			for( std::vector<std::string>::const_iterator pidFileIterator = pidFileList.begin(); pidFileIterator != pidFileList.end(); ++pidFileIterator )
+			{
+				std::ofstream pidFileOutput( pidFileIterator->c_str(), std::ios::out|std::ios::trunc );
+				if( !pidFileOutput.good() )
+				{
+					std::cerr << "Couldn't write PID to file: " << *pidFileIterator << " .. continuing anyway." << std::endl;
+				}
+				else
+				{
+					pidFileOutput << pid << std::flush;
+					pidFileOutput.close();
+				}
+			}
+			
 			_exit(0);
 		}
 		
@@ -81,15 +92,6 @@ void spep::daemon::Daemon::daemonize()
 		// Parent process. Terminate
 		_exit(0);
 	}
-}
-
-void spep::daemon::Daemon::closefd()
-{
-	
-	//fclose( stdin );
-	//fclose( stdout );
-	//fclose( stderr );
-	
 }
 
 void spep::daemon::Daemon::prepare()

@@ -29,12 +29,12 @@ spep::ipc::platform::socket_t spep::ipc::ClientSocket::newSocket( int port )
 	return socket;
 }
 
-spep::ipc::ClientSocket::ClientSocket( int port )
+spep::ipc::ClientSocket::ClientSocket( spep::ipc::ClientSocketPool* pool, int port )
 :
+_pool( pool ),
 _socket( ),//spep::ipc::ClientSocket::ClientSocket::newSocket(port) ),
 _engine( NULL ),
-_port( port ),
-_connectionSequenceID( 0 )
+_port( port )
 {
 	//_engine = new Engine( _socket );
 }
@@ -47,7 +47,7 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 	// TODO Maybe I should care if this fails [i.e. if (boost::xtime_get(..) == 0)]
 	boost::xtime_get( &retryAt, boost::TIME_UTC );
 	retryAt.sec += delay;
-	
+
 	if( _engine != NULL )
 	{
 		// Unset it so we don't keep hammering a broken connection. The OS might not like that so much.
@@ -56,21 +56,87 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 	}
 	
 	boost::thread::sleep( retryAt );
-	
-	try
+
 	{
-		_socket = this->newSocket(_port);
-		_engine = new Engine( _socket );
-		_connectionSequenceID++;
-	}
-	catch( SocketException e )
-	{
+		ScopedLock lock( _mutex );
+		
+		try
+		{
+			_socket = this->newSocket(_port);
+			_engine = new Engine( _socket );
+			
+			std::string serviceID;
+			_engine->getObject( serviceID );
+			_pool->setServiceID( serviceID );
+		}
+		catch( SocketException e )
+		{
+			if( _engine != NULL ) delete _engine;
+			_engine = NULL;
+		}
 	}
 }
 
-long spep::ipc::ClientSocket::getConnectionSequenceID()
+spep::ipc::ClientSocketPool::ClientSocketPool( int port, std::size_t n )
+{
+	for( std::size_t i=0; i<n; ++i )
+	{
+		_free.push( new ClientSocket( this, port ) );
+	}
+}
+
+spep::ipc::ClientSocket* spep::ipc::ClientSocketPool::get()
+{
+	ScopedLock lock( _mutex );
+	if( _free.empty() )
+	{
+		_condition.wait( lock );
+	}
+	
+	ClientSocket* sock = _free.front();
+	_free.pop();
+	return sock;
+}
+
+void spep::ipc::ClientSocketPool::release( spep::ipc::ClientSocket* socket )
+{
+	ScopedLock lock( _mutex );
+	_free.push( socket );
+	_condition.notify_one();
+}
+
+const std::string& spep::ipc::ClientSocketPool::getServiceID()
 {
 	ScopedLock lock( _mutex );
 	
-	return this->_connectionSequenceID;
+	return this->_serviceID;
+}
+
+void spep::ipc::ClientSocketPool::setServiceID( const std::string& serviceID )
+{
+	ScopedLock lock( _mutex );
+	
+	this->_serviceID = serviceID;
+}
+
+spep::ipc::ClientSocketLease::ClientSocketLease( spep::ipc::ClientSocketPool* pool )
+:
+_pool( pool ),
+_socket( pool->get() )
+{
+}
+
+spep::ipc::ClientSocketLease::~ClientSocketLease()
+{
+	_pool->release( _socket );
+}
+
+spep::ipc::ClientSocket* spep::ipc::ClientSocketLease::operator->()
+{
+	return _socket;
+}
+
+spep::ipc::ClientSocket* spep::ipc::ClientSocketLease::operator*()
+{
+	return _socket;
 }

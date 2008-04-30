@@ -31,7 +31,7 @@ namespace spep { namespace ipc {
 	{
 		
 		public:
-		SessionCacheProxy( spep::ipc::ClientSocket *clientSocket );
+		SessionCacheProxy( spep::ipc::ClientSocketPool *socketPool );
 		
 		/** @see spep::SessionCache */
 		/*@{*/
@@ -49,7 +49,7 @@ namespace spep { namespace ipc {
 
 		private:
 		// Defined mutable because even for const methods we still need to make an RPC call.
-		mutable spep::ipc::ClientSocket *_clientSocket;
+		mutable spep::ipc::ClientSocketPool *_socketPool;
 		
 	};
 	

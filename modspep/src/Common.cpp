@@ -80,6 +80,7 @@ extern "C" const char *parse_port_string( cmd_parms *parms, void* cfg, const cha
 		config->instance->logger = NULL;
 		
 		global_SPEPServerConfigList.push_back( config );
+		apr_pool_cleanup_register( config->serverPool, static_cast<void*>(config), modspep_cleanup_config, apr_pool_cleanup_null );
 		
 		return NULL;
 	}
@@ -243,6 +244,24 @@ extern "C" void* modspep_merge_server_config( apr_pool_t *pool, void *BASE, void
 	}
 	
 	return result;
+}
+
+apr_status_t modspep_cleanup_config( void *data )
+{
+	for( std::vector<SPEPServerConfig*>::iterator iter = global_SPEPServerConfigList.begin();
+		iter != global_SPEPServerConfigList.end(); /* increment in body */ )
+	{
+		if( *iter == static_cast<SPEPServerConfig*>(data) )
+		{
+			// Erase and assign the "next" element as the iterator position
+			iter = global_SPEPServerConfigList.erase( iter );
+		}
+		else
+		{
+			// Need to increment here since we aren't doing it in the for loop
+			++iter;
+		}
+	}
 }
 
 extern "C" void modspep_child_init( apr_pool_t *pchild, server_rec *s )

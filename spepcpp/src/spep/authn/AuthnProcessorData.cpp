@@ -19,6 +19,11 @@
 
 #include "spep/authn/AuthnProcessorData.h"
 
+spep::AuthnProcessorData::AuthnProcessorData()
+{
+	_disableAttributeQuery = false;
+}
+
 std::string spep::AuthnProcessorData::getRequestURL()
 {
 	return _requestURL;
@@ -69,3 +74,12 @@ void spep::AuthnProcessorData::setResponseDocument( const saml2::SAMLDocument& d
 	_responseDocument = document;
 }
 
+void spep::AuthnProcessorData::setDisableAttributeQuery( bool value )
+{
+	_disableAttributeQuery = value;
+}
+
+bool spep::AuthnProcessorData::getDisableAttributeQuery()
+{
+	return _disableAttributeQuery;
+}

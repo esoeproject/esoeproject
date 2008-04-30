@@ -31,9 +31,9 @@ static const char *getAuthzServiceEndpoint = METADATA_getAuthzServiceEndpoint;
 static const char *getSPEPStartupServiceEndpoint = METADATA_getSPEPStartupServiceEndpoint;
 static const char *resolveKey = METADATA_resolveKey;
 
-spep::ipc::MetadataProxy::MetadataProxy( spep::ipc::ClientSocket *clientSocket )
+spep::ipc::MetadataProxy::MetadataProxy( spep::ipc::ClientSocketPool *socketPool )
 :
-_clientSocket( clientSocket )
+_socketPool( socketPool )
 {
 }
 
@@ -55,7 +55,8 @@ const std::wstring spep::ipc::MetadataProxy::getSPEPIdentifier() const
 	std::string dispatch( ::getSPEPIdentifier );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::wstring >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::wstring >( dispatch, noData );
 }
 
 const std::wstring spep::ipc::MetadataProxy::getESOEIdentifier() const
@@ -63,7 +64,8 @@ const std::wstring spep::ipc::MetadataProxy::getESOEIdentifier() const
 	std::string dispatch( ::getESOEIdentifier );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::wstring >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::wstring >( dispatch, noData );
 }
 
 const std::string spep::ipc::MetadataProxy::getSingleSignOnEndpoint() const
@@ -71,7 +73,8 @@ const std::string spep::ipc::MetadataProxy::getSingleSignOnEndpoint() const
 	std::string dispatch( ::getSingleSignOnEndpoint );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::string >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::string >( dispatch, noData );
 }
 
 const std::string spep::ipc::MetadataProxy::getSingleLogoutEndpoint() const
@@ -79,7 +82,8 @@ const std::string spep::ipc::MetadataProxy::getSingleLogoutEndpoint() const
 	std::string dispatch( ::getSingleLogoutEndpoint );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::string >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::string >( dispatch, noData );
 }
 
 const std::string spep::ipc::MetadataProxy::getAttributeServiceEndpoint() const
@@ -87,7 +91,8 @@ const std::string spep::ipc::MetadataProxy::getAttributeServiceEndpoint() const
 	std::string dispatch( ::getAttributeServiceEndpoint );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::string >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::string >( dispatch, noData );
 }
 
 const std::string spep::ipc::MetadataProxy::getAuthzServiceEndpoint() const
@@ -95,7 +100,8 @@ const std::string spep::ipc::MetadataProxy::getAuthzServiceEndpoint() const
 	std::string dispatch( ::getAuthzServiceEndpoint );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::string >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::string >( dispatch, noData );
 }
 
 const std::string spep::ipc::MetadataProxy::getSPEPStartupServiceEndpoint() const
@@ -103,7 +109,8 @@ const std::string spep::ipc::MetadataProxy::getSPEPStartupServiceEndpoint() cons
 	std::string dispatch( ::getSPEPStartupServiceEndpoint );
 	spep::ipc::NoData noData;
 	
-	return _clientSocket->makeRequest< std::string >( dispatch, noData );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< std::string >( dispatch, noData );
 }
 
 XSECCryptoKey *spep::ipc::MetadataProxy::resolveKey (DSIGKeyInfoList *lst)
@@ -140,10 +147,11 @@ saml2::KeyData spep::ipc::MetadataProxy::resolveKey (std::string keyName)
 {
 	std::string dispatch( ::resolveKey );
 	
-	return _clientSocket->makeRequest< saml2::KeyData >( dispatch, keyName );
+	ClientSocketLease clientSocket( _socketPool );
+	return clientSocket->makeRequest< saml2::KeyData >( dispatch, keyName );
 }
 
 XSECKeyInfoResolver* spep::ipc::MetadataProxy::clone() const
 {
-	return new MetadataProxy( this->_clientSocket );
+	return new MetadataProxy( this->_socketPool );
 }

@@ -152,6 +152,7 @@ void spep::ipc::platform::bindSocket( spep::ipc::platform::socket_t sock, const 
 void spep::ipc::platform::bindLoopbackSocket( spep::ipc::platform::socket_t sock, int port )
 {
 	sockaddr_in sa;
+	memset( &sa, 0, sizeof(sa) );
 	sa.sin_family = AF_INET;
 	sa.sin_port = htons( port );
 	sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -178,12 +179,29 @@ spep::ipc::platform::socket_t spep::ipc::platform::acceptSocket( spep::ipc::plat
 	
 	if ( validSocket( retval ) ) return retval;
 	
-	throw SocketException( strerror(errno) );
+	if( errno != EAGAIN && errno != EWOULDBLOCK ) throw SocketException( strerror(errno) );
+
+	return INVALID_SOCKET;
+}
+
+void spep::ipc::platform::setReadTimeout( spep::ipc::platform::socket_t sock, int waitMillis )
+{
+	struct timeval value;
+	value.tv_sec = waitMillis / 1000;
+	value.tv_usec = (waitMillis % 1000) * 1000;
+
+	setsockopt( SOCKET(sock), SOL_SOCKET, SO_RCVTIMEO, (SOCKOPT_TYPE*)&value, sizeof(value) );
 }
 
 ssize_t spep::ipc::platform::readSocket( spep::ipc::platform::socket_t sock, char *buf, int buflen, int flags )
 {
-	ssize_t result = recv( SOCKET(sock), buf, buflen, flags );
+#ifdef WIN32
+	int result;
+#else //WIN32
+	ssize_t result;
+#endif //WIN32
+
+	result = recv( SOCKET(sock), buf, buflen, flags );
 	if (result < 0)
 	{
 		throw SocketException( strerror(errno) );
@@ -196,7 +214,13 @@ ssize_t spep::ipc::platform::readSocket( spep::ipc::platform::socket_t sock, cha
 
 ssize_t spep::ipc::platform::writeSocket( spep::ipc::platform::socket_t sock, const char *buf, int buflen, int flags )
 {
-	ssize_t result = send( SOCKET(sock), buf, buflen, flags );
+#ifdef WIN32
+	int result;
+#else //WIN32
+	ssize_t result;
+#endif //WIN32
+
+	result = send( SOCKET(sock), buf, buflen, flags );
 	if (result < 0)
 	{
 		throw SocketException( strerror(errno) );

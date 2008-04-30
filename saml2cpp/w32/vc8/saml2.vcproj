@@ -115,6 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;BUILDING_SAML2"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"

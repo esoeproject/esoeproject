@@ -22,9 +22,9 @@
 
 static const char *allowProcessing = STARTUPPROCESSOR_allowProcessing;
 
-spep::ipc::StartupProcessorProxy::StartupProcessorProxy( spep::ipc::ClientSocket *clientSocket )
+spep::ipc::StartupProcessorProxy::StartupProcessorProxy( spep::ipc::ClientSocketPool *socketPool )
 :
-_clientSocket( clientSocket )
+_socketPool( socketPool )
 {
 }
 
@@ -37,7 +37,8 @@ spep::StartupResult spep::ipc::StartupProcessorProxy::allowProcessing()
 	std::string dispatch( ::allowProcessing );
 	spep::ipc::NoData noData;
 	
-	return static_cast<spep::StartupResult>( this->_clientSocket->makeRequest< unsigned int >( dispatch, noData ) );
+	ClientSocketLease clientSocket( _socketPool );
+	return static_cast<spep::StartupResult>( clientSocket->makeRequest< unsigned int >( dispatch, noData ) );
 }
 
 void spep::ipc::StartupProcessorProxy::beginSPEPStart()

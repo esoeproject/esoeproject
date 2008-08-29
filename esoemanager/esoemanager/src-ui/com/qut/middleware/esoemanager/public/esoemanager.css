@@ -1,0 +1,391 @@
+body {
+	font-family: arial, helvetica, verdana;
+}
+
+.gwt-TabPanel {
+	width: 100%;
+	margin-top: 4px;
+}
+
+.gwt-TabPanelBottom {
+	background-color: #fff;
+}
+
+.gwt-TabBar {
+	padding-top: 2px;
+	border-bottom: 6px solid #f2f2f2;
+	background-color: #fff;
+	margin-bottom: 15px;
+}
+
+.gwt-TabBar .gwt-TabBarFirst {
+	
+}
+
+.gwt-TabBar .gwt-TabBarRest {
+	
+}
+
+.gwt-TabBar .gwt-TabBarItem {
+	background: #fff;
+	padding: 4px;
+	padding-left: 16px;
+	padding-right: 16px;
+	margin-right: 3px;
+	cursor: pointer;
+	cursor: hand;
+	color: #454545;
+	font-weight: normal;
+	font-size: 14px;
+}
+
+.gwt-TabBar .gwt-TabBarItem-selected {
+	background: #f2f2f2;
+	padding: 4px;
+	padding-left: 16px;
+	padding-right: 16px;
+	margin-right: 3px;
+	color: #454545;
+	font-weight: bold;
+}
+
+.em-ui-button {
+	border: 0px;
+}
+
+.em-ui-button-createnode {
+	background-image: url(icons/computer_edit.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-createcontact {
+	background-image: url(icons/computer_edit.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.esoemanager-ui-credit-content {
+	border: 0px;
+	padding: 10px;
+}
+
+.esoemanager-dashtitle {
+	width: 100%;
+	padding: 4px;
+	color: #015aa5;
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.esoemanager-dashcontent {
+	margin: 5px;
+	padding: 10px;
+}
+
+.esoemanager-dashcontenttitle {
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.esoemanager-esoedash {
+	margin: 10px;
+	border: 0px #e2e2e2 solid;
+}
+
+.esoemanager-esoedash .esoemanager-dashtitle {
+	background-color: #fff;
+}
+
+.esoemanager-esoedash .esoemanager-dashcontenttitle {
+	color: #015aa5;
+}
+
+.esoemanager-mddash {
+	margin: 10px;
+	border: 0px #e2e2e2 solid;
+}
+
+.esoemanager-mddash .esoemanager-dashtitle {
+	background-color: #fff;
+}
+
+.esoemanager-mddash .esoemanager-dashcontenttitle {
+	color: #015aa5;
+}
+
+.esoemanager-servicedash {
+	margin: 10px;
+	border: 0px #e2e2e2 solid;
+}
+
+.esoemanager-servicedash .esoemanager-dashtitle {
+	background-color: #fff;
+}
+
+.esoemanager-servicedash .esoemanager-dashcontenttitle {
+	color: #015aa5;
+}
+
+
+.esoemanager-attributepolicypanel
+{
+	border: 1px solid #e2e2e2;
+}
+
+.esoemanager-metadatapanel
+{
+	border: 1px solid #e2e2e2;
+}
+
+
+
+
+
+
+
+
+
+.esoemanager-ui {
+	margin: 0px auto;
+	width: 1024px;
+}
+
+.esoemanager-content-list {
+	margin: 10px;
+	padding: 3px;
+	font-size: 14px;
+	v-align: center;
+}
+
+.esoemanager-section-title {
+	font-size: 24px;
+	font-weight: bold;
+	color: #015aa5;
+	margin: 10px;
+}
+
+.esoemanager-subsection-title {
+	font-size: 16px;
+	font-weight: bold;
+	color: #015aa5;
+	text-decoration: none;
+	margin-top: 15px;
+}
+
+.esoemanager-activestate {
+	width: 120px;
+	height: 30px;
+}
+
+.esoemanager-activestate-activated {
+	background: transparent url(icons/activated.png) no-repeat 2px 50%;
+	padding-left: 22px;
+	padding-top: 5px;
+	color: green;
+}
+
+.esoemanager-activestate-deactivated {
+	background: transparent url(icons/deactivated.png) no-repeat 2px 50%;
+	padding-left: 22px;
+	padding-top: 5px;
+	color: red;
+}
+
+.esoemanager-servicelisting {
+	border: 2px solid #e2e2e2;
+	margin: 2px;
+}
+
+.esoemanager-servicelisting:hover {
+	border: 2px solid #ccf0ff;
+	background-color: #ccf0ff;
+	cursor: pointer;
+}
+
+.esoemanager-description {
+	
+}
+
+.esoemanager-description .em-ui-button-toggle {
+	background-color: transparent;
+}
+
+.esoemanager-node {
+	border: 1px solid #e2e2e2;
+	margin-bottom: 2px;
+	margin-top: 3px;
+}
+
+.esoemanager-node .em-ui-button-toggle {
+	background-color: transparent;
+}
+
+.esoemanager-node .em-ui-button-application {
+	background-color: transparent;
+}
+
+.esoemanager-node-banner {
+	width: 100%;
+	background: #015aa5;
+	color: #fff;
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.esoemanager-node-subbanner {
+	width: 100%;
+	background: #f2f2f2;
+	color: #000;
+	border-bottom: 2px solid #e2e2e2;
+}
+
+.esoemanager-policy {
+	border: 1px solid #e2e2e2;
+	margin-bottom: 2px;
+	margin-top: 3px;
+}
+
+.esoemanager-policy .em-ui-button-toggle {
+	background-color: transparent;
+}
+
+.esoemanager-policy-banner {
+	width: 100%;
+	background: #015aa5;
+	color: #fff;
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.esoemanager-policy-banner-title {
+	color: #fff;
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.esoemanager-policy-subbanner {
+	width: 100%;
+	background: #f2f2f2;
+	color: #000;
+	border-bottom: 2px solid #e2e2e2;
+}
+
+.esoemanager-policy-banner .em-ui-button {
+	background-color: #015aa5;
+	color: #fff;
+}
+
+.esoemanager-policy-rules {
+	width: 100%;
+}
+
+.esoemanager-policy-rule {
+	border: 1px solid #e2e2e2;
+	margin: 5px;
+	width: 100%;
+}
+
+.esoemanager-policy-rule-content {
+	background-color: #ffffff;
+	padding: 5px;
+}
+
+.esoemanager-policy-operator {
+	margin: 4px;
+	margin-left: 15px;
+	font-size: 14px;
+	border: 1px solid #f2f2f2;
+	width: 100%;
+}
+
+.esoemanager-policy-operator .em-ui-hidden-integrated-textbox {
+	margin-right: 20px;
+}
+
+.esoemanager-policy-operator-heading {
+	background-color: #f2f2f2;
+	width: 100%;
+}
+
+.esoemanager-policy-operator-heading .em-ui-button {
+	background-color: #f2f2f2;
+	color: #fff;
+}
+
+.esoemanager-policy-operator-title-boolean {
+	font-weight: bold;
+	font-size: 20px;
+}
+
+.esoemanager-policy-operator-content {
+	padding-left: 5px;
+	width: 100%;
+}
+
+.esoemanager-policy-operator .em-button {
+	margin: 0px;
+	padding: 0px;
+}
+
+.esoemanager-policy-operator-core {
+	margin: 0px;
+	padding: 0px;
+	border: 0px;
+}
+
+.esoemanager-policy-operator-core .esoemanager-policy-rule-operatorchooser
+	{
+	margin-top: 5px;
+	margin-left: 5px;
+	border-top: 1px solid #e2e2e2;
+}
+
+.esoemanager-policy-operator .esoemanager-policy-rule-operatorchooser {
+	margin: 0px;
+	border: 0px;
+	background-color: #f2f2f2;
+	border-bottom: 1px solid #e2e2e2;
+	border-right: 1px solid #e2e2e2;
+	border-left: 1px solid #e2e2e2;
+}
+
+.esoemanager-policy-operator-stringequal {
+	
+}
+
+.esoemanager-policy-operator-normcase {
+	border: 0px;
+	margin: 0px;
+	margin-left: 5px;
+	padding: 0px;
+}
+
+.esoemanager-policy-operator-normcase .em-ui-button {
+	background-color: transparent;
+	color: #fff;
+}
+
+.esoemanager-policy-operator-normspace {
+	border: 0px;
+	margin: 0px;
+	margin-left: 5px;
+	padding: 0px;
+}
+
+.esoemanager-policy-operator-normspace .em-ui-button {
+	background-color: transparent;
+	color: #fff;
+}
+
+.esoemanager-policy-operator-or {
+	
+}
+
+.esoemanager-policy-operator-and {
+	
+}
+
+.esoemanager-policy-operator-not {
+	
+}

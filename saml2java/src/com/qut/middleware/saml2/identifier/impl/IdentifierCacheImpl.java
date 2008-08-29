@@ -21,12 +21,14 @@ package com.qut.middleware.saml2.identifier.impl;
 
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.exception.IdentifierCollisionException;
@@ -34,18 +36,19 @@ import com.qut.middleware.saml2.identifier.exception.IdentifierCollisionExceptio
 /** Implements IdentifierCache interface to prevent replay attacks. */
 public class IdentifierCacheImpl implements IdentifierCache
 {
-	private Map<String, Date> cache;
+	private ConcurrentMap<String, Date> cache;
+	private ReentrantLock lock;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(IdentifierCacheImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(IdentifierCacheImpl.class.getName());
 
 	/**
 	 * Default constructor.
 	 */
 	public IdentifierCacheImpl()
-	{
-		LinkedHashMap<String, Date> linkedCache = new LinkedHashMap<String, Date>();
-		this.cache = linkedCache;
+	{		
+		this.cache = new ConcurrentHashMap<String, Date>();
+		this.lock = new ReentrantLock();
 
 		this.logger
 				.info(Messages.getString("IdentifierCacheImpl.6")); //$NON-NLS-1$ 
@@ -60,15 +63,21 @@ public class IdentifierCacheImpl implements IdentifierCache
 	{
 		this.logger.debug(Messages.getString("IdentifierCacheImpl.8")); //$NON-NLS-1$
 
-		synchronized (this.cache)
+		this.lock.lock();
+		try
 		{
 			if (this.containsIdentifier(identifier))
 			{
 				this.logger.error(Messages.getString("IdentifierCacheImpl.9")); //$NON-NLS-1$
 				throw new IdentifierCollisionException(Messages.getString("IdentifierCacheImpl.9")); //$NON-NLS-1$
 			}
-
-			this.cache.put(identifier, new Date());
+			
+			if(identifier != null)
+				this.cache.put(identifier, new Date());
+		}
+		finally
+		{
+			this.lock.unlock();
 		}
 	}
 
@@ -77,12 +86,15 @@ public class IdentifierCacheImpl implements IdentifierCache
 	 */
 	public boolean containsIdentifier(String identifier)
 	{
-		synchronized (this.cache)
+		this.lock.lock();
+		try
 		{
-			if (this.cache.containsKey(identifier))
-				return true;
+			return this.cache.containsKey(identifier);
 		}
-		return false;
+		finally
+		{
+			this.lock.unlock();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -91,26 +103,24 @@ public class IdentifierCacheImpl implements IdentifierCache
 	public int cleanCache(int age)
 	{
 		int numRemoved = 0;
-		synchronized (this.cache)
+		
+		Set<Entry<String, Date>> entryList = this.cache.entrySet();
+		Iterator<Entry<String, Date>> entryIterator = entryList.iterator();
+		
+		while (entryIterator.hasNext())
 		{
-			Set<Entry<String, Date>> entryList = this.cache.entrySet();
-			Iterator<Entry<String, Date>> entryIterator = entryList.iterator();
-			
-			while (entryIterator.hasNext())
+			Entry<String, Date> entry = entryIterator.next();
+
+			long now = new Date().getTime();
+			long expire = (entry.getValue().getTime() + (age));
+
+			if (expire < now)
 			{
-				Entry<String, Date> entry = entryIterator.next();
-
-				long now = new Date().getTime();
-				long expire = (entry.getValue().getTime() + (age));
-
-				if (expire < now)
-				{
-					this.logger.debug(Messages.getString("IdentifierCacheImpl.4")); //$NON-NLS-1$
-					entryIterator.remove();
-					numRemoved ++;
-				}
+				this.logger.debug(Messages.getString("IdentifierCacheImpl.4")); //$NON-NLS-1$
+				entryIterator.remove();
+				numRemoved ++;
 			}
-		}	
+		}
 		
 		return numRemoved;
 	}

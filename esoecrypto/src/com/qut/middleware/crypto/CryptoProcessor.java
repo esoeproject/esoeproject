@@ -32,7 +32,7 @@ public interface CryptoProcessor
 {
 	public String generatePassphrase();
 
-	public KeyDescriptor createSigningKeyDescriptor(RSAPublicKey pubKey, String keyPairName);
+	public KeyDescriptor createSigningKeyDescriptor(RSAPublicKey pubKey, String keyPairName, String issuerDN, String serialNumber);
 
 	public KeyPair generateKeyPair() throws CryptoException;
 
@@ -64,9 +64,9 @@ public interface CryptoProcessor
 
 	public void setKeySize(int keySize);
 
-	public KeyStoreResolver getLocalResolver();
+	public KeystoreResolver getLocalResolver();
 
-	public void setLocalResolver(KeyStoreResolver localResolver);
+	public void setLocalResolver(KeystoreResolver localResolver);
 	
 	public void serializeKeyStore(KeyStore keyStore, String keyStorePassphrase, String filename) throws CryptoException;
 	

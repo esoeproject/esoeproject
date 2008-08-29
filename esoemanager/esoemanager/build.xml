@@ -1,0 +1,25 @@
+<project name="esoemanager" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<import file="${esoebuild}/esoe-gwt.xml" />
+
+	<target name="war" depends="jar">
+		<war webxml="${webxml}" destfile="${output}/${output.war}">
+			<fileset dir="${output.build}-gwt" />
+			<fileset dir="webapp">
+				<exclude name="WEB-INF/**" />
+				<exclude name="META-INF/**" />
+			</fileset>
+			<webinf dir="webapp/WEB-INF">
+					<exclude name="web.xml" />
+			</webinf>
+			<metainf dir="webapp/META-INF" />
+			<lib dir="${artifacts.runtime}" />
+			<lib file="${output}/${output.jar}"/>
+		</war>
+	</target>
+
+	<target name="deploy" depends="war">
+		<copy file="${output}/${output.war}" todir="${tomcathome}/webapps" overwrite="true" verbose="true" />
+	</target>
+
+</project>

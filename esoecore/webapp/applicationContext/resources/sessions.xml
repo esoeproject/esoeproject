@@ -24,8 +24,15 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Purpose: Defines spring integration for
 		====================================================================== -->
 			
+		<!-- Session caching handler >
+		<bean id="sessionCache" class="com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl">
+			<constructor-arg index="0" ref="logoutMechanism" />
+		</bean -->
+		
 		<!-- Session caching handler -->
-		<bean id="sessionCache" class="com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl"/>
+		<bean id="sessionCache" class="com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl">
+			<constructor-arg index="0" ref="logoutThreadPool" />
+		</bean>
 		
 		<!-- Session creation handler -->
 		<bean id="create" class="com.qut.middleware.esoe.sessions.impl.CreateImpl">

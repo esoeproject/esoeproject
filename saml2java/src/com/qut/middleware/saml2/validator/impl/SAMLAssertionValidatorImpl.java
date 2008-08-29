@@ -25,7 +25,8 @@ import java.util.SimpleTimeZone;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLAssertionException;
@@ -44,19 +45,19 @@ public class SAMLAssertionValidatorImpl implements SAMLAssertionValidator
 	private IdentifierCache identifierCache;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SAMLAssertionValidatorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SAMLAssertionValidatorImpl.class.getName());
 
 	SAMLAssertionValidatorImpl(IdentifierCache identifierCache, int allowedTimeSkew)
 	{
 		if (identifierCache == null)
 		{
-			this.logger.fatal(Messages.getString("SAMLRequestValidatorImpl.3")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("SAMLRequestValidatorImpl.3")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("SAMLRequestValidatorImpl.3")); //$NON-NLS-1$
 		}
 
 		if (allowedTimeSkew > Integer.MAX_VALUE / 1000)
 		{
-			this.logger.fatal(Messages.getString("SAMLRequestValidatorImpl.5")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("SAMLRequestValidatorImpl.5")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("SAMLRequestValidatorImpl.5")); //$NON-NLS-1$
 		}
 

@@ -50,7 +50,6 @@ import javax.security.auth.x500.X500Principal;
 import javax.security.auth.x500.X500PrivateCredential;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.GeneralName;
@@ -60,12 +59,17 @@ import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.KeyInfo;
 import org.w3._2000._09.xmldsig_.KeyValue;
+import org.w3._2000._09.xmldsig_.ObjectFactory;
 import org.w3._2000._09.xmldsig_.RSAKeyValue;
+import org.w3._2000._09.xmldsig_.X509Data;
+import org.w3._2000._09.xmldsig_.X509IssuerSerialType;
 
 import com.qut.middleware.crypto.CryptoProcessor;
-import com.qut.middleware.crypto.KeyStoreResolver;
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.exception.CryptoException;
 import com.qut.middleware.saml2.schemas.metadata.KeyDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.KeyTypes;
@@ -80,10 +84,10 @@ public class CryptoProcessorImpl implements CryptoProcessor
 	private int keySize;
 
 	/* Provides keydata that metadata documents will be signed with */
-	private KeyStoreResolver localResolver;
+	private KeystoreResolver localResolver;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(CryptoProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(CryptoProcessorImpl.class.getName());
 
 	/**
 	 * Creates crypto processor object that must be configured using setters before use
@@ -102,7 +106,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 	 * @param certExpiryInterval
 	 * @param keySize
 	 */
-	public CryptoProcessorImpl(KeyStoreResolver localResolver, String certIssuerDN, String certIssuerEmail, int certExpiryInterval, int keySize)
+	public CryptoProcessorImpl(KeystoreResolver localResolver, String certIssuerDN, String certIssuerEmail, int certExpiryInterval, int keySize)
 	{
 		if (localResolver == null)
 		{
@@ -162,7 +166,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 	 * @see com.qut.middleware.crypto.impl.CryptoProcessor#createSigningKeyDescriptor(java.security.interfaces.RSAPublicKey,
 	 *      java.lang.String)
 	 */
-	public KeyDescriptor createSigningKeyDescriptor(RSAPublicKey pubKey, String keyPairName)
+	public KeyDescriptor createSigningKeyDescriptor(RSAPublicKey pubKey, String keyPairName, String issuerDN, String serialNumber)
 	{
 		KeyDescriptor keyDescriptor = new KeyDescriptor();
 		keyDescriptor.setUse(KeyTypes.SIGNING);
@@ -177,6 +181,17 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		keyValue.getContent().add(rsaKeyValue);
 		keyInfo.getContent().add(keyValue);
 		keyDescriptor.setKeyInfo(keyInfo);
+		
+		if (issuerDN != null && serialNumber != null)
+		{
+			BigInteger serialNumberValue = new BigInteger(serialNumber);
+			X509Data x509Data = new X509Data();
+			X509IssuerSerialType x509IssuerSerialType = new X509IssuerSerialType();
+			x509IssuerSerialType.setX509IssuerName(issuerDN);
+			x509IssuerSerialType.setX509SerialNumber(serialNumberValue);
+			x509Data.getX509DataContent().add(new ObjectFactory().createX509DataX509IssuerSerial(x509IssuerSerialType));
+			keyInfo.getContent().add(x509Data);
+		}
 
 		logger.debug("Generated KeyDescriptor for document signing with keyname " + keyPairName);
 
@@ -202,7 +217,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error("NoSuchAlgorithmException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -230,32 +245,32 @@ public class CryptoProcessorImpl implements CryptoProcessor
 			 * purposes to ensure that all systems in the authentication network can correctly validate the signed
 			 * metadata document
 			 */
-			addPublicKey(keyStore, new KeyPair(this.localResolver.getPublicKey(), this.localResolver.getPrivateKey()), this.localResolver.getKeyAlias(), this.certIssuerDN);
+			addPublicKey(keyStore, new KeyPair(this.localResolver.getLocalPublicKey(), this.localResolver.getLocalPrivateKey()), this.localResolver.getLocalKeyAlias(), this.certIssuerDN);
 
 			return keyStore;
 		}
 		catch (KeyStoreException e)
 		{
 			this.logger.error("KeyStoreException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error("NoSuchAlgorithmException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (CertificateException e)
 		{
 			this.logger.error("CertificateException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (IOException e)
 		{
 			this.logger.error("IOException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -277,7 +292,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		catch (KeyStoreException e)
 		{
 			this.logger.error("KeyStoreException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -313,25 +328,25 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error("NoSuchAlgorithmException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (CertificateException e)
 		{
 			this.logger.error("CertificateException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (KeyStoreException e)
 		{
 			this.logger.error("KeyStoreException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (IOException e)
 		{
 			this.logger.error("IOException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -396,25 +411,25 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		catch (InvalidKeyException e)
 		{
 			this.logger.error("InvalidKeyException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (NoSuchProviderException e)
 		{
 			this.logger.error("NoSuchProviderException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (SecurityException e)
 		{
 			this.logger.error("SecurityException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (SignatureException e)
 		{
 			this.logger.error("SignatureException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 
@@ -434,31 +449,31 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		catch (FileNotFoundException e)
 		{
 			this.logger.error(e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (KeyStoreException e)
 		{
 			this.logger.error(e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error(e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (CertificateException e)
 		{
 			this.logger.error(e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (IOException e)
 		{
 			this.logger.error(e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		finally
@@ -473,7 +488,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 				catch (IOException e)
 				{
 					this.logger.error(e.getLocalizedMessage());
-					this.logger.debug(e);
+					this.logger.debug(e.toString());
 					throw new CryptoException(e.getLocalizedMessage(), e);
 				}
 			}
@@ -575,25 +590,25 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		catch (KeyStoreException e)
 		{
 			this.logger.error("KeyStoreException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error("NoSuchAlgorithmException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (CertificateException e)
 		{
 			this.logger.error("CertificateException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (IOException e)
 		{
 			this.logger.error("IOException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		finally
@@ -605,7 +620,7 @@ public class CryptoProcessorImpl implements CryptoProcessor
 			catch (IOException e)
 			{
 				this.logger.error("IOException thrown in finally, " + e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 			}
 		}
 	}
@@ -650,12 +665,12 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		this.keySize = keySize;
 	}
 
-	public KeyStoreResolver getLocalResolver()
+	public KeystoreResolver getLocalResolver()
 	{
 		return this.localResolver;
 	}
 
-	public void setLocalResolver(KeyStoreResolver localResolver)
+	public void setLocalResolver(KeystoreResolver localResolver)
 	{
 		this.localResolver = localResolver;
 	}

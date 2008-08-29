@@ -23,20 +23,51 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Date: 20/11/2006                                                        
 		Purpose: Defines spring integration for
 		====================================================================== -->
+		
 		<bean id="metadataCache"
-			class="com.qut.middleware.esoe.metadata.cache.impl.MetadataCacheImpl">
+			class="com.qut.middleware.metadata.cache.impl.MetadataCacheImpl">
+			<constructor-arg index="0" ref="dynamicMetadataUpdater"/>
 		</bean>
 		
-		<bean id="metadata" class="com.qut.middleware.esoe.metadata.impl.MetadataImpl">
-			<constructor-arg index="0" value="${metadata.esoeIdentifier}"/>
-			<constructor-arg index="1" ref="metadataCache"/>
-		</bean>
-		
-		<bean id="metadataMonitorThread" class="com.qut.middleware.esoe.metadata.impl.MetadataUpdateMonitor"
-		destroy-method="shutdown">
+		<bean id="metadata" class="com.qut.middleware.metadata.processor.impl.MetadataProcessorImpl">
 			<constructor-arg index="0" ref="metadataCache"/>
-			<constructor-arg index="1" ref="metadataKeyStoreResolver"/>
-			<constructor-arg index="2" value="${metadata.url}"/>
-			<constructor-arg index="3" value="${metadata.networkUpdateInterval}"/>
+			<constructor-arg index="1">
+				<list>
+					<ref bean="samlMetadataFormatHandler"/>
+				</list>
+			</constructor-arg>
+			<constructor-arg index="2">
+				<list>
+					<bean class="com.qut.middleware.metadata.source.saml.impl.SAMLURLMetadataSource">
+						<constructor-arg index="0" value="${metadata.url}"/>
+					</bean>
+				</list>
+			</constructor-arg>
 		</bean>
+		
+		<bean id="metadataMonitorThread" class="com.qut.middleware.metadata.processor.impl.MetadataUpdateThread"
+		destroy-method="shutdown">
+			<constructor-arg index="0" ref="metadata"/>
+			<constructor-arg index="1" value="${metadata.networkUpdateInterval}"/>
+		</bean>
+		
+		<bean id="samlMetadataFormatHandler" class="com.qut.middleware.metadata.processor.saml.impl.SAMLMetadataFormatHandler">
+			<constructor-arg index="0" ref="metadataKeyStoreResolver"/>
+			<constructor-arg index="1">
+				<list>
+					<bean class="com.qut.middleware.metadata.processor.saml.impl.SAMLServiceProviderProcessor">
+					</bean>
+					<bean class="com.qut.middleware.metadata.processor.saml.impl.SAMLIdentityProviderProcessor">
+						<constructor-arg index="0" value="${metadata.esoeIdentifier}"/>
+					</bean>
+				</list>
+			</constructor-arg>
+		</bean>
+		
+		<bean id="dynamicMetadataUpdater" class="com.qut.middleware.metadata.processor.impl.DynamicMetadataUpdaterImpl">
+			<constructor-arg index="0">
+				<list></list>
+			</constructor-arg>
+		</bean>
+		
 </beans>

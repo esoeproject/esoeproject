@@ -21,9 +21,11 @@ package com.qut.middleware.saml2.identifier.impl;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -38,9 +40,11 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 	private final String RNG = "SHA1PRNG"; //$NON-NLS-1$
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(IdentifierGeneratorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(IdentifierGeneratorImpl.class.getName());
 	
 	private IdentifierCache cache;
+	private ReentrantLock lock;
+	private SecureRandom random;
 	
 	public IdentifierGeneratorImpl(IdentifierCache cache)
 	{
@@ -49,6 +53,21 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 			throw new IllegalArgumentException("identifier cache cannot be null."); //$NON-NLS-1$
 		}
 		this.cache = cache;
+		this.lock = new ReentrantLock();
+
+		try
+		{
+			/* Attempt to get the specified RNG instance */
+			this.random = SecureRandom.getInstance(this.RNG);
+		}
+		catch (NoSuchAlgorithmException nsae)
+		{
+			this.logger.error(Messages.getString("IdentifierGeneratorImpl.13")); //$NON-NLS-1$
+			this.logger.debug(nsae.getLocalizedMessage(), nsae);
+			this.random = new SecureRandom();
+		}
+		
+		this.random.setSeed(System.currentTimeMillis());
 	}
 
 	/* (non-Javadoc)
@@ -68,7 +87,7 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 		}
 		catch (IdentifierCollisionException e)
 		{
-			this.logger.fatal(Messages.getString("IdentifierGeneratorImpl.1")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("IdentifierGeneratorImpl.1")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
 			throw new IdentifierGeneratorException(Messages.getString("IdentifierGeneratorImpl.2")); //$NON-NLS-1$
 		}
@@ -93,7 +112,7 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 		}
 		catch (IdentifierCollisionException e)
 		{
-			this.logger.fatal(Messages.getString("IdentifierGeneratorImpl.4")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("IdentifierGeneratorImpl.4")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
 			throw new IdentifierGeneratorException(Messages.getString("IdentifierGeneratorImpl.5")); //$NON-NLS-1$
 		}
@@ -116,7 +135,7 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 		}
 		catch (IdentifierCollisionException e)
 		{
-			this.logger.fatal(Messages.getString("IdentifierGeneratorImpl.7")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("IdentifierGeneratorImpl.7")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
 			throw new IdentifierGeneratorException(Messages.getString("IdentifierGeneratorImpl.8")); //$NON-NLS-1$
 		}
@@ -153,7 +172,7 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 		}
 		catch (IdentifierCollisionException e)
 		{
-			this.logger.fatal(Messages.getString("IdentifierGeneratorImpl.11")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("IdentifierGeneratorImpl.11")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
 			throw new IdentifierGeneratorException(Messages.getString("IdentifierGeneratorImpl.12")); //$NON-NLS-1$
 		}
@@ -170,24 +189,23 @@ public class IdentifierGeneratorImpl implements IdentifierGenerator
 	 */
 	private String generate(int length)
 	{
-		SecureRandom random;
 		String id;
 		byte[] buf;
+		buf = new byte[length];
 
+		this.lock.lock();
 		try
 		{
-			/* Attempt to get the specified RNG instance */
-			random = SecureRandom.getInstance(this.RNG);
+			/* Seed the specified RNG instance and get bytes */
+			this.random.setSeed(Thread.currentThread().getName().getBytes());
+			this.random.setSeed(System.currentTimeMillis());
+			this.random.nextBytes(buf);
 		}
-		catch (NoSuchAlgorithmException nsae)
+		finally
 		{
-			this.logger.fatal(Messages.getString("IdentifierGeneratorImpl.13")); //$NON-NLS-1$
-			this.logger.debug(nsae.getLocalizedMessage(), nsae);
-			random = new SecureRandom();
+			this.lock.unlock();
 		}
 
-		buf = new byte[length];
-		random.nextBytes(buf);
 		id = new String(Hex.encodeHex(buf));
 
 		return id;

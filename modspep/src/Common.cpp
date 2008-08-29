@@ -188,8 +188,9 @@ spep::SPEP* init_spep_instance( SPEPServerConfig *serverConfig )
 		}
 		
 		serverConfig->instance->spep = spep::SPEP::initializeClient( serverConfig->instance->port, handlers );
-		return serverConfig->instance->spep;
 	}
+	
+	return serverConfig->instance->spep;
 }
 
 extern "C" void* modspep_create_dir_config( apr_pool_t *pool, char *str )
@@ -246,7 +247,12 @@ extern "C" void* modspep_merge_server_config( apr_pool_t *pool, void *BASE, void
 	return result;
 }
 
+// Return type differs between apache 1.3 and 2.x
+#ifndef APACHE1
 apr_status_t modspep_cleanup_config( void *data )
+#else
+void modspep_cleanup_config( void *data )
+#endif
 {
 	for( std::vector<SPEPServerConfig*>::iterator iter = global_SPEPServerConfigList.begin();
 		iter != global_SPEPServerConfigList.end(); /* increment in body */ )
@@ -262,6 +268,10 @@ apr_status_t modspep_cleanup_config( void *data )
 			++iter;
 		}
 	}
+	
+#ifndef APACHE1
+	return APR_SUCCESS;
+#endif
 }
 
 extern "C" void modspep_child_init( apr_pool_t *pchild, server_rec *s )

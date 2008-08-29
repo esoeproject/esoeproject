@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+	
+	<bean name="managerDAO"
+		class="com.qut.middleware.esoemanager.manager.sqlmap.impl.ManagerDAOImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean name="convertToUIPolicy"
+		class="com.qut.middleware.esoemanager.util.ConvertToUIPolicy">
+	</bean>
+	
+	<bean name="convertToLXACMLPolicy"
+		class="com.qut.middleware.esoemanager.util.ConvertToLXACMLPolicy">
+	</bean>
+	
+	<bean name="policyIDGenerator"
+		class="com.qut.middleware.esoemanager.util.PolicyIDGenerator">
+	</bean>
+	
+	<bean name="util"
+		class="com.qut.middleware.esoemanager.util.UtilFunctions">
+	</bean>
+	
+	<bean id="toggleState"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.ToggleStateImpl">
+		<property name="managerDAO" ref="managerDAO" />
+	</bean>
+	
+	<bean id="attributes"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.AttributesImpl">
+		<property name="managerDAO" ref="managerDAO" />
+		<property name="esoeENTID" value="1"/>
+		<property name="utils" ref="util"/>
+	</bean>
+	
+	<bean id="dashboard"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.DashboardImpl">
+		<property name="managerDAO" ref="managerDAO" />
+		<property name="esoeENTID" value="1"/>
+	</bean>
+	
+	<bean id="serviceContacts"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.ServiceContactsImpl">
+		<property name="managerDAO" ref="managerDAO" />
+	</bean>
+	
+	<bean id="serviceNodes"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.ServiceNodesImpl">
+		<property name="managerDAO" ref="managerDAO" />
+		<property name="esoeIdentifier" value="${esoeTrustedID}" />
+	</bean>
+	
+	<bean id="servicePolicies"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.ServicePoliciesImpl">
+		<property name="managerDAO" ref="managerDAO" />
+		<property name="convertToUIPolicy" ref="convertToUIPolicy"/>
+		<property name="convertToLXACMLPolicy" ref="convertToLXACMLPolicy"/>
+		<property name="policyIDGenerator" ref="policyIDGenerator"/>
+		<property name="utils" ref="util"/>
+	</bean>	
+	
+	<bean id="serviceCrypto"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.ServiceCryptoImpl">
+		<property name="managerDAO" ref="managerDAO" />
+		<property name="cryptoProcessor" ref="cryptoProcessor"/>
+		<property name="identifierGenerator" ref="identifierGenerator"/>
+		<property name="esoeENTID" value="1"/>
+		<property name="esoeEntityID" value="${esoeTrustedID}"/>
+	</bean>
+	
+	<bean id="service"
+		class="com.qut.middleware.esoemanager.manager.logic.impl.ServiceImpl" init-method="init">
+		<property name="managerDAO" ref="managerDAO" />
+		<property name="utils" ref="util"/>
+		<property name="policyIDGenerator" ref="policyIDGenerator"/>
+		<property name="serviceContacts" ref="serviceContacts"/>
+		<property name="serviceCrypto" ref="serviceCrypto"/>
+		<property name="servicePolicies" ref="servicePolicies"/>
+		<property name="defaultACS" value="${defaultACS}"/>
+		<property name="defaultSLS" value="${defaultSLS}"/>
+		<property name="defaultCCS" value="${defaultCCS}"/>
+		<property name="organizationName" value="${organizationName}"/>
+		<property name="organizationDisplayName" value="${organizationDisplayName}"/>
+		<property name="organizationURL" value="${organizationURL}"/>
+		<property name="defaultServiceAccessPolicyLocation" value="WEB-INF/defaultAccessPolicy.xml"/>
+		<property name="defaultServiceManagementPolicyLocation" value="WEB-INF/defaultManagementPolicy.xml"/>
+		<property name="esoeManagerENTID" value="2"/>
+	</bean>
+	
+	<bean name="esoeManager" class="com.qut.middleware.esoemanager.EsoeManagerImpl">		
+		<property name="attributes" ref="attributes"/>
+		<property name="dashboard" ref="dashboard"/>
+		
+		<property name="service" ref="service"/>
+		<property name="serviceContacts" ref="serviceContacts"/>
+		<property name="serviceNodes" ref="serviceNodes"/>
+		<property name="servicePolicies" ref="servicePolicies"/>
+		<property name="serviceCrypto" ref="serviceCrypto"/>
+		
+		<property name="toggleState" ref="toggleState"/>
+		
+		<property name="utils" ref="util"/>
+		<property name="metadataCache" ref="metadataCache" />
+	</bean>
+	
+</beans>

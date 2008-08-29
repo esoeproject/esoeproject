@@ -60,7 +60,10 @@ bool spep::ipc::SessionCacheDispatcher::dispatch( spep::ipc::MessageHeader &head
 		
 		if ( header.getType() == SPEPIPC_REQUEST )
 		{
-			throw InvocationTargetException( "No return type from this method" );
+			NoData noData;
+			// If the client is expecting a response, send one.
+			en.sendResponseHeader();
+			en.sendObject( noData );
 		}
 		return true;
 	}
@@ -136,7 +139,10 @@ bool spep::ipc::SessionCacheDispatcher::dispatch( spep::ipc::MessageHeader &head
 		
 		if ( header.getType() == SPEPIPC_REQUEST )
 		{
-			throw InvocationTargetException( "No return type from this method" );
+			NoData noData;
+			// If the client is expecting a response, send one.
+			en.sendResponseHeader();
+			en.sendObject( noData );
 		}
 		
 		return true;

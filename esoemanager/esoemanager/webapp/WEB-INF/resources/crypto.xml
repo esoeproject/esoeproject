@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="cryptoProcessor" class="com.qut.middleware.crypto.impl.CryptoProcessorImpl">
+		<constructor-arg index="0" ref="esoeManagerKeyStoreResolver" />
+		<constructor-arg index="1" value="${cryptoprocessor.certIssuerDN}" />
+		<constructor-arg index="2" value="${cryptoprocessor.certIssuerEmail}" />
+		<constructor-arg index="3" value="${cryptoprocessor.certExpiryInterval}" />
+		<constructor-arg index="4" value="${cryptoprocessor.keySize}" />
+	</bean>
+
+</beans>

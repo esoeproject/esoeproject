@@ -1,0 +1,31 @@
+<lxacml:Policy PolicyId="esoemanager.vm" xmlns:lxacml="http://www.qut.com/middleware/lxacmlSchema">
+  <lxacml:Description>
+    Overall ESOE Manager control policy, defines super users.
+  </lxacml:Description>
+  <lxacml:Target>
+    <lxacml:Resources>
+      <lxacml:Resource>
+        <lxacml:AttributeValue>esoe:management:privilege:superuser</lxacml:AttributeValue>
+      </lxacml:Resource>
+    </lxacml:Resources>
+  </lxacml:Target>
+  <lxacml:Rule Effect="Permit" RuleId="management-rule-1">
+    <lxacml:Description>
+      Defines individual uid's that are granted superuser priviledges
+    </lxacml:Description>
+    <lxacml:Target>
+      <lxacml:Resources>
+        <lxacml:Resource>
+          <lxacml:AttributeValue>esoe:management:privilege:superuser</lxacml:AttributeValue>
+        </lxacml:Resource>
+      </lxacml:Resources>
+    </lxacml:Target>
+    <lxacml:Condition>
+      <lxacml:Apply FunctionId="string-equal">
+        <lxacml:Description> Determines UID's that are able to act as super users</lxacml:Description>
+        <lxacml:SubjectAttributeDesignator AttributeId="uid"/>
+        <lxacml:AttributeValue>adminuser</lxacml:AttributeValue>
+      </lxacml:Apply>
+    </lxacml:Condition>
+  </lxacml:Rule>
+</lxacml:Policy>

@@ -445,7 +445,7 @@ int main( int argc, char **argv )
 		exit(1);
 	}
 	
-	bool verbose = (commandLineVariableMap.count("help") != 0);
+	bool verbose = (commandLineVariableMap.count("verbose") != 0);
 	bool debug = (commandLineVariableMap.count("debug") != 0);
 	
 	std::vector<spep::Handler*> handlers;
@@ -494,16 +494,19 @@ int main( int argc, char **argv )
 		// File will be closed when configFileInput object is deleted
 	}
 	
-	const std::vector<std::string> &pidFileList = commandLineVariableMap["pid-file"].as< std::vector<std::string> >();
-	// Loop through every pid file specified.
-	for( std::vector<std::string>::const_iterator pidFileIterator = pidFileList.begin(); pidFileIterator != pidFileList.end(); ++pidFileIterator )
+	if( commandLineVariableMap.count("pid-file") > 0 )
 	{
-		if( verbose )
+		const std::vector<std::string> &pidFileList = commandLineVariableMap["pid-file"].as< std::vector<std::string> >();
+		// Loop through every pid file specified.
+		for( std::vector<std::string>::const_iterator pidFileIterator = pidFileList.begin(); pidFileIterator != pidFileList.end(); ++pidFileIterator )
 		{
-			std::cout << "Writing PID to " << *pidFileIterator << std::endl << std::flush;
+			if( verbose )
+			{
+				std::cout << "Delayed writing PID to " << *pidFileIterator << " until after fork." << std::endl << std::flush;
+			}
+			
+			spep::daemon::Daemon::pidFileList.push_back( *pidFileIterator );
 		}
-		
-		spep::daemon::Daemon::pidFileList.push_back( *pidFileIterator );
 	}
 
 	if( verbose )

@@ -1,0 +1,321 @@
+.gwt-DialogBox {
+	border: 2px solid #e1e3e5;
+	background-color: #fff;
+}
+
+.gwt-DialogBox .Caption {
+	font-weight: bold;
+	font-size: 14px;
+	background-color: #f2f2f2;
+	height: 20px;
+	padding: 3px;
+	color: #454545;
+}
+
+.em-ui-messagepanel {
+	margin-left: 5px;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	font-size: 12px;
+	font-weight: normal;
+	color: #000;
+	padding: 5px;
+}
+
+.em-ui-messagepanel .gwt-Label {
+	margin: 1px;
+}
+
+.em-ui-messagepanel-error {
+	background-color: #ffcece;
+	border: 1px solid #c90000;
+}
+
+.em-ui-messagepanel-information {
+	background-color: #ceeeff;
+	border: 1px solid #0068c9;
+}
+
+.em-ui-messagepanel-ok {
+	background-color: #d1ffce;
+	border: 1px solid #1cc900;
+}
+
+.em-ui-event-logger {
+	margin: 5px;
+}
+
+.em-ui-text-error {
+	color: red;
+}
+
+.em-ui-text-info {
+	color: blue;
+}
+
+.em-ui-text-ok {
+	color: green;
+}
+
+.em-ui-log-message {
+	font-size: 10px;
+}
+
+.em-ui-valueheading {
+	font-weight: bold;
+}
+
+.em-ui-button {
+	height: 20px;
+	cursor: pointer;
+	color: #000;
+	font-weight: normal;
+	background-color: #f2f2f2;
+	border: 1px solid #dedede;
+	border-top: 1px solid #eee;
+	border-left: 1px solid #eee;
+	margin-left: 2px;
+	margin-right: 2px;
+}
+
+.em-ui-button-text {
+	min-width: 20px;
+	padding: 6px 6px 1px 25px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.em-ui-button-notext {
+	width: 20px;
+}
+
+.em-ui-button:hover {
+	text-decoration: underline;
+}
+
+.em-ui-button-save {
+	background-image: url(icons/disk.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-confirm {
+	background-image: url(icons/tick.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-cancel {
+	background-image: url(icons/cross.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-view {
+	background-image: url(icons/magnifier.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-restore {
+	background-image: url(icons/page_white_copy.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-edit {
+	background-image: url(icons/script_go.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-delete {
+	background-image: url(icons/cross.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-toggle {
+	background-image: url(icons/arrow_rotate_clockwise.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-add {
+	background-image: url(icons/add.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-application {
+	background-image: url(icons/application.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-cascade {
+	background-image: url(icons/application_cascade.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-warning {
+	background-image: url(icons/error.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-button-error {
+	background-image: url(icons/exclamation.png);
+	background-position: 2px 50%;
+	background-repeat: no-repeat;
+}
+
+.em-ui-content-error {
+	background-color: #ffcece;
+	border: 1px solid #c90000;
+}
+
+.em-ui-textbox-validating {
+	font-size: 14px;
+	font-weight: bold;
+	padding: 2px;
+}
+
+.em-ui-editabledatavalue .gwt-TextArea
+{
+	padding: 4px;
+	font-size: 14px;
+	width: 300px;
+	height: 200px;
+}
+
+.em-ui-editabledatavalue-label {
+	padding: 4px;
+}
+
+.em-ui-editabledatavalue-label:hover {
+	padding: 3px;
+	border: 1px solid #f1f1f1;
+	cursor: pointer;
+}
+
+.em-ui-editabledatavalue-title {
+	font-weight: bold;
+}
+
+.em-ui-noneditabledatavalue {
+	
+}
+
+.em-ui-multivalue-textbox-values .em-ui-button {
+	background-color: #fff;
+}
+
+.em-ui-loader {
+	width: 31px;
+	height: 31px;
+	background: transparent url(icons/loader.gif) no-repeat top left;
+}
+
+.em-ui-required {
+	margin-left: 2px;
+	width: 16px;
+	height: 16px;
+	background: transparent url(icons/bullet_blue.png) no-repeat top left;
+}
+
+.em-ui-help {
+	margin-left: 2px;
+	width: 16px;
+	height: 16px;
+	background: transparent url(icons/help.png) no-repeat top left;
+}
+
+.em-ui-help-dialog {
+	width: 300px;
+	height: 300px;
+	border: 0px;
+}
+
+.em-ui-tooltip {
+	border: 1px solid #ceeeff;
+	background-color: #fff;
+	padding: 2px;
+	font-size: 9px;
+}
+
+.em-flextable {
+	margin: 0px;
+}
+
+.em-flextable-heading {
+	margin-left: 5px;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.em-flextable-evenrow {
+
+}
+
+.em-flextable-oddrow {
+
+}
+
+.em-documenttitle {
+	font-size: 20px;
+	font-weight: bold;
+	color: #454545;
+	width: 50px;
+	padding: 3px;
+}
+
+.em-documenttitle-content {
+	font-size: 20px;
+	font-weight: normal;
+	margin-left: 6px;
+	width: 400px;
+	color: #0465b5;
+}
+
+.em-repositoryRenderer {
+	margin: 10px;
+}
+
+.em-highlight {
+	background-color: #ceeeff;
+	border: 1px solid #0068c9;
+	font-size: 16px;
+	padding: 5px;
+	margin: 10px;
+}
+
+.em-highlight-red {
+	background-color: #ffcece;
+	border: 1px solid #c90000;
+	font-size: 16px;
+	padding: 5px;
+	margin: 10px;
+}
+
+.em-themedisplay {
+	width: 500px;
+	height: 350px;
+}
+
+.em-themedisplay-selected {
+	background-color: #ceeeff;
+	border: 1px solid #0068c9;
+}
+
+.em-themedisplay-title {
+	font-weight: bold;
+	font-size: 14px;
+	color: #0465b5;
+}
+
+.em-themedisplay-listing {
+	margin: 10px;
+	padding: 10px;
+}

@@ -19,7 +19,8 @@
 
 package com.qut.middleware.saml2.namespace;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
@@ -28,7 +29,7 @@ public class NamespacePrefixMapperImpl extends NamespacePrefixMapper
 {
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(NamespacePrefixMapperImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(NamespacePrefixMapperImpl.class.getName());
 
 	/*
 	 * (non-Javadoc)

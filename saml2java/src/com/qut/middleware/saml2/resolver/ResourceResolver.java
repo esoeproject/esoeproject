@@ -29,7 +29,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 
@@ -56,7 +57,7 @@ public class ResourceResolver implements LSResourceResolver
 	private final String CACHECLEAR = "cacheclear-schema-saml-metadata.xsd"; //$NON-NLS-1$
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(ResourceResolver.class.getName());
+	private Logger logger = LoggerFactory.getLogger(ResourceResolver.class.getName());
 
 	private Map<String, LSInput> schemas;
 
@@ -119,7 +120,7 @@ public class ResourceResolver implements LSResourceResolver
 		}
 		catch (IOException e)
 		{
-			this.logger.fatal(Messages.getString("ResourceResolver.9") + resource); //$NON-NLS-1$
+			this.logger.error(Messages.getString("ResourceResolver.9") + resource); //$NON-NLS-1$
 			throw new ResourceException(e.getLocalizedMessage(), e);
 		}
 		finally
@@ -137,8 +138,8 @@ public class ResourceResolver implements LSResourceResolver
 			}
 			catch (IOException e)
 			{
-				this.logger.fatal("Unable to close file streams when loading schema");
-				this.logger.error(e);
+				this.logger.error("Unable to close file streams when loading schema");
+				this.logger.error(e.toString());
 			}
 		}
 	}

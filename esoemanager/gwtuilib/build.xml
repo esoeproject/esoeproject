@@ -1,0 +1,16 @@
+<project name="gwtuilib" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<import file="${esoebuild}/esoe-gwt.xml" />
+
+	<target name="jar" depends="setup" description="Assembles UI components into source jar for use in other projects">
+		<jar destfile="${output}/${output.jar}">
+			<fileset dir="${src}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${output.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+</project>

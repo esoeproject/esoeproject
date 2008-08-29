@@ -61,7 +61,8 @@ void spep::ipc::SessionCacheProxy::insertPrincipalSession(std::string sessionID,
 	SessionCache_InsertClientSessionCommand command( sessionID, principalSession );
 	
 	ClientSocketLease clientSocket( _socketPool );
-	clientSocket->makeNonBlockingRequest( dispatch, command );
+	// Make a blocking request (even though we don't need a return value) so that we know the session has been inserted.
+	clientSocket->makeRequest<NoData, SessionCache_InsertClientSessionCommand>( dispatch, command );
 }
 
 void spep::ipc::SessionCacheProxy::terminatePrincipalSession(std::wstring sessionID)
@@ -86,7 +87,8 @@ void spep::ipc::SessionCacheProxy::insertUnauthenticatedSession(spep::Unauthenti
 	std::string dispatch(::insertUnauthenticatedSession);
 	
 	ClientSocketLease clientSocket( _socketPool );
-	clientSocket->makeNonBlockingRequest( dispatch, unauthenticatedSession );
+	// Make a blocking request (even though we don't need a return value) so that we know the session has been inserted.
+	clientSocket->makeRequest<NoData, UnauthenticatedSession>( dispatch, unauthenticatedSession );
 }
 
 void spep::ipc::SessionCacheProxy::terminateUnauthenticatedSession(std::wstring requestID)

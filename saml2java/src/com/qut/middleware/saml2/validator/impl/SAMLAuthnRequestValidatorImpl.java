@@ -19,7 +19,8 @@
  */
 package com.qut.middleware.saml2.validator.impl;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
 import com.qut.middleware.saml2.schemas.protocol.AuthnRequest;
@@ -29,7 +30,7 @@ public class SAMLAuthnRequestValidatorImpl implements SAMLAuthnRequestValidator
 {
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SAMLAuthnRequestValidatorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SAMLAuthnRequestValidatorImpl.class.getName());
 	
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.saml2.handler.SAMLAuthnRequestValidator#validate(com.qut.middleware.saml2.schemas.protocol.RequestAbstractType)

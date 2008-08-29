@@ -4,28 +4,8 @@
 	xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<!-- ====================================================================== 
-		
-		Copyright 2006, Queensland University of Technology
-		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
-		use this file except in compliance with the License. You may obtain a copy of 
-		the License at 
-		
-		http://www.apache.org/licenses/LICENSE-2.0 
-		
-		Unless required by applicable law or agreed to in writing, software 
-		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
-		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
-		License for the specific language governing permissions and limitations under 
-		the License.
-		
-		Author: Bradley Beddoes
-		Date: 20/11/2006                                                        
-		Purpose: Defines spring integration for
-		====================================================================== -->
-
-	<bean id="authnAuthorityProcessor"
-		class="com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor">
+	<bean id="ssoProcessor"
+		class="com.qut.middleware.esoe.sso.impl.SSOProcessorImpl">
 		<constructor-arg index="0" ref="samlValidator" />
 		<constructor-arg index="1" ref="sessionsProcessor" />
 		<constructor-arg index="2" ref="metadata" />
@@ -81,39 +61,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 				</entry>
 			</map>
 		</constructor-arg>
-
+		<constructor-arg index="10" value="${sso.esoeIdentifier}" />
 	</bean>
-
-	<bean id="logoutAuthorityProcessor"
-		class="com.qut.middleware.esoe.sso.impl.LogoutAuthorityProcessor">
-		<constructor-arg index="0" ref="failedLogoutRepository" />
-		<constructor-arg index="1" ref="samlValidator" />
-		<constructor-arg index="2" ref="sessionsProcessor" />
-		<constructor-arg index="3" ref="metadata" />
-		<constructor-arg index="4" ref="identifierGenerator" />
-		<constructor-arg index="5" ref="esoeKeyStoreResolver" />
-		<constructor-arg index="6" ref="wsClient" />
-	</bean>
-
-	<!--  Failed logout event repository -->
-	<bean name="failedLogoutRepository"
-		class="com.qut.middleware.esoe.sso.bean.impl.FailedLogoutRepositoryImpl" />
-
-	<!--  Monitor of failed logouts -->
-	<bean name="failedLogoutMonitor"
-		class="com.qut.middleware.esoe.sso.impl.FailedLogoutMonitor"
-		destroy-method="shutdown">
-		<constructor-arg index="0" ref="failedLogoutRepository" />
-		<constructor-arg index="1" ref="samlValidator" />
-		<constructor-arg index="2" ref="metadata" />
-		<constructor-arg index="3" ref="esoeKeyStoreResolver" />
-		<constructor-arg index="4" ref="identifierGenerator" />
-		<constructor-arg index="5" ref="wsClient" />
-		<constructor-arg index="6"
-			value="${sso.failedlogoutmonitor.retryInterval}" />
-		<constructor-arg index="7"
-			value="${sso.failedlogoutmonitor.maxFailureAge}" />
-	</bean>
-
 
 </beans>

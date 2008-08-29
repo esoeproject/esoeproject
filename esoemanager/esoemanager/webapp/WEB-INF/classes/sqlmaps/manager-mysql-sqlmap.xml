@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="manager">
+	<select id="getServicesCloseExpiry" resultMap="expiryCloseMap"> select DESC_ID,
+		EXPIRYDATE from DESCRIPTOR_PUBLIC_KEYS WHERE EXPIRYDATE > NOW() ORDER
+		BY EXPIRYDATE ASC LIMIT 20</select>
+	<select id="getRecentNodeStartup" resultMap="nodeStartup"> select * from
+		SPEP_REGISTRATIONS_HISTORICAL ORDER BY DATE_ADDED DESC LIMIT 20
+	</select>
+	<select id="getRecentServiceNodeStartup" parameterClass="java.lang.Integer"
+		resultMap="nodeStartup"> select * from SPEP_REGISTRATIONS_HISTORICAL WHERE
+		ENT_ID=#value# ORDER BY DATE_ADDED DESC LIMIT 50</select>
+</sqlMap>

@@ -104,6 +104,9 @@ typedef uri_components apr_uri_t;
 #define apr_pcalloc		ap_pcalloc
 #define apr_pool_find	ap_pool_find
 
+#define apr_pool_cleanup_register 	ap_register_cleanup
+#define apr_pool_cleanup_null 		ap_null_cleanup
+
 #define apr_table_get 	ap_table_get
 #define apr_table_make 	ap_make_table
 #define apr_table_set 	ap_table_set

@@ -1,0 +1,22 @@
+<lxacml:Policy PolicyId="http://test5.service.com" xmlns:lxacml="http://www.qut.com/middleware/lxacmlSchema">
+  <lxacml:Description>
+  Default service management policy, applies to all management tasks of the service
+</lxacml:Description>
+  <lxacml:Target>
+    <lxacml:Resources>
+      <lxacml:Resource>
+        <lxacml:AttributeValue>esoe:management:privilege:serviceid:16</lxacml:AttributeValue>
+      </lxacml:Resource>
+    </lxacml:Resources>
+  </lxacml:Target>
+  <lxacml:Rule Effect="Permit" RuleId="management-rule-0">
+    <lxacml:Description>This rule permits management abilities to 'testuser' over the service identified by http://test5.service.com</lxacml:Description>
+    <lxacml:Condition>
+      <lxacml:Apply FunctionId="string-equal">
+        <lxacml:Description>Determines admin users for test5.service.com</lxacml:Description>
+        <lxacml:SubjectAttributeDesignator AttributeId="uid"/>
+        <lxacml:AttributeValue>testuser</lxacml:AttributeValue>
+      </lxacml:Apply>
+    </lxacml:Condition>
+  </lxacml:Rule>
+</lxacml:Policy>

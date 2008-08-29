@@ -1,5 +1,5 @@
-/* 
- * Copyright 2006, Queensland University of Technology
+/*
+ * Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -13,18 +13,18 @@
  * the License.
  * 
  * Author: Shaun Mangelsdorf
- * Creation Date: 01/11/2006
+ * Creation Date: 23/05/2008
  * 
- * Purpose: Resolves a key from a keystore.
+ * Purpose: 
  */
+
 package com.qut.middleware.crypto.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidParameterException;
+import java.math.BigInteger;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -34,191 +34,291 @@ import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.log4j.Logger;
+import com.qut.middleware.crypto.IssuerSerialPair;
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.exception.KeystoreResolverException;
+import com.qut.middleware.saml2.exception.KeyResolutionException;
 
-import com.qut.middleware.crypto.KeyStoreResolver;
-
-public class KeyStoreResolverImpl implements KeyStoreResolver
+public class KeystoreResolverImpl implements KeystoreResolver
 {
-	private KeyStore keyStore;
-	private PrivateKey localPrivateKey;
-	private String localPublicKeyAlias;
-	private PublicKey localPublicKey;
+	private static final String KEYSTORE_TYPE = "JKS";
 	
-	/* Local logging instance */
-	private Logger logger = Logger.getLogger(KeyStoreResolverImpl.class.getName());
-
-	/** 
-	 * Constructor.
-	 * 
-	 */
-	public KeyStoreResolverImpl(File keyStoreFile, String keyStorePassword, String localKeyAlias, String localKeyPassword)
+	private String localAlias = null;
+	private PrivateKey localPrivateKey = null;
+	private PublicKey localPublicKey = null;
+	private Certificate localCertificate = null;
+	private Map<String,Certificate> certificatesByName = null;
+	private Map<IssuerSerialPair,Certificate> certificates = null;
+	
+	private File keystoreFile = null;
+	private String keystorePassword = null;
+	private String keyPassword = null;
+	
+	private long lastModified = 0;
+	
+	private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	
+	public KeystoreResolverImpl(File keystoreFile, String keystorePassword, String localAlias, String keyPassword) throws KeystoreResolverException
 	{
-		this.localPublicKeyAlias = localKeyAlias;
-		String keyPassword;
+		this.loadKeystoreInternal(keystoreFile, keystorePassword, localAlias, keyPassword);
+	}
+	
+	public KeystoreResolverImpl(File keystoreFile, String keystorePassword) throws KeystoreResolverException
+	{
+		this.loadKeystoreInternal(keystoreFile, keystorePassword, null, null);
+	}
+	
+	private void loadKeystoreInternal(File keystoreFile, String keystorePassword, String localAlias, String keyPassword) throws KeystoreResolverException
+	{
+		// No lock here - after construction this will only ever be called from within reload()
 		
-		if(keyStoreFile == null)
-		{
-			throw new InvalidParameterException(); 
-		}
-		if(keyStorePassword == null)
-		{
-			throw new InvalidParameterException(); 
-		}
-		if(localKeyAlias == null)
-		{
-			throw new InvalidParameterException(); 
-		}
-		if(localKeyPassword == null)
-		{
-			keyPassword = ""; 
-		}
-		else
-			keyPassword = localKeyPassword;
-		
+		Map<String,Certificate> certificatesByName = new TreeMap<String, Certificate>();
+		Map<IssuerSerialPair,Certificate> certificates = new TreeMap<IssuerSerialPair, Certificate>();
+		PrivateKey localPrivateKey = null;
+		Certificate localCertificate = null;
+		PublicKey localPublicKey = null;
+		long lastModified = keystoreFile.lastModified();
+
 		try
-		{		
-			this.keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			InputStream keyStoreStream = new FileInputStream(keyStoreFile);
-			this.keyStore.load(keyStoreStream, keyStorePassword.toCharArray());
-			keyStoreStream.close();
+		{
+			InputStream keystoreInputStream = new FileInputStream(keystoreFile);
+			KeyStore keystore = KeyStore.getInstance(KEYSTORE_TYPE);
+			keystore.load(keystoreInputStream, keystorePassword.toCharArray());
+			keystoreInputStream.close();
+			
+			if (localAlias != null)
+			{
+				Key key = keystore.getKey(localAlias, keyPassword.toCharArray());
+				if (key instanceof PrivateKey)
+				{
+					localPrivateKey = (PrivateKey)key;
+				}
+				else
+				{
+					String className = (key == null) ? "null" : key.getClass().getName();
+					throw new KeystoreResolverException("Keystore resolver could not be instantiated. The supplied local key alias does not have a corresponding private key in the keystore. The instance class of the key was: " + className);
+				}
+				
+				localCertificate = keystore.getCertificate(localAlias);
+				if (localCertificate == null)
+				{
+					throw new KeystoreResolverException("Keystore resolver could not be instantiated. The local private key does not have a matching certificate entry in the keystore.");
+				}
+				localPublicKey = localCertificate.getPublicKey();
+			}
+			
+			
+			Enumeration<String> aliases = keystore.aliases();
+			while (aliases.hasMoreElements())
+			{
+				String alias = aliases.nextElement();
+				if (keystore.isCertificateEntry(alias) || keystore.isKeyEntry(alias))
+				{
+					cacheCertificate(certificatesByName, certificates, alias, keystore.getCertificate(alias));
+				}
+			}
 		}
 		catch (KeyStoreException e)
 		{
-			this.logger.error("Exception while operating on keystore " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
-		}
-		catch (FileNotFoundException e)
-		{
-			this.logger.error("Could not locate keystore " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
+			throw new KeystoreResolverException("Keystore resolver could not be instantiated due to a problem with the supplied keystore. Error was: " + e.getMessage(), e);
 		}
 		catch (NoSuchAlgorithmException e)
 		{
-			this.logger.error("Unknown algorithm when reading keystore " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
+			throw new KeystoreResolverException("Keystore resolver could not be instantiated due to a missing algorithm. Error was: " + e.getMessage(), e);
 		}
 		catch (CertificateException e)
 		{
-			this.logger.error("Certificate exception when reading keystore " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
-		}
-		catch (IOException e)
-		{
-			this.logger.error("IO exception when reading keystore " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
-		}
-		
-		try
-		{
-			Key key = this.keyStore.getKey(localKeyAlias, keyPassword.toCharArray());
-			if (key instanceof PrivateKey)
-			{
-				this.localPrivateKey = (PrivateKey)key;
-			}
-			else
-			{
-				this.logger.debug("No private key located in keystore"); 
-				this.localPrivateKey = null;
-			}
-			
-			this.localPublicKey = resolveKey(localKeyAlias);
-		}
-		catch (KeyStoreException e)
-		{
-			this.logger.error("Exception while operating on keystore " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
-		}
-		catch (NoSuchAlgorithmException e)
-		{
-			this.logger.error("Unknown algorithm when reading keys " + e.getLocalizedMessage());
-			this.logger.debug(e);
-			throw new UnsupportedOperationException(e);
+			throw new KeystoreResolverException("Keystore resolver could not be instantiated due to a certificate problem. Error was: " + e.getMessage(), e);
 		}
 		catch (UnrecoverableKeyException e)
 		{
-			this.logger.error("Unrecoverable problem with keys occured " + e.getLocalizedMessage());
-			this.logger.debug(e); 
-			throw new UnsupportedOperationException(); 
+			throw new KeystoreResolverException("Keystore resolver could not be instantiated due to an invalid key. Error was: " + e.getMessage(), e);
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.saml2.ExternalKeyResolver#resolveKey(java.lang.String)
-	 */
-	public PublicKey resolveKey(String alias)
-	{
-		Certificate certificate = this.resolveCertificate(alias);
-		if(certificate == null) 
+		catch (IOException e)
 		{
-			this.logger.debug("Public key for this keystore is null"); 
-			return null;
+			throw new KeystoreResolverException("Keystore resolver could not be instantiated due to an I/O error. Error was: " + e.getMessage(), e);
 		}
-		return certificate.getPublicKey();
+		
+		// Loaded successfully... replace the cached objects
+		this.certificatesByName = certificatesByName;
+		this.certificates = certificates;
+		this.localPrivateKey = localPrivateKey;
+		this.localCertificate = localCertificate;
+		this.localPublicKey = localPublicKey;
+		this.localAlias = localAlias;
+		this.keystoreFile = keystoreFile;
+		this.keystorePassword = keystorePassword;
+		this.keyPassword = keyPassword;
+		this.lastModified = lastModified;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.qut.middleware.esoe.crypto.KeyStoreResolver#resolveCertificate(java.lang.String)
-	 */
-	public Certificate resolveCertificate(String alias)
+	
+	private void cacheCertificate(Map<String,Certificate> certificatesByName, Map<IssuerSerialPair,Certificate> certificates, String alias, Certificate cert)
 	{
+		if (cert == null) return;
+		
+		certificatesByName.put(alias, cert);
+		if (cert instanceof X509Certificate)
+		{
+			X509Certificate x509Certificate = (X509Certificate)cert;
+			String name = x509Certificate.getIssuerDN().getName();
+			BigInteger serial = x509Certificate.getSerialNumber();
+			
+			certificates.put(new IssuerSerialPairImpl(name, serial), cert);
+		}
+	}
+	
+	public String getLocalKeyAlias()
+	{
+		this.lock.readLock().lock();
 		try
 		{
-			return this.keyStore.getCertificate(alias);
+			return this.localAlias;
 		}
-		catch (KeyStoreException e)
+		finally
 		{
-			return null;
+			this.lock.readLock().unlock();
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.qut.middleware.esoe.crypto.KeyStoreResolver#getPrivateKey()
-	 */
-	public PrivateKey getPrivateKey()
+	public PrivateKey getLocalPrivateKey()
 	{
-		if (this.localPrivateKey != null)
+		this.lock.readLock().lock();
+		try
 		{
 			return this.localPrivateKey;
 		}
-		
-		this.logger.error("Private key for this keystore is null"); 
-		throw new InvalidParameterException(); 
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see com.qut.middleware.esoe.crypto.KeyStoreResolver#getKeyAlias()
-	 */
-	public String getKeyAlias()
+	public PublicKey getLocalPublicKey()
 	{
-		return this.localPublicKeyAlias;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see com.qut.middleware.esoe.crypto.KeyStoreResolver#getPublicKey()
-	 */
-	public PublicKey getPublicKey()
-	{
-		return this.localPublicKey;
+		this.lock.readLock().lock();
+		try
+		{
+			return this.localPublicKey;
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.crypto.KeyStoreResolver#getKeyStore()
-	 */
-	public KeyStore getKeyStore()
+	public Certificate getLocalCertificate()
 	{
-		return this.keyStore;
+		this.lock.readLock().lock();
+		try
+		{
+			return this.localCertificate;
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
 	}
 
+	public Certificate resolveCertificate(String alias)
+	{
+		this.lock.readLock().lock();
+		try
+		{
+			return this.certificatesByName.get(alias);
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
+	}
+
+	public PublicKey resolveKey(String alias)
+	{
+		this.lock.readLock().lock();
+		try
+		{
+			Certificate cert = this.resolveCertificate(alias);
+			if (cert != null)
+			{
+				return cert.getPublicKey();
+			}
+			
+			return null;
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
+	}
+
+	public Certificate resolveCertificate(String issuerDN, BigInteger serialNumber)
+	{
+		this.lock.readLock().lock();
+		try
+		{
+			IssuerSerialPair issuerSerialPair = new IssuerSerialPairImpl(issuerDN, serialNumber);
+			return this.certificates.get(issuerSerialPair);
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
+	}
+
+	public PublicKey resolveKey(String issuerDN, BigInteger serialNumber) throws KeyResolutionException
+	{
+		this.lock.readLock().lock();
+		try
+		{
+			Certificate cert = this.resolveCertificate(issuerDN, serialNumber);
+			if (cert != null)
+			{
+				return cert.getPublicKey();
+			}
+			
+			return null;
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
+	}
+	
+	public void reload() throws KeystoreResolverException
+	{
+		// Write lock here to stop two threads updating the keystore concurrently.
+		this.lock.writeLock().lock();
+		try
+		{
+			long lastModified = this.keystoreFile.lastModified();
+			if (this.lastModified < lastModified)
+			{
+				this.loadKeystoreInternal(this.keystoreFile, this.keystorePassword, this.localAlias, this.keyPassword);
+			}
+		}
+		finally
+		{
+			this.lock.writeLock().unlock();
+		}
+	}
+
+	public Map<String, Certificate> getCertificates()
+	{
+		this.lock.readLock().lock();
+		try
+		{
+			return Collections.unmodifiableMap(this.certificatesByName);
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
+	}
 }

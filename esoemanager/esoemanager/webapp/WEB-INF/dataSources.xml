@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       					http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<bean id="ibatisDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${ibatisdatasource.driver}" />
+		<property name="url" value="${ibatisdatasource.url}" />
+		<property name="username" value="${ibatisdatasource.username}" />
+		<property name="password" value="${ibatisdatasource.password}" />
+		<property name="removeAbandoned" value="${ibatisdatasource.removeAbandoned}" />
+		<property name="removeAbandonedTimeout" value="${ibatisdatasource.removeAbandonedTimeout}" />
+		<property name="logAbandoned" value="${ibatisdatasource.logAbandoned}" />
+		<property name="maxIdle" value="${ibatisdatasource.maxIdle}" />
+		<property name="maxActive" value="${ibatisdatasource.maxActive}" />
+	</bean>
+
+	<!-- enable the configuration of transactional behavior based on annotations -->
+	<tx:annotation-driven />
+
+	<bean id="simpleExtractor"
+		class="org.springframework.jdbc.support.nativejdbc.SimpleNativeJdbcExtractor" />
+
+	<bean id="lobHandlerOra" class="org.springframework.jdbc.support.lob.OracleLobHandler">
+		<property name="nativeJdbcExtractor" ref="simpleExtractor" />
+	</bean>
+
+	<bean id="lobHandlerDefault" class="org.springframework.jdbc.support.lob.DefaultLobHandler"></bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager" lazy-init="true">
+		<property name="dataSource" ref="ibatisDataSource" />
+	</bean>
+
+	<bean id="sqlMapClient" class="com.qut.middleware.esoemanager.DynamicSqlMapClientFactoryBean">
+		<constructor-arg index="0" ref="ibatisDataSource" />
+		<constructor-arg index="1" ref="lobHandlerOra" />
+		<constructor-arg index="2" ref="lobHandlerDefault" />
+		<property name="configLocation" value="${sqlmap.config}" />
+	</bean>
+
+	<bean id="esoeManagerKeyStoreResolver"
+		class="com.qut.middleware.crypto.impl.KeystoreResolverImpl">
+		<constructor-arg index="0" value="${esoemanagerkeystoreresolver.keystorePath}" />
+		<constructor-arg index="1" value="${esoemanagerkeystoreresolver.keystorePassphrase}" />
+		<constructor-arg index="2" value="${esoemanagerkeystoreresolver.keyAlias}" />
+		<constructor-arg index="3" value="${esoemanagerkeystoreresolver.keyPassphrase}" />
+	</bean>
+
+</beans>

@@ -19,7 +19,8 @@
  */
 package com.qut.middleware.saml2.validator.impl;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.validator.SAMLAssertionValidator;
@@ -36,7 +37,7 @@ public class SAMLValidatorImpl implements SAMLValidator
 	private SAMLAssertionValidator assertionValidator;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SAMLValidatorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SAMLValidatorImpl.class.getName());
 	
 	/**
 	 * @param identifierCache An implementation of IdentifierCache through which SAML ID's can be verified against for uniqueness
@@ -47,13 +48,13 @@ public class SAMLValidatorImpl implements SAMLValidator
 		/* Ensure validator is created with a stable base */
 		if( identifierCache == null )
 		{
-			this.logger.fatal(Messages.getString("SAMLValidatorImpl.0")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("SAMLValidatorImpl.0")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("SAMLValidatorImpl.0")); //$NON-NLS-1$
 		}
 		
 		if(allowedTimeSkew > Integer.MAX_VALUE / 1000)
 		{
-			this.logger.fatal(Messages.getString("SAMLValidatorImpl.1")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("SAMLValidatorImpl.1")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("SAMLValidatorImpl.1")); //$NON-NLS-1$
 		}
 		

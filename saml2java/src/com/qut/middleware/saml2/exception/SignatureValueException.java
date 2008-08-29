@@ -23,6 +23,7 @@ package com.qut.middleware.saml2.exception;
 public class SignatureValueException extends Exception
 {
 	private static final long serialVersionUID = 4412781289512424446L;
+	private Object jaxbObject; 
 
 	/**
 	 * Exception thrown when a signature validation exception has occured.
@@ -30,18 +31,19 @@ public class SignatureValueException extends Exception
 	 * @param message Human readable message indicating why this exception was thrown
 	 * @param cause Any exception which caused this exception to be thrown, may be null
 	 */
-	public SignatureValueException(String message, Exception cause)
+	public SignatureValueException(String message, Exception cause, Object jaxbObject)
 	{
 		super(message, cause);
+		this.jaxbObject = jaxbObject;
 	}
 	
 	/**
-	 * Exception thrown when a signature validation exception has occured.
-	 * 
-	 * @param message Human readable message indicating why this exception was thrown
+	 * Note that since signature validation has failed at this stage, the object returned
+	 * here should not be trusted for anything other than generating log output.
+	 * @return The JAXB Object containing the document that failed signature validation.
 	 */
-	public SignatureValueException(String message)
+	public Object getJAXBObject()
 	{
-		super(message);
+		return this.jaxbObject;
 	}
 }

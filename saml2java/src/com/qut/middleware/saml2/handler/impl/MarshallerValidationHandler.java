@@ -19,7 +19,8 @@
  */
 package com.qut.middleware.saml2.handler.impl;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -29,7 +30,7 @@ public class MarshallerValidationHandler implements ErrorHandler
 {
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(MarshallerValidationHandler.class.getName());
+	private Logger logger = LoggerFactory.getLogger(MarshallerValidationHandler.class.getName());
 
 	/*
 	 * (non-Javadoc)

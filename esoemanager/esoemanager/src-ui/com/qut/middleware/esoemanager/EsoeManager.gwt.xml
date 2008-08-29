@@ -1,0 +1,17 @@
+<module>
+
+	<!-- Inherit the core Web Toolkit stuff.                  -->
+	<inherits name='com.google.gwt.user.User'/>
+	<inherits name="com.google.gwt.i18n.I18N"/> 
+	<inherits name='org.adamtacy.GWTEffects'/>
+	<inherits name='com.qut.gwtuilib.GwtUi'/>
+	
+	<stylesheet src="esoemanager.css"/>
+	<script src="codemirror/js/codemirror.js"/>
+
+	<!-- Specify the app entry point class.                   -->
+	<entry-point class='com.qut.middleware.esoemanager.client.EsoeManager'/>
+	
+	<servlet path="/esoemanager/rpc" class="com.qut.middleware.esoemanager.ClientTestServlet"/>
+  
+</module>

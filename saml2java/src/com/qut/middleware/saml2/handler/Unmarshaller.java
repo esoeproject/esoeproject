@@ -93,4 +93,18 @@ public interface Unmarshaller<T>
 	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
 	 */
 	public T unMarshallMetadata( PublicKey pk, byte[] document, Map<String, KeyData> keyList ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
+	
+	/**
+	 * Validates SAML metadata document against schema and Unmarshalls supplied document to JAXB compiled object instantiated as T. Additionally determines
+	 * all public keys stored in document and returns to caller for future use.
+	 * Utilised where public key information for validating the metadata signature is extracted from a supplied key resolver.
+	 * 
+	 * @param document The document to unmarshall
+	 * @param keyList An initiated but empty Map<String, PublicKey> with which to fill with key values
+	 * @return The JAXB unmarshalled metadata object or null if an error occurs.
+	 * @throws SignatureValueException if the signature cannot be decoded.
+	 * @throws ReferenceValueException if the reference cannot be decoded.
+	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
+	 */
+	public T unMarshallMetadata( byte[] document, Map<String, KeyData> keyList, boolean signed ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
 }

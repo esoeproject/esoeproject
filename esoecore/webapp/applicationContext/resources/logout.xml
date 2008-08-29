@@ -4,28 +4,45 @@
 	xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<!-- ====================================================================== 
-		
-		Copyright 2006, Queensland University of Technology
-		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
-		use this file except in compliance with the License. You may obtain a copy of 
-		the License at 
-		
-		http://www.apache.org/licenses/LICENSE-2.0 
-		
-		Unless required by applicable law or agreed to in writing, software 
-		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
-		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
-		License for the specific language governing permissions and limitations under 
-		the License.
-		
-		Author: Bradley Beddoes
-		Date: 20/11/2006                                                        
-		Purpose: Defines spring integration for
-		====================================================================== -->
-
 	<!--  Repository of failed logout notifications -->
 	<bean id="failedLogoutRepository"
-		class="com.qut.middleware.esoe.sso.bean.impl.FailedLogoutRepositoryImpl" />
+		class="com.qut.middleware.esoe.logout.bean.impl.FailedLogoutRepositoryImpl" />
 
+	<bean id="logoutMechanism" class="com.qut.middleware.esoe.logout.impl.WsLogoutMechanismImpl" scope="prototype">
+		<constructor-arg index="0" ref="wsClient" />
+		<constructor-arg index="1" ref="metadata" />
+		<constructor-arg index="2" ref="identifierGenerator" />
+		<constructor-arg index="3" ref="esoeKeyStoreResolver" />
+		<constructor-arg index="4" ref="samlValidator" />
+		<constructor-arg index="5" ref="failedLogoutRepository" />
+		<constructor-arg index="6" value="${logout.mechanism.esoeIdentifier}" />
+	</bean>
+
+	<bean id = "logoutThreadPool" class="com.qut.middleware.esoe.logout.impl.LogoutThreadPoolImpl" destroy-method="shutdownNow">
+		<constructor-arg index="0" ref="logoutMechanism" />
+		<constructor-arg index="1" value="${logout.threadpool.minThreads}" />
+		<constructor-arg index="2" value="${logout.threadpool.maxThreads}" />
+		<constructor-arg index="3" value="${logout.threadpool.maxQueueSize}" />
+	</bean>
+	
+	<!--  processor for web based logouts -->
+	<bean id="logoutProcessor"
+		class="com.qut.middleware.esoe.logout.impl.LogoutProcessorImpl">
+		<constructor-arg index="0" ref="sessionsProcessor" />
+		<constructor-arg index="1" ref="logoutMechanism" />
+	</bean>
+	
+	<!--  Monitor of failed logouts -->
+	<bean name="failedLogoutMonitor"
+		class="com.qut.middleware.esoe.logout.impl.FailedLogoutMonitor"
+		destroy-method="shutdown">
+		<constructor-arg index="0" ref="failedLogoutRepository" />
+		<constructor-arg index="1" ref="esoeKeyStoreResolver" />
+		<constructor-arg index="2" ref="logoutMechanism" />
+		<constructor-arg index="3"
+			value="${logout.failedlogoutmonitor.retryInterval}" />
+		<constructor-arg index="4"
+			value="${logout.failedlogoutmonitor.maxFailureAge}" />
+	</bean>
+	
 </beans>

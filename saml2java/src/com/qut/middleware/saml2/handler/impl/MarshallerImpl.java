@@ -28,8 +28,11 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Provider;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 import javax.xml.XMLConstants;
@@ -51,6 +54,8 @@ import javax.xml.crypto.dsig.dom.DOMSignContext;
 import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 import javax.xml.crypto.dsig.keyinfo.KeyName;
+import javax.xml.crypto.dsig.keyinfo.X509Data;
+import javax.xml.crypto.dsig.keyinfo.X509IssuerSerial;
 import javax.xml.crypto.dsig.spec.ExcC14NParameterSpec;
 import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 import javax.xml.parsers.DocumentBuilder;
@@ -69,7 +74,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -77,6 +83,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.qut.middleware.saml2.Constants;
+import com.qut.middleware.saml2.LocalKeyResolver;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.exception.ResourceException;
 import com.qut.middleware.saml2.namespace.NamespacePrefixMapperImpl;
@@ -104,7 +111,9 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	private String defaultCharset = "UTF-16";
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(MarshallerImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(MarshallerImpl.class.getName());
+
+	private Certificate cert;
 
 	/**
 	 * Constructor for MarshallerImpl
@@ -123,12 +132,12 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	{
 		if ((packageName == null) || (packageName.length() <= 0))
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.6")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.6")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.6")); //$NON-NLS-1$
 		}
 		if ((schemaList == null) || (schemaList.length == 0))
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.2")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.2")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.2")); //$NON-NLS-1$
 		}
 
@@ -147,7 +156,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				location = SchemaResolver.class.getResource(schemaList[i]);
 				if (location == null)
 				{
-					this.logger.fatal(Messages.getString("UnmarshallerImpl.49") + schemaList[i] //$NON-NLS-1$
+					this.logger.error(Messages.getString("UnmarshallerImpl.49") + schemaList[i] //$NON-NLS-1$
 							+ Messages.getString("UnmarshallerImpl.50")); //$NON-NLS-1$
 					throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.26") + schemaList[i] + Messages.getString("UnmarshallerImpl.27")); //$NON-NLS-1$//$NON-NLS-2$
 				}
@@ -171,19 +180,19 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 		catch (SAXException saxe)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.39")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.39")); //$NON-NLS-1$
 			this.logger.debug(saxe.getLocalizedMessage(), saxe);
 			throw new MarshallerException(saxe.getMessage(), saxe);
 		}
 		catch (IOException ioe)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.66")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.66")); //$NON-NLS-1$
 			this.logger.debug(ioe.getLocalizedMessage(), ioe);
 			throw new MarshallerException(ioe.getMessage(), ioe);
 		}
 		catch (ResourceException e)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.97")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.97")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
 			throw new MarshallerException(e.getLocalizedMessage(), e);
 		}
@@ -207,28 +216,22 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	 * @throws MarshallerException
 	 *             if an error occurs creating the marshaller.
 	 */
-	public MarshallerImpl(String packageName, String[] schemaList, String keyPairName, PrivateKey pk) throws MarshallerException
+	public MarshallerImpl(String packageName, String[] schemaList, LocalKeyResolver localKeyResolver) throws MarshallerException
 	{
 		if ((packageName == null) || (packageName.length() <= 0))
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.6")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.6")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.6")); //$NON-NLS-1$
 		}
 		if ((schemaList == null) || (schemaList.length <= 0))
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.3")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.3")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.3")); //$NON-NLS-1$
 		}
 
-		if ((keyPairName == null) || (keyPairName.length() <= 0))
+		if (localKeyResolver == null)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.4")); //$NON-NLS-1$
-			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.4")); //$NON-NLS-1$
-		}
-
-		if (pk == null)
-		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.5")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.5")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.5")); //$NON-NLS-1$
 		}
 
@@ -246,7 +249,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				location = SchemaResolver.class.getResource(schemaList[i]);
 				if (location == null)
 				{
-					this.logger.fatal(Messages.getString("UnmarshallerImpl.49") + schemaList[i] //$NON-NLS-1$
+					this.logger.error(Messages.getString("UnmarshallerImpl.49") + schemaList[i] //$NON-NLS-1$
 							+ Messages.getString("UnmarshallerImpl.50")); //$NON-NLS-1$
 					throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.26") + schemaList[i] + Messages.getString("UnmarshallerImpl.27")); //$NON-NLS-1$//$NON-NLS-2$
 				}
@@ -264,8 +267,9 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 
 			this.validationHandler = new MarshallerValidationHandler();
 
-			this.keyPairName = keyPairName;
-			this.pk = pk;
+			this.keyPairName = localKeyResolver.getLocalKeyAlias();
+			this.pk = localKeyResolver.getLocalPrivateKey();
+			this.cert = localKeyResolver.getLocalCertificate();
 
 			this.logger.info(Messages.getString("MarshallerImpl.32")); //$NON-NLS-1$
 		}
@@ -277,19 +281,19 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 		catch (SAXException saxe)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.39")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.39")); //$NON-NLS-1$
 			this.logger.debug(saxe.getLocalizedMessage(), saxe);
 			throw new MarshallerException(saxe.getMessage(), saxe);
 		}
 		catch (IOException ioe)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.67")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.67")); //$NON-NLS-1$
 			this.logger.debug(ioe.getLocalizedMessage(), ioe);
 			throw new MarshallerException(ioe.getMessage(), ioe);
 		}
 		catch (ResourceException e)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.98")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.98")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);
 			throw new MarshallerException(e.getLocalizedMessage(), e);
 		}
@@ -313,13 +317,13 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 
 		if (xmlObj == null)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.8")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.8")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.8")); //$NON-NLS-1$
 		}
 
 		if (this.keyPairName == null || this.pk == null)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.9")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.9")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.9")); //$NON-NLS-1$
 		}
 
@@ -349,7 +353,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 
 		if (xmlObj == null)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.12")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.12")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.12")); //$NON-NLS-1$
 		}
 
@@ -404,7 +408,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 
 		if (xmlObj == null)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.14")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.14")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.14")); //$NON-NLS-1$
 		}
 
@@ -515,7 +519,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				}
 				else
 				{
-					this.logger.fatal(Messages.getString("MarshallerImpl.19")); //$NON-NLS-1$
+					this.logger.error(Messages.getString("MarshallerImpl.19")); //$NON-NLS-1$
 					throw new MarshallerException(Messages.getString("MarshallerImpl.19")); //$NON-NLS-1$
 				}
 			}
@@ -571,9 +575,20 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 
 				factory = KeyInfoFactory.getInstance(Constants.DOM_FACTORY, (Provider) Class.forName(System.getProperty(Constants.JSR_MECHANISM, Constants.JSR_PROVIDER)).newInstance()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				keyName = factory.newKeyName(this.keyPairName);
+				
+				List<Object> keyInfoList = new ArrayList<Object>();
+				keyInfoList.add(keyName);
+				
+				if (this.cert instanceof X509Certificate)
+				{
+					X509Certificate x509Certificate = (X509Certificate)this.cert;
+					X509IssuerSerial x509IssuerSerial = factory.newX509IssuerSerial(x509Certificate.getIssuerDN().getName(), x509Certificate.getSerialNumber());
+					X509Data x509Data = factory.newX509Data(Collections.singletonList(x509IssuerSerial));
+					keyInfoList.add(x509Data);
+				}
 
 				/* Future additions to the KeyInfo block should be extended here */
-				keyInfo = factory.newKeyInfo(Collections.singletonList(keyName));
+				keyInfo = factory.newKeyInfo(keyInfoList);
 
 				/* Skip text nodes here (handles human generated xml correctly) */
 				if ((signatureElement.getNextSibling() != null) && (signatureElement.getNextSibling().getNodeType() == Node.TEXT_NODE))
@@ -614,37 +629,37 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 		catch (InvalidAlgorithmParameterException iape)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.34")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.34")); //$NON-NLS-1$
 			this.logger.debug(iape.getLocalizedMessage(), iape);
 			throw new MarshallerException(iape.getMessage(), iape);
 		}
 		catch (NoSuchAlgorithmException nsae)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.35")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.35")); //$NON-NLS-1$
 			this.logger.debug(nsae.getLocalizedMessage(), nsae);
 			throw new MarshallerException(nsae.getMessage(), nsae);
 		}
 		catch (ClassNotFoundException cfe)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.36")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.36")); //$NON-NLS-1$
 			this.logger.debug(cfe.getLocalizedMessage(), cfe);
 			throw new MarshallerException(cfe.getMessage(), cfe);
 		}
 		catch (IllegalAccessException iae)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.37")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.37")); //$NON-NLS-1$
 			this.logger.debug(iae.getLocalizedMessage(), iae);
 			throw new MarshallerException(iae.getMessage(), iae);
 		}
 		catch (InstantiationException cfe)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.38")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.38")); //$NON-NLS-1$
 			this.logger.debug(cfe.getLocalizedMessage(), cfe);
 			throw new MarshallerException(cfe.getMessage(), cfe);
 		}
 		catch (TransformerConfigurationException tce)
 		{
-			this.logger.fatal(Messages.getString("MarshallerImpl.33")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("MarshallerImpl.33")); //$NON-NLS-1$
 			this.logger.debug(tce.getLocalizedMessage(), tce);
 			throw new MarshallerException(tce.getMessage(), tce);
 		}

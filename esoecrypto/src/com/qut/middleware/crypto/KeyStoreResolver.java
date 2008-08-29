@@ -1,5 +1,5 @@
-/* 
- * Copyright 2006, Queensland University of Technology
+/*
+ * Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -13,55 +13,50 @@
  * the License.
  * 
  * Author: Shaun Mangelsdorf
- * Creation Date: 24/11/2006
+ * Creation Date: 23/05/2008
  * 
- * Purpose: Resolves keys from a keystore
+ * Purpose: 
  */
+
 package com.qut.middleware.crypto;
 
-import java.security.KeyStore;
-import java.security.PrivateKey;
+import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.util.Map;
 
+import com.qut.middleware.crypto.exception.KeystoreResolverException;
 import com.qut.middleware.saml2.ExternalKeyResolver;
+import com.qut.middleware.saml2.LocalKeyResolver;
 
-/** Resolves keys from a keystore. */
-public interface KeyStoreResolver extends ExternalKeyResolver
+public interface KeystoreResolver extends ExternalKeyResolver, LocalKeyResolver
 {
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.saml2.ExternalKeyResolver#resolveKey(java.lang.String)
 	 */
 	public PublicKey resolveKey(String alias);
 	
-	/** Get the private key stored in a keystore.
-	 * 
-	 * @return The private key
-	 */
-	public PrivateKey getPrivateKey();
-	
-	/** Get the public key stored in a keystore.
-	 * 
-	 * @return The public key
-	 */
-	public PublicKey getPublicKey();
-
-	/** Get the alias of the private key stored in a keystore.
-	 * 
-	 * @return The key name
-	 */
-	public String getKeyAlias();
-	
-	/** Get the certificate corresponding to the given alias in a keystore.
-	 * 
+	/**
 	 * @param alias The alias of the certificate to resolve
-	 * @return The Certificate, or null if it couldn't be resolved
+	 * @return The Certificate, or null if it could not be resolved
 	 */
 	public Certificate resolveCertificate(String alias);
 	
-	/** Get the KeyStore object being managed by this resolver
-	 * 
-	 * @return the keystore being manager
+	/**
+	 * @param issuerDN The issuer DN of the certificate to resolve
+	 * @param serialNumber The serial number of the certificate to resolve
+	 * @return The certificate, or null if it could not be resolved
 	 */
-	public KeyStore getKeyStore();
+	public Certificate resolveCertificate(String issuerDN, BigInteger serialNumber);
+	
+	/**
+	 * Checks for any updates to the source this keystore was loaded from, 
+	 * and updates the cached data if necessary.
+	 */
+	public void reload() throws KeystoreResolverException;
+	
+	/**
+	 * @return An immutable map of certificates cached in this resolver.
+	 */
+	public Map<String, Certificate> getCertificates();
 }

@@ -1,0 +1,26 @@
+
+ESOE Core
+Copyright 2006-2008, Queensland University of Technology
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+The Spring Framework is used in this project. This is available freely 
+from http://www.springframework.org
+
+The International Components for Unicode (ICU) library is
+used in this project. This is available freely from
+http://www.icu-project.org/
+
+The JAXB library is used in this project. This is available freely from
+http://jaxb.dev.java.net
+
+The Simple Logging Facade for Java is used in this project. This is available
+freely from http://www.slf4j.org
+
+The Easymock testing framework is used in this project. 
+This is available freely from http://www.easymock.org
+
+
+
+

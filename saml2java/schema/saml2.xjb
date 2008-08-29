@@ -53,6 +53,9 @@
 	<jaxb:bindings schemaLocation="saml-schema-metadata-2.0.xsd" node="/xsd:schema/xsd:complexType[@name='EntitiesDescriptorType']/xsd:sequence/xsd:choice/xsd:element[@ref='md:EntitiesDescriptor']">
       	<jaxb:property name="EntitiesDescriptorsAndEntityDescriptors" />
     </jaxb:bindings> 
+    <jaxb:bindings schemaLocation="http://www.w3.org/TR/2002/REC-xmldsig-core-20020212/xmldsig-core-schema.xsd" node="/xsd:schema/xsd:complexType[@name='X509DataType']/xsd:sequence/xsd:choice/xsd:element[@name='X509IssuerSerial']">
+    	<jaxb:property name="X509DataContent" />
+    </jaxb:bindings>
     <jaxb:bindings schemaLocation="lxacml-schema-metadata.xsd" node="/xsd:schema">
 		<jaxb:schemaBindings>
 			<jaxb:package name="com.qut.middleware.saml2.schemas.metadata.lxacml" />

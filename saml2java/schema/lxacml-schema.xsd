@@ -102,6 +102,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="lxacml:ExpressionType">
 				<xsd:sequence>
+				   	<xsd:element ref="lxacml:Description" minOccurs="0" />
 					<xsd:element ref="lxacml:Expression" minOccurs="0"
 						maxOccurs="unbounded" />
 				</xsd:sequence>

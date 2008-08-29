@@ -22,29 +22,22 @@ package com.qut.middleware.saml2;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.List;
 import java.util.SimpleTimeZone;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.TransformerConfigurationException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
-import org.xml.sax.SAXException;
 
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.Unmarshaller;
@@ -54,7 +47,6 @@ import com.qut.middleware.saml2.schemas.assertion.Assertion;
 import com.qut.middleware.saml2.schemas.assertion.AudienceRestriction;
 import com.qut.middleware.saml2.schemas.assertion.AuthnContext;
 import com.qut.middleware.saml2.schemas.assertion.AuthnStatement;
-import com.qut.middleware.saml2.schemas.assertion.ConditionAbstractType;
 import com.qut.middleware.saml2.schemas.assertion.Conditions;
 import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.assertion.Subject;
@@ -69,6 +61,7 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 public class SAML2Test
 {
 	private String path;
+	private SAML2TestKeyResolver keyResolver;
 
 	public SAML2Test() throws Exception
 	{
@@ -78,36 +71,50 @@ public class SAML2Test
 		System.setProperty("file.encoding", "UTF-16");
 		
 		System.getProperties().list(System.out);
+		
+		this.keyResolver = new SAML2TestKeyResolver();
 	}
 
-	private PrivateKey getPrivateKey() throws Exception
-	{
-		PrivateKey privKey = null;
-
-		KeyStore ks = KeyStore.getInstance("PKCS12");
-		FileInputStream fis = new FileInputStream(this.path + "tests.ks");
-		char[] passwd = { 't', 'e', 's', 't', 'p', 'a', 's', 's' };
-		ks.load(fis, passwd);
-
-		privKey = (PrivateKey) ks.getKey("myrsakey", passwd);
-
-		return privKey;
-	}
-
-	private PublicKey getPublicKey() throws Exception
-	{
-		Certificate cert;
+	class SAML2TestKeyResolver implements LocalKeyResolver {
+		Certificate cert = null;
 		PublicKey pubKey = null;
+		PrivateKey privKey = null;
+		String keyAlias = null;
+		
+		public SAML2TestKeyResolver() throws Exception
+		{
+			keyAlias = "myrsakey";
+			KeyStore ks = KeyStore.getInstance("PKCS12");
+			FileInputStream fis = new FileInputStream(SAML2Test.this.path + "tests.ks");
+			char[] passwd = { 't', 'e', 's', 't', 'p', 'a', 's', 's' };
+			ks.load(fis, passwd);
+	
+			privKey = (PrivateKey) ks.getKey(keyAlias, passwd);
+			cert = ks.getCertificate(keyAlias);
+			pubKey = cert.getPublicKey();
+		}
 
-		KeyStore ks = KeyStore.getInstance("PKCS12");
-		FileInputStream fis = new FileInputStream(this.path + "tests.ks");
-		char[] passwd = { 't', 'e', 's', 't', 'p', 'a', 's', 's' };
-		ks.load(fis, passwd);
-
-		cert = ks.getCertificate("myrsakey");
-		pubKey = cert.getPublicKey();
-
-		return pubKey;
+		public Certificate getLocalCertificate()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+		public String getLocalKeyAlias()
+		{
+			// TODO Auto-generated method stub
+			return null;
+		}
+		public PrivateKey getLocalPrivateKey()
+		{
+	
+			return privKey;
+		}
+	
+		public PublicKey getLocalPublicKey()
+		{
+			return pubKey;
+		}
 	}
 
 	private AuthnRequest generateAuthnRequest()
@@ -278,53 +285,22 @@ public class SAML2Test
 		String[] schemas = new String[] { "saml-schema-protocol-2.0.xsd", "saml-schema-assertion-2.0.xsd" };
 
 		/* Supplied private/public key will be in RSA format */
-		marshaller = new MarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), schemas, "myrsakey", getPrivateKey());
+		marshaller = new MarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), schemas, keyResolver);
 		unmarshaller = new UnmarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), schemas);
 
-		try
-		{
-			AuthnRequest authnRequest = generateAuthnRequest();
-			String schema = "saml-schema-protocol-2.0.xsd";
+		AuthnRequest authnRequest = generateAuthnRequest();
+		String schema = "saml-schema-protocol-2.0.xsd";
 
-			byte[] doc = marshaller.marshallSigned(authnRequest);
+		byte[] doc = marshaller.marshallSigned(authnRequest);
 
-			assertNotNull("Supplied XML document should not be null", doc);
+		assertNotNull("Supplied XML document should not be null", doc);
 
-			byte[] base64 = Base64.encodeBase64(doc);
-			byte[] debase64 = Base64.decodeBase64(base64);
+		byte[] base64 = Base64.encodeBase64(doc);
+		byte[] debase64 = Base64.decodeBase64(base64);
+	
+		AuthnRequest authnRequestDecoded = unmarshaller.unMarshallSigned(keyResolver.getLocalPublicKey(), debase64); //$NON-NLS-1$
 		
-			AuthnRequest authnRequestDecoded = unmarshaller.unMarshallSigned(getPublicKey(), debase64); //$NON-NLS-1$
-			
-			assertEquals("Expected Signature ID not supplied", "abe567de6-122wert67", authnRequestDecoded.getID());
-		}
-		catch (TransformerConfigurationException tce)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (InvalidAlgorithmParameterException iape)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (NoSuchAlgorithmException nsae)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (ClassNotFoundException cfe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (IllegalAccessException iae)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (InstantiationException cfe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (SAXException saxe)
-		{
-			fail("Unexcepted exception thrown");
-		}
+		assertEquals("Expected Signature ID not supplied", "abe567de6-122wert67", authnRequestDecoded.getID());
 	}
 
 	/*
@@ -340,47 +316,16 @@ public class SAML2Test
 		String[] schemas = new String[] { "saml-schema-protocol-2.0.xsd", "saml-schema-assertion-2.0.xsd" };
 
 		/* Supplied private/public key will be in RSA format */
-		marshaller = new MarshallerImpl<Response>(AuthnRequest.class.getPackage().getName(), schemas, "myrsakey", getPrivateKey());
+		marshaller = new MarshallerImpl<Response>(AuthnRequest.class.getPackage().getName(), schemas, keyResolver);
 		unmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName(), schemas);
 
-		try
-		{
-			Response authnResponse = generateResponse();
-			String schema = "saml-schema-protocol-2.0.xsd";
+		Response authnResponse = generateResponse();
+		String schema = "saml-schema-protocol-2.0.xsd";
 
-			byte[] doc = marshaller.marshallSigned(authnResponse);
+		byte[] doc = marshaller.marshallSigned(authnResponse);
 
-			assertNotNull("Supplied XML document should not be null", doc);
+		assertNotNull("Supplied XML document should not be null", doc);
 
-			Response authnResponseDecoded = unmarshaller.unMarshallSigned(getPublicKey(), doc); //$NON-NLS-1$			
-		}
-		catch (TransformerConfigurationException tce)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (InvalidAlgorithmParameterException iape)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (NoSuchAlgorithmException nsae)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (ClassNotFoundException cfe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (IllegalAccessException iae)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (InstantiationException cfe)
-		{
-			fail("Unexcepted exception thrown");
-		}
-		catch (SAXException saxe)
-		{
-			fail("Unexcepted exception thrown");
-		}
+		Response authnResponseDecoded = unmarshaller.unMarshallSigned(keyResolver.getLocalPublicKey(), doc); //$NON-NLS-1$
 	}
 }

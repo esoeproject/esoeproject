@@ -41,5 +41,6 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="3" ref="metadata" />
 		<constructor-arg index="4" ref="esoeKeyStoreResolver" />
 		<constructor-arg index="5" ref="policyCacheProcessor" />
+		<constructor-arg index="6" value="${spep.esoeIdentifier}" />
 	</bean>
 </beans>

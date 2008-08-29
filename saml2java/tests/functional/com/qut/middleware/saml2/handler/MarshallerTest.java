@@ -38,6 +38,7 @@ import java.io.OutputStreamWriter;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ import sun.misc.BASE64Encoder;
 
 import com.qut.middleware.saml2.AttributeFormatConstants;
 import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.LocalKeyResolver;
 import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.ProtocolConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -90,10 +92,12 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 @SuppressWarnings(value = { "unqualified-field-access", "nls", "boxing" })
 public class MarshallerTest
 {
+	private String keyAlias;
 	private String path;
 	private String[] schemas;
 	private PrivateKey privKey;
 	private PublicKey pk;
+	private LocalKeyResolver localKeyResolver;
 
 	public MarshallerTest() throws Exception
 	{
@@ -106,12 +110,23 @@ public class MarshallerTest
 		FileInputStream fis = new FileInputStream(this.path + "tests.ks");
 		char[] passwd = { 't', 'e', 's', 't', 'p', 'a', 's', 's' };
 		ks.load(fis, passwd);
+		
+		keyAlias = "myrsakey";
 
-		privKey = (PrivateKey) ks.getKey("myrsakey", passwd);
-		pk = ks.getCertificate("myrsakey").getPublicKey();
+		privKey = (PrivateKey) ks.getKey(keyAlias, passwd);
+		Certificate cert = ks.getCertificate(keyAlias);
+		pk = cert.getPublicKey();
 
 		BASE64Encoder myB64 = new BASE64Encoder();
 		String b64 = myB64.encode(privKey.getEncoded());
+		
+		localKeyResolver = createMock(LocalKeyResolver.class);
+		expect(localKeyResolver.getLocalCertificate()).andReturn(cert).anyTimes();
+		expect(localKeyResolver.getLocalKeyAlias()).andReturn(keyAlias).anyTimes();
+		expect(localKeyResolver.getLocalPrivateKey()).andReturn(privKey).anyTimes();
+		expect(localKeyResolver.getLocalPublicKey()).andReturn(pk).anyTimes();
+		
+		replay(localKeyResolver);
 	}
 
 	/**
@@ -139,7 +154,7 @@ public class MarshallerTest
 	{
 		try
 		{
-			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(null, schemas, "myrsakey", privKey);
+			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(null, schemas, localKeyResolver);
 		}
 		catch (MarshallerException e)
 		{
@@ -155,7 +170,7 @@ public class MarshallerTest
 		try
 		{
 			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
-					"com.qut.middleware.saml2.schemas.protocol", null, "myrsakey", privKey);
+					"com.qut.middleware.saml2.schemas.protocol", null, localKeyResolver);
 		}
 		catch (MarshallerException e)
 		{
@@ -171,23 +186,7 @@ public class MarshallerTest
 		try
 		{
 			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
-					"com.qut.middleware.saml2.schemas.protocol", schemas, null, privKey);
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexcpected Marshaller exception");
-		}
-	}
-
-	/* Tests to ensure exception state when passing null to constructor for private key */
-	@Test(expected = IllegalArgumentException.class)
-	public void testMarshaller1c()
-	{
-		try
-		{
-			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
-					"com.qut.middleware.saml2.schemas.protocol", schemas, "myrsakey", null);
+					"com.qut.middleware.saml2.schemas.protocol", schemas, null);
 		}
 		catch (MarshallerException e)
 		{
@@ -198,11 +197,27 @@ public class MarshallerTest
 
 	/* Tests to ensure exception state when passing null to constructor for package */
 	@Test(expected = IllegalArgumentException.class)
-	public void testMarshaller1d()
+	public void testMarshaller1c()
 	{
 		try
 		{
 			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(null, schemas);
+		}
+		catch (MarshallerException e)
+		{
+			e.printStackTrace();
+			fail("Unexcpected Marshaller exception");
+		}
+	}
+
+	/* Tests to ensure exception state when passing null to constructor for schemas */
+	@Test(expected = IllegalArgumentException.class)
+	public void testMarshaller1d()
+	{
+		try
+		{
+			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
+					"com.qut.middleware.saml2.schemas.protocol", null);
 		}
 		catch (MarshallerException e)
 		{
@@ -227,25 +242,9 @@ public class MarshallerTest
 		}
 	}
 
-	/* Tests to ensure exception state when passing null to constructor for schemas */
-	@Test(expected = IllegalArgumentException.class)
-	public void testMarshaller1f()
-	{
-		try
-		{
-			Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
-					"com.qut.middleware.saml2.schemas.protocol", null);
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexcpected Marshaller exception");
-		}
-	}
-
 	/* Tests to ensure exception state when invalid package name is passed to constructor */
 	@Test(expected = MarshallerException.class)
-	public void testMarshaller1g() throws MarshallerException
+	public void testMarshaller1f() throws MarshallerException
 	{
 		Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
 				"com.qut.middleware.saml2.schemas.protocol.INVALID", schemas);
@@ -253,15 +252,15 @@ public class MarshallerTest
 
 	/* Tests to ensure exception state when invalid package name is passed to constructor */
 	@Test(expected = MarshallerException.class)
-	public void testMarshaller1h() throws MarshallerException
+	public void testMarshaller1g() throws MarshallerException
 	{
 		Marshaller<AuthnRequest> marshaller = new MarshallerImpl<AuthnRequest>(
-				"com.qut.middleware.saml2.schemas.protocol.INVALID", schemas, "myrsakey", privKey);
+				"com.qut.middleware.saml2.schemas.protocol.INVALID", schemas, localKeyResolver);
 	}
 
 	/* Tests to ensure exception state when invalid package name is passed to constructor */
 	@Test(expected = MarshallerException.class)
-	public void testMarshaller1i() throws MarshallerException
+	public void testMarshaller1h() throws MarshallerException
 	{
 		// re-enable default value to ensure tests which change system prop dont impact others
 		System.setProperty("jsr105Provider", "fake.path.to.Class");
@@ -270,7 +269,7 @@ public class MarshallerTest
 
 			/* Supplied private/public key will be in RSA format */
 			marshaller = new MarshallerImpl<AuthnRequest>("com.qut.middleware.saml2.schemas.protocol", schemas,
-					"myrsakey", privKey);
+					localKeyResolver);
 
 			AudienceRestriction audienceRestriction = new AudienceRestriction();
 			Conditions conditions = new Conditions();
@@ -327,7 +326,7 @@ public class MarshallerTest
 		{
 			/* Supplied private/public key will be in RSA format */
 			marshaller = new MarshallerImpl<AuthnRequest>("com.qut.middleware.saml2.schemas.protocol", schemas,
-					"myrsakey", privKey);
+					localKeyResolver);
 
 			AudienceRestriction audienceRestriction = new AudienceRestriction();
 			Conditions conditions = new Conditions();
@@ -391,9 +390,9 @@ public class MarshallerTest
 		{
 			/* Supplied private/public key will be in RSA format */
 			marshaller = new MarshallerImpl<EntityDescriptor>(EntityDescriptor.class.getPackage().getName(), schemas,
-					"myrsakey", privKey);
+					localKeyResolver);
 			marshaller2 = new MarshallerImpl<CacheClearService>(CacheClearService.class.getPackage().getName(), schemas,
-					"myrsakey", privKey);
+					localKeyResolver);
 
 			/*
 			 * We will set a KeyInfo block to the public key of the private key the document is signed with Obviously
@@ -424,7 +423,7 @@ public class MarshallerTest
 			spSSODescriptor.getProtocolSupportEnumerations().add("a");
 			keyDescriptor.setUse(KeyTypes.SIGNING);
 
-			KeyName keyName = new KeyName("myrsakey");
+			KeyName keyName = new KeyName(keyAlias);
 			keyInfo.getContent().add(keyName);
 			rsaKeyValue.setExponent(rsaPK.getPublicExponent().toByteArray());
 			rsaKeyValue.setModulus(rsaPK.getModulus().toByteArray());
@@ -495,9 +494,9 @@ public class MarshallerTest
 
 		/* Supplied private/public key will be in RSA format */
 		marshaller = new MarshallerImpl<EntityDescriptor>(CacheClearService.class.getPackage().getName(), schemas,
-				"myrsakey", privKey);
+				localKeyResolver);
 		marshaller2 = new MarshallerImpl<CacheClearService>(EntityDescriptor.class.getPackage().getName(), schemas,
-				"myrsakey", privKey);
+				localKeyResolver);
 
 		/*
 		 * We will set a KeyInfo block to the public key of the private key the document is signed with Obviously this
@@ -526,7 +525,7 @@ public class MarshallerTest
 		spSSODescriptor.getProtocolSupportEnumerations().add("a");
 		keyDescriptor.setUse(KeyTypes.SIGNING);
 
-		KeyName keyName = new KeyName("myrsakey");
+		KeyName keyName = new KeyName(keyAlias);
 		keyInfo.getContent().add(keyName);
 		rsaKeyValue.setExponent(rsaPK.getPublicExponent().toByteArray());
 		rsaKeyValue.setModulus(rsaPK.getModulus().toByteArray());
@@ -597,7 +596,7 @@ public class MarshallerTest
 		{
 			/* Supplied private/public key will be in RSA format */
 			marshaller = new MarshallerImpl<EntityDescriptor>(EntityDescriptor.class.getPackage().getName(), schemas,
-					"myrsa", privKey);
+					localKeyResolver);
 			unmarshaller = new UnmarshallerImpl<EntityDescriptor>(EntityDescriptor.class.getPackage().getName(),
 					schemas);
 
@@ -640,7 +639,7 @@ public class MarshallerTest
 		try
 		{
 			marshaller = new MarshallerImpl<EntityDescriptor>(EntityDescriptor.class.getPackage().getName(), schemas,
-					"myrsa", privKey);
+					localKeyResolver);
 
 			marshaller.marshallSigned(null);
 		}
@@ -725,7 +724,7 @@ public class MarshallerTest
 
 			// JAXBElement<String> keyName = new JAXBElement<String>(new QName("ds:KeyName"), String.class, "myrsakey");
 
-			KeyName keyName = new KeyName("myrsakey");
+			KeyName keyName = new KeyName(keyAlias);
 			keyInfo.getContent().add(keyName);
 			rsaKeyValue.setExponent(rsaPK.getPublicExponent().toByteArray());
 			rsaKeyValue.setModulus(rsaPK.getModulus().toByteArray());

@@ -142,7 +142,12 @@ extern "C" void* modspep_create_server_config( apr_pool_t *pool, server_rec *ser
 extern "C" void* modspep_merge_server_config( apr_pool_t *pool, void *BASE, void *ADD );
 /** @} */
 
+// Return type differs between apache 1.3 and 2.x
+#ifndef APACHE1
 apr_status_t modspep_cleanup_config( void *data );
+#else
+void modspep_cleanup_config( void *data );
+#endif
 
 extern "C" void modspep_child_init( apr_pool_t *pchild, server_rec *s );
 extern "C" int modspep_check_session( request_rec *req );

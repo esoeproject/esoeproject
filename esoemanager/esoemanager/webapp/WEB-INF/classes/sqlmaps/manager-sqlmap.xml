@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="manager">
+
+	<!-- Parameter Maps -->
+	<parameterMap id="entityDescriptorMap" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="entityID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="entityHost" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="organizationName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="organizationDisplayName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="organizationURL" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="activeFlag" jdbcType="CHAR" javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="serviceDescriptionMap" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="serviceName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="serviceURL" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="serviceDesc" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="authzFailureMsg" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="serviceNodeMap" class="java.util.HashMap">
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="endpointID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="nodeURL" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="assertionConsumerEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="singleLogoutEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="cacheClearEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="serviceNodeUpdateMap" class="java.util.HashMap">
+		<parameter property="nodeURL" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="assertionConsumerEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="singleLogoutEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="cacheClearEndpoint" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="endpointID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="serviceContactMap" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="contactID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="contactType" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="company" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="givenName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="surname" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="emailAddress" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="telephoneNumber" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="updateContactMap" class="java.util.HashMap">
+		<parameter property="company" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="givenName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="surname" jdbcType="VARCHAR2" javaType="java.lang.String" />
+		<parameter property="emailAddress" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="telephoneNumber" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="contactType" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="contactID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="serviceActiveMap" class="java.util.HashMap">
+		<parameter property="activeFlag" jdbcType="CHAR" javaType="java.lang.String" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+	</parameterMap>
+	<parameterMap id="serviceNodeActiveMap" class="java.util.HashMap">
+		<parameter property="activeFlag" jdbcType="CHAR" javaType="java.lang.String" />
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="endpointID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="servicePolicyActiveMap" class="java.util.HashMap">
+		<parameter property="activeFlag" jdbcType="CHAR" javaType="java.lang.String" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="policyID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="descriptorMap" class="java.util.HashMap">
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="descriptorID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="descriptorXML" jdbcType="BLOB"
+			javaType="[B" />
+		<parameter property="descriptorTypeID" jdbcType="NUMBER"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="pkiMap" class="java.util.HashMap">
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="expiryDate" jdbcType="DATETIME"
+			javaType="java.util.Date" />
+		<parameter property="keyPairName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="keyPairPassphrase" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="keyStore" jdbcType="BLOB" javaType="[B" />
+		<parameter property="keyStorePassphrase" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="keypairMap" class="java.util.HashMap">
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="keyName" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="keystoreMap" class="java.util.HashMap">
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="keyPairName" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="descriptorType" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="descriptorTypeID" jdbcType="NUMBER"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="delServiceContactMap" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="contactID" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="delServicePolicyMap" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="policyID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="updateEntityHostMap" class="java.util.HashMap">
+		<parameter property="entityHost" jdbcType="VARCHAR2"
+			javaType="java.lang.String" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+	</parameterMap>
+	<parameterMap id="authorizationPolicyParameters" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="policyID" jdbcType="VARCHAR2" javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="updateServiceDescriptionMap" class="java.util.HashMap">
+		<parameter property="serviceName" javaType="java.lang.String" />
+		<parameter property="serviceURL" javaType="java.lang.String" />
+		<parameter property="serviceDesc" javaType="java.lang.String" />
+		<parameter property="authzFailureMsg" javaType="java.lang.String" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+	</parameterMap>
+	<parameterMap id="insertAuthorizationPolicy" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="lxacmlPolicyID" javaType="java.lang.String" />
+		<parameter property="lxacmlPolicy" jdbcType="BLOB" javaType="[B" />
+	</parameterMap>
+	<parameterMap id="updateAuthorizationPolicy" class="java.util.HashMap">
+		<parameter property="lxacmlPolicy" jdbcType="BLOB" javaType="[B" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="lxacmlPolicyID" javaType="java.lang.String" />
+	</parameterMap>
+	<parameterMap id="attribPolicyParameters" class="java.util.HashMap">
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+	</parameterMap>
+	<parameterMap id="updateAttributePolicy" class="java.util.HashMap">
+		<parameter property="attribPolicy" jdbcType="BLOB" javaType="[B" />
+		<parameter property="ENT_ID" jdbcType="Number" javaType="java.lang.Integer" />
+	</parameterMap>
+	<parameterMap id="serviceDescriptorPKMap" class="java.util.HashMap">
+		<parameter property="DESC_ID" jdbcType="Number" javaType="java.lang.Integer" />
+		<parameter property="expiryDate" javaType="java.util.Date" />
+		<parameter property="keyName" javaType="java.lang.String" />
+		<parameter property="issuerDN" javaType="java.lang.String" />
+		<parameter property="serialNumber" javaType="java.lang.String" />
+		<parameter property="publicKey" jdbcType="BLOB" javaType="[B" />
+	</parameterMap>
+
+	<!-- Result Maps -->
+	<resultMap id="attribPolicyResult" class="java.util.HashMap">
+		<result property="attribPolicy" column="ATTRIBPOLICY" jdbcType="BLOB"
+			javaType="[B" />
+	</resultMap>
+	<resultMap id="keyStoreMap" class="java.util.HashMap">
+		<result property="keyStore" column="KEYSTORE" jdbcType="BLOB"
+			javaType="[B" />
+		<result property="keyStorePassphrase" column="KEYSTORE_PASSPHRASE"
+			javaType="java.lang.String" />
+	</resultMap>
+	<resultMap id="descriptorMap" class="java.util.HashMap">
+		<result property="DESC_ID" column="DESC_ID" jdbcType="Number"
+			javaType="java.lang.Integer" />
+		<result property="descriptorID" column="DESCRIPTORID" javaType="java.lang.String" />
+		<result property="descriptorXML" column="DESCRIPTORXML"
+			jdbcType="BLOB" javaType="[B" />
+	</resultMap>
+	<resultMap id="contactPersonMap" class="java.util.HashMap">
+		<result property="contactID" column="CONTACTID" javaType="java.lang.String" />
+		<result property="contactType" column="CONTACTTYPE" javaType="java.lang.String" />
+		<result property="company" column="COMPANY" javaType="java.lang.String" />
+		<result property="givenName" column="GIVENNAME" javaType="java.lang.String" />
+		<result property="surname" column="SURNAME" javaType="java.lang.String" />
+		<result property="emailAddress" column="EMAILADDRESS" javaType="java.lang.String" />
+		<result property="telephoneNumber" column="TELEPHONENUMBER"
+			javaType="java.lang.String" />
+	</resultMap>
+	<resultMap id="serviceDescriptionMap" class="java.util.HashMap">
+		<result property="serviceName" column="SERVICENAME" javaType="java.lang.String" />
+		<result property="serviceURL" column="SERVICEURL" javaType="java.lang.String" />
+		<result property="serviceDesc" column="SERVICEDESC" javaType="java.lang.String" />
+		<result property="authzFailureMsg" column="AUTHZFAILUREMSG"
+			javaType="java.lang.String" />
+	</resultMap>
+	<resultMap id="serviceDetailsMap" class="java.util.HashMap">
+		<result property="ENT_ID" column="ENT_ID" jdbcType="Number"
+			javaType="java.lang.Integer" />
+		<result property="entityID" column="ENTITYID" javaType="java.lang.String" />
+		<result property="organizationName" column="ORGANIZATIONNAME"
+			javaType="java.lang.String" />
+		<result property="organizationDisplayName" column="ORGANIZATIONDISPLAYNAME"
+			javaType="java.lang.String" />
+		<result property="organizationURL" column="ORGANIZATIONURL"
+			javaType="java.lang.String" />
+		<result property="activeFlag" column="ACTIVEFLAG" javaType="java.lang.String" />
+		<result property="entityHost" column="ENTITYHOST" javaType="java.lang.String" />
+	</resultMap>
+	<resultMap id="serviceNodesMap" class="java.util.HashMap">
+		<result property="endpointID" column="ENDPOINTID" javaType="java.lang.String" />
+		<result property="DESC_ID" column="DESC_ID" jdbcType="Number"
+			javaType="java.lang.Integer" />
+		<result property="nodeURL" column="NODEURL" javaType="java.lang.String" />
+		<result property="assertionConsumerEndpoint" column="ASSERTIONCONSUMER_ENDPOINT"
+			javaType="java.lang.String" />
+		<result property="singleLogoutEndpoint" column="SINGLELOGOUT_ENDPOINT"
+			javaType="java.lang.String" />
+		<result property="cacheClearEndpoint" column="CACHECLEAR_ENDPOINT"
+			javaType="java.lang.String" />
+		<result property="activeFlag" column="ACTIVEFLAG" javaType="java.lang.String" />
+	</resultMap>
+	<resultMap id="keyStoreDetailsMap" class="java.util.HashMap">
+		<result property="expiryDate" column="EXPIRYDATE" javaType="java.util.Date" />
+		<result property="keyPairName" column="KEYPAIRNAME" javaType="java.lang.String" />
+		<result property="keyStorePassphrase" column="KEYSTORE_PASSPHRASE"
+			javaType="java.lang.String" />
+		<result property="keyPairPassphrase" column="KEYPAIR_PASSPHRASE"
+			javaType="java.lang.String" />
+	</resultMap>
+	<resultMap id="authorizationPolicy" class="java.util.HashMap">
+		<result property="ENT_ID" column="ENT_ID" javaType="java.lang.String" />
+		<result property="policyID" column="POLICYID" javaType="java.lang.String" />
+		<result property="lxacmlPolicy" column="LXACMLPOLICY" jdbcType="BLOB"
+			javaType="[B" />
+		<result property="activeFlag" column="ACTIVEFLAG" jdbcType="java.lang.String" />
+	</resultMap>
+	<resultMap id="serviceDescriptorPKMap" class="java.util.HashMap">
+		<result property="DESC_ID" column="DESC_ID" jdbcType="Number"
+			javaType="java.lang.Integer" />
+		<result property="expiryDate" column="EXPIRYDATE" javaType="java.util.Date" />
+		<result property="keyName" column="KEYNAME" javaType="java.lang.String" />
+		<result property="issuerDN" column="ISSUERDN" javaType="java.lang.String" />
+		<result property="serialNumber" column="SERIALNUMBER" javaType="java.lang.String" />
+		<result property="publicKey" column="PUBLICKEY" jdbcType="BLOB"
+			javaType="[B" />
+	</resultMap>
+	<resultMap id="expiryCloseMap" class="java.util.HashMap">
+		<result property="DESC_ID" column="DESC_ID" jdbcType="Number"
+			javaType="java.lang.Integer" />
+		<result property="expiryDate" column="EXPIRYDATE" javaType="java.util.Date" />
+	</resultMap>
+	<resultMap id="nodeStartup" class="java.util.HashMap">
+		<result property="ENT_ID" column="ENT_ID" jdbcType="Number"
+			javaType="java.lang.Integer" />
+		<result property="nodeID" column="NODEID" javaType="java.lang.String" />
+		<result property="ipAddress" column="IPADDRESS" javaType="java.lang.String" />
+		<result property="compiledDate" column="COMPILEDATE" javaType="java.lang.String" />
+		<result property="compileSysten" column="COMPILESYSTEM"
+			javaType="java.lang.String" />
+		<result property="version" column="VERSION" javaType="java.lang.String" />
+		<result property="environment" column="ENVIRONMENT" javaType="java.lang.String" />
+		<result property="dateAdded" column="DATE_ADDED" javaType="java.util.Date" />
+	</resultMap>
+
+
+	<!-- Select Statements -->
+	<select id="getEntID" parameterClass="java.lang.String"
+		resultClass="java.lang.Integer"> SELECT ENT_ID FROM ENTITY_DESCRIPTORS WHERE ENTITYID =
+		#value#</select>
+	<select id="getActivePolicyCount" resultClass="java.lang.Integer"> select count(*)
+		FROM SERVICE_POLICIES WHERE ACTIVEFLAG='y'</select>
+	<select id="getPolicyCount" resultClass="java.lang.Integer"> select count(*) FROM
+		SERVICE_POLICIES</select>
+	<select id="getActiveNodeCount" resultClass="java.lang.Integer"> select count(*)
+		FROM SERVICE_ENDPOINTS WHERE ACTIVEFLAG='y'</select>
+	<select id="getNodeCount" resultClass="java.lang.Integer"> select count(*) FROM
+		SERVICE_ENDPOINTS</select>
+	<select id="getActiveServiceCount" resultClass="java.lang.Integer"> select count(*)
+		FROM ENTITY_DESCRIPTORS WHERE ACTIVEFLAG='y'</select>
+	<select id="getServiceCount" resultClass="java.lang.Integer"> select count(*) FROM
+		ENTITY_DESCRIPTORS</select>
+	<select id="getEntIDfromDescID" parameterClass="java.lang.Integer"
+		resultClass="java.lang.Integer"> SELECT ENT_ID FROM DESCRIPTORS WHERE DESC_ID=#value#
+	</select>
+	<select id="getNextEntID" resultClass="java.lang.Integer"> SELECT NEXT_ENT_ID() AS
+		ID FROM DUAL</select>
+	<select id="getNextDescID" resultClass="java.lang.Integer"> SELECT NEXT_DESC_ID() AS
+		ID FROM DUAL</select>
+	<select id="getEntityHost" resultClass="java.lang.String"> SELECT ENTITYHOST FROM
+		ENTITY_DESCRIPTORS WHERE ENT_ID=#value#</select>
+	<select id="getServicesList" resultClass="java.lang.Integer"> SELECT
+		ENTITY_DESCRIPTORS.ENT_ID FROM ENTITY_DESCRIPTORS LEFT JOIN
+		(DESCRIPTORS) ON (DESCRIPTORS.ENT_ID=ENTITY_DESCRIPTORS.ENT_ID) WHERE
+		DESCRIPTORS.DESCRIPTORTYPEID='2'</select>
+	<select id="getKeyStore" resultMap="keyStoreMap"> SELECT KEYSTORE,
+		KEYSTORE_PASSPHRASE FROM PKI_STORES WHERE DESC_ID = #value#</select>
+	<select id="getServiceDescriptor" parameterMap="descriptorType"
+		resultMap="descriptorMap"> SELECT DESC_ID, DESCRIPTORID, DESCRIPTORXML FROM
+		DESCRIPTORS WHERE ENT_ID = ? AND DESCRIPTORTYPEID = ?</select>
+	<select id="getServiceDescriptorID" parameterMap="descriptorType"
+		resultClass="java.lang.Integer"> SELECT DESC_ID FROM DESCRIPTORS WHERE ENT_ID = ? AND
+		DESCRIPTORTYPEID = ?</select>
+	<select id="getDescriptorPublicKeys" parameterClass="java.lang.Integer"
+		resultMap="serviceDescriptorPKMap"> SELECT * FROM DESCRIPTOR_PUBLIC_KEYS WHERE DESC_ID =
+		#value#</select>
+	<select id="getServiceContacts" parameterClass="java.lang.Integer"
+		resultMap="contactPersonMap"> SELECT * FROM ENTITY_CONTACTS WHERE ENT_ID = #value# ORDER
+		BY CONTACTTYPE ASC</select>
+	<select id="getServiceDescription" parameterClass="java.lang.Integer"
+		resultMap="serviceDescriptionMap"> SELECT * FROM SERVICE_DESCRIPTIONS WHERE ENT_ID = #value#
+	</select>
+	<select id="getServiceDetails" parameterClass="java.lang.Integer"
+		resultMap="serviceDetailsMap"> SELECT * FROM ENTITY_DESCRIPTORS WHERE ENT_ID = #value#
+	</select>
+	<select id="getServiceNodes" parameterClass="java.lang.Integer"
+		resultMap="serviceNodesMap"> SELECT * FROM SERVICE_ENDPOINTS WHERE DESC_ID = #value#
+		ORDER BY ENDPOINTID ASC</select>
+	<select id="getKeyStoreDetails" parameterClass="java.lang.Integer"
+		resultMap="keyStoreDetailsMap"> SELECT EXPIRYDATE, KEYPAIRNAME, KEYSTORE_PASSPHRASE,
+		KEYPAIR_PASSPHRASE FROM PKI_STORES WHERE DESC_ID=#value# ORDER BY
+		EXPIRYDATE DESC</select>
+	<select id="getAuthorizationPolicies" parameterClass="java.lang.Integer"
+		resultMap="authorizationPolicy"> SELECT * FROM SERVICE_POLICIES WHERE ENT_ID = #value#
+	</select>
+	<select id="getAuthorizationPolicy" parameterMap="authorizationPolicyParameters"
+		resultMap="authorizationPolicy"> SELECT * FROM SERVICE_POLICIES WHERE ENT_ID = ? AND
+		POLICYID = ?</select>
+	<select id="getActiveAttributePolicy" parameterMap="attribPolicyParameters"
+		resultMap="attribPolicyResult"> SELECT ATTRIBPOLICY FROM SUPPORTED_ATTRIBUTES WHERE
+		ENT_ID=?</select>
+
+	<!-- Insert Statements -->
+	<insert id="insertEntityDescriptor" parameterMap="entityDescriptorMap"> INSERT INTO
+		ENTITY_DESCRIPTORS ( ENT_ID, ENTITYID, ENTITYHOST, ORGANIZATIONNAME,
+		ORGANIZATIONDISPLAYNAME, ORGANIZATIONURL, ACTIVEFLAG ) VALUES ( ?, ?, ?,
+		?, ?, ?, ? )</insert>
+	<insert id="insertServiceDescription" parameterMap="serviceDescriptionMap"> INSERT INTO
+		SERVICE_DESCRIPTIONS ( ENT_ID, SERVICENAME, SERVICEURL, SERVICEDESC,
+		AUTHZFAILUREMSG) VALUES ( ?, ?, ?, ?, ? )</insert>
+	<insert id="insertServiceNode" parameterMap="serviceNodeMap"> INSERT INTO
+		SERVICE_ENDPOINTS ( DESC_ID, ENDPOINTID, NODEURL,
+		ASSERTIONCONSUMER_ENDPOINT, SINGLELOGOUT_ENDPOINT,
+		CACHECLEAR_ENDPOINT, ACTIVEFLAG) VALUES ( ?, ?, ?, ?, ?, ?, 'n' )
+	</insert>
+	<insert id="insertServiceContacts" parameterMap="serviceContactMap"> INSERT INTO
+		ENTITY_CONTACTS ( ENT_ID, CONTACTID, CONTACTTYPE, COMPANY, GIVENNAME,
+		SURNAME, EMAILADDRESS, TELEPHONENUMBER) VALUES( ?, ?, ?, ?, ?, ?, ?, ?
+		)</insert>
+	<insert id="insertDescriptor" parameterMap="descriptorMap"> INSERT INTO
+		DESCRIPTORS ( DESC_ID, DESCRIPTORID, ENT_ID, DESCRIPTORXML,
+		DESCRIPTORTYPEID ) VALUES ( ?, ?, ?, ?, ? )</insert>
+	<insert id="insertPKIData" parameterMap="pkiMap"> INSERT INTO PKI_STORES
+		(DESC_ID, EXPIRYDATE, KEYPAIRNAME, KEYPAIR_PASSPHRASE, KEYSTORE,
+		KEYSTORE_PASSPHRASE) VALUES (?, ?, ?, ?, ?, ?)</insert>
+	<insert id="insertServiceAuthorizationPolicy" parameterMap="insertAuthorizationPolicy">
+		INSERT INTO SERVICE_POLICIES (ENT_ID, POLICYID, LXACMLPOLICY) VALUES
+		(?, ?, ?)</insert>
+	<insert id="insertServiceAuthorizationShuntedPolicy"
+		parameterMap="insertAuthorizationPolicy"> INSERT INTO SERVICE_POLICIES_SHUNT (ENT_ID,
+		LXACMLPOLICY, DATE_INSERTED) VALUES (?, ?, ?)</insert>
+	<insert id="insertDescriptorPublicKey" parameterMap="serviceDescriptorPKMap"> INSERT INTO
+		DESCRIPTOR_PUBLIC_KEYS (DESC_ID, EXPIRYDATE, KEYNAME, ISSUERDN, SERIALNUMBER, PUBLICKEY)
+		VALUES (?, ?, ?, ?, ?, ?)</insert>
+
+	<!-- Update Statements -->
+	<update id="updateServiceContact" parameterMap="updateContactMap"> UPDATE
+		ENTITY_CONTACTS SET COMPANY=?, GIVENNAME=?, SURNAME=?, EMAILADDRESS=?,
+		TELEPHONENUMBER=?, CONTACTTYPE=? WHERE ENT_ID=? AND CONTACTID=?
+	</update>
+	<update id="updateServiceActiveStatus" parameterMap="serviceActiveMap"> UPDATE
+		ENTITY_DESCRIPTORS SET ACTIVEFLAG=? WHERE ENT_ID=?</update>
+	<update id="updateServiceNode" parameterMap="serviceNodeUpdateMap"> UPDATE
+		SERVICE_ENDPOINTS SET NODEURL =?, ASSERTIONCONSUMER_ENDPOINT=?,
+		SINGLELOGOUT_ENDPOINT=?, CACHECLEAR_ENDPOINT=? WHERE DESC_ID=? AND
+		ENDPOINTID=?</update>
+	<update id="updateServiceNodeActiveStatus" parameterMap="serviceNodeActiveMap"> UPDATE
+		SERVICE_ENDPOINTS SET ACTIVEFLAG=? WHERE DESC_ID=? AND ENDPOINTID=?
+	</update>
+	<update id="updateServicePolicyActiveStatus" parameterMap="servicePolicyActiveMap">
+		UPDATE SERVICE_POLICIES SET ACTIVEFLAG=? WHERE ENT_ID=? AND POLICYID=?
+	</update>
+	<update id="updateServiceDescription" parameterMap="updateServiceDescriptionMap"> UPDATE
+		SERVICE_DESCRIPTIONS SET SERVICENAME=?, SERVICEURL=?, SERVICEDESC=?,
+		AUTHZFAILUREMSG=? WHERE ENT_ID=?</update>
+	<update id="updateServiceAuthorizationPolicy" parameterMap="updateAuthorizationPolicy">
+		UPDATE SERVICE_POLICIES SET LXACMLPOLICY=? WHERE ENT_ID=? AND
+		POLICYID=?</update>
+	<update id="updateActiveAttributePolicy" parameterMap="updateAttributePolicy"> UPDATE
+		SUPPORTED_ATTRIBUTES SET ATTRIBPOLICY = ? WHERE ENT_ID= ?</update>
+	<update id="updateEntityHost" parameterMap="updateEntityHostMap"> UPDATE
+		ENTITY_DESCRIPTORS SET ENTITYHOST=? WHERE ENT_ID=?</update>
+
+	<!-- Delete Statements -->
+	<delete id="deleteServicePolicy" parameterMap="delServicePolicyMap"> DELETE FROM
+		SERVICE_POLICIES WHERE ENT_ID=? AND POLICYID=?</delete>
+	<delete id="deleteServiceContact" parameterMap="delServiceContactMap"> DELETE FROM
+		ENTITY_CONTACTS WHERE ENT_ID=? AND CONTACTID=?</delete>
+	<delete id="deleteServiceKeypair" parameterMap="keypairMap"> DELETE FROM
+		DESCRIPTOR_PUBLIC_KEYS WHERE DESC_ID=? AND KEYNAME=?</delete>
+	<delete id="deleteServiceKeystore" parameterMap="keystoreMap"> DELETE FROM
+		PKI_STORES WHERE DESC_ID=? AND KEYPAIRNAME=?</delete>
+</sqlMap>

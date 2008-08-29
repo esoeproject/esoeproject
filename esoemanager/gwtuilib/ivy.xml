@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="gwtuilib" revision="${esoe.version}">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Bradley Beddoes"
+			url="http://intient.com/blogs/beddoes" />
+	</info>
+
+	<configurations>
+		<conf name="compile" visibility="public" description="Compile dependencies" />
+		<conf name="runtime" visibility="public" description="Runtime dependencies" />
+		
+		<conf name="optional" visibility="public" description="Optional dependencies" />
+		<conf name="provided" visibility="public" description="Provided dependencies" />
+	</configurations>
+	
+	<publications>
+		<artifact name="gwtuilib" type="jar" />
+	</publications>
+
+	<dependencies>
+
+		<dependency org="google" name="gwtfx" rev="2.0A" conf="compile"/> 
+		
+		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="optional"/>
+	    <dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="optional"/>
+	
+	</dependencies>
+
+</ivy-module>

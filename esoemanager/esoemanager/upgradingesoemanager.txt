@@ -1,0 +1,83 @@
+This document is for users upgrading from the previous version of ESOE Manager. 
+You can tell if you have the older version of ESOE Manager as it has links for wiki and the issue tracker in 
+the bottom right hand corner of pages, the new version does now.
+
+Firstly you will require the new esoemanager.war, this has the same set of dependencies as the previous version
+with regards to Tomcat shared and common libraries.
+
+Shutdown your current ESOE Manager instance and remove the war and exploded directory.
+
+ESOE Startup now creates an extra table and some extra restrictions for a table called DESCRIPTOR_NAMEID_FORMATS. Be sure to manually execute this
+table and key creation logic in your database prior to restarting, there is no need to populate content. It also creates an extra column in ENTITY_DESCRIPTORS
+called ENTITYHOST. There is no need to populate this data, however if you run load balanced services you should use ESOE Manager to set a "Serivce Host" on the
+"nodes" tab per service.
+
+For ORACLE users specifically you need to tune cache sizes of sequences. Previously this was set as 20 or 10, this should be lowered to 2.
+
+Two columns have also been added to DESCRIPTOR_PUBLIC_KEYS; ISSUERDN and SERIALNUMBER. These do not need to be populated when upgrading, but must be created in the table.
+
+The following config options are now deprecated for esoemanager.config and should be removed:
+
+## Service Defaults
+# Java Powered Services
+# Assertion Consumer Service Endpoint
+java.defaultACS=/spep/sso
+# Single Logout Service Endpoint
+java.defaultSLS=/spep/services/spep/singleLogout
+# Cache Clear Service Endpoint
+java.defaultCCS=/spep/services/spep/authzCacheClear
+
+# Apache Powered Services
+# Assertion Consumer Service Endpoint
+apache.defaultACS=/ws/spep/ACS-ap
+# Single Logout Service Endpoint
+apache.defaultSLS=/ws/spep/LCS-ap
+# Cache Clear Service Endpoint
+apache.defaultCCS=/ws/spep/CCS-ap
+
+# IIS Powered Services
+# Assertion Consumer Service Endpoint
+iis.defaultACS=/ws/spep/ACS-iis
+# Single Logout Service Endpoint
+iis.defaultSLS=/ws/spep/LCS-iis
+# Cache Clear Service Endpoint
+iis.defaultCCS=/ws/spep/CCS-iis
+
+registerservicespeppage.java.defaultACS=${java.defaultACS}
+registerservicespeppage.apache.defaultACS=${apache.defaultACS}
+registerservicespeppage.iis.defaultACS=${iis.defaultACS}
+registerservicespeppage.java.defaultSLS=${java.defaultSLS}
+registerservicespeppage.apache.defaultSLS=${apache.defaultSLS}
+registerservicespeppage.iis.defaultSLS=${iis.defaultSLS}
+registerservicespeppage.java.defaultCCS=${java.defaultCCS}
+registerservicespeppage.apache.defaultCCS=${apache.defaultCCS}
+registerservicespeppage.iis.defaultCCS=${iis.defaultCCS}
+
+servicenodeconfigurationpage.esoeTrustedID=${esoeTrustedID}
+servicenodeconfigurationpage.metadataKeyName=${keyAlias-1}
+
+sqlmapclient.config=WEB-INF/sqlMapConfig.xml
+
+The following config options have been added (generally these replace the above in a less verbose fashion)
+databaseType= [mysql | oracle]  (choose value for your platform)
+
+## Service Defaults
+# Assertion Consumer Service Endpoint
+defaultACS=/spep/sso
+# Single Logout Service Endpoint
+defaultSLS=/spep/services/spep/singleLogout
+# Cache Clear Service Endpoint
+defaultCCS=/spep/services/spep/authzCacheClear
+
+sqlmap.config=WEB-INF/${databaseType}SqlMapConfig.xml
+
+The new ESOE Manager performs authorization and UI modifications to fine grained levels. To ensure your able to access the system to start handing out
+privileges ensure that for the ESOE Manager EntID/DescID combination you create a policy similar to the example "sample-superuser-policy.xml" available from
+SVN for this project.
+
+To subsequently give users admin rights over services you can use the new interface to create a new policy in the ESOE Manager service 
+(this is important all admin access to services is granted from a policy stored in ESOE Manager) that looks similar to sample-serviceadmin-policy.xml available from
+SVN for this project. Note ...serviceid:X refers to the value of EntID in the database for all services. New service creations have a policy created in ESOE Manager
+automatically which superusers can then modify.
+
+Once the above is undertaken you should be able to restart with the new ESOE Manager instance.

@@ -19,6 +19,7 @@
  */
 package com.qut.middleware.saml2;
 
+import java.math.BigInteger;
 import java.security.PublicKey;
 
 import com.qut.middleware.saml2.exception.KeyResolutionException;
@@ -34,4 +35,13 @@ public interface ExternalKeyResolver
 	 * @return The public key represented by supplied name
 	 */
 	public PublicKey resolveKey(String keyName) throws KeyResolutionException;
+	
+	/**
+	 * Resolves keys from some external source (SAML metadata, database, ldap etc) to validate XML document.
+	 * 
+	 * @param issuerDN The issuer DN of the key to resolve
+	 * @param serialNumber The serial number of the key to resolve. This must be unique per issuer DN.
+	 * @return The public key represented by supplied name
+	 */
+	public PublicKey resolveKey(String issuerDN, BigInteger serialNumber) throws KeyResolutionException;
 }

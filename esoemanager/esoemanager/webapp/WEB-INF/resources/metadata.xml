@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!--  Centralised Metadata Cache -->
+	<bean id="metadataCache" class="com.qut.middleware.esoemanager.metadata.logic.impl.MetadataCacheImpl" />
+
+	<bean name="metadataDAO"
+		class="com.qut.middleware.esoemanager.metadata.sqlmap.impl.MetadataDAOImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+	
+	<bean name="metadataGenerator"
+		class="com.qut.middleware.esoemanager.metadata.logic.impl.MetadataGeneratorImpl">
+		<constructor-arg index="0" ref="metadataDAO" />
+		<constructor-arg index="1" ref="identifierGenerator" />
+		<constructor-arg index="2" ref="esoeManagerKeyStoreResolver" />
+		<constructor-arg index="3" ref="cryptoProcessor" />
+	</bean>
+
+	<!-- Metadata Update Monitor -->
+	<bean id="metadataUpdateMonitor"
+		class="com.qut.middleware.esoemanager.metadata.logic.MetadataUpdateMonitor"
+		destroy-method="shutdown">
+		<constructor-arg index="0" ref="metadataCache" />
+		<constructor-arg index="1" ref="metadataGenerator" />
+		<constructor-arg index="2" value="${metadataupdatemonitor.refreshInterval}" />
+	</bean>
+
+</beans>

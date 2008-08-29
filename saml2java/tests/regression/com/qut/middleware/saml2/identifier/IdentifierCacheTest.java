@@ -108,9 +108,7 @@ public class IdentifierCacheTest
 		
 		assertTrue("Collision did not generate error condition", caught);
 	}
-	
-	
-	
+		
 	/**
 	 * Test method for {@link com.qut.middleware.saml2.identifier.IdentifierCache#cleanCache(int)}.
 	 */
@@ -145,4 +143,22 @@ public class IdentifierCacheTest
 		assertEquals("Clean cache removed unexpected values", 2, numRemoved);
 	
 	}
+	
+	@Test
+	public void testLargeCleanCache() throws Exception
+	{
+		int size = 1000000;
+		for(int i = 0; i < size; i++)
+		{
+			this.identifierCache.registerIdentifier(this.generator.generateSessionID());
+		}
+		
+		long start = System.currentTimeMillis();
+		int removed = this.identifierCache.cleanCache(5);
+		long end = System.currentTimeMillis();
+		
+		System.out.println("Operation took " + (end - start) / 1000 + " seconds, removed:" + removed);
+		
+	}
+	
 }

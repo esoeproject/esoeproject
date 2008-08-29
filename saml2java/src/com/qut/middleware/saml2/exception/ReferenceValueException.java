@@ -23,6 +23,7 @@ package com.qut.middleware.saml2.exception;
 public class ReferenceValueException extends Exception
 {
 	private static final long serialVersionUID = 6439684401066474590L;
+	private Object jaxbObject;
 
 	/**
 	 * Exception thrown when a signature block reference validation exception has occuredd.
@@ -30,18 +31,19 @@ public class ReferenceValueException extends Exception
 	 * @param message Human readable message indicating why this exception was thrown
 	 * @param cause Any exception which caused this exception to be thrown, may be null
 	 */
-	public ReferenceValueException(String message, Exception cause)
+	public ReferenceValueException(String message, Exception cause, Object jaxbObject)
 	{
 		super(message, cause);
+		this.jaxbObject = jaxbObject;
 	}
 	
 	/**
-	 * Exception thrown when a signature block reference validation exception has occured
-	 * 
-	 * @param message Human readable message indicating why this exception was thrown
+	 * Note that since signature validation has failed at this stage, the object returned
+	 * here should not be trusted for anything other than generating log output.
+	 * @return The JAXB Object containing the document that failed signature validation.
 	 */
-	public ReferenceValueException(String message)
+	public Object getJAXBObject()
 	{
-		super(message);
+		return this.jaxbObject;
 	}
 }

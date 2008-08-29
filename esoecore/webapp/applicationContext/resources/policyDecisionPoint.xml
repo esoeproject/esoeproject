@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
 	<!-- ====================================================================== 
@@ -25,21 +25,21 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		====================================================================== -->
 	<!--  ESOE data access layer -->
 	<bean name="policyCacheDAO"
-		class="com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheDaoImpl">
+		class="com.qut.middleware.esoe.authz.cache.sqlmap.impl.PolicyCacheDaoImpl">
 		<property name="sqlMapClient" ref="sqlMapClient" />
 	</bean>
 
 	<!-- ESOE wide cache control for all authorization policies -->
 	<bean name="authzPolicyCache"
-		class="com.qut.middleware.esoe.pdp.cache.bean.impl.AuthzPolicyCacheImpl" />
+		class="com.qut.middleware.esoe.pdp.cache.impl.AuthzPolicyCacheImpl" />
 
 	<!--  Failed authorization event repository -->
 	<bean name="authzCacheUpdateFailureRepository"
-		class="com.qut.middleware.esoe.pdp.cache.impl.AuthzCacheUpdateFailureRepositoryImpl" />
+		class="com.qut.middleware.esoe.authz.cache.impl.AuthzCacheUpdateFailureRepositoryImpl" />
 
 	<!-- Authorization cache processor for the ESOE -->
 	<bean name="policyCacheProcessor"
-		class="com.qut.middleware.esoe.pdp.cache.impl.PolicyCacheProcessorImpl" destroy-method="shutdown">
+		class="com.qut.middleware.esoe.authz.cache.impl.PolicyCacheProcessorImpl" destroy-method="shutdown">
 		<constructor-arg index="0" ref="authzCacheUpdateFailureRepository" />
 		<constructor-arg index="1" ref="authzPolicyCache" />
 		<constructor-arg index="2" ref="metadata" />
@@ -49,23 +49,29 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="6" ref="identifierGenerator" />
 		<constructor-arg index="7" ref="samlValidator" />
 		<constructor-arg index="8" value="${policycacheprocessor.pollInterval}" />
+		<constructor-arg index="9" value="${policycacheprocessor.esoeIdentifier}" />
 	</bean>
+	<!--  PDP -->
+	<bean name="policyDecisionPoint" class="com.qut.middleware.esoe.pdp.processor.impl.DecisionPointImpl" >
+		<constructor-arg index="0" ref="authzPolicyCache" />
+		<constructor-arg index="1" value="${authorizationProcessor.authorizationDefaultMode}" />
+        </bean>
 
 	<!-- Authorization decisions maker for the ESOE -->
 	<bean name="authorizationProcessor"
-		class="com.qut.middleware.esoe.pdp.impl.AuthorizationProcessorImpl">
-		<constructor-arg index="0" ref="authzPolicyCache" />
+		class="com.qut.middleware.esoe.authz.impl.AuthorizationProcessorImpl">
+		<constructor-arg index="0" ref="policyDecisionPoint" />
 		<constructor-arg index="1" ref="sessionsProcessor" />
 		<constructor-arg index="2" ref="metadata" />
 		<constructor-arg index="3" ref="samlValidator" />
 		<constructor-arg index="4" ref="identifierGenerator" />
 		<constructor-arg index="5" ref="esoeKeyStoreResolver" />
-		<constructor-arg index="6" value="${authorizationProcessor.authorizationDefaultMode}" />
-		<constructor-arg index="7" value="${authorizationProcessor.allowedTimeSkew}" />
+		<constructor-arg index="6" value="${authorizationProcessor.allowedTimeSkew}" />
+		<constructor-arg index="7" value="${authorizationProcessor.esoeIdentifier}" />
 	</bean>
 	
 	<!--  Monitor of failed cache updates -->
-	<bean name="authzFailedCacheUpdateMonitor" class="com.qut.middleware.esoe.pdp.cache.impl.CacheUpdateFailureMonitor"
+	<bean name="authzFailedCacheUpdateMonitor" class="com.qut.middleware.esoe.authz.cache.impl.CacheUpdateFailureMonitor"
 	destroy-method="shutdown">
 		<constructor-arg index="0" ref="authzCacheUpdateFailureRepository" />
 		<constructor-arg index="1" ref="metadata" />

@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
 Created-By: 1.6.0 (Sun Microsystems Inc.)
-Class-Path: lib/esoecrypto.jar lib/saml2lib-j.jar lib/log4j.jar lib/commons-codec.jar lib/bcprov.jar lib/click.jar lib/esoetools.jar
+Class-Path: lib/esoecrypto.jar lib/saml2lib-j.jar lib/log4j.jar lib/commons-codec.jar lib/bcprov.jar lib/click.jar lib/esoetools.jar lib/slf4j-api.jar lib/slf4j-log4j12.jar
 Main-Class: com.qut.middleware.delegator.deployment.Startup

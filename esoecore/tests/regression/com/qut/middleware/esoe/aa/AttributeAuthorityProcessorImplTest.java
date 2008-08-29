@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.GregorianCalendar;
@@ -37,20 +38,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.bean.impl.AAProcessorDataImpl;
 import com.qut.middleware.esoe.aa.exception.InvalidPrincipalException;
 import com.qut.middleware.esoe.aa.exception.InvalidRequestException;
 import com.qut.middleware.esoe.aa.impl.AttributeAuthorityProcessorImpl;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Query;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.exception.ReferenceValueException;
 import com.qut.middleware.saml2.exception.SignatureValueException;
@@ -87,7 +89,7 @@ public class AttributeAuthorityProcessorImplTest
 	private String samlID = "kfahsdkjfhwqoieo-hklajshogiwjopeipqoripqow-jgoijoakjoa";
 	private SAMLValidator samlValidator;
 	private AttributeAuthorityProcessor attributeAuthorityProcessor;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private Unmarshaller<Response> responseUnmarshaller;
 	private Marshaller<AttributeQuery> attributeQueryMarshaller;
 
@@ -131,17 +133,17 @@ public class AttributeAuthorityProcessorImplTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 		
-		KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		String esoeIdentifier = "ESOE-TEST";
+		
+		KeystoreResolver keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 		
 		PublicKey publicKey = keyStoreResolver.resolveKey("esoeprimary");
-		PrivateKey privateKey = keyStoreResolver.getPrivateKey();
+		PrivateKey privateKey = keyStoreResolver.getLocalPrivateKey();
 		
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		expect(this.metadata.resolveKey("esoeprimary")).andReturn(publicKey).anyTimes();
 		
 		this.spepProcessor = createMock(SPEPProcessor.class);
-		expect(this.spepProcessor.getMetadata()).andReturn(this.metadata).anyTimes();
-		expect(this.metadata.getEsoeEntityID()).andReturn("ESOE-TEST").anyTimes();
 		
 		IdentifierCache identifierCache = new IdentifierCacheImpl();
 		IdentifierGenerator identifierGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
@@ -156,12 +158,12 @@ public class AttributeAuthorityProcessorImplTest
 		replay(usernameAttribute);
 		replay(mailAttribute);
 		
-		this.attributeAuthorityProcessor = new AttributeAuthorityProcessorImpl(this.metadata, this.sessionsProcessor, this.samlValidator, identifierGenerator, keyStoreResolver, 60);
+		this.attributeAuthorityProcessor = new AttributeAuthorityProcessorImpl(this.metadata, this.sessionsProcessor, this.samlValidator, identifierGenerator, keyStoreResolver, 60, esoeIdentifier);
 		
-		String[] schemas = new String[]{ConfigurationConstants.samlProtocol};
+		String[] schemas = new String[]{SchemaConstants.samlProtocol};
 		this.responseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName(), schemas, this.metadata);
 		
-		this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(AttributeQuery.class.getPackage().getName(), schemas, esoeKeyAlias, privateKey);
+		this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(AttributeQuery.class.getPackage().getName(), schemas, keyStoreResolver);
 
 	}
 

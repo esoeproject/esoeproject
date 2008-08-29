@@ -28,7 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.pep.Messages;
@@ -45,8 +46,8 @@ public class SessionGroupCacheImpl implements SessionGroupCache
 	private decision defaultPolicyDecision;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private Logger authzLogger = Logger.getLogger(ConfigurationConstants.authzLogger);
+	private Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+	private Logger authzLogger = LoggerFactory.getLogger(ConfigurationConstants.authzLogger);
 
 	/**
 	 * Default constructor
@@ -296,7 +297,7 @@ public class SessionGroupCacheImpl implements SessionGroupCache
 							decision nodeDecision = pdpDecision.nodeDecision;
 							if (nodeDecision != null)
 							{
-								if (targetMatch(pdpDecision.action, action))
+								if (actionMatch(pdpDecision.action, action))
 								{
 									// Add the decision to the result
 									result = addDecisions(result, nodeDecision);
@@ -350,6 +351,21 @@ public class SessionGroupCacheImpl implements SessionGroupCache
 		}
 
 		return defaultGroupCache;
+	}
+	
+	protected boolean actionMatch(String target, String action)
+	{
+		if (target == null && action == null)
+			return true;
+		
+		if (target == null || action == null)
+			return false;
+
+		if (target.equals(action))
+			return true;
+
+		Pattern pattern = Pattern.compile(target);
+		return pattern.matcher(action).matches();
 	}
 
 	protected boolean targetMatch(String target, String resource)

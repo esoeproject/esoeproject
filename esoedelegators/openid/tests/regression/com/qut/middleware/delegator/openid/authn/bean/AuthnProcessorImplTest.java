@@ -27,7 +27,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import com.qut.middleware.crypto.KeyStoreResolver;
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.delegator.openid.authn.impl.AuthnProcessorImpl;
 import com.qut.middleware.delegator.openid.ws.WSClient;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -59,7 +59,7 @@ public class AuthnProcessorImplTest
 		SAMLValidator validator = createMock(SAMLValidator.class);
 		WSClient wsClient = createMock(WSClient.class);
 		IdentifierGenerator identiferGenerator = createMock(IdentifierGenerator.class);
-		KeyStoreResolver keyStoreResolver = createMock(KeyStoreResolver.class);
+		KeystoreResolver keyStoreResolver = createMock(KeystoreResolver.class);
 		
 
 		responseEndpoint = "https://esoe.test.com";
@@ -69,7 +69,7 @@ public class AuthnProcessorImplTest
 		httpsOffload = false;
 
 
-		this.authnProcessor =  = new AuthnProcessorImpl();
+		//this.authnProcessor =  = new AuthnProcessorImpl();
 	}
 
 	/**

@@ -55,7 +55,7 @@ public class SessionsDAOImpl extends SqlMapClientDaoSupport implements SessionsD
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new SessionsDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -78,7 +78,7 @@ public class SessionsDAOImpl extends SqlMapClientDaoSupport implements SessionsD
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new SessionsDAOException(e.getLocalizedMessage(), e);
 		}
 	}

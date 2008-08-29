@@ -14,7 +14,7 @@
 
 	<configurations>
 		<conf name="dev" />
-		<conf name="dev-release" />
+		<conf name="release" />
 	</configurations>
 	
 	<publications>
@@ -23,22 +23,24 @@
 
 	<dependencies>
 		<!-- Development release dependencies -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="apache" name="axis2" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="release->default"/>
+        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev-release->default"/>
         
-        <dependency org="esoeproject" name="esoecrypto" rev="latest.integration" conf="dev-release->dev-release"/>
-        <dependency org="esoeproject" name="esoetools" rev="latest.integration" conf="dev-release->dev-release"/>
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev-release->dev-release"/>
+        <dependency org="esoeproject" name="esoecrypto" rev="latest.integration" conf="release->release"/>
+        <dependency org="esoeproject" name="esoetools" rev="latest.integration" conf="release->release"/>
+        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="release->release"/>
                 
-        <dependency org="spring" name="core" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="spring" name="core" rev="latest.integration" conf="release->default"/>
         
-        <dependency org="sourceforge" name="click" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="sourceforge" name="click" rev="latest.integration" conf="release->default"/>
         
         <!-- Development dependencies -->
         <dependency org="apache" name="axis2" rev="latest.integration" conf="dev->default"/>
         <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
+        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev->default"/> 
         <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>  
         
         <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 

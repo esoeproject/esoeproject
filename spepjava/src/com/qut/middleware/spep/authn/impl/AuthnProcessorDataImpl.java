@@ -34,6 +34,7 @@ public class AuthnProcessorDataImpl implements AuthnProcessorData
 	private String sessionID;
 	private HttpServletRequest request;
 	private HttpServletResponse response;
+	private String destinationURL;
 
 	public HttpServletRequest getRequest()
 	{
@@ -117,5 +118,15 @@ public class AuthnProcessorDataImpl implements AuthnProcessorData
 	public void setSessionID(String sessionID)
 	{
 		this.sessionID = sessionID;
+	}
+	
+	public String getDestinationURL()
+	{
+		return this.destinationURL;
+	}
+	
+	public void setDestinationURL(String destinationURL)
+	{
+		this.destinationURL = destinationURL;
 	}
 }

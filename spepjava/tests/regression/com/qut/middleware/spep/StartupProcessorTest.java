@@ -28,9 +28,8 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Vector;
@@ -39,6 +38,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -53,9 +57,6 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.qut.middleware.spep.StartupProcessor.result;
 import com.qut.middleware.spep.impl.StartupProcessorImpl;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
-import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
 import com.qut.middleware.spep.ws.WSClient;
 import com.qut.middleware.spep.ws.exception.WSClientException;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
@@ -70,18 +71,21 @@ public class StartupProcessorTest
 	private IdentifierGenerator identifierGenerator;
 	private WSClient wsClient;
 	private SAMLValidator samlValidator;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private String serverInfo;
 	private StartupProcessor startupProcessor;
 	private MarshallerImpl<ValidateInitializationResponse> validateInitializationResponseMarshaller;
 	private String validateInitializationPackages;
 	private String spepIdentifier;
 	private List<String> ipAddressList;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private String spepStartupService;
 	private IdentifierCacheImpl identifierCache;
 	private int spepNodeID = 0;
-	private String esoeID = "ESOE:TEST:ID";
+	private String esoeIdentifier = "ESOE:TEST:ID";
+	private List<Object> mocked;
+	private EntityData esoeEntityData;
+	private TrustedESOERole esoeRole;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -89,47 +93,56 @@ public class StartupProcessorTest
 	@Before
 	public void setUp() throws Exception
 	{
-		this.spepIdentifier = "_aoijeotiajeopiojrpoakpgokzxplckgqwpoikpoewkpojpoiasjdgpajpsdojkpawer";
+		this.mocked = new ArrayList<Object>();
+		
+		this.spepIdentifier = "http://spep.example.com";
+		this.spepStartupService = "http://esoe.example.com/spepStartup";
 		
 		this.identifierGenerator = createMock(IdentifierGenerator.class);
+		this.mocked.add(this.identifierGenerator);
 		this.wsClient = createMock(WSClient.class);
+		this.mocked.add(this.wsClient);
 		this.identifierCache = new IdentifierCacheImpl();
 		this.samlValidator = new SAMLValidatorImpl(this.identifierCache, 180);
 		this.serverInfo = "Server Info";
 		
-		InputStream in = new FileInputStream( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks");
+		File in = new File( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks");
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPass = "Es0EKs54P4SSPK";
-		this.keyStoreResolver = new KeyStoreResolverImpl(in, esoeKeyPass, esoeKeyAlias, esoeKeyPass);
+		this.keyStoreResolver = new KeystoreResolverImpl(in, esoeKeyPass, esoeKeyAlias, esoeKeyPass);
 		
 		this.ipAddressList = new Vector<String>();
 		this.ipAddressList.add("127.0.0.1");
 		
-		this.metadata = createMock(Metadata.class);
-		this.spepStartupService = "http://esoe.url/spepStartup";
-		expect(this.metadata.getSPEPStartupServiceEndpoint()).andReturn(this.spepStartupService);
-		expect(this.metadata.getSPEPAssertionConsumerLocation()).andReturn("assertionUrl").anyTimes();
-		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
+		this.metadata = createMock(MetadataProcessor.class);
+		this.mocked.add(this.metadata);
+		this.esoeEntityData = createMock(EntityData.class);
+		this.mocked.add(this.esoeEntityData);
+		this.esoeRole = createMock(TrustedESOERole.class);
+		this.mocked.add(this.esoeRole);
+		expect(this.metadata.getEntityData(this.esoeIdentifier)).andReturn(this.esoeEntityData).anyTimes();
+		expect(this.metadata.getEntityRoleData(this.esoeIdentifier, TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeEntityData.getRoleData(TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeRole.getSPEPStartupServiceEndpoint((String)notNull())).andReturn(this.spepStartupService).anyTimes();
+//		expect(this.metadata.getSPEPStartupServiceEndpoint()).andReturn(this.spepStartupService);
+//		expect(this.metadata.getSPEPAssertionConsumerLocation()).andReturn("assertionUrl").anyTimes();
+		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 			
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 		
 		String[] validateInitializationSchemas = new String[]{ConfigurationConstants.esoeProtocol};
 		this.validateInitializationPackages = ValidateInitializationResponse.class.getPackage().getName();
-		this.validateInitializationResponseMarshaller = new MarshallerImpl<ValidateInitializationResponse>(this.validateInitializationPackages, validateInitializationSchemas, this.keyStoreResolver.getKeyAlias(), this.keyStoreResolver.getPrivateKey());
+		this.validateInitializationResponseMarshaller = new MarshallerImpl<ValidateInitializationResponse>(this.validateInitializationPackages, validateInitializationSchemas, this.keyStoreResolver);
 	}
 	
 	private void startMock()
 	{
-		replay(this.identifierGenerator);
-		replay(this.metadata);
-		replay(this.wsClient);
+		for (Object o : this.mocked) replay(o);
 	}
 	
 	private void endMock()
 	{
-		verify(this.identifierGenerator);
-		verify(this.metadata);
-		verify(this.wsClient);
+		for (Object o : this.mocked) verify(o);
 	}
 
 	/**
@@ -143,7 +156,7 @@ public class StartupProcessorTest
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.success));
-		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
+//		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
 		
 		startMock();
 		
@@ -170,7 +183,7 @@ public class StartupProcessorTest
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
-		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
+//		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
 		
 		startMock();
 		
@@ -202,7 +215,7 @@ public class StartupProcessorTest
 		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
 		
 		// change is here
-		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
+//		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
 		
 		startMock();
 		
@@ -234,7 +247,7 @@ public class StartupProcessorTest
 		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse("_4736247324", "blah"));
 		
 		// change is here
-		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
+//		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
 		
 		startMock();
 		
@@ -266,7 +279,7 @@ public class StartupProcessorTest
 		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andThrow(new WSClientException("Unable to send ws request."));
 		
 		// change is here
-		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
+//		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
 		
 		startMock();
 		
@@ -283,7 +296,7 @@ public class StartupProcessorTest
 	}
 	private byte[] buildResponse(String samlID, String statusCodeValue) throws MarshallerException
 	{
-		String issuerValue = this.esoeID;
+		String issuerValue = this.esoeIdentifier;
 		
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(issuerValue);
@@ -314,7 +327,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction1() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(null, this.spepIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(null, this.spepIdentifier, this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -323,7 +336,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction2() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, null, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, null,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -332,7 +345,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction3() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, null, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, null, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -341,7 +354,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction4() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, null, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, null, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -350,7 +363,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction5() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, this.wsClient, null, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, null, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -359,7 +372,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction6() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, null, this.ipAddressList, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, null, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -368,7 +381,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction7() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, null, this.serverInfo, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, null, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -377,7 +390,7 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction8() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, null, this.spepNodeID);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, null, this.spepNodeID, 20000, false, false);
 	}
 	
 	/** Test invalid params.
@@ -386,6 +399,6 @@ public class StartupProcessorTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction9() throws Exception
 	{
-		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, -1);
+		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, -1, 20000, false, false);
 	}
 }

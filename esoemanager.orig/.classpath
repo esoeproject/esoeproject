@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="tests/functional"/>
+	<classpathentry kind="src" path="tests/regression"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/dev/click.jar"/>
+	<classpathentry kind="lib" path="lib/dev/slf4j-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/dev/bcprov.jar"/>
+	<classpathentry kind="lib" path="lib/dev/ibatis.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-ibatis.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring-dao.jar"/>
+	<classpathentry kind="lib" path="lib/dev/spring.jar"/>
+	<classpathentry kind="lib" path="lib/dev/commons-dbcp.jar"/>
+	<classpathentry kind="lib" path="lib/dev/click-extras.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>
+	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/slf4j-log4j12.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

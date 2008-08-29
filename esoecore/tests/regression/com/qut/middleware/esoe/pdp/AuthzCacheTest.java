@@ -1,7 +1,6 @@
 package com.qut.middleware.esoe.pdp;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -13,10 +12,9 @@ import java.util.Vector;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache;
-import com.qut.middleware.esoe.pdp.cache.bean.impl.AuthzPolicyCacheImpl;
+import com.qut.middleware.esoe.pdp.cache.AuthzPolicyCache;
+import com.qut.middleware.esoe.pdp.cache.impl.AuthzPolicyCacheImpl;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Policy;
-import com.qut.middleware.saml2.schemas.esoe.lxacml.PolicySet;
 
 
 @SuppressWarnings("nls")

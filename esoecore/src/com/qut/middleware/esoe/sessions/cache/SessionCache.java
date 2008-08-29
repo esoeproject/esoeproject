@@ -82,12 +82,32 @@ public interface SessionCache
 	 * @return Principal object referenced by given SAML ID.
 	 */
 	public Principal getSessionBySAMLID(String samlID);
-	
-	
-	/** Clear any entries from the cache that are older than specified age.
-	 *
+		
+	/** Clear any entries from the cache that are older than specified age. Implementing classes must set setLastCleaned()
+	 *  BEFORE any cache cleanup processing occurs. They must also lock the method to ensure that only ONE thread
+	 *  can ever cause this method to execute at any given time.
+	 * 
 	 * @param age The age in seconds which an entry remains valid.
 	 * @return The number of entries removed from the cache.
 	 */
 	public int cleanCache(int age);
+		
+	/** Retrieve the long timestamp of when the session cache was last cleaned. 
+	 * 
+	 * @return timestamp of the last cache cleanup.
+	 */
+	public long getLastCleaned();
+	
+	/** Set the long timestamp of when the session cache was last cleaned. 
+	 * 
+	 */
+	public void setLastCleaned(long lastCleaned);
+	
+	/** Returns the number of active Principal sessions contained in the cache. Must return the actual representation
+	 * of user sessions, regardless of underlying implementation of session cache.
+	 * 
+	 * @return number of principal sessions.
+	 */
+	public int getSize();
+	
 }

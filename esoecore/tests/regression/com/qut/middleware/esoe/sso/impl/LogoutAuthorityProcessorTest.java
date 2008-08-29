@@ -1,7 +1,9 @@
 package com.qut.middleware.esoe.sso.impl;
 
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.notNull;
@@ -11,6 +13,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Vector;
@@ -21,32 +25,34 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
+import com.qut.middleware.esoe.logout.LogoutMechanism;
+import com.qut.middleware.esoe.logout.LogoutProcessor;
+import com.qut.middleware.esoe.logout.LogoutProcessor.result;
+import com.qut.middleware.esoe.logout.bean.FailedLogoutRepository;
+import com.qut.middleware.esoe.logout.bean.LogoutProcessorData;
+import com.qut.middleware.esoe.logout.bean.SSOLogoutState;
+import com.qut.middleware.esoe.logout.bean.impl.FailedLogoutRepositoryImpl;
+import com.qut.middleware.esoe.logout.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.logout.impl.LogoutProcessorImpl;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Query;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.Terminate;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
-import com.qut.middleware.esoe.sso.SSOProcessor;
-import com.qut.middleware.esoe.sso.SSOProcessor.result;
-import com.qut.middleware.esoe.sso.bean.FailedLogoutRepository;
-import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
-import com.qut.middleware.esoe.sso.bean.impl.FailedLogoutRepositoryImpl;
-import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
-import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
-import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.ws.WSClient;
-import com.qut.middleware.esoe.ws.exception.WSClientException;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.SPEPRole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
-import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
 import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.protocol.LogoutResponse;
 import com.qut.middleware.saml2.schemas.protocol.Status;
@@ -60,12 +66,12 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 public class LogoutAuthorityProcessorTest
 {
 
-	private LogoutAuthorityProcessor logoutAuthorityProcessor;
-	private SSOProcessorData data;
+	private LogoutProcessorImpl logoutAuthorityProcessor;
+	private LogoutProcessorData data;
 	private FailedLogoutRepository failedLogouts;
 	private SAMLValidator samlValidator;
 	private SessionsProcessor sessionsProcessor;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private Principal principal;
 	private Terminate terminator;
 	private SessionCache sessionCache;
@@ -77,6 +83,7 @@ public class LogoutAuthorityProcessorTest
 	
 	List<String> testEntities;
 	List<String> testEndpoints;
+	private LogoutMechanism logout;
 
 	/**
 	 * @throws java.lang.Exception
@@ -88,10 +95,10 @@ public class LogoutAuthorityProcessorTest
 		{
 			samlValidator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 120);
 			failedLogouts = new FailedLogoutRepositoryImpl();
-			data = new SSOProcessorDataImpl();
+			data = createMock(LogoutProcessorData.class);
 			sessionsProcessor = createMock(SessionsProcessor.class);
 			principal = createMock(Principal.class);
-			metadata = createMock(Metadata.class);
+			metadata = createMock(MetadataProcessor.class);
 			terminator = createMock(Terminate.class);
 			sessionCache = createMock(SessionCache.class);
 			wsClient = createMock(WSClient.class);
@@ -103,9 +110,18 @@ public class LogoutAuthorityProcessorTest
 			fail("Unexpected exception state thrown when creating parameters.");
 		}
 
+		String entityID1 = "https://spep.test.1/";
+		String entityID2 = "https://spep.test.2/";
+
 		testEntities = new Vector<String>();
-		testEntities.add("https://spep.test.1/");
-		testEntities.add("https://spep.test.2/");
+		testEntities.add(entityID1);
+		testEntities.add(entityID2);
+		
+		List<String> endpoints1 = new ArrayList<String>();
+		endpoints1.add(entityID1);
+
+		List<String> endpoints2 = new ArrayList<String>();
+		endpoints2.add(entityID2);
 
 		testEndpoints = new Vector<String>();
 		testEndpoints.add("http://test.com");
@@ -116,14 +132,34 @@ public class LogoutAuthorityProcessorTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 
-		KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		KeystoreResolver keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 
-		this.logoutSchemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion };
-		this.logoutResponseMarshaller = new MarshallerImpl<JAXBElement<StatusResponseType>>(StatusResponseType.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.logoutSchemas = new String[] { SchemaConstants.samlProtocol, SchemaConstants.samlAssertion };
+		this.logoutResponseMarshaller = new MarshallerImpl<JAXBElement<StatusResponseType>>(StatusResponseType.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver);
 
 		List<String> testIndicies = new Vector<String>();
 		testIndicies.add("test1-index");
 		testIndicies.add("test2:FFE45C9D00ACFF4EDABB367D-INDEX");
+
+		EntityData entityData1 = createMock(EntityData.class);
+		expect(entityData1.getEntityID()).andReturn(entityID1).anyTimes();
+		SPEPRole spepRole1 = createMock(SPEPRole.class);
+		expect(entityData1.getRoleData(SPEPRole.class)).andReturn(spepRole1).anyTimes();
+		
+		expect(metadata.getEntityData(entityID1)).andReturn(entityData1).anyTimes();
+		expect(metadata.getEntityRoleData(entityID1, SPEPRole.class)).andReturn(spepRole1).anyTimes();
+		
+		EntityData entityData2 = createMock(EntityData.class);
+		expect(entityData2.getEntityID()).andReturn(entityID2).anyTimes();
+		SPEPRole spepRole2 = createMock(SPEPRole.class);
+		expect(entityData2.getRoleData(SPEPRole.class)).andReturn(spepRole2).anyTimes();
+		
+		expect(metadata.getEntityData(entityID2)).andReturn(entityData2).anyTimes();
+		expect(metadata.getEntityRoleData(entityID2, SPEPRole.class)).andReturn(spepRole2).anyTimes();
+		
+		
+		replay(entityData1); replay(spepRole1);
+		replay(entityData2); replay(spepRole2);
 
 		expect(principal.getSessionID()).andReturn(this.validSessionIdentifier).anyTimes();
 		expect(principal.getActiveDescriptors()).andReturn(testEntities).anyTimes();
@@ -134,11 +170,20 @@ public class LogoutAuthorityProcessorTest
 		expect(query.queryAuthnSession((String) notNull())).andReturn(principal).anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query).anyTimes();
 		expect(sessionsProcessor.getTerminate()).andReturn(terminator).anyTimes();
-		expect(metadata.resolveSingleLogoutService((String) notNull())).andReturn(this.testEndpoints).anyTimes();
-		expect(metadata.getEsoeEntityID()).andReturn("12345-12345").anyTimes();
-		expect(metadata.resolveKey("esoeprimary")).andReturn(keyStoreResolver.getPublicKey()).anyTimes();
+		//expect(metadata.resolveSingleLogoutService((String) notNull())).andReturn(this.testEndpoints).anyTimes();
+		expect(metadata.resolveKey("esoeprimary")).andReturn(keyStoreResolver.getLocalPublicKey()).anyTimes();
+		expect(data.getSessionID()).andReturn(this.validSessionIdentifier).anyTimes();
+		data.setLogoutStates((List<SSOLogoutState>)notNull());
+		expectLastCall().anyTimes();
 
-		this.logoutAuthorityProcessor = new LogoutAuthorityProcessor(failedLogouts, samlValidator, sessionsProcessor, metadata, new IdentifierGeneratorImpl(new IdentifierCacheImpl()), keyStoreResolver, wsClient);
+		this.logout = createMock(LogoutMechanism.class);
+		expect(logout.getEndPoints(entityID1)).andReturn(endpoints1);
+		expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID1), anyBoolean())).andReturn(LogoutMechanism.result.LogoutSuccessful).anyTimes();
+		expect(logout.getEndPoints(entityID2)).andReturn(endpoints2);
+		expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID2), anyBoolean())).andReturn(LogoutMechanism.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.logoutAuthorityProcessor = new LogoutProcessorImpl(sessionsProcessor, this.logout);
 	}
 
 	private void setupMock()
@@ -150,6 +195,7 @@ public class LogoutAuthorityProcessorTest
 		replay(sessionCache);
 		replay(wsClient);
 		replay(query);
+		replay(data);
 	}
 
 	private void teardownMock()
@@ -161,6 +207,7 @@ public class LogoutAuthorityProcessorTest
 		verify(sessionCache);
 		verify(wsClient);
 		verify(query);
+		verify(data);
 	}
 
 	/*
@@ -169,46 +216,22 @@ public class LogoutAuthorityProcessorTest
 	 */
 	@SuppressWarnings("nls")
 	@Test
-	public void testExecute1() throws WSClientException
+	public void testExecute1() throws Exception
 	{	
-		try
-		{
-			byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
-			expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
-			data.setSessionID(this.validSessionIdentifier);
-			this.terminator.terminateSession((String)anyObject());
-			expectLastCall().anyTimes();
-		}
-		catch(com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException  e)
-		{
-			fail("Exception state should not be thrown in this test: " + e.getMessage());
-		}
-		catch (MarshallerException e)
-		{
-			fail("Exception state should not be thrown in this test: " + e.getMessage());
-		}
-		
+		byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
+		expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
+		this.terminator.terminateSession((String)anyObject());
+		expectLastCall().anyTimes();
+			
 		setupMock();
 		
-		try
-		{
-			result result = this.logoutAuthorityProcessor.execute(data);
-					
-			assertEquals("Recieved incorrect result. ", SSOProcessor.result.LogoutSuccessful, result);
-			
-			// check out the logout states, should be one for each active spep 			
-			assertEquals("Logout count differes from expected", this.testEntities.size(), data.getLogoutStates().size());
-			
-			return;
-		}
-		catch(InvalidSessionIdentifierException e)
-		{
-			fail("Unexpected Exception was thrown.");
-		}		
-		catch(InvalidRequestException e)
-		{
-			fail("Unexpected Exception was thrown.");
-		}
+		result result = this.logoutAuthorityProcessor.execute(data);
+				
+		assertEquals("Recieved incorrect result. ", LogoutProcessor.result.LogoutSuccessful, result);
+		
+		// check out the logout states, should be one for each active spep 			
+		assertEquals("Logout count differes from expected", this.testEntities.size(), data.getLogoutStates().size());
+		
 		teardownMock();	
 	}
 
@@ -219,48 +242,23 @@ public class LogoutAuthorityProcessorTest
 	 */
 	@SuppressWarnings("nls")
 	@Test
-	public void testExecute2() throws WSClientException
-	{	
-		try
-		{
-			byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
-			expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
-			data.setSessionID(this.validSessionIdentifier);
-			this.terminator.terminateSession((String)anyObject());
-			expectLastCall().anyTimes();
-		}
-		catch(com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException  e)
-		{
-			fail("Exception state should not be thrown in this test: " + e.getMessage());
-		}
-		catch (MarshallerException e)
-		{
-			fail("Exception state should not be thrown in this test: " + e.getMessage());
-		}
+	public void testExecute2() throws Exception
+	{
+		byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
+		expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
+		data.setSessionID(this.validSessionIdentifier);
+		this.terminator.terminateSession((String)anyObject());
+		expectLastCall().anyTimes();
 		
 		setupMock();
 		
-		try
-		{
-			// test returning URL is set correctly
-			data.setResponseURL("return.me.here");
-			
-			result result = this.logoutAuthorityProcessor.execute(data);
-						
-			assertEquals("Recieved incorrect result. ", SSOProcessor.result.LogoutSuccessful, result);
-			
-			assertEquals("Unexpected value set for responseURL", "return.me.here", data.getResponseURL());
-			
-			return;
-		}
-		catch(InvalidSessionIdentifierException e)
-		{
-			fail("Unexpected Exception was thrown.");
-		}		
-		catch(InvalidRequestException e)
-		{
-			fail("Unexpected Exception was thrown.");
-		}
+		// Used to check the URL being returned from the logout authority...
+		// Removed now since it doesn't get a reference.
+		
+		result result = this.logoutAuthorityProcessor.execute(data);
+					
+		assertEquals("Recieved incorrect result. ", LogoutProcessor.result.LogoutSuccessful, result);
+		
 		teardownMock();	
 	}
 	
@@ -270,34 +268,16 @@ public class LogoutAuthorityProcessorTest
 	 * 
 	 */
 	@SuppressWarnings("nls")
-	@Test
-	public void testExecute3() throws WSClientException
+	@Test(expected = InvalidSessionIdentifierException.class)
+	public void testExecute3() throws Exception
 	{		
 		data.setSessionID("invalid-blah");
 		
 		setupMock();
-		
-		try
-		{
-			result result = this.logoutAuthorityProcessor.execute(data);
+	
+		result result = this.logoutAuthorityProcessor.execute(data);
 
-			assertEquals("Recieved incorrect result. ", SSOProcessor.result.LogoutSuccessful, result);
-
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			// good, we want one of these
-			assert (true);
-			return;
-		}
-		catch (InvalidRequestException e)
-		{
-			// bad, we don't want one of these
-			fail("Unexpected Exception was thrown.");
-		}
-
-		// no exception = bad
-		fail("Expected Exception was not thrown.");
+		assertEquals("Recieved incorrect result. ", LogoutProcessor.result.LogoutSuccessful, result);
 	}
 
 	

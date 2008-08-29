@@ -27,8 +27,8 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
-import com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl;
+import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
+import com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl;
 
 
 /**
@@ -60,7 +60,7 @@ public class FailedAuthzCacheUpdateTest
 
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl#getEndPoint()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl#getEndPoint()}.
 	 */
 	@Test
 	public final void testGetEndPoint()
@@ -71,7 +71,7 @@ public class FailedAuthzCacheUpdateTest
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl#getRequestDocument()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl#getRequestDocument()}.
 	 */
 	@Test
 	public final void testGetRequestDocument()
@@ -83,7 +83,7 @@ public class FailedAuthzCacheUpdateTest
 	
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl#getTimeStamp()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl#getTimeStamp()}.
 	 */
 	@Test
 	public final void testGetTimeStamp()
@@ -94,7 +94,7 @@ public class FailedAuthzCacheUpdateTest
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl#setEndPoint(java.lang.String)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl#setEndPoint(java.lang.String)}.
 	 */
 	@Test
 	public final void testSetEndPoint()
@@ -107,7 +107,7 @@ public class FailedAuthzCacheUpdateTest
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl#setRequestDocument(org.opensaml.saml2.core.Request)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl#setRequestDocument(org.opensaml.saml2.core.Request)}.
 	 */
 	@Test
 	public final void testSetRequestDocument()
@@ -120,7 +120,7 @@ public class FailedAuthzCacheUpdateTest
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl#setTimeStamp(java.util.Date)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl#setTimeStamp(java.util.Date)}.
 	 */
 	@Test
 	public final void testSetTimeStamp()

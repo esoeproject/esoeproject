@@ -24,19 +24,20 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
+import java.io.FileInputStream;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 
 /** */
 @SuppressWarnings({"nls", "unqualified-field-access"})
 public class KeyStoreResolverTest
 {
 
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private String esoeKeyAlias;
 	private String esoeKeyPassword;
 	private String keyStorePassword;
@@ -52,11 +53,11 @@ public class KeyStoreResolverTest
 		this.keyStorePassword = "Es0EKs54P4SSPK";
 		this.esoeKeyAlias = "esoeprimary";
 		this.esoeKeyPassword = "Es0EKs54P4SSPK";
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.crypto.KeyStoreResolver#resolveKey(java.lang.String)}.
+	 * Test method for {@link com.qut.middleware.crypto.KeystoreResolver#resolveKey(java.lang.String)}.
 	 */
 	@Test
 	public final void testResolveKey()
@@ -65,25 +66,25 @@ public class KeyStoreResolverTest
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.crypto.KeyStoreResolver#getPrivateKey()}.
+	 * Test method for {@link com.qut.middleware.crypto.KeystoreResolver#getLocalPrivateKey()}.
 	 */
 	@Test
 	public final void testGetESOEPrivateKey()
 	{
-		assertNotNull(this.keyStoreResolver.getPrivateKey());
+		assertNotNull(this.keyStoreResolver.getLocalPrivateKey());
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.crypto.KeyStoreResolver#getKeyAlias()}.
+	 * Test method for {@link com.qut.middleware.crypto.KeystoreResolver#getLocalKeyAlias()}.
 	 */
 	@Test
 	public final void testGetESOEPrivateKeyAlias()
 	{
-		assertEquals(this.esoeKeyAlias,this.keyStoreResolver.getKeyAlias());
+		assertEquals(this.esoeKeyAlias,this.keyStoreResolver.getLocalKeyAlias());
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.crypto.KeyStoreResolver#resolveCertificate(java.lang.String)}.
+	 * Test method for {@link com.qut.middleware.crypto.KeystoreResolver#resolveCertificate(java.lang.String)}.
 	 */
 	@Test
 	public final void testResolveCertificate()
@@ -98,9 +99,9 @@ public class KeyStoreResolverTest
 	 * Test constructor block coverage.
 	 */
 	@Test (expected = IllegalArgumentException.class)
-	public final void testConstruction1()
+	public final void testConstruction1() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(null, keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(null, keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 		
 	}
 	
@@ -108,9 +109,9 @@ public class KeyStoreResolverTest
 	 * Test constructor block coverage.
 	 */
 	@Test (expected = IllegalArgumentException.class)
-	public final void testConstruction2()
+	public final void testConstruction2() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), null, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), null, esoeKeyAlias, esoeKeyPassword);
 		
 	}
 	
@@ -118,9 +119,9 @@ public class KeyStoreResolverTest
 	 * Test constructor block coverage.
 	 */
 	@Test (expected = IllegalArgumentException.class)
-	public final void testConstruction3()
+	public final void testConstruction3() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, null, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, null, esoeKeyPassword);
 		
 	}
 	
@@ -129,9 +130,9 @@ public class KeyStoreResolverTest
 	 * operation to fail, as our key has a password on it.
 	 */
 	@Test (expected = UnsupportedOperationException.class)
-	public final void testConstruction4()
+	public final void testConstruction4() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, null);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, null);
 		
 	}
 	
@@ -139,9 +140,9 @@ public class KeyStoreResolverTest
 	 * Test constructor block coverage. Non existent keystore.
 	 */
 	@Test (expected = UnsupportedOperationException.class)
-	public final void testConstruction5()
+	public final void testConstruction5() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File("nothing/here/dude/ks.ks"), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File("nothing/here/dude/ks.ks"), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 		
 	}
 	
@@ -149,9 +150,9 @@ public class KeyStoreResolverTest
 	 * Test constructor block coverage. Wrong keystore password.
 	 */
 	@Test (expected = UnsupportedOperationException.class)
-	public final void testConstruction6()
+	public final void testConstruction6() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), "wrooonnggg!", esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), "wrooonnggg!", esoeKeyAlias, esoeKeyPassword);
 		
 	}
 	
@@ -160,10 +161,10 @@ public class KeyStoreResolverTest
 	 * but subsequent calls to getPrivateKey() will throw an exception.
 	 */
 	@Test (expected = IllegalArgumentException.class)
-	public final void testConstruction7()
+	public final void testConstruction7() throws Exception
 	{
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, "wrooonnggg!", esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, "wrooonnggg!", esoeKeyPassword);
 		
-		this.keyStoreResolver.getPrivateKey();
+		this.keyStoreResolver.getLocalPrivateKey();
 	}
 }

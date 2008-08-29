@@ -22,15 +22,18 @@ package com.qut.middleware.esoe.sessions.bean.impl;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.ibm.icu.text.CharsetDetector;
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
 import com.qut.middleware.esoe.sessions.exception.ConfigurationValidationException;
 import com.qut.middleware.esoe.sessions.exception.SessionsDAOException;
 import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
@@ -43,31 +46,32 @@ public class SessionConfigDataImpl implements SessionConfigData
 {
 	private List<IdentityType> identityList;
 	private SessionsDAO sessionsDAO;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private Integer esoeEntID;
 	
 	private final String UNMAR_PKGNAMES = SessionData.class.getPackage().getName();
 		
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SessionConfigDataImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SessionConfigDataImpl.class.getName());
 
 	/**
 	 * Default constructor
 	 * @throws ConfigurationValidationException
 	 */
-	public SessionConfigDataImpl(SessionsDAO sessionsDAO, Metadata metadata) throws ConfigurationValidationException
+	public SessionConfigDataImpl(SessionsDAO sessionsDAO, MetadataProcessor metadata, String esoeIdentifier) throws ConfigurationValidationException
 	{
 		try
 		{		
 			this.sessionsDAO = sessionsDAO;
 			this.metadata = metadata;
 			
-			Unmarshaller<SessionData> sessionDataUnmarshaller = new UnmarshallerImpl<SessionData>(this.UNMAR_PKGNAMES, new String[]{ConfigurationConstants.sessionData});
+			Unmarshaller<SessionData> sessionDataUnmarshaller = new UnmarshallerImpl<SessionData>(this.UNMAR_PKGNAMES, new String[]{SchemaConstants.sessionData});
 
-			this.esoeEntID = this.sessionsDAO.getEntID(this.metadata.getEsoeEntityID());
+			this.esoeEntID = this.sessionsDAO.getEntID(esoeIdentifier);
 			byte[] xmlConfigData = this.sessionsDAO.selectActiveAttributePolicy(this.esoeEntID);
 			
-			this.logger.trace(xmlConfigData);
+			CharsetDetector detector = new CharsetDetector();
+			this.logger.trace(detector.getString( xmlConfigData, null ));
 			
 			SessionData sessionData;
 			sessionData = sessionDataUnmarshaller.unMarshallUnSigned(xmlConfigData);

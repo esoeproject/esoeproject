@@ -22,7 +22,8 @@ package com.qut.middleware.spep.impl;
 
 import java.text.MessageFormat;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 
@@ -38,7 +39,7 @@ public class IdentifierCacheMonitor extends Thread
 
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(IdentifierCacheMonitor.class.getName());
+	private Logger logger = LoggerFactory.getLogger(IdentifierCacheMonitor.class.getName());
 	
 	/** 
 	 * Constructor
@@ -95,6 +96,12 @@ public class IdentifierCacheMonitor extends Thread
 				// ignore
 			}
 		}
+	}
+	
+	public void stopRunning()
+	{
+		this.running = false;
+		this.interrupt();
 	}
 	
 	/* Clear identifier cache of expired entries.

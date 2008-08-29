@@ -11,13 +11,9 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData;
-import com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl;
+import com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData;
+import com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl;
 
-/**
- * @author zedly
- *
- */
 public class AuthorizationProcessorDataTest {
 
 	private AuthorizationProcessorData testData;
@@ -38,7 +34,7 @@ public class AuthorizationProcessorDataTest {
 
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#setIssuerID(java.lang.String)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#setIssuerID(java.lang.String)}.
 	 */
 	@Test
 	public void testSetDescriptorID()
@@ -49,7 +45,7 @@ public class AuthorizationProcessorDataTest {
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#setRequestDocument(org.opensaml.saml2.core.Request)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#setRequestDocument(org.opensaml.saml2.core.Request)}.
 	 */
 	@Test
 	public void testSetRequestDocument() 
@@ -61,7 +57,7 @@ public class AuthorizationProcessorDataTest {
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#setResponseDocument(org.opensaml.saml2.core.Response)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#setResponseDocument(org.opensaml.saml2.core.Response)}.
 	 */
 	@Test
 	public void testSetResponseDocument()
@@ -75,7 +71,7 @@ public class AuthorizationProcessorDataTest {
 	}
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#setSubjectID(java.lang.String)}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#setSubjectID(java.lang.String)}.
 	 */
 	@Test
 	public void testSetSubjectID()
@@ -92,7 +88,7 @@ public class AuthorizationProcessorDataTest {
 
 
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#getIssuerID()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#getIssuerID()}.
 	 */
 	@Test
 	public void testGetDescriptorID() 
@@ -104,7 +100,7 @@ public class AuthorizationProcessorDataTest {
 
 	
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#getRequestDocument()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#getRequestDocument()}.
 	 */
 	@Test
 	public void testGetRequestDocument()
@@ -117,7 +113,7 @@ public class AuthorizationProcessorDataTest {
 
 	
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#getResponseDocument()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#getResponseDocument()}.
 	 */
 	@Test
 	public void testGetResponseDocument()
@@ -129,7 +125,7 @@ public class AuthorizationProcessorDataTest {
 
 	
 	/**
-	 * Test method for {@link com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl#getSubjectID()}.
+	 * Test method for {@link com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl#getSubjectID()}.
 	 */
 	@Test
 	public void testGetSubjectID()

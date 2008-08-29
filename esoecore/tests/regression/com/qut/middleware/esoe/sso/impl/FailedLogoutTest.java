@@ -8,8 +8,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.sso.bean.FailedLogout;
-import com.qut.middleware.esoe.sso.bean.impl.FailedLogoutImpl;
+import com.qut.middleware.esoe.logout.bean.FailedLogout;
+import com.qut.middleware.esoe.logout.bean.impl.FailedLogoutImpl;
 
 public class FailedLogoutTest 
 {

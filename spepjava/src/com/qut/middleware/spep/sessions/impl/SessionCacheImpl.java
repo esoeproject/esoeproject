@@ -31,7 +31,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.spep.sessions.Messages;
 import com.qut.middleware.spep.sessions.PrincipalSession;
@@ -45,7 +46,7 @@ public class SessionCacheImpl implements SessionCache
 	protected Map<String, PrincipalSession> sessions;
 	protected Map<String, PrincipalSession> esoeSessions;
 	protected Map<String, UnauthenticatedSession> unauthenticatedSessions;
-	private Thread cleanupThread;
+	private CleanupThread cleanupThread;
 	protected long sessionCacheTimeout;
 	protected long sessionCacheInterval;
 
@@ -62,7 +63,7 @@ public class SessionCacheImpl implements SessionCache
 	}
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SessionCacheImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SessionCacheImpl.class.getName());
 
 	/**
 	 * Default constructor.
@@ -99,6 +100,11 @@ public class SessionCacheImpl implements SessionCache
 		this.lock = new ReentrantLock(true);
 
 		this.logger.info(Messages.getString("SessionCacheImpl.0")); //$NON-NLS-1$
+	}
+	
+	public void cleanup()
+	{
+		this.cleanupThread.stopRunning();
 	}
 
 	/*
@@ -347,7 +353,8 @@ public class SessionCacheImpl implements SessionCache
 	private class CleanupThread extends Thread
 	{
 		/* Local logging instance */
-		private Logger logger = Logger.getLogger(CleanupThread.class.getName());
+		private Logger logger = LoggerFactory.getLogger(CleanupThread.class.getName());
+		private boolean running;
 
 		protected CleanupThread()
 		{
@@ -357,7 +364,8 @@ public class SessionCacheImpl implements SessionCache
 		@Override
 		public void run()
 		{
-			while (true)
+			this.running = true;
+			while (this.running)
 			{
 				try
 				{
@@ -371,6 +379,12 @@ public class SessionCacheImpl implements SessionCache
 					this.logger.error(MessageFormat.format(Messages.getString("SessionCacheImpl.11"), e.getMessage())); //$NON-NLS-1$
 				}
 			}
+		}
+		
+		public void stopRunning()
+		{
+			this.running = false;
+			this.interrupt();
 		}
 
 		private void cleanup()

@@ -22,18 +22,15 @@ package com.qut.middleware.esoe.spep.impl;
 import java.security.PrivateKey;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.metadata.exception.InvalidMetadataEndpointException;
-import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
-import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
-import com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl;
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.esoe.authz.cache.AuthzCacheUpdateFailureRepository;
+import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
+import com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.spep.Messages;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
@@ -41,6 +38,11 @@ import com.qut.middleware.esoe.spep.Startup;
 import com.qut.middleware.esoe.util.CalendarUtils;
 import com.qut.middleware.esoe.ws.WSClient;
 import com.qut.middleware.esoe.ws.exception.WSClientException;
+import com.qut.middleware.metadata.bean.saml.SPEPRole;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpoint;
+import com.qut.middleware.metadata.exception.MetadataStateException;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
@@ -64,7 +66,7 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 
 public class SPEPProcessorImpl implements SPEPProcessor
 {
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private Startup startup;
 	private AuthzCacheUpdateFailureRepository failureRep;
 	private PrivateKey key;
@@ -72,6 +74,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	private IdentifierGenerator identifierGenerator;
 	private WSClient wsClient;
 	private SAMLValidator samlValidator;
+	private String esoeIdentifier;
 
 	private Marshaller<ClearAuthzCacheRequest> clearAuthzCacheRequestMarshaller;
 	private Unmarshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseUnmarshaller;
@@ -79,13 +82,13 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	private final String UNMAR_PKGNAMES = ClearAuthzCacheResponse.class.getPackage().getName();
 	private final String MAR_PKGNAMES = ClearAuthzCacheRequest.class.getPackage().getName()
 			+ ":" + GroupTarget.class.getPackage().getName(); //$NON-NLS-1$
-	private final String[] schemas = new String[] { ConfigurationConstants.esoeProtocol,
-			ConfigurationConstants.samlProtocol };
+	private final String[] schemas = new String[] { SchemaConstants.esoeProtocol,
+			SchemaConstants.samlProtocol };
 
 	private final String PRINCIPAL_CLEAR_CACHE_REASON = Messages.getString("SPEPProcessorImpl.3"); //$NON-NLS-1$
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SPEPProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SPEPProcessorImpl.class.getName());
 
 	/**
 	 * Constructor
@@ -95,9 +98,9 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * @param startup
 	 *            Startup instance.
 	 */
-	public SPEPProcessorImpl(Metadata metadata, Startup startup, AuthzCacheUpdateFailureRepository failureRep,
+	public SPEPProcessorImpl(MetadataProcessor metadata, Startup startup, AuthzCacheUpdateFailureRepository failureRep,
 			WSClient wsClient, IdentifierGenerator identifierGenerator, SAMLValidator samlValidator,
-			KeyStoreResolver keyStoreResolver) throws MarshallerException, UnmarshallerException
+			KeystoreResolver keyStoreResolver) throws MarshallerException, UnmarshallerException
 	{
 		if (metadata == null)
 		{
@@ -134,11 +137,12 @@ public class SPEPProcessorImpl implements SPEPProcessor
 		this.wsClient = wsClient;
 		this.identifierGenerator = identifierGenerator;
 		this.samlValidator = samlValidator;
-		this.key = keyStoreResolver.getPrivateKey();
-		this.keyName = keyStoreResolver.getKeyAlias();
+		this.key = keyStoreResolver.getLocalPrivateKey();
+		this.keyName = keyStoreResolver.getLocalKeyAlias();
+		this.esoeIdentifier = esoeIdentifier;
 
 		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.MAR_PKGNAMES,
-				this.schemas, this.keyName, this.key);
+				this.schemas, keyStoreResolver);
 		this.clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(this.UNMAR_PKGNAMES,
 				this.schemas, this.metadata);
 
@@ -157,36 +161,45 @@ public class SPEPProcessorImpl implements SPEPProcessor
 			{
 				try
 				{
-					Map<Integer,String> endpoints = this.metadata.resolveCacheClearService(entityID);
+					SPEPRole spepRole = this.metadata.getEntityRoleData(entityID, SPEPRole.class);
+					if (spepRole == null)
+					{
+						this.logger.error("Entity did not exist, or did not have the SPEP role required for cache clear. Entity ID: " + entityID);
+						continue;
+					}
+
+					List<IndexedEndpoint> endpoints = spepRole.getCacheClearServiceEndpointList();
 
 					if (endpoints != null)
 					{
-						for (String endpoint : endpoints.values())
+						for (IndexedEndpoint endpoint : endpoints)
 						{
+							String endpointLocation = endpoint.getLocation();
+							
 							authzClearCacheRequest = generateClearCacheRequest(principal.getSAMLAuthnIdentifier(),
-									endpoint, this.PRINCIPAL_CLEAR_CACHE_REASON);
+									endpointLocation, this.PRINCIPAL_CLEAR_CACHE_REASON);
 
 							if (authzClearCacheRequest == null)
 								this.logger.warn(Messages.getString("SPEPProcessorImpl.9") //$NON-NLS-1$
 										+ principal + Messages.getString("SPEPProcessorImpl.10") + entityID); //$NON-NLS-1$
 							else
-								updateResult = this.sendCacheUpdateRequest(authzClearCacheRequest, endpoint);
+								updateResult = this.sendCacheUpdateRequest(authzClearCacheRequest, endpointLocation);
 
 							if (!updateResult)
 							{
-								this.recordFailure(authzClearCacheRequest, endpoint);
+								this.recordFailure(authzClearCacheRequest, endpointLocation);
 							}
 						}
 					}
 				}
-				catch (InvalidMetadataEndpointException e)
-				{
-					this.logger.error(Messages.getString("SPEPProcessorImpl.11")); //$NON-NLS-1$
-					this.logger.debug(e.getLocalizedMessage(), e);
-				}
 				catch (MarshallerException e)
 				{
 					this.logger.error(Messages.getString("SPEPProcessorImpl.12") + entityID); //$NON-NLS-1$
+					this.logger.debug(e.getLocalizedMessage(), e);
+				}
+				catch (MetadataStateException e)
+				{
+					this.logger.error("Metadata was in an invalid state. Error was: " + e.getMessage());
 					this.logger.debug(e.getLocalizedMessage(), e);
 				}
 			}
@@ -215,7 +228,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 		request.setDestination(endpoint);
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getEsoeEntityID());
+		issuer.setValue(this.esoeIdentifier);
 		request.setIssuer(issuer);
 
 		subjectID.setValue(samlAuthnIdentifier);
@@ -340,10 +353,10 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * 
 	 * @see com.qut.middleware.esoe.spep.SPEPProcessor#getMetadata()
 	 */
-	public Metadata getMetadata()
-	{
-		return this.metadata;
-	}
+	//public MetadataProcessor getMetadata()
+	//{
+	//	return this.metadata;
+	//}
 
 	/*
 	 * (non-Javadoc)

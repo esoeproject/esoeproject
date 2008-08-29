@@ -5,11 +5,11 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.pdp.exception.InvalidRequestException;
-import com.qut.middleware.esoe.pdp.impl.PolicyData;
-import com.qut.middleware.esoe.pdp.impl.PolicyEvaluator;
-import com.qut.middleware.esoe.pdp.impl.ProtocolTools;
-import com.qut.middleware.esoe.pdp.impl.RequestEvaluator;
+import com.qut.middleware.esoe.authz.exception.InvalidRequestException;
+import com.qut.middleware.esoe.authz.impl.PolicyEvaluator;
+import com.qut.middleware.esoe.authz.impl.ProtocolTools;
+import com.qut.middleware.esoe.authz.impl.RequestEvaluator;
+import com.qut.middleware.esoe.pdp.processor.impl.DecisionData;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.AttributeAssignment;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.EffectType;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligation;
@@ -43,23 +43,23 @@ public class UtilTests {
 	@Test
 	public void testPolicyEvaluator1()
 	{
-		PolicyData policyData = new PolicyData();
+		DecisionData decisionData = new DecisionData();
 		
 		// add a group target match to policy data
-		policyData.addGroupTarget("/resource1");
+		decisionData.addGroupTarget("/resource1");
 		
 		// add an authz match to policy data
-		policyData.addMatch("/resource1/myResource.jsp");
-		policyData.addMatch("/resource1/myResource2.doc");
+		decisionData.addMatch("/resource1/myResource.jsp");
+		decisionData.addMatch("/resource1/myResource2.doc");
 		
 		
-		assertTrue(policyData.getMatches().contains("/resource1/myResource.jsp"));		
-		assertTrue(policyData.getMatches().contains("/resource1/myResource2.doc"));
+		assertTrue(decisionData.getMatches().contains("/resource1/myResource.jsp"));		
+		assertTrue(decisionData.getMatches().contains("/resource1/myResource2.doc"));
 		
 		// small check to ensure policy data returns actual current (latest added) match
-		assertTrue(policyData.getCurrentMatch().equals("/resource1/myResource2.doc"));
+		assertTrue(decisionData.getCurrentMatch().equals("/resource1/myResource2.doc"));
 		
-		Result result = this.policyEval.createDefaultResult("TestMessage", "DENY", policyData);
+		Result result = this.policyEval.createDefaultResult("TestMessage", "DENY", decisionData);
 		
 		// make sure it set decision to what we stated
 		assertEquals(DecisionType.DENY, result.getDecision());

@@ -77,4 +77,9 @@ public interface SessionCache
 	 * @param requestID The request ID
 	 */
 	public void terminateUnauthenticatedSession(String requestID);
+	
+	/**
+	 * Cleans up threads in preparation for container shutdown
+	 */
+	public void cleanup();
 }

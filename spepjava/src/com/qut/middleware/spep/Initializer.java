@@ -19,11 +19,13 @@
  */
 package com.qut.middleware.spep;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.PublicKey;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -35,8 +37,27 @@ import java.util.Vector;
 import javax.servlet.ServletContext;
 import javax.servlet.http.Cookie;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.exception.KeystoreResolverException;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.metadata.cache.MetadataCache;
+import com.qut.middleware.metadata.cache.impl.MetadataCacheImpl;
+import com.qut.middleware.metadata.processor.DynamicMetadataUpdater;
+import com.qut.middleware.metadata.processor.FormatHandler;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.metadata.processor.impl.DynamicMetadataUpdaterImpl;
+import com.qut.middleware.metadata.processor.impl.MetadataProcessorImpl;
+import com.qut.middleware.metadata.processor.impl.MetadataUpdateThread;
+import com.qut.middleware.metadata.processor.saml.SAMLEntityDescriptorProcessor;
+import com.qut.middleware.metadata.processor.saml.impl.SAMLIdentityProviderProcessor;
+import com.qut.middleware.metadata.processor.saml.impl.SAMLMetadataFormatHandler;
+import com.qut.middleware.metadata.processor.saml.impl.SAMLServiceProviderProcessor;
+import com.qut.middleware.metadata.source.DynamicMetadataSource;
+import com.qut.middleware.metadata.source.MetadataSource;
+import com.qut.middleware.metadata.source.saml.impl.SAMLURLMetadataSource;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
@@ -52,13 +73,9 @@ import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
 import com.qut.middleware.spep.impl.SPEPImpl;
 import com.qut.middleware.spep.impl.SPEPProxyImpl;
 import com.qut.middleware.spep.impl.StartupProcessorImpl;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
-import com.qut.middleware.spep.metadata.impl.MetadataImpl;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor.decision;
 import com.qut.middleware.spep.pep.impl.PolicyEnforcementProcessorImpl;
 import com.qut.middleware.spep.pep.impl.SessionGroupCacheImpl;
-import com.qut.middleware.spep.sessions.SessionCache;
 import com.qut.middleware.spep.sessions.impl.SessionCacheImpl;
 import com.qut.middleware.spep.ws.WSClient;
 import com.qut.middleware.spep.ws.impl.WSClientImpl;
@@ -67,7 +84,7 @@ import com.qut.middleware.spep.ws.impl.WSClientImpl;
 public class Initializer
 {
 	/* Local logging instance */
-	static private Logger logger = Logger.getLogger(Initializer.class.getName());
+	static private Logger logger = LoggerFactory.getLogger(Initializer.class.getName());
 	
 	private final static String DENY = "deny";
 	private final static String PERMIT = "permit";
@@ -133,7 +150,7 @@ public class Initializer
 					logger.info("Configured spep.data from java property spep.data, with a value of: " + SPEP_CONFIGURATION_PATH);
 				else
 				{
-					logger.fatal("Unable to resolve location of spep config and keystores from either local file of WEB-INF/spepvars.config (spep.data) or java property spep.data");
+					logger.error("Unable to resolve location of spep config and keystores from either local file of WEB-INF/spepvars.config (spep.data) or java property spep.data");
 					throw new IllegalArgumentException("Unable to resolve location of spep config and keystores from either local file of WEB-INF/spepvars.config (spep.data) or java property spep.data");
 				}
 			}
@@ -160,7 +177,7 @@ public class Initializer
 			}
 			
 			// Grab all the configuration data from the properties file.
-			String spepIdentifier = resolveProperty(properties, "spepIdentifier"); //$NON-NLS-1$
+			final String spepIdentifier = resolveProperty(properties, "spepIdentifier"); //$NON-NLS-1$
 			String esoeIdentifier = resolveProperty(properties, "esoeIdentifier"); //$NON-NLS-1$
 			String metadataUrl = resolveProperty(properties, "metadataUrl"); //$NON-NLS-1$
 			
@@ -191,8 +208,24 @@ public class Initializer
 			// Timeout on data in the identifier cache. Should be longer than SAML document lifetime + time skew allowed
 			long identifierCacheTimeout = Long.parseLong(resolveProperty(properties, "identifierCacheTimeout")); //$NON-NLS-1$
 			
+			// Time after which to retry SPEP startup if it failed.
+			int spepStartupInterval = Integer.parseInt(resolveProperty(properties, "startupRetryInterval")); //$NON-NLS-1$
+			
 			// Default policy decision for LAXCML
 			decision defaultPolicyDecision = decision.valueOf(resolveProperty(properties, "defaultPolicyDecision")); //$NON-NLS-1$
+			
+			// Disabled SPEP components - default to false (don't disable)
+			boolean disableAttributeQuery = Boolean.parseBoolean(properties.getProperty("disableAttributeQuery", "false"));
+			boolean disablePolicyEnforcement = Boolean.parseBoolean(properties.getProperty("disablePolicyEnforcement", "false"));
+			boolean disableSPEPStartup = Boolean.parseBoolean(properties.getProperty("disableSPEPStartup", "false"));
+			
+			// Run in compatibility mode to allow talking to non-ESOE identity providers - default to false
+			boolean enableCompatibility = Boolean.parseBoolean(properties.getProperty("enableCompatibility", "false"));
+			
+			spep.setDisableAttributeQuery(disableAttributeQuery);
+			spep.setDisablePolicyEnforcement(disablePolicyEnforcement);
+			spep.setDisableSPEPStartup(disableSPEPStartup);
+			spep.setEnableCompatibility(enableCompatibility);
 			
 			// IP Address list for this host
 			String ipAddresses = resolveProperty(properties, "ipAddresses"); //$NON-NLS-1$
@@ -202,6 +235,9 @@ public class Initializer
 			{
 				ipAddressList.add(ipAddressTokenizer.nextToken());
 			}
+			
+			spep.setTrustedESOEIdentifier(esoeIdentifier);
+			spep.setSPEPIdentifier(spepIdentifier);
 			
 			// Cookie and redirect information for authn
 			spep.setTokenName(resolveProperty(properties, "spepTokenName")); //$NON-NLS-1$
@@ -238,6 +274,8 @@ public class Initializer
 				}
 			}
 			
+			spep.setLogoutClearCookies(logoutClearCookies);
+			
 			// Determine if SPEP is operating is lazy mode
 			spep.setLazyInit(new Boolean(properties.getProperty("lazyInit")).booleanValue());
 			
@@ -247,7 +285,7 @@ public class Initializer
 				String lazyInitDefaultAction = properties.getProperty("lazyInitDefaultAction");
 				if(lazyInitDefaultAction == null)
 				{
-					logger.fatal("Failed to retrieve lazyInitDefaultAction value");
+					logger.error("Failed to retrieve lazyInitDefaultAction value");
 					throw new SPEPInitializationException("Failed to retrieve lazyInitDefaultAction value");
 				}
 				
@@ -258,7 +296,7 @@ public class Initializer
 						spep.setLazyInitDefaultAction(SPEP.defaultAction.Permit);
 					else
 					{
-						logger.fatal("Failed to retrieve lazyInitDefaultAction, invalid value must be deny or permit");
+						logger.error("Failed to retrieve lazyInitDefaultAction, invalid value must be deny or permit");
 						throw new SPEPInitializationException("Failed to retrieve lazyInitDefaultAction, invalid value must be deny or permit");
 					}
 				
@@ -272,7 +310,7 @@ public class Initializer
 				
 				if(lazyInitResources.size() <= 0)
 				{
-					logger.fatal("Failed to retrieve any lazyinit-resource values, at least one URL MUST be specified");
+					logger.error("Failed to retrieve any lazyinit-resource values, at least one URL MUST be specified");
 					throw new SPEPInitializationException("Failed to retrieve any hardInit-URL-[] values, at least one URL MUST be specified");
 				}
 				
@@ -280,25 +318,65 @@ public class Initializer
 			}
 			
 			
-			// Instantiate the input streams for other configuration.
-			InputStream keyStoreInputStream;
+			// Instantiate the file for other configuration.
+			File keystoreFile = new File(keystorePath);
+			
+			// Initialize the keystore resolver from the file, and grab the metadata public key.
+			KeystoreResolver keyStoreResolver;
 			try
 			{
-				keyStoreInputStream = new FileInputStream(keystorePath);
+				keyStoreResolver = new KeystoreResolverImpl(keystoreFile, keystorePassword, spepKeyAlias, spepKeyPassword);
 			}
-			catch (FileNotFoundException e)
+			catch (KeystoreResolverException e)
 			{
-				logger.fatal("Failed to open config input stream " + e.getLocalizedMessage());
-				logger.debug(e);
-				throw new SPEPInitializationException("Failed to open config input stream " + e.getLocalizedMessage());
+				throw new SPEPInitializationException("Failed to load keystore. Exception was: " + e.getLocalizedMessage());
 			}
-			
-			// Initialize the keystore resolver from the stream, and grab the metadata public key.
-			KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(keyStoreInputStream, keystorePassword, spepKeyAlias, spepKeyPassword);
 			PublicKey metadataPublicKey = keyStoreResolver.resolveKey(metadataKeyAlias);
 
 			// Create metadata instance
-			spep.setMetadata(new MetadataImpl(spepIdentifier, esoeIdentifier, metadataUrl, metadataPublicKey, nodeID, metadataInterval));
+			
+			// Initialize dynamic updater with no dynamic sources.
+			DynamicMetadataUpdater dynamicMetadataUpdater = new DynamicMetadataUpdaterImpl(new ArrayList<DynamicMetadataSource>());
+			MetadataCache metadataCache = new MetadataCacheImpl(dynamicMetadataUpdater);
+			
+			// IdP processor
+			SAMLIdentityProviderProcessor identityProviderProcessor;
+			if (enableCompatibility)
+			{
+				// Don't require a trusted ESOE entity in compatibility mode.
+				identityProviderProcessor = new SAMLIdentityProviderProcessor(null);
+			}
+			else
+			{
+				identityProviderProcessor = new SAMLIdentityProviderProcessor(esoeIdentifier);
+			}
+			// SP processor
+			SAMLServiceProviderProcessor serviceProviderProcessor = new SAMLServiceProviderProcessor();
+			
+			List<SAMLEntityDescriptorProcessor> entityDescriptorProcessors = new ArrayList<SAMLEntityDescriptorProcessor>();
+			entityDescriptorProcessors.add(identityProviderProcessor);
+			entityDescriptorProcessors.add(serviceProviderProcessor);
+			
+			URL metadataUrlObject;
+			try
+			{
+				metadataUrlObject = new URL(metadataUrl);
+			}
+			catch (MalformedURLException e)
+			{
+				throw new SPEPInitializationException("Failed to parse metadata URL. Exception was: " + e.getLocalizedMessage());
+			}
+			MetadataSource source = new SAMLURLMetadataSource(metadataUrlObject);
+			
+			List<MetadataSource> sources = new ArrayList<MetadataSource>();
+			sources.add(source);
+			
+			List<FormatHandler> formatHandlers = new ArrayList<FormatHandler>();
+			formatHandlers.add(new SAMLMetadataFormatHandler(keyStoreResolver, entityDescriptorProcessors));
+			MetadataProcessor metadataProcessor = new MetadataProcessorImpl(metadataCache, formatHandlers, sources);
+			spep.setMetadataProcessor(metadataProcessor);
+			
+			spep.setMetadataUpdateThread(new MetadataUpdateThread(metadataProcessor, metadataInterval));
 
 			// Web services client instance
 			WSClient wsClient = new WSClientImpl();
@@ -311,50 +389,50 @@ public class Initializer
 			SAMLValidator samlValidator = new SAMLValidatorImpl(identifierCache, allowedTimeSkew);
 			
 			// Session cache instance
-			SessionCache sessionCache = new SessionCacheImpl(sessionCacheTimeout, sessionCacheInterval);
+			spep.setSessionCache( new SessionCacheImpl(sessionCacheTimeout, sessionCacheInterval) );
 
 			// start the identifier cache monitor thread
-			new IdentifierCacheMonitor(identifierCache, sessionCacheInterval, identifierCacheTimeout);
+			spep.setIdentifierCacheMonitor(new IdentifierCacheMonitor(identifierCache, sessionCacheInterval, identifierCacheTimeout));
 			
 			// Try to create the attribute processor instance
 			try
 			{
-				spep.setAttributeProcessor(new AttributeProcessorImpl(spep.getMetadata(), wsClient, identifierGenerator, samlValidator, keyStoreResolver));
+				spep.setAttributeProcessor(new AttributeProcessorImpl(spep.getMetadataProcessor(), wsClient, identifierGenerator, samlValidator, keyStoreResolver, esoeIdentifier, spepIdentifier, disableAttributeQuery, enableCompatibility));
 			}
 			catch (MarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.7"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.7"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.1"), e); //$NON-NLS-1$
 			}
 			catch (UnmarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.7"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.7"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.1"), e); //$NON-NLS-1$
 			}
 			catch (IOException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.7"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.7"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.1"), e); //$NON-NLS-1$
 			}
 			
 			// Try to create the authn processor instance
 			try
 			{
-				spep.setAuthnProcessor(new AuthnProcessorImpl(spep.getAttributeProcessor(), spep.getMetadata(), sessionCache, samlValidator, identifierGenerator, keyStoreResolver, spep.getServiceHost(), spep.getSsoRedirect(), nodeID, nodeID));
+				spep.setAuthnProcessor(new AuthnProcessorImpl(spep.getAttributeProcessor(), spep.getMetadataProcessor(), spep.getSessionCache(), samlValidator, identifierGenerator, keyStoreResolver, spep.getServiceHost(), spep.getSsoRedirect(), nodeID, nodeID, spepIdentifier));
 			}
 			catch (MarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.4"), e); //$NON-NLS-1$
 			}
 			catch (UnmarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.4"), e); //$NON-NLS-1$
 			}
 			catch (MalformedURLException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage()));
+				logger.error(MessageFormat.format(Messages.getString("Initializer.8"), e.getMessage()));
 				throw new SPEPInitializationException(Messages.getString("Initializer.4"), e); //$NON-NLS-1$
 			}
 			
@@ -362,16 +440,16 @@ public class Initializer
 			spep.setSessionGroupCache(new SessionGroupCacheImpl(defaultPolicyDecision));
 			try
 			{
-				spep.setPolicyEnforcementProcessor(new PolicyEnforcementProcessorImpl(sessionCache, spep.getSessionGroupCache(), wsClient, identifierGenerator, spep.getMetadata(), keyStoreResolver, samlValidator));
+				spep.setPolicyEnforcementProcessor(new PolicyEnforcementProcessorImpl(spep.getSessionCache(), spep.getSessionGroupCache(), wsClient, identifierGenerator, spep.getMetadataProcessor(), keyStoreResolver, samlValidator, esoeIdentifier, spepIdentifier, disablePolicyEnforcement, enableCompatibility));
 			}
 			catch (MarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.9"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.9"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.6"), e); //$NON-NLS-1$
 			}
 			catch (UnmarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.9"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.9"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.6"), e); //$NON-NLS-1$
 			}
 
@@ -385,16 +463,16 @@ public class Initializer
 			// Create the SPEP startup processor
 			try
 			{
-				spep.setStartupProcessor(new StartupProcessorImpl(spep.getMetadata(), spepIdentifier, identifierGenerator, wsClient, samlValidator, keyStoreResolver, ipAddressList, serverInfo, nodeID));
+				spep.setStartupProcessor(new StartupProcessorImpl(spep.getMetadataProcessor(), spepIdentifier, esoeIdentifier, identifierGenerator, wsClient, samlValidator, keyStoreResolver, ipAddressList, serverInfo, nodeID, spepStartupInterval, disableSPEPStartup, enableCompatibility));
 			}
 			catch (MarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.10"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.10"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.11"), e);			 //$NON-NLS-1$
 			}
 			catch (UnmarshallerException e)
 			{
-				logger.fatal(MessageFormat.format(Messages.getString("Initializer.12"), e.getMessage())); //$NON-NLS-1$
+				logger.error(MessageFormat.format(Messages.getString("Initializer.12"), e.getMessage())); //$NON-NLS-1$
 				throw new SPEPInitializationException(Messages.getString("Initializer.13"), e);			 //$NON-NLS-1$
 			}
 			
@@ -405,6 +483,30 @@ public class Initializer
 		}
 		
 		return (SPEP)context.getAttribute(ConfigurationConstants.SERVLET_CONTEXT_NAME);
+	}
+	
+	public static void cleanup( ServletContext context )
+	{
+		if(context == null)
+		{
+			throw new IllegalArgumentException(Messages.getString("Initializer.14"));  //$NON-NLS-1$
+		}
+		
+		Object spepObject = context.getAttribute(ConfigurationConstants.SERVLET_CONTEXT_NAME);
+		if( spepObject == null )
+		{
+			return;
+		}
+		
+		if( !(spepObject instanceof SPEP) )
+		{
+			throw new IllegalArgumentException("SPEP instance was not an instance of the local SPEP class.");
+		}
+		
+		SPEP spep = (SPEP)spepObject;
+		spep.getMetadataUpdateThread().shutdown();
+		spep.getSessionCache().cleanup();
+		spep.getIdentifierCacheMonitor().stopRunning();
 	}
 	
 }

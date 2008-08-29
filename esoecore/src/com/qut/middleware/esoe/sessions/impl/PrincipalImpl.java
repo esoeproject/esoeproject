@@ -18,15 +18,13 @@
  */
 package com.qut.middleware.esoe.sessions.impl;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.log4j.Logger;
 
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
@@ -48,10 +46,9 @@ public class PrincipalImpl implements Principal
 	private long lastAccessed;
 	private long authnTimestamp;
 	private XMLGregorianCalendar sessionNotOnOrAfter;
-	
-	/* Local logging instance */
-	private Logger logger = Logger.getLogger(PrincipalImpl.class.getName());
-
+	// Required for shared object distribution. ANY methods called from a shared object MUST be locked.
+	private ReentrantReadWriteLock sharedLock;
+		
 	/**
 	 * Constructor.
 	 * 
@@ -63,10 +60,11 @@ public class PrincipalImpl implements Principal
 	public PrincipalImpl(IdentityData identityData, int sessionLength)
 	{
 		this.entities = new Vector<String>(0, 1);
-		this.entitySessionIdentifiers = Collections.synchronizedMap(new HashMap<String, List<String>>());
+		this.entitySessionIdentifiers = new ConcurrentHashMap<String, List<String>>();
 		this.identityData = identityData;
 		this.lastAccessed = System.currentTimeMillis();
 		this.sessionNotOnOrAfter = CalendarUtils.generateXMLCalendar(sessionLength);
+		this.sharedLock = new ReentrantReadWriteLock();
 	}
 	
 	/**
@@ -78,10 +76,11 @@ public class PrincipalImpl implements Principal
 	public PrincipalImpl(int sessionLength)
 	{
 		this.entities = new Vector<String>(0, 1);
-		this.entitySessionIdentifiers = Collections.synchronizedMap(new HashMap<String, List<String>>());
+		this.entitySessionIdentifiers = new ConcurrentHashMap<String, List<String>>();
 		this.lastAccessed = System.currentTimeMillis();
 		this.sessionNotOnOrAfter = CalendarUtils.generateXMLCalendar(sessionLength);
 		this.identityData = new IdentityDataImpl();
+		this.sharedLock = new ReentrantReadWriteLock();
 	}
 	
 	
@@ -94,8 +93,6 @@ public class PrincipalImpl implements Principal
 	{
 		this.entities.add(entityID);
 		this.entitySessionIdentifiers.put(entityID, new Vector<String>(0, 1));
-		
-		//this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("PrincipalImpl.0"), this.principalAuthnIdentifier, descriptorID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -113,8 +110,6 @@ public class PrincipalImpl implements Principal
 		}
 
 		entitySessions.add(descriptorSessionID);
-		
-		//this.logger.log(InsaneLogLevel.INSANE, MessageFormat.format(Messages.getString("PrincipalImpl.1"), this.principalAuthnIdentifier, descriptorID, descriptorSessionID)); //$NON-NLS-1$
 	}
 
 	/*
@@ -163,7 +158,6 @@ public class PrincipalImpl implements Principal
 		List<String> entitySessions = this.entitySessionIdentifiers.get(descriptorID);
 		if (entitySessions == null)
 		{
-		//	this.logger.warn(MessageFormat.format(Messages.getString("PrincipalImpl.2"), descriptorID)); //$NON-NLS-1$
 			throw new InvalidDescriptorIdentifierException();
 		}
 
@@ -177,7 +171,16 @@ public class PrincipalImpl implements Principal
 	 */
 	public String getPrincipalAuthnIdentifier()
 	{
-		return this.principalAuthnIdentifier;
+		this.sharedLock.readLock().lock();
+		
+		try
+		{
+			return this.principalAuthnIdentifier;
+		}
+		finally
+		{
+			this.sharedLock.readLock().unlock();
+		}
 	}
 
 	/*
@@ -262,7 +265,16 @@ public class PrincipalImpl implements Principal
 	 */
 	public long getLastAccessed()
 	{
-		return this.lastAccessed;
+		this.sharedLock.readLock().lock();
+		
+		try
+		{
+			return this.lastAccessed;
+		}
+		finally
+		{
+			this.sharedLock.readLock().unlock();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -270,7 +282,16 @@ public class PrincipalImpl implements Principal
 	 */
 	public void setLastAccessed(long lastAccessedTimestamp)
 	{
-		this.lastAccessed = lastAccessedTimestamp;
+		this.sharedLock.writeLock().lock();
+		
+		try
+		{
+			this.lastAccessed = lastAccessedTimestamp;
+		}
+		finally
+		{
+			this.sharedLock.writeLock().unlock();
+		}
 	}
 
 	/* (non-Javadoc)

@@ -25,7 +25,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
@@ -45,7 +46,7 @@ public class IdentityResolverImpl implements IdentityResolver
 	private List<Handler> handlers;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(IdentityResolverImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(IdentityResolverImpl.class.getName());
 
 	/**
 	 * Constructor
@@ -152,7 +153,7 @@ public class IdentityResolverImpl implements IdentityResolver
 			if (!result.equals(Handler.result.Successful))
 			{
 				// Should never happen.
-				this.logger.fatal(MessageFormat.format(Messages.getString("IdentityResolverImpl.6"), handler.getHandlerName())); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("IdentityResolverImpl.6"), handler.getHandlerName())); //$NON-NLS-1$
 			}
 		}
 		

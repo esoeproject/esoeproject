@@ -21,7 +21,8 @@ package com.qut.middleware.esoe.authn.impl;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.authn.AuthnProcessor;
 import com.qut.middleware.esoe.authn.bean.AuthnProcessorData;
@@ -39,7 +40,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	SessionsProcessor sessionsProcessor;
 	private final List<Handler> registeredHandlers;
 
-	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
 
 	/**
 	 * @param sessionTokenName
@@ -54,17 +55,17 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		/* Ensure that a stable base is created when this Processor is setup */
 		if (spepProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("AuthnProcessorImpl.14")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnProcessorImpl.14")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("AuthnProcessorImpl.15")); //$NON-NLS-1$
 		}
 		if (sessionsProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("AuthnProcessorImpl.16")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnProcessorImpl.16")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("AuthnProcessorImpl.17")); //$NON-NLS-1$
 		}
 		if (registeredHandlers == null || registeredHandlers.size() == 0)
 		{
-			this.logger.fatal(Messages.getString("AuthnProcessorImpl.0")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnProcessorImpl.0")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("AuthnProcessorImpl.0")); //$NON-NLS-1$
 		}
 
@@ -74,7 +75,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 		if (registeredHandlers.size() == 0)
 		{
-			this.logger.fatal(Messages.getString("AuthnProcessorImpl.5")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnProcessorImpl.5")); //$NON-NLS-1$
 			throw new HandlerRegistrationException(Messages.getString("AuthnProcessorImpl.6")); //$NON-NLS-1$
 		}
 	}
@@ -87,8 +88,6 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	public result execute(AuthnProcessorData data) throws AuthnFailureException
 	{
 		Handler.result result;
-
-		data.setSuccessfulAuthn(false);
 		
 		/* Determine if a sessionID is set and if so if its valid in our system */
 		if(data.getSessionID() != null && data.getSessionID().length() > 0)
@@ -102,12 +101,12 @@ public class AuthnProcessorImpl implements AuthnProcessor
 				// Not major error. This could happen if session expires but browser submits old data,
 				// reset session ID and continue with processing
 				this.logger.error(Messages.getString("AuthnProcessorImpl.19")); //$NON-NLS-1$
-				this.logger.debug(e.getLocalizedMessage(), e);
+				this.logger.trace(e.getLocalizedMessage(), e);
 				data.setSessionID(null);
 			}
 		}
 
-		/* Even with iterators no sync required here as don't reasonbly expect the structure of the underlying list to be modied */
+		/* Even with iterators no sync required here as don't reasonably expect the structure of the underlying list to be modified */
 		for (Handler handler : this.registeredHandlers)
 		{
 			/* For continuing session don't re-evaluate handlers we have already passed */
@@ -141,11 +140,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 						/* Handler completed reset current handler value */
 						data.setCurrentHandler(null);
 						break;
-					case Failure:
-						return AuthnProcessor.result.Failure;
 					case UserAgent:
 						return AuthnProcessor.result.UserAgent;
+					case Failure:
+						this.purgeFailedSession(data);
+						return AuthnProcessor.result.Failure;
 					case Invalid:
+						this.purgeFailedSession(data);
 						return AuthnProcessor.result.Invalid;
 				}
 			}
@@ -189,5 +190,25 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	public List<Handler> getRegisteredHandlers()
 	{
 		return this.registeredHandlers;
+	}
+	
+	/**
+	 * Purges a session which has been established by one handler but then revoked by another
+	 * @param data Populated AuthnProcessorData instance
+	 */
+	private void purgeFailedSession(AuthnProcessorData data)
+	{
+			try
+			{
+				if(data.getSuccessfulAuthn())
+				{
+					data.setSuccessfulAuthn(false);
+					this.sessionsProcessor.getTerminate().terminateSession(data.getSessionID());
+				}
+			}
+			catch (InvalidSessionIdentifierException e)
+			{
+				this.logger.warn("Attempted to purge invalid principal session after failure or invalid state advised by handler but sessions processor indicates it was never valid anyway, continuing");
+			}
 	}
 }

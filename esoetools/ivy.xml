@@ -7,15 +7,15 @@
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"
-			url="http://intient.com/roller/beddoes" />
-		<repository name="intient-ivy"
-			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+			url="http://intient.com/blogs/beddoes" />
 	</info>
 
 	<configurations>
-		<conf name="dev" />
-		<conf name="dev-release" />
-		<conf name="prd" />
+		<conf name="compile" visibility="public" description="Compile dependencies" />
+		<conf name="runtime" visibility="public" description="Runtime dependencies" />
+		
+		<conf name="optional" visibility="public" description="Optional dependencies" />
+		<conf name="provided" visibility="public" description="Provided dependencies" />
 	</configurations>
 	
 	<publications>
@@ -23,10 +23,7 @@
 	</publications>
 
 	<dependencies>
-		<!-- Development release dependencies -->
-		
-		<!-- Development dependencies -->
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
+		<dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile"/>
 	</dependencies>
 
 </ivy-module>

@@ -7,17 +7,19 @@
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"
-			url="http://intient.com/roller/beddoes" />
-		<repository name="intient-ivy"
-			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+			url="http://intient.com/blogs/beddoes" />
 	</info>
 
-	<configurations>	
-		<conf name="dev" />
+	<configurations>
+		<conf name="compile" visibility="public" description="Compile dependencies" />
+		<conf name="runtime" visibility="public" extends="compile" description="Runtime dependencies" />
+		
+		<conf name="optional" visibility="public" extends="compile"	description="Optional dependencies" />
+		<conf name="provided" visibility="public" description="Provided dependencies" />
 	</configurations>
 	
 	<publications>
-		<artifact name="spep-interfaces" type="jar" conf="*"/>
+		<artifact name="spep-interfaces" type="jar"/>
 	</publications>
 
 </ivy-module>

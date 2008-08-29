@@ -27,9 +27,12 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
@@ -70,8 +73,6 @@ import com.qut.middleware.spep.authn.Messages;
 import com.qut.middleware.spep.exception.AttributeProcessingException;
 import com.qut.middleware.spep.exception.AuthenticationException;
 import com.qut.middleware.spep.exception.LogoutException;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 import com.qut.middleware.spep.sessions.SessionCache;
 import com.qut.middleware.spep.sessions.UnauthenticatedSession;
@@ -85,7 +86,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	private String[] authnSchemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion };
 	private Marshaller<AuthnRequest> authnRequestMarshaller;
 	private Unmarshaller<Response> responseUnmarshaller;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private SAMLValidator samlValidator;
 	private IdentifierGenerator identifierGenerator;
 	private SessionCache sessionCache;
@@ -107,8 +108,9 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	private final String PORT_SPLIT = ":";
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
-	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
+	private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
+	private Logger authnLogger = LoggerFactory.getLogger(ConfigurationConstants.authnLogger);
+	private String spepIdentifier;
 
 	/**
 	 * Constructor.
@@ -141,8 +143,8 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 *             if the unmarshallers cannot be created.
 	 * @throws MalformedURLException 
 	 */
-	public AuthnProcessorImpl(AttributeProcessor attributeProcessor, Metadata metadata, SessionCache sessionCache, SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver, 
-			String serviceURL, String ssoRedirect, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex) throws MarshallerException, UnmarshallerException, MalformedURLException
+	public AuthnProcessorImpl(AttributeProcessor attributeProcessor, MetadataProcessor metadata, SessionCache sessionCache, SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeystoreResolver keyStoreResolver, 
+			String serviceURL, String ssoRedirect, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex, String spepIdentifier) throws MarshallerException, UnmarshallerException, MalformedURLException
 	{
 		if (attributeProcessor == null)
 		{
@@ -196,12 +198,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		this.serviceURL = new URL(serviceURL);
 		this.attributeConsumingServiceIndex = Integer.valueOf(attributeConsumingServiceIndex);
 		this.assertionConsumerServiceIndex = Integer.valueOf(assertionConsumerServiceIndex);
-		this.authnRequestMarshaller = new MarshallerImpl<AuthnRequest>(this.MAR_PKGNAMES2, this.authnSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.authnRequestMarshaller = new MarshallerImpl<AuthnRequest>(this.MAR_PKGNAMES2, this.authnSchemas, keyStoreResolver);
 		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES2, this.authnSchemas, this.metadata);
 		this.logoutSchemas = new String[] { ConfigurationConstants.samlProtocol };
 		this.logoutRequestUnmarshaller = new UnmarshallerImpl<LogoutRequest>(this.UNMAR_PKGNAMES, this.logoutSchemas, this.metadata);
-		this.logoutResponseMarshaller = new MarshallerImpl<LogoutResponse>(this.MAR_PKGNAMES, this.logoutSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.logoutResponseMarshaller = new MarshallerImpl<LogoutResponse>(this.MAR_PKGNAMES, this.logoutSchemas, keyStoreResolver);
 		this.identifierGenerator = identifierGenerator;
+		this.spepIdentifier = spepIdentifier;
 		
 		int splitIndex = ssoRedirect.indexOf('?');
 		if(splitIndex == -1)
@@ -276,10 +279,10 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		authnRequest.setAttributeConsumingServiceIndex(this.attributeConsumingServiceIndex);
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getSPEPIdentifier());
+		issuer.setValue(this.spepIdentifier);
 		authnRequest.setIssuer(issuer);
 		
-
+		authnRequest.setDestination(data.getDestinationURL());
 
 		try
 		{
@@ -473,23 +476,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 						AudienceRestriction ar = (AudienceRestriction) restriction;
 						boolean validAudience = false;
 						
-						try
+						for(String audienceRestriction : ar.getAudiences())
 						{
-							for(String audienceRestriction : ar.getAudiences())
+							if (audienceRestriction.equals(this.spepIdentifier))
 							{
-								URL audienceURL = new URL(audienceRestriction);
-								
-								if (audienceURL.getHost().equals(this.serviceURL.getHost()) || audienceURL.getHost().equals(data.getRequest().getServerName()))
-								{
-									validAudience = true;
-									break;
-								}
+								validAudience = true;
+								break;
 							}
-						}
-						catch (MalformedURLException e)
-						{
-							this.logger.error("Unable to process audience restriction from response " + e.getLocalizedMessage()); //$NON-NLS-1$
-							throw new AuthenticationException("Unable to process audience restriction from response", e); //$NON-NLS-1$
 						}
 						
 						if (!validAudience)
@@ -546,6 +539,11 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 */
 	public PrincipalSession verifySession(String sessionID)
 	{
+		if (sessionID == null)
+		{
+			this.logger.warn("Null session ID passed into verifySession. Failing.");
+			return null;
+		}
 		PrincipalSession principalSession = this.sessionCache.getPrincipalSession(sessionID);
 
 		if (principalSession == null)
@@ -738,7 +736,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		byte[] responseDocument = null;
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getSPEPIdentifier());
+		issuer.setValue(this.spepIdentifier);
 
 		Status status = new Status();
 		StatusCode statusCode = new StatusCode();

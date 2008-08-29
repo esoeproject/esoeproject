@@ -1,0 +1,38 @@
+<!--
+	esoe build environment
+	Bradley Beddoes, Queensland University of Technology, 2008
+	Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+-->
+		
+<project name="intient-ant-gwt" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property file="${esoebuild}/ant.build.properties" />
+	<property file="ant.build.properties" />
+
+	<import file="${esoebuild}/antscripts/esoe-env.xml" />
+	<import file="${esoebuild}/antscripts/esoe-build-gwt.xml" />
+
+	<target name="build" depends="setup" description="Builds the project binaries, including RPC endpoints">
+		<javac destdir="${output.build}" debug="true" debuglevel="lines,vars,source">
+			<src path="${src-ui}" />
+			<classpath>
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+			<include name="**/client/rpc/*" />
+			<include name="**/client/rpc/bean/**" />
+		</javac>
+
+		<javac destdir="${output.build}" debug="true" debuglevel="lines,vars,source">
+			<src path="${src}" />
+			<classpath>
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${output.build}" />
+			</classpath>
+		</javac>
+	</target>
+
+</project>

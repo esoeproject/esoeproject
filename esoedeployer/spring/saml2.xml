@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<!-- Stores a cache of all identifiers which have been presented to the system to prevent replay attacks -->
+	<bean id="identifierCache"
+		class="com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl">
+	</bean>
+	
+	<!--  Generates random identifiers compliant to the SAML 2.0 specification -->
+	<bean id="identifierGenerator"
+		class="com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl" >
+		<constructor-arg index="0" ref="identifierCache" />
+	</bean>
+
+</beans>

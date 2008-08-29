@@ -9,10 +9,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
-import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
-import com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl;
-import com.qut.middleware.esoe.pdp.cache.impl.AuthzCacheUpdateFailureRepositoryImpl;
+import com.qut.middleware.esoe.authz.cache.AuthzCacheUpdateFailureRepository;
+import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
+import com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl;
+import com.qut.middleware.esoe.authz.cache.impl.AuthzCacheUpdateFailureRepositoryImpl;
 @SuppressWarnings({"unqualified-field-access", "nls"})
 public class AuthzCacheUpdateFailureRepositoryTest
 {

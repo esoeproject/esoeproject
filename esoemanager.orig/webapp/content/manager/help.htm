@@ -1,0 +1,38 @@
+
+<h2> Service configuration form help</h2>
+
+<h3>Service Details</h3>
+<a name="servicedetails"></a>
+	<h4>Service URL</h4>
+	URL where clients connect to access this service, should be secure. (NB: Don't include application directories here eg: https://service.com not https://service.com/myapp
+	
+	<h4>Service Identifier</h4>
+	This is a URI that uniquely identifies the service instance per RFC 2396. Unless otherwise instructed by administrators this should be set the same value as Service URL
+	
+	<h4>Service Authorization Failure</h4>
+	Description to present to users when they fail to access content based on defined policies for this service. May contain html markup. Should contain contact details for service owners to allow resolution of problems.
+	
+<h3>Add ServiceNodes</h3>
+<a name="servicenodes"></a>
+	<h4>SPEP Node URL</h4>
+	Generally the same as the service URL. However where services are deployed behind Layer 7 type balancing this should be the direct URL to a single pool node.
+	
+	<h4>Assertion Consumer Service</h4>
+	Endpoint supporting the SAML 2.0 POST profile
+	
+	<h4>Single Logout Service</h4>
+	WS endpoint supporting the SAML 2.0 single logout service
+	
+	<h4>Cache Clear Service</h4>
+	WS endpoint supporting the LXACML PDP cache clear service.
+
+<h3>ESOE Crypto</h3>
+<a name="crypto"></a>
+	<h4>Issuer DN</h4>
+	DN of the entity responsible for issuing certificates for the ESOE authentication network, generally this should be the group responsible for management of the ESOE and its associated tools.
+
+
+
+
+
+

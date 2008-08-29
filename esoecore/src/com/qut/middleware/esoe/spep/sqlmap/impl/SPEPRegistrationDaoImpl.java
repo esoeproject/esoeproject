@@ -22,7 +22,8 @@ package com.qut.middleware.esoe.spep.sqlmap.impl;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
@@ -33,7 +34,7 @@ import com.qut.middleware.esoe.spep.sqlmap.SPEPRegistrationDao;
 /** Creates and maintains an instance of SqlMapClient. */
 public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements SPEPRegistrationDao
 {
-	private Logger logger = Logger.getLogger(SPEPRegistrationDaoImpl.class);
+	private Logger logger = LoggerFactory.getLogger(SPEPRegistrationDaoImpl.class);
 	
 	public Integer getEntID(String entityID) throws DatabaseFailureNoSuchSPEPException
 	{
@@ -53,7 +54,7 @@ public class SPEPRegistrationDaoImpl extends SqlMapClientDaoSupport implements S
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new DatabaseFailureNoSuchSPEPException(e.getLocalizedMessage(), e);
 		}
 	}

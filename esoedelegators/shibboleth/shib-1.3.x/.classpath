@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-installer"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/slf4j-api.jar"/>
 	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/dev/spring.jar"/>
 	<classpathentry kind="lib" path="lib/dev/axiom-impl.jar"/>
@@ -17,5 +17,7 @@
 	<classpathentry kind="lib" path="lib/dev/click-extras.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoetools"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
+	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/slf4j-log4j12.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

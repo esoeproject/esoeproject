@@ -1,34 +1,31 @@
 package com.qut.middleware.esoe.ws;
 
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.fail;
 
 import java.io.StringReader;
-import java.io.StringWriter;
 
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axis2.AxisFault;
-import org.apache.axis2.client.Options;
-import org.apache.axis2.client.ServiceClient;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.qut.middleware.esoe.aa.AttributeAuthorityProcessor;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
-import com.qut.middleware.esoe.aa.bean.impl.AAProcessorDataImpl;
 import com.qut.middleware.esoe.aa.exception.InvalidPrincipalException;
 import com.qut.middleware.esoe.aa.exception.InvalidRequestException;
+import com.qut.middleware.esoe.authz.AuthorizationProcessor;
+import com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData;
 import com.qut.middleware.esoe.delegauthn.DelegatedAuthenticationProcessor;
-import com.qut.middleware.esoe.pdp.AuthorizationProcessor;
-import com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
 import com.qut.middleware.esoe.ws.impl.WSProcessorImpl;
-
-import static org.easymock.EasyMock.*;
 
 @SuppressWarnings("nls")
 public class WSProcessorTest
@@ -235,7 +232,7 @@ public class WSProcessorTest
 		// attrib processor returns success. Test normal execution path.
 		try
 		{			
-			expect(this.authProcessor.execute((AuthorizationProcessorData)anyObject())).andThrow(new com.qut.middleware.esoe.pdp.exception.InvalidRequestException("Invalid Request dude"));
+			expect(this.authProcessor.execute((AuthorizationProcessorData)anyObject())).andThrow(new com.qut.middleware.esoe.authz.exception.InvalidRequestException("Invalid Request dude"));
 		
 			replayMocks();
 				

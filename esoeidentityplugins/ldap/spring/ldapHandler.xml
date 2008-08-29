@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean id="ldapContextSourceIdent" class="org.springframework.ldap.support.LdapContextSource">
+		<property name="base" value="${ldapcontextsourceident.base}" />
+		<property name="userName" value="${ldapcontextsourceident.username}" />
+		<property name="password" value="${ldapcontextsourceident.password}" />
+		<property name="url" value="${ldapcontextsourceident.ldapURL}" />
+	</bean>
+	
+	<bean id="ldapTemplateIdent" class="org.springframework.ldap.LdapTemplate">
+		<constructor-arg ref="ldapContextSourceIdent"/>
+	</bean>
+	
+	<!-- Uses an LDAP data source to resolve attributes for esoe sessions -->
+	<bean id="ldapHandler"
+		class="com.qut.middleware.esoe.identity.plugins.ldap.handler.LDAPHandler">
+		<constructor-arg index="0" ref="ldapTemplateIdent" />
+		<constructor-arg index="1" value="${ldapidentityresolver.identifier}" />
+		<constructor-arg index="2" value="${ldapidentityresolver.searchbase}" />
+		<constructor-arg index="3" ref="sessionConfigData" />
+	</bean>
+	
+	<bean id="localConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="locations">
+			<list>
+				<value>file://${esoe.data}/config/esoe.config</value>
+				<value>file://${esoe.data}/plugins/plugins.config</value>
+				<value>file://${esoe.data}/plugins/identity/identityplugins.config</value>
+				<value>file://${esoe.data}/plugins/identity/ldap/plugin.config</value>
+			</list>
+		</property>
+	</bean>
+
+</beans>

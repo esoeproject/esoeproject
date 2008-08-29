@@ -25,7 +25,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.qut.middleware.esoe.sso.bean.SSOLogoutState;
 import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.saml2.schemas.protocol.AuthnRequest;
 
@@ -48,7 +47,6 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	private byte[] requestDocument;
 	private byte[] responseDocument;
 	private String sessionID;
-	private List<SSOLogoutState> logoutStates;
 	private String requestCharsetName;
 	private String samlDomainCookieData;
 	private String commonCookieValue;
@@ -274,22 +272,6 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	{
 		this.sessionID = sessionID;
 
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getLogoutStates()
-	 */
-	public List<SSOLogoutState> getLogoutStates()
-	{
-		return this.logoutStates;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setLogoutStates(java.util.List)
-	 */
-	public void setLogoutStates(List<SSOLogoutState> logoutStates)
-	{
-		this.logoutStates = logoutStates;
 	}
 
 	public String getRequestCharsetName()

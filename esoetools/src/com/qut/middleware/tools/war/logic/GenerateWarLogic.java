@@ -30,7 +30,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.tools.war.bean.AdditionalContent;
 import com.qut.middleware.tools.war.exception.GenerateWarException;
@@ -42,7 +43,7 @@ public class GenerateWarLogic
 	 */
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(GenerateWarLogic.class.getName());
+	private Logger logger = LoggerFactory.getLogger(GenerateWarLogic.class.getName());
 
 	private List<File> getFileListing(File dir)
 	{
@@ -200,7 +201,7 @@ public class GenerateWarLogic
 		catch (IOException e)
 		{
 			this.logger.error("Error attempting to create war from directory " + srcDir.getName() + " " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new GenerateWarException("Error attempting to create war from directory " + srcDir.getName() + " " + e.getLocalizedMessage());
 		}
 		finally

@@ -23,16 +23,16 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
-import org.apache.log4j.Logger;
-
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.metadata.processor.impl.MetadataUpdateThread;
 import com.qut.middleware.spep.SPEP;
 import com.qut.middleware.spep.StartupProcessor;
 import com.qut.middleware.spep.StartupProcessor.result;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessor;
-import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
+import com.qut.middleware.spep.sessions.SessionCache;
 
 /** Implements the SPEP interface. */
 public class SPEPImpl implements SPEP
@@ -43,19 +43,28 @@ public class SPEPImpl implements SPEP
 	private String defaultURL;
 	private AttributeProcessor attributeProcessor;
 	private AuthnProcessor authnProcessor;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private PolicyEnforcementProcessor policyEnforcementProcessor;
 	private SessionGroupCache sessionGroupCache;
+	private SessionCache sessionCache;
+	private IdentifierCacheMonitor identifierCacheMonitor;
+	private MetadataUpdateThread metadataUpdateThread;
 	private boolean started;
 	private StartupProcessor startupProcessor;
 	private boolean lazyInit;
 	private List<String> hardInitQueries;
 	private String esoeGlobalTokenName;
 	private defaultAction lazyInitDefaultAction;
+	private String spepIdentifier;
+	private String trustedESOEIdentifier;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SPEPImpl.class.getName());
+	//private Logger logger = LoggerFactory.getLogger(SPEPImpl.class.getName());
 	private List<Cookie> logoutClearCookies;
+	private boolean disableAttributeQuery;
+	private boolean disablePolicyEnforcement;
+	private boolean disableSPEPStartup;
+	private boolean enableCompatibility;
 
 	
 	/*
@@ -88,7 +97,7 @@ public class SPEPImpl implements SPEP
 		this.authnProcessor = authnProcessor;
 	}
 	
-	public Metadata getMetadata()
+	public MetadataProcessor getMetadataProcessor()
 	{
 		return this.metadata;
 	}
@@ -96,7 +105,7 @@ public class SPEPImpl implements SPEP
 	/**
 	 * @param metadata The metadata to set.
 	 */
-	public void setMetadata(Metadata metadata)
+	public void setMetadataProcessor(MetadataProcessor metadata)
 	{
 		this.metadata = metadata;
 	}
@@ -193,6 +202,36 @@ public class SPEPImpl implements SPEP
 	public void setSessionGroupCache(SessionGroupCache sessionGroupCache)
 	{
 		this.sessionGroupCache = sessionGroupCache;
+	}
+	
+	public SessionCache getSessionCache()
+	{
+		return this.sessionCache;
+	}
+	
+	public void setSessionCache(SessionCache sessionCache)
+	{
+		this.sessionCache = sessionCache;
+	}
+	
+	public IdentifierCacheMonitor getIdentifierCacheMonitor()
+	{
+		return this.identifierCacheMonitor;
+	}
+	
+	public void setIdentifierCacheMonitor(IdentifierCacheMonitor identifierCacheMonitor)
+	{
+		this.identifierCacheMonitor = identifierCacheMonitor;
+	}
+	
+	public MetadataUpdateThread getMetadataUpdateThread()
+	{
+		return this.metadataUpdateThread;
+	}
+	
+	public void setMetadataUpdateThread(MetadataUpdateThread metadataUpdateThread)
+	{
+		this.metadataUpdateThread = metadataUpdateThread;
 	}
 
 	/*
@@ -314,5 +353,65 @@ public class SPEPImpl implements SPEP
 	public void setLazyInitDefaultAction(defaultAction lazyInitDefaultAction)
 	{
 		this.lazyInitDefaultAction = lazyInitDefaultAction;
+	}
+
+	public String getSPEPIdentifier()
+	{
+		return spepIdentifier;
+	}
+
+	public void setSPEPIdentifier(String spepIdentifier)
+	{
+		this.spepIdentifier = spepIdentifier;
+	}
+
+	public String getTrustedESOEIdentifier()
+	{
+		return trustedESOEIdentifier;
+	}
+
+	public void setTrustedESOEIdentifier(String trustedESOEIdentifier)
+	{
+		this.trustedESOEIdentifier = trustedESOEIdentifier;
+	}
+	
+	public boolean disableAttributeQuery()
+	{
+		return this.disableAttributeQuery;
+	}
+	
+	public void setDisableAttributeQuery(boolean disableAttributeQuery)
+	{
+		this.disableAttributeQuery = disableAttributeQuery;
+	}
+	
+	public boolean disablePolicyEnforcement()
+	{
+		return this.disablePolicyEnforcement;
+	}
+	
+	public void setDisablePolicyEnforcement(boolean disablePolicyEnforcement)
+	{
+		this.disablePolicyEnforcement = disablePolicyEnforcement;
+	}
+	
+	public boolean disableSPEPStartup()
+	{
+		return this.disableSPEPStartup;
+	}
+	
+	public void setDisableSPEPStartup(boolean disableSPEPStartup)
+	{
+		this.disableSPEPStartup = disableSPEPStartup;
+	}
+	
+	public boolean enableCompatibility()
+	{
+		return this.enableCompatibility;
+	}
+	
+	public void setEnableCompatibility(boolean enableCompatibility)
+	{
+		this.enableCompatibility = enableCompatibility;
 	}
 }

@@ -31,19 +31,20 @@ import javax.xml.stream.XMLStreamWriter;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.axis2.AxisFault;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.aa.AttributeAuthorityProcessor;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.bean.impl.AAProcessorDataImpl;
 import com.qut.middleware.esoe.aa.exception.InvalidPrincipalException;
 import com.qut.middleware.esoe.aa.exception.InvalidRequestException;
+import com.qut.middleware.esoe.authz.AuthorizationProcessor;
+import com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData;
+import com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl;
 import com.qut.middleware.esoe.delegauthn.DelegatedAuthenticationProcessor;
 import com.qut.middleware.esoe.delegauthn.bean.DelegatedAuthenticationData;
 import com.qut.middleware.esoe.delegauthn.bean.impl.DelegatedAuthenticationDataImpl;
-import com.qut.middleware.esoe.pdp.AuthorizationProcessor;
-import com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData;
-import com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
 import com.qut.middleware.esoe.spep.bean.SPEPProcessorData;
 import com.qut.middleware.esoe.spep.bean.impl.SPEPProcessorDataImpl;
@@ -63,7 +64,7 @@ public class WSProcessorImpl implements WSProcessor
 	private static XMLOutputFactory xmlOutputFactory;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(WSProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(WSProcessorImpl.class.getName());
 	
 	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
 	static
@@ -88,22 +89,22 @@ public class WSProcessorImpl implements WSProcessor
 	{
 		if (attributeAuthorityProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("WSProcessorImpl.36")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("WSProcessorImpl.36")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.37")); //$NON-NLS-1$
 		}
 		if (authorizationProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("WSProcessorImpl.38")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("WSProcessorImpl.38")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.39")); //$NON-NLS-1$
 		}
 		if (spepProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("WSProcessorImpl.40")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("WSProcessorImpl.40")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.41")); //$NON-NLS-1$
 		}
 		if (delegAuthnProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("WSProcessorImpl.42")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("WSProcessorImpl.42")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.43")); //$NON-NLS-1$
 		}
 
@@ -191,7 +192,7 @@ public class WSProcessorImpl implements WSProcessor
 			this.logger.warn(Messages.getString("WSProcessorImpl.14")); //$NON-NLS-1$
 			throw new AxisFault(Messages.getString("WSProcessorImpl.1")); //$NON-NLS-1$
 		}
-		catch (com.qut.middleware.esoe.pdp.exception.InvalidRequestException e)
+		catch (com.qut.middleware.esoe.authz.exception.InvalidRequestException e)
 		{
 			this.logger.warn(Messages.getString("WSProcessorImpl.15")); //$NON-NLS-1$
 			this.logger.debug(e.getLocalizedMessage(), e);

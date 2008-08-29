@@ -1,0 +1,16 @@
+#
+# Questions required to configure the environment
+#
+# Question format: varname|query|default<|supported,values>
+#
+
+url|What host will ESOE services be served from? eg https://esoe.company.com: 
+entityID|What is the ESOE entityID? (Generally the same as URL above)?: 
+domain|What is the base domain of your organization under which all services operate? eg company.com :
+orgname|What is the full name of the Organization deploying ESOE?: 
+orgdisplay|What is the display name of the Organization deploying ESOE? (may be the same): 
+orgurl|What is the main web URL for accessing information about the Organization deploying ESOE?: 
+name|What is the name of the primary contact person for this ESOE instance?: 
+email|What is the email address of the primary contact person for this ESOE instance?: 
+phone|What is phone number of the primary contact person for this ESOE instance?: 
+company|What company does this person work for?: 

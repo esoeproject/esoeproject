@@ -4,7 +4,6 @@
 	Author: Bradley Beddoes
 	Date: 20/11/2006                                                        
 	Purpose: Builds the Service Provider Enforcement Point for JVM 1.4
-	
 	====================================================================== -->
 
 <project name="spepjava-jvm14" xmlns:ivy="antlib:org.apache.ivy.ant">
@@ -23,10 +22,6 @@
 		</classpath>
 	</taskdef>
 
-	<!-- 
-		Integration with apache ivy for dependency resolution in the development environment, this is a standalone target and should be run manually before invoking other
-		ant operations associated with SAML2 lib for Java
-	-->
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
@@ -34,44 +29,40 @@
 		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 
-	<target name="dev-release-resolve">
+	<target name="release-resolve">
 		<ivy:configure />
-		<ivy:resolve file="ivy.xml" conf="dev-release" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
-		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
+		<ivy:resolve file="ivy.xml" conf="release" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.release}/[artifact].[ext]" conf="release" />
+		<ivy:report conf="release" graph="false" todir="${basedir}/${artifacts.release}" />
 
-		<ivy:resolve file="ivy.xml" conf="dev-release-endorsed" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release.endorsed}/[artifact].[ext]" conf="dev-release-endorsed" />
-		<ivy:report conf="dev-release-endorsed" graph="false" todir="${basedir}/${artifacts.dev-release.endorsed}" />
+		<ivy:resolve file="ivy.xml" conf="release-endorsed" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.release.endorsed}/[artifact].[ext]" conf="release-endorsed" />
+		<ivy:report conf="release-endorsed" graph="false" todir="${basedir}/${artifacts.release.endorsed}" />
 	</target>
 
-	<!-- 
-		SPEP Development environment compilation and war creation
-	 -->
-	<target name="dev-release" depends="dev-war" description="Builds a gzipped tar for release of the SPEP (generally utilised by ESOE Startup)">
-		<copy file="../spepjava/spep.config" todir="${output.dev}/${output.dev.tar}" />
-		<copy file="${output.dev}/${output.dev.war}" todir="${output.dev}/${output.dev.tar}" />
+	<target name="release" depends="war" description="Builds a gzipped tar for release of the SPEP (generally utilised by ESOE Startup)">
+		<copy file="../spepjava/spep.config" todir="${output}/${output.tar}" />
+		<copy file="${output}/${output.war}" todir="${output}/${output.tar}" />
 
-		<!-- Generate binary dependencies tar.gz for deployment to $TOMCAT/common/endorsed (we need to also grab some JAXB components that aren't translated)-->
-		<copy file="${output.dev}/${output.dev.jaxb.jar}.jar" todir="${artifacts.dev-release.endorsed}" />
-		<copy file="../spepjava/${artifacts.dev-release.endorsed}/jsr173_1.0_api.jar" todir="${artifacts.dev-release.endorsed}" />
-		<copy file="../spepjava/${artifacts.dev-release.endorsed}/activation.jar" todir="${artifacts.dev-release.endorsed}" />
-		<tar destfile="${output.dev}/${output.dev.tar}/${output.dev.endorsed.tar}.tar.gz" basedir="${artifacts.dev-release.endorsed}" compression="gzip" />
+		<copy file="${output}/${output.jaxb.jar}.jar" todir="${artifacts.release.endorsed}" />
+		<copy file="../spepjava/${artifacts.release.endorsed}/jsr173_1.0_api.jar" todir="${artifacts.release.endorsed}" />
+		<copy file="../spepjava/${artifacts.release.endorsed}/activation.jar" todir="${artifacts.release.endorsed}" />
+		<tar destfile="${output}/${output.tar}/${output.endorsed.tar}.tar.gz" basedir="${artifacts.release.endorsed}" compression="gzip" />
 
-		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" basedir="${output.dev}/${output.dev.tar}" compression="gzip">
+		<tar destfile="${output}/${output.tar}.tar.gz" basedir="${output}/${output.tar}" compression="gzip">
 			<include name="**/*.war" />
 			<include name="**/*.tar.gz" />
 			<include name="**/*.config" />
 		</tar>
 	</target>
 	
-	<target name="dev-war" depends="dev-jar, dev-release-resolve" description="Assembles SPEP war">
-		<war destfile="${output.dev}/${output.dev.war}" webxml="${war.dev.descriptor}">
+	<target name="war" depends="jar, release-resolve" description="Assembles SPEP war">
+		<war destfile="${output}/${output.war}" webxml="${war.descriptor}">
 			
-			<lib file="${output.dev}/${output.dev.jaxb.jar}.jar"/>
-			<lib file="${output.dev}/${output.dev.spep.jar}.jar"/>
-			<lib file="${output.dev}/${output.dev.saml2.jar}.jar"/>
-			<lib dir="${artifacts.dev-release}"/>
+			<lib file="${output}/${output.jaxb.jar}.jar"/>
+			<lib file="${output}/${output.spep.jar}.jar"/>
+			<lib file="${output}/${output.saml2.jar}.jar"/>
+			<lib dir="${artifacts.release}"/>
 			
 			<classes dir="../spepjava/${webapp.classes}">
 				<include name="**/*" />
@@ -89,18 +80,18 @@
 		</war>
 	</target>
 
-	<target name="dev-jar" depends="dev-jar-jaxb, dev-jar-spepjava" />
+	<target name="jar" depends="dev-resolve, jar-jaxb, jar-spepjava" />
 
-	<target name="dev-jar-jaxb" depends="translate-jaxb" description="Assembles JVM 1.4 compliant JAXB jar">
-		<jar destfile="${output.dev}/${output.dev.jaxb.jar}.jar">
+	<target name="jar-jaxb" depends="translate-jaxb" description="Assembles JVM 1.4 compliant JAXB jar">
+		<jar destfile="${output}/${output.jaxb.jar}.jar">
 			<fileset dir="${build.jaxb}">
 				<include name="**/*" />
 			</fileset>
 		</jar>
 	</target>
 
-	<target name="dev-jar-spepjava" depends="translate-spepjava, translate-spepjavainterfaces" description="Assembles JVM 1.4 compliant SPEPJava and SAML2Lib-j  jar">
-		<jar destfile="${output.dev}/${output.dev.spep.jar}.jar">
+	<target name="jar-spepjava" depends="translate-spepjava, translate-spepjavainterfaces" description="Assembles JVM 1.4 compliant SPEPJava and SAML2Lib-j  jar">
+		<jar destfile="${output}/${output.spep.jar}.jar">
 			<fileset dir="${build.spepjava}">
 				<include name="**/*" />
 				<exclude name="**/middleware/saml2/**" />
@@ -108,14 +99,14 @@
 			</fileset>
 		</jar>
 
-		<jar destfile="${output.dev}/${output.dev.saml2.jar}.jar">
+		<jar destfile="${output}/${output.saml2.jar}.jar">
 			<fileset dir="${build.spepjava}">
 				<include name="**/*" />
 				<exclude name="**/middleware/spep/**" />
 			</fileset>
 		</jar>
 		
-		<jar destfile="${output.dev}/${output.dev.spep.interfaces.jar}.jar">
+		<jar destfile="${output}/${output.spep.interfaces.jar}.jar">
 			<fileset dir="${build.spepjavainterfaces}">
 				<include name="**/*" />
 				<exclude name="**/middleware/saml2/**" />
@@ -124,7 +115,7 @@
 		</jar>
 	</target>
 
-	<target name="translate-jaxb" depends="setup, dev-resolve, translate-resolve">
+	<target name="translate-jaxb" depends="translate-resolve">
 		<retrotranslator destdir="${build.jaxb}" verify="true">
 			<jarfileset dir="${artifacts.jaxb}" includes="**/*.jar" />
 			<classpath location="${java142.home}/jre/lib/rt.jar" />
@@ -132,14 +123,14 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts}/dev">
+				<fileset dir="${artifacts.dev}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</retrotranslator>
 	</target>
 
-	<target name="translate-spepjava" depends="setup, dev-resolve, translate-resolve">
+	<target name="translate-spepjava" depends="translate-resolve">
 		<retrotranslator destdir="${build.spepjava}" verify="true">
 			<jarfileset dir="${artifacts.spepjava}" includes="**/*" excludes="**/spep-interfaces.jar" />
 			<classpath location="${java142.home}/jre/lib/rt.jar" />
@@ -147,14 +138,14 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts}/dev">
+				<fileset dir="${artifacts.dev}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</retrotranslator>
 	</target>
 	
-	<target name="translate-spepjavainterfaces" depends="setup, dev-resolve, translate-resolve">
+	<target name="translate-spepjavainterfaces" depends="translate-resolve">
 		<retrotranslator destdir="${build.spepjavainterfaces}" verify="true">
 			<jarfileset dir="${artifacts.spepjavainterfaces}" includes="**/*" />
 			<classpath location="${java142.home}/jre/lib/rt.jar" />
@@ -162,7 +153,7 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts}/dev">
+				<fileset dir="${artifacts.dev}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
@@ -170,50 +161,41 @@
 	</target>
 
 	<target name="translate-resolve">
-
 		<!-- This is undertaken manually as the ivy configuration required to extract just small portions
 			of our complex dependency graph is a lot more hideous-->
 
-		<!-- JAXB from SPEPJava -->
 		<copy file="../spepjava/lib/dev/jaxb-api.jar" todir="${artifacts.jaxb}" />
 		<copy file="../spepjava/lib/dev/jaxb-impl.jar" todir="${artifacts.jaxb}" />
-
-		<!-- SAML2LIB-J from SPEPJava -->
 		<copy file="../spepjava/lib/dev/saml2lib-j.jar" todir="${artifacts.spepjava}" />
-
-		<!-- SPEP Java from SPEPJava -->
-		<copy file="../spepjava/dist/dev/spep.jar" todir="${artifacts.spepjava}" />
-		<copy file="../spepjava/dist/dev/spep-interfaces.jar" todir="${artifacts.spepjavainterfaces}" />
+		<copy file="../spepjava/dist/spep.jar" todir="${artifacts.spepjava}" />
+		<copy file="../spepjava/dist/spep-interfaces.jar" todir="${artifacts.spepjavainterfaces}" />
 
 	</target>
 
-	<!-- 
-		General operations to setup and cleanup environment 
-	-->
 	<target name="setup" depends="clean" description="Creates base directories">
-		<mkdir dir="${output.dev.build}" />
+		<mkdir dir="${output.build}" />
 		<mkdir dir="${build.spepjava}" />
 		<mkdir dir="${build.jaxb}" />
 		<mkdir dir="${artifacts.jaxb}" />
 		<mkdir dir="${artifacts.saml2java}" />
 		<mkdir dir="${artifacts.spepjava}" />
 		<mkdir dir="${artifacts.spepjavainterfaces}" />
-		<mkdir dir="${output.dev}" />
-		<mkdir dir="${artifacts.dev-release.shared}" />
-		<mkdir dir="${artifacts.dev-release.endorsed}" />
-		<mkdir dir="${artifacts.dev-release}" />
-		<mkdir dir="${output.dev}/${output.dev.tar}" />
+		<mkdir dir="${output}" />
+		<mkdir dir="${artifacts.release.shared}" />
+		<mkdir dir="${artifacts.release.endorsed}" />
+		<mkdir dir="${artifacts.release}" />
+		<mkdir dir="${output}/${output.tar}" />
 	</target>
 
 	<target name="clean" description="Removes base directories">
-		<delete dir="${output.dev.build}" />
-		<delete dir="${output.dev}" />
+		<delete dir="${output.build}" />
+		<delete dir="${output}" />
 		<delete dir="${webservice.deploy}" />
-		<delete dir="${output.dev.junit.dir}" />
-		<delete dir="${artifacts.dev-release.shared}" />
-		<delete dir="${artifacts.dev-release.endorsed}" />
-		<delete dir="${artifacts.dev-release}" />
-		<delete dir="${output.dev}/${output.dev.tar}" />
+		<delete dir="${output.junit.dir}" />
+		<delete dir="${artifacts.release.shared}" />
+		<delete dir="${artifacts.release.endorsed}" />
+		<delete dir="${artifacts.release}" />
+		<delete dir="${output}/${output.tar}" />
 	</target>
 
 	<target name="javadoc" description="Create Javadocs">

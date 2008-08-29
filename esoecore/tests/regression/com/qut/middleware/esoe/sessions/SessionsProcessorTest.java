@@ -19,16 +19,16 @@
  */
 package com.qut.middleware.esoe.sessions;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,7 +44,7 @@ import org.junit.Test;
 
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.authn.bean.impl.AuthnIdentityAttributeImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
+import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
@@ -68,6 +68,7 @@ import com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl;
 import com.qut.middleware.esoe.sessions.impl.TerminateImpl;
 import com.qut.middleware.esoe.sessions.impl.UpdateImpl;
 import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -92,7 +93,8 @@ public class SessionsProcessorTest
 	private IdentifierGenerator identiferGenerator;
 	private IdentifierCache identifierCache;
 	private SessionsDAO sessionsDAO;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
+	private LogoutThreadPool logout;
 
 	/**
 	 * @throws java.lang.Exception
@@ -100,20 +102,27 @@ public class SessionsProcessorTest
 	@Before
 	public void setUp() throws Exception
 	{
+		String entityID = "http://test.service.com";
+		Integer entID = new Integer("1");
+		
+		List<String> endpoints = new ArrayList<String>();
+		endpoints.add(entityID);
+		
 		File config = new File(this.getClass().getResource("sessionDataNoAction.xml").toURI());
-
-		this.sessionCache = new SessionCacheImpl();
+		
+		logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(logout);
+		
+		this.sessionCache = new SessionCacheImpl(logout);
 		
 		File attributePolicy = new File("tests" + File.separatorChar + "testdata" + File.separatorChar + "ReleasedAttributes.xml");
 		FileInputStream attributeStream = new FileInputStream(attributePolicy);
 		byte[] attributeData = new byte[(int)attributePolicy.length()];
 		attributeStream.read(attributeData);
 		
-		String entityID = "http://test.service.com";
-		Integer entID = new Integer("1");
-		
-		this.metadata = createMock(Metadata.class);
-		expect(metadata.getEsoeEntityID()).andReturn(entityID);
+		this.metadata = createMock(MetadataProcessor.class);
 		
 		this.sessionsDAO = createMock(SessionsDAO.class);
 		expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -122,7 +131,7 @@ public class SessionsProcessorTest
 		replay(this.metadata);
 		replay(this.sessionsDAO);
 
-		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata);
+		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 
 		Handler handler = new NullHandlerImpl();
 
@@ -177,6 +186,7 @@ public class SessionsProcessorTest
 	{
 		verify(sessionsDAO);
 		verify(metadata);
+		verify(logout);
 	}
 
 
@@ -901,10 +911,10 @@ public class SessionsProcessorTest
 		 */
 		
 		Map<String, IdentityAttribute> attributes = data.getAttributes();
-		Iterator idAttribs = attributes.values().iterator();
+		Iterator<IdentityAttribute> idAttribs = attributes.values().iterator();
 		while(idAttribs.hasNext())
 		{
-			IdentityAttribute attrib = (IdentityAttribute)idAttribs.next();
+			IdentityAttribute attrib = idAttribs.next();
 			if(attrib.getValues().contains("a@b.c"))
 				return;
 		}

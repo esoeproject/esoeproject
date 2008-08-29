@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+		
+<sqlMapConfig>
+	<typeHandler callback="org.springframework.orm.ibatis.support.ClobStringTypeHandler" javaType="string" jdbcType="CLOB"/>
+	<typeHandler callback="org.springframework.orm.ibatis.support.ClobStringTypeHandler" javaType="string" jdbcType="LONGTEXT" />
+	<typeHandler callback="org.springframework.orm.ibatis.support.BlobByteArrayTypeHandler" javaType="[B" jdbcType="BLOB"/>
+	
+	<sqlMap resource="com/qut/middleware/deployer/esoedeployer-sqlmap.xml" />
+</sqlMapConfig>

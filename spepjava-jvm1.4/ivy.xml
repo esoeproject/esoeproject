@@ -15,34 +15,39 @@
 	<configurations>
 		<conf name="dev" />
 		
-		<conf name="dev-release" />
-		<conf name="dev-release-shared" />
-		<conf name="dev-release-endorsed" />
+		<conf name="release" />
+		<conf name="release-shared" />
+		<conf name="release-endorsed" />
 	</configurations>
 
 	<dependencies>
 		<!-- Development release JDK endorsed dependencies (excluded below) -->
-	    <dependency org="apache" name="xalan" rev="latest.integration" conf="dev-release-endorsed->default"/>
-	    <dependency org="apache" name="xerces" rev="latest.integration" conf="dev-release-endorsed->default"/>
-	    <dependency org="retrotranslator" name="retrotranslator" rev="latest.integration" conf="dev-release-endorsed->default"/>
+	    <dependency org="apache" name="xalan" rev="latest.integration" conf="release-endorsed->default"/>
+	    <dependency org="apache" name="xerces" rev="latest.integration" conf="release-endorsed->default"/>
+	    <dependency org="retrotranslator" name="retrotranslator" rev="latest.integration" conf="release-endorsed->default"/>
 		
 		<!-- Development release dependencies -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="commons-collections" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="xmlsec" rev="latest.integration" conf="dev-release->default"/>
+        <dependency org="apache" name="axis2" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="commons-collections" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="release->default"/>
+        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="xmlsec" rev="latest.integration" conf="release->default"/>
         
         <!-- Development dependencies -->
         <dependency org="apache" name="axis2" rev="latest.integration" conf="dev->default"/>
         <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
         <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/> 
         <dependency org="apache" name="xerces" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="apache" name="xmlsec" rev="latest.integration" conf="dev->default"/>
         
         <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/>
         
+        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev->default"/> 
+                
         <dependency org="sun" name="fastinfoset" rev="latest.integration" conf="dev->default"/>
+         <dependency org="sun" name="jaxb" rev="latest.integration" conf="dev->default"/>
          	 	
 	</dependencies>
 

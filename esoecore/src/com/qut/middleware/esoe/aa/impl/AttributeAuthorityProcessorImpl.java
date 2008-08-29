@@ -25,24 +25,26 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.aa.AttributeAuthorityProcessor;
 import com.qut.middleware.esoe.aa.Messages;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.exception.InvalidPrincipalException;
 import com.qut.middleware.esoe.aa.exception.InvalidRequestException;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.util.CalendarUtils;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.AttributeFormatConstants;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
@@ -74,7 +76,7 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 	private SessionsProcessor sessionsProcessor;
 	private PrivateKey key;
 	private String keyName;
-	private Metadata metadata;
+	//private MetadataProcessor metadata;
 	private SAMLValidator samlValidator;
 	private String requestError = StatusCodeConstants.requester;
 	private String authnError = StatusCodeConstants.authnFailed;
@@ -88,7 +90,8 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 	private final String MAR_PKGNAMES = Response.class.getPackage().getName();
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AttributeAuthorityProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AttributeAuthorityProcessorImpl.class.getName());
+	private String esoeIdentifier;
 	
 	/**
 	 * Constructor.
@@ -104,8 +107,9 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 	 * @throws MarshallerException if the marshaller cannot be created.
 	 * @throws UnmarshallerException if the unmarshaller cannot be created.
 	 */
-	public AttributeAuthorityProcessorImpl(Metadata metadata, SessionsProcessor sessionsProcessor,
-			SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver, int allowedTimeSkew) throws MarshallerException, UnmarshallerException
+	public AttributeAuthorityProcessorImpl(MetadataProcessor metadata, SessionsProcessor sessionsProcessor,
+			SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, KeystoreResolver keyStoreResolver, 
+			int allowedTimeSkew, String esoeIdentifier) throws MarshallerException, UnmarshallerException
 	{
 		if(metadata == null)
 		{
@@ -131,17 +135,22 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 		{
 			throw new IllegalArgumentException(Messages.getString("AttributeAuthorityProcessorImpl.10")); //$NON-NLS-1$
 		}
+		if(esoeIdentifier == null)
+		{
+			throw new IllegalArgumentException("ESOE identifier value cannot be null.");
+		}
 		
-		this.metadata = metadata;
+		//this.metadata = metadata;
 		this.sessionsProcessor = sessionsProcessor;
 		this.samlValidator = samlValidator;
 		this.identifierGenerator = identifierGenerator;
-		this.key = keyStoreResolver.getPrivateKey();
-		this.keyName = keyStoreResolver.getKeyAlias();
+		this.key = keyStoreResolver.getLocalPrivateKey();
+		this.keyName = keyStoreResolver.getLocalKeyAlias();
 		this.allowedTimeSkew = allowedTimeSkew;
+		this.esoeIdentifier = esoeIdentifier;
 		
-		String[] schemas = new String[] {ConfigurationConstants.samlProtocol};
-		this.attributeStatementMarshaller = new MarshallerImpl<Response>(this.MAR_PKGNAMES, schemas, this.keyName, this.key);
+		String[] schemas = new String[] {SchemaConstants.samlProtocol};
+		this.attributeStatementMarshaller = new MarshallerImpl<Response>(this.MAR_PKGNAMES, schemas, keyStoreResolver);
 		this.attributeQueryUnmarshaller = new UnmarshallerImpl<AttributeQuery>(this.UNMAR_PKGNAMES, schemas, metadata);
 		
 		this.logger.info(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.12"), Integer.toString(allowedTimeSkew))); //$NON-NLS-1$
@@ -212,7 +221,7 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 		String responseID = this.identifierGenerator.generateSAMLID();
 		
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getEsoeEntityID());
+		issuer.setValue(this.esoeIdentifier);
 
 		// Create and populate the response with values
 		Response response = new Response();
@@ -274,7 +283,7 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 		// Won't need any more information since it's an error response.	
 		Response response = new Response();
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getEsoeEntityID());
+		issuer.setValue(this.esoeIdentifier);
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.16"), code)); //$NON-NLS-1$
 

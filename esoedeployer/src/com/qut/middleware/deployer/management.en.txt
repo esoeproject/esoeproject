@@ -1,0 +1,8 @@
+#
+# Questions required to configure the environment
+#
+# Question format: varname|query|default<|supported,values>
+#
+
+url|What host will ESOE manager be served from? eg https://esoe.company.com: 
+entityID|What is the ESOE Manager entityID? (Generally the same as URL above): 

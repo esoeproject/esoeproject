@@ -31,9 +31,11 @@ import org.junit.Test;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.sso.SSOProcessor;
-import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
-import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
+import com.qut.middleware.esoe.logout.bean.LogoutProcessorData;
+import com.qut.middleware.esoe.logout.servlet.LogoutServlet;
+import com.qut.middleware.esoe.logout.LogoutProcessor;
+import com.qut.middleware.esoe.logout.bean.LogoutProcessorData;
+import com.qut.middleware.esoe.logout.bean.impl.LogoutProcessorDataImpl;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
 
@@ -45,9 +47,9 @@ public class SSOLogoutServletTest {
 		// for visibility of line vector
 	}
 
-	private SSOLogoutServlet ssoLogoutServlet;
-	private SSOProcessor logoutProcessor;
-	private SSOProcessorData data;
+	private LogoutServlet ssoLogoutServlet;
+	private LogoutProcessor logoutProcessor;
+	private LogoutProcessorData data;
 	private HttpServletRequest request;
 	private HttpServletResponse response;
 	private HttpSession session;
@@ -70,7 +72,7 @@ public class SSOLogoutServletTest {
 	{
 		writer = new PrintWriter(new ByteArrayOutputStream()); 
 
-		logoutProcessor = createMock(SSOProcessor.class);
+		logoutProcessor = createMock(LogoutProcessor.class);
 		request = createMock(HttpServletRequest.class);
 		response = createMock(HttpServletResponse.class);
 		session = createMock(HttpSession.class);
@@ -78,9 +80,9 @@ public class SSOLogoutServletTest {
 		servletContext = createMock(ServletContext.class);
 		webApplicationContext = createMock(WebApplicationContext.class);
 
-		data = new SSOProcessorDataImpl();
+		data = new LogoutProcessorDataImpl();
 		data.setSessionID(this.sessionID);
-		data.setResponseDocument(new String("<saml>this is a really fake saml document which is fine to test with here</saml>").getBytes());
+		//data.setResponseDocument(new String("<saml>this is a really fake saml document which is fine to test with here</saml>").getBytes());
 		
 		System.setProperty("esoe.data", "tests/testdata");
 	}
@@ -111,7 +113,7 @@ public class SSOLogoutServletTest {
 		
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.logout.servlet.LogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the principal is redirected to the esoe login URL when SSOProcessor.result.ForceAuthn is
 	 * returned
 	 */
@@ -129,30 +131,32 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(logoutProcessor);
 		
-		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());
+		session.setAttribute(eq("com.qut.middleware.esoe.logout.bean"), notNull());
 		expect(request.getParameter("esoelogout_nonsso")).andReturn("").anyTimes();
 		expect(request.getParameter("disablesso")).andReturn("").anyTimes();
 		expect(request.getParameter("esoelogout_response")).andReturn("qut.com").anyTimes();		
 		expect(request.getSession()).andReturn(session).anyTimes();
 		expect(request.getRemoteAddr()).andReturn("111.1111.22.22").anyTimes();
 		
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+		expect(session.getAttribute(LogoutProcessorData.SESSION_NAME)).andReturn(data);
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
-		expect(this.logoutProcessor.execute((SSOProcessorData) notNull())).andReturn(SSOProcessor.result.ForceAuthn);
+		//expect(this.logoutProcessor.execute((LogoutProcessorData) notNull())).andReturn(LogoutProcessor.result.ForceAuthn);
 	
 		response.addCookie((Cookie)anyObject());
 		expectLastCall().anyTimes();
 		response.sendRedirect((String)anyObject());
 		expectLastCall().anyTimes();
 		
-		setUpMock();
+		expect(request.getMethod()).andReturn("POST").anyTimes();
 
-		ssoLogoutServlet = new SSOLogoutServlet();
+		setUpMock();
+		
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
-		ssoLogoutServlet.doPost(request, response);
+		ssoLogoutServlet.service(request, response);
 
 		//System.out.println();
 		tearDownMock();
@@ -161,7 +165,7 @@ public class SSOLogoutServletTest {
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.logout.servlet.LogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the principal is redirected to the esoe login URL when SSOProcessor.result.ForceAuthn is
 	 * returned.
 	 * 
@@ -181,30 +185,32 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(logoutProcessor);
 		
-		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());
+		session.setAttribute(eq("com.qut.middleware.esoe.logout.bean"), notNull());
 		expect(request.getParameter("esoelogout_nonsso")).andReturn("").anyTimes();
 		expect(request.getParameter("disablesso")).andReturn(null).anyTimes();
 		expect(request.getParameter("esoelogout_response")).andReturn(null).anyTimes();		
 		expect(request.getSession()).andReturn(session).anyTimes();
 		expect(request.getRemoteAddr()).andReturn("111.1111.22.22").anyTimes();
 		
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+		expect(session.getAttribute(LogoutProcessorData.SESSION_NAME)).andReturn(data);
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
-		expect(this.logoutProcessor.execute((SSOProcessorData) notNull())).andReturn(SSOProcessor.result.ForceAuthn);
+		//expect(this.logoutProcessor.execute((LogoutProcessorData) notNull())).andReturn(LogoutProcessor.result.ForceAuthn);
 	
 		response.addCookie((Cookie)anyObject());
 		expectLastCall().anyTimes();
 		response.sendRedirect((String)anyObject());
 		expectLastCall().anyTimes();
 		
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+
 		setUpMock();
 
-		ssoLogoutServlet = new SSOLogoutServlet();
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
-		ssoLogoutServlet.doPost(request, response);
+		ssoLogoutServlet.service(request, response);
 
 		//System.out.println();
 		tearDownMock();
@@ -212,7 +218,7 @@ public class SSOLogoutServletTest {
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.logout.servlet.LogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * 
 	 *
 	 * Test behaviour when the submitted POST does not contain the required logout request form
@@ -228,10 +234,10 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(logoutProcessor);
 		
-		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());	
+		session.setAttribute(eq("com.qut.middleware.esoe.logout.bean"), notNull());	
 		
 		// this is our missing parameter
 		expect(request.getParameter("esoelogout_nonsso")).andReturn(null).anyTimes();
@@ -241,18 +247,20 @@ public class SSOLogoutServletTest {
 		expect(request.getSession()).andReturn(session).anyTimes();
 		expect(request.getRemoteAddr()).andReturn("111.1111.22.22").anyTimes();
 		
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data).anyTimes();
+		expect(session.getAttribute(LogoutProcessorData.SESSION_NAME)).andReturn(data).anyTimes();
 		
 		// if we expect a 500 error set, then the test will not compile unless the called code
 		// actually sets the error as a 500, therefore this will be sufficient for our test.
 		response.sendError(eq(500), (String)notNull());
 		expectLastCall().anyTimes();
 		
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+
 		setUpMock();
 
-		ssoLogoutServlet = new SSOLogoutServlet();
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
-		ssoLogoutServlet.doPost(request, response);
+		ssoLogoutServlet.service(request, response);
 
 		tearDownMock();
 	}
@@ -260,14 +268,13 @@ public class SSOLogoutServletTest {
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.logout.servlet.LogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * 
 	 *
 	 * Test behaviour when the LogoutAuthProcessor throws an exception.
 	 */
 	@Test
-	public void testDoPost3() throws IOException, ServletException, InvalidSessionIdentifierException,
-			InvalidRequestException
+	public void testDoPost3() throws Exception
 	{
 		Cookie ssoSessionCookie = new Cookie("sessionTokenName", "itscandyireallyreallylikeit");
 		
@@ -279,21 +286,21 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(logoutProcessor);
 		
-		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());
+		session.setAttribute(eq("com.qut.middleware.esoe.logout.bean"), notNull());
 		expect(request.getParameter("esoelogout_nonsso")).andReturn("").anyTimes();
 		expect(request.getParameter("disablesso")).andReturn("").anyTimes();
 		expect(request.getParameter("esoelogout_response")).andReturn("qut.com").anyTimes();		
 		expect(request.getSession()).andReturn(session).anyTimes();
 		expect(request.getRemoteAddr()).andReturn("111.1111.22.22").anyTimes();
 		
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+		expect(session.getAttribute(LogoutProcessorData.SESSION_NAME)).andReturn(data);
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
 		
 		// here is the exception
-		expect(this.logoutProcessor.execute((SSOProcessorData) notNull())).andThrow(new InvalidRequestException("Invalid request"));
+		expect(this.logoutProcessor.execute((LogoutProcessorData) notNull())).andThrow(new InvalidRequestException("Invalid request"));
 	
 		response.addCookie((Cookie)anyObject());
 		expectLastCall().anyTimes();
@@ -302,11 +309,13 @@ public class SSOLogoutServletTest {
 		response.sendError(eq(500), (String)notNull());
 		expectLastCall().anyTimes();
 		
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+
 		setUpMock();
 
-		ssoLogoutServlet = new SSOLogoutServlet();
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
-		ssoLogoutServlet.doPost(request, response);
+		ssoLogoutServlet.service(request, response);
 
 		//System.out.println();
 		tearDownMock();
@@ -315,14 +324,13 @@ public class SSOLogoutServletTest {
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.logout.servlet.LogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * 
 	 *
 	 * Same as testDoPost3 but logout processor throws an invalidsession exception.
 	 */
 	@Test
-	public void testDoPost4() throws IOException, ServletException, InvalidSessionIdentifierException,
-			InvalidRequestException
+	public void testDoPost4() throws Exception
 	{
 		Cookie ssoSessionCookie = new Cookie("sessionTokenName", "itscandyireallyreallylikeit");
 		
@@ -334,21 +342,21 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(logoutProcessor);
 		
-		session.setAttribute(eq("com.qut.middleware.esoe.sso.bean"), notNull());
+		session.setAttribute(eq("com.qut.middleware.esoe.logout.bean"), notNull());
 		expect(request.getParameter("esoelogout_nonsso")).andReturn("").anyTimes();
 		expect(request.getParameter("disablesso")).andReturn("").anyTimes();
 		expect(request.getParameter("esoelogout_response")).andReturn("qut.com").anyTimes();		
 		expect(request.getSession()).andReturn(session).anyTimes();
 		expect(request.getRemoteAddr()).andReturn("111.1111.22.22").anyTimes();
 		
-		expect(session.getAttribute(SSOProcessorData.SESSION_NAME)).andReturn(data);
+		expect(session.getAttribute(LogoutProcessorData.SESSION_NAME)).andReturn(data);
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
 		
 		// here is the exception
-		expect(this.logoutProcessor.execute((SSOProcessorData) notNull())).andThrow(new InvalidSessionIdentifierException("Invalid Session"));
+		expect(this.logoutProcessor.execute((LogoutProcessorData) notNull())).andThrow(new InvalidSessionIdentifierException("Invalid Session"));
 	
 		response.addCookie((Cookie)anyObject());
 		expectLastCall().anyTimes();
@@ -357,11 +365,13 @@ public class SSOLogoutServletTest {
 		response.sendError(eq(500), (String)notNull());
 		expectLastCall().anyTimes();
 		
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+
 		setUpMock();
 
-		ssoLogoutServlet = new SSOLogoutServlet();
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
-		ssoLogoutServlet.doPost(request, response);
+		ssoLogoutServlet.service(request, response);
 
 		//System.out.println();
 		tearDownMock();
@@ -369,7 +379,7 @@ public class SSOLogoutServletTest {
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOLogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.logout.servlet.LogoutServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * 
 	 * Test the behaviour of the servlet when the SSOProcessor does not exist. Should throw InvalidParameterException
 	 * during init().
@@ -388,12 +398,12 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(null);
 					
 		setUpMock();
 
-		ssoLogoutServlet = new SSOLogoutServlet();
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
 		
 		//System.out.println();
@@ -414,18 +424,20 @@ public class SSOLogoutServletTest {
 				
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("logoutAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("logoutProcessor", com.qut.middleware.esoe.logout.LogoutProcessor.class))
 				.andReturn(logoutProcessor);
 		
 		response.sendRedirect((String)anyObject());
 		expectLastCall().anyTimes();
 		
+		expect(request.getMethod()).andReturn("GET").anyTimes();
+
 		setUpMock();
 		
-		ssoLogoutServlet = new SSOLogoutServlet();
+		ssoLogoutServlet = new LogoutServlet();
 		ssoLogoutServlet.init(this.servletConfig);
 	
-		this.ssoLogoutServlet.doGet(this.request, this.response);
+		this.ssoLogoutServlet.service(this.request, this.response);
 		
 	}
 }

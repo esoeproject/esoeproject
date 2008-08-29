@@ -19,7 +19,8 @@
  */
 package com.qut.middleware.esoe.sessions.impl;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.Messages;
@@ -37,7 +38,7 @@ public class SessionsProcessorImpl implements SessionsProcessor
 	private Update update;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SessionsProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SessionsProcessorImpl.class.getName());
 
 	/**
 	 * Constructor. Takes in an instance of the objects to be fed to other classes

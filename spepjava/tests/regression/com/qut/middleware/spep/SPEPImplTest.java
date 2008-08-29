@@ -1,23 +1,21 @@
 package com.qut.middleware.spep;
 
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Vector;
 
 import javax.servlet.http.Cookie;
 
-import static org.easymock.EasyMock.*;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
-import com.qut.middleware.spep.attribute.impl.AttributeProcessorImpl;
 import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.impl.SPEPImpl;
-import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
 
@@ -32,7 +30,7 @@ public class SPEPImplTest {
 	private String defaultUrl;
 	private AttributeProcessor attributeProcessor;
 	private AuthnProcessor authnProcessor;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private PolicyEnforcementProcessor policyEnforcementProcessor;
 	private SessionGroupCache sessionGroupCache;
 	private boolean started;
@@ -49,7 +47,7 @@ public class SPEPImplTest {
 		this.defaultUrl = "https//test.spep/index.jsp";
 		this.attributeProcessor = createMock(AttributeProcessor.class);
 		this.authnProcessor = createMock(AuthnProcessor.class);
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		this.policyEnforcementProcessor = createMock(PolicyEnforcementProcessor.class);
 		this.sessionGroupCache = createMock(SessionGroupCache.class);
 		this.started = false;
@@ -78,9 +76,9 @@ public class SPEPImplTest {
 	@Test
 	public void testGetMetadata()
 	{
-		this.spep.setMetadata(this.metadata);
+		this.spep.setMetadataProcessor(this.metadata);
 		
-		assertEquals(this.metadata, this.spep.getMetadata());
+		assertEquals(this.metadata, this.spep.getMetadataProcessor());
 	}
 
 	

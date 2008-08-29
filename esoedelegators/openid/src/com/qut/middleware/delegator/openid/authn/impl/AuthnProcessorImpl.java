@@ -25,11 +25,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.SimpleTimeZone;
 
 import javax.servlet.ServletException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.log4j.Logger;
 import org.openid4java.OpenIDException;
 import org.openid4java.consumer.ConsumerException;
 import org.openid4java.consumer.ConsumerManager;
@@ -42,9 +45,11 @@ import org.openid4java.message.ParameterList;
 import org.openid4java.message.ax.AxMessage;
 import org.openid4java.message.ax.FetchRequest;
 import org.openid4java.message.ax.FetchResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.crypto.KeyStoreResolver;
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.delegator.openid.ConfigurationConstants;
 import com.qut.middleware.delegator.openid.authn.AuthnProcessor;
 import com.qut.middleware.delegator.openid.authn.bean.AuthnProcessorData;
@@ -68,7 +73,6 @@ import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalResponse;
 import com.qut.middleware.saml2.validator.SAMLValidator;
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
 public class AuthnProcessorImpl implements AuthnProcessor
 {
@@ -77,7 +81,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	private SAMLValidator validator;
 	private WSClient wsClient;
 	private IdentifierGenerator identiferGenerator;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private String issuerID;
 	private String userIdentifier;
 	private String principalRegistrationEndpoint;
@@ -96,7 +100,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	private ConsumerManager manager;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
 
 	/**
 	 * Creates OpenID AuthnProcessorImpl
@@ -118,7 +122,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 * @throws IllegalAccessException
 	 * @throws InstantiationException
 	 */
-	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeyStoreResolver keyStoreResolver, String responseEndpoint, List<OpenIDAttribute> defaultSiteAttributes, List<OpenIDAttribute> requestedAttributes, String issuerID, String principalRegistrationEndpoint, String userIdentifier, boolean httpsOffload) throws ConsumerException, UnmarshallerException, MarshallerException, ClassNotFoundException, IllegalAccessException, InstantiationException
+	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeystoreResolver keyStoreResolver, String responseEndpoint, List<OpenIDAttribute> defaultSiteAttributes, List<OpenIDAttribute> requestedAttributes, String issuerID, String principalRegistrationEndpoint, String userIdentifier, boolean httpsOffload) throws ConsumerException, UnmarshallerException, MarshallerException, ClassNotFoundException, IllegalAccessException, InstantiationException
 	{
 		this.validator = validator;
 		this.wsClient = wsClient;
@@ -132,8 +136,8 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		this.userIdentifier = userIdentifier;
 		this.httpsOffload = httpsOffload;
 
-		this.unmarshaller = new UnmarshallerImpl<RegisterPrincipalResponse>(this.UNMAR_PKGNAMES, schemas, keyStoreResolver);
-		this.marshaller = new MarshallerImpl<RegisterPrincipalRequest>(this.MAR_PKGNAMES, schemas, this.keyStoreResolver.getKeyAlias(), this.keyStoreResolver.getPrivateKey());
+		this.unmarshaller = new UnmarshallerImpl<RegisterPrincipalResponse>(this.UNMAR_PKGNAMES, schemas, this.keyStoreResolver);
+		this.marshaller = new MarshallerImpl<RegisterPrincipalRequest>(this.MAR_PKGNAMES, schemas, this.keyStoreResolver);
 
 		manager = new ConsumerManager();
 		manager.setAllowNoEncHttp(false);
@@ -295,19 +299,19 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			catch (IOException e)
 			{
 				this.logger.error(e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 				return result.Failure;
 			}
 			catch (OpenIDException e)
 			{
 				this.logger.error(e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 				return result.Failure;
 			}
 			catch (ServletException e)
 			{
 				this.logger.error(e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 				return result.Failure;
 			}
 		}
@@ -320,13 +324,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			catch (OpenIDException e)
 			{
 				this.logger.error(e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 				return result.Failure;
 			}
 			catch (NoSuchAlgorithmException e)
 			{
 				this.logger.error(e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 				return result.Failure;
 			}
 		}
@@ -392,7 +396,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		request.setID(this.identiferGenerator.generateSAMLID());
 		request.setSource(this.OPENID_AUTHN_DELEG_IDENTIFIER);
 		request.setPrincipalAuthnIdentifier("unknown");
-		request.setIssueInstant(new XMLGregorianCalendarImpl(new GregorianCalendar()));
+		request.setIssueInstant(generateXMLCalendar());
 		request.setSignature(new Signature());
 
 		try
@@ -442,6 +446,30 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		{
 			this.logger.error("Fatal error validating response from ESOE - " + e.getLocalizedMessage());
 			this.logger.debug(e.getLocalizedMessage(), e);
+			return null;
+		}
+	}
+	
+	/**
+	 * Generates an XML gregorian calendar instance based on 0 offset UTC current time.
+	 * 
+	 * @return The created calendar for the current UTC time, else null if an error
+	 * occurs creating the calendar.
+	 */
+	private XMLGregorianCalendar generateXMLCalendar()
+	{
+		GregorianCalendar calendar;
+				
+		SimpleTimeZone tz = new SimpleTimeZone(0, ConfigurationConstants.timeZone);
+		calendar = new GregorianCalendar(tz);
+		
+		try
+		{
+			DatatypeFactory factory = DatatypeFactory.newInstance();		
+			return factory.newXMLGregorianCalendar(calendar);
+		}
+		catch(DatatypeConfigurationException e)
+		{
 			return null;
 		}
 	}

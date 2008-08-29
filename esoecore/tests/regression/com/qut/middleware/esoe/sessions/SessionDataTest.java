@@ -40,12 +40,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
 import com.qut.middleware.esoe.sessions.bean.impl.SessionConfigDataImpl;
 import com.qut.middleware.esoe.sessions.exception.ConfigurationValidationException;
 import com.qut.middleware.esoe.sessions.exception.SessionsDAOException;
 import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.schemas.esoe.sessions.AttributeType;
 import com.qut.middleware.saml2.schemas.esoe.sessions.HandlerType;
 import com.qut.middleware.saml2.schemas.esoe.sessions.IdentityType;
@@ -55,7 +55,7 @@ import com.qut.middleware.saml2.schemas.esoe.sessions.IdentityType;
 public class SessionDataTest
 {
 	private SessionsDAO sessionsDAO;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -95,8 +95,7 @@ public class SessionDataTest
 			
 			attribStream.read(attribPol);
 			
-			this.metadata = createMock(Metadata.class);
-			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			this.metadata = createMock(MetadataProcessor.class);
 			
 			this.sessionsDAO = createMock(SessionsDAO.class);
 			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -105,7 +104,7 @@ public class SessionDataTest
 			replay(this.metadata);
 			replay(this.sessionsDAO);
 			
-			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+			data = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 
 			assertNotNull("Root of session data was null?", data.getIdentity());
 			assertEquals("Incorrect number of Identity elements unmarshalled", data.getIdentity().size(), 1);
@@ -187,8 +186,7 @@ public class SessionDataTest
 			
 			attribStream.read(attribPol);
 			
-			this.metadata = createMock(Metadata.class);
-			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			this.metadata = createMock(MetadataProcessor.class);
 			
 			this.sessionsDAO = createMock(SessionsDAO.class);
 			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -197,7 +195,7 @@ public class SessionDataTest
 			replay(this.metadata);
 			replay(this.sessionsDAO);
 			
-			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+			data = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 
 
 			assertNotNull("Root of session data was null?", data.getIdentity());
@@ -280,8 +278,7 @@ public class SessionDataTest
 			
 			attribStream.read(attribPol);
 			
-			this.metadata = createMock(Metadata.class);
-			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			this.metadata = createMock(MetadataProcessor.class);
 			
 			this.sessionsDAO = createMock(SessionsDAO.class);
 			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -290,7 +287,7 @@ public class SessionDataTest
 			replay(this.metadata);
 			replay(this.sessionsDAO);
 			
-			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+			data = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 
 
 			fail("Invalid XML passed validation.");
@@ -341,8 +338,7 @@ public class SessionDataTest
 			
 			attribStream.read(attribPol);
 			
-			this.metadata = createMock(Metadata.class);
-			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			this.metadata = createMock(MetadataProcessor.class);
 			
 			this.sessionsDAO = createMock(SessionsDAO.class);
 			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -351,7 +347,7 @@ public class SessionDataTest
 			replay(this.metadata);
 			replay(this.sessionsDAO);
 			
-			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+			data = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 
 
 			fail("Invalid XML passed validation.");
@@ -402,8 +398,7 @@ public class SessionDataTest
 			
 			attribStream.read(attribPol);
 			
-			this.metadata = createMock(Metadata.class);
-			expect(metadata.getEsoeEntityID()).andReturn(entityID);
+			this.metadata = createMock(MetadataProcessor.class);
 			
 			this.sessionsDAO = createMock(SessionsDAO.class);
 			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -412,7 +407,7 @@ public class SessionDataTest
 			replay(this.metadata);
 			replay(this.sessionsDAO);
 			
-			data = new SessionConfigDataImpl(sessionsDAO, metadata);
+			data = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 
 
 			fail("Invalid XML passed validation.");

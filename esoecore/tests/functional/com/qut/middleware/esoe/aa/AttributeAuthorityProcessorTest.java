@@ -38,15 +38,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.bean.impl.AAProcessorDataImpl;
 import com.qut.middleware.esoe.aa.exception.InvalidPrincipalException;
 import com.qut.middleware.esoe.aa.exception.InvalidRequestException;
 import com.qut.middleware.esoe.aa.impl.AttributeAuthorityProcessorImpl;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
+import com.qut.middleware.esoe.logout.LogoutMechanism;
+import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Query;
@@ -72,6 +73,8 @@ import com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl;
 import com.qut.middleware.esoe.sessions.impl.TerminateImpl;
 import com.qut.middleware.esoe.sessions.impl.UpdateImpl;
 import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
@@ -108,11 +111,13 @@ public class AttributeAuthorityProcessorTest
 	private SessionsProcessor sessionsProcessor;
 	private IdentifierCache identifierCache;
 	private IdentifierGenerator identifierGenerator;
-	protected Metadata metadata;
+	protected MetadataProcessor metadata;
 	private PrivateKey key;
 	private String keyName;
 	private Marshaller<AttributeQuery> attributeQueryMarshaller;
 	private SessionsDAO sessionsDAO;
+	private LogoutMechanism logout;
+	private LogoutThreadPool logoutThreadPool;
 
 	/**
 	 * @throws java.lang.Exception
@@ -123,7 +128,7 @@ public class AttributeAuthorityProcessorTest
 		int skew = 60, interval = 180, timeout = 2;
 
 		this.xmlConfigFile = new File(this.getClass().getResource("sessiondata.xml").toURI());
-		this.schemaPath = this.getClass().getResource(ConfigurationConstants.sessionData);
+		this.schemaPath = this.getClass().getResource(SchemaConstants.sessionData);
 		
 		File attributePolicy = new File("tests" + File.separatorChar + "testdata" + File.separatorChar + "ReleasedAttributes.xml");
 		FileInputStream attributeStream = new FileInputStream(attributePolicy);
@@ -133,8 +138,7 @@ public class AttributeAuthorityProcessorTest
 		String entityID = "http://test.service.com";
 		Integer entID = new Integer("1");
 		
-		this.metadata = createMock(Metadata.class);
-		expect(metadata.getEsoeEntityID()).andReturn(entityID);
+		this.metadata = createMock(MetadataProcessor.class);
 		
 		this.sessionsDAO = createMock(SessionsDAO.class);
 		expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
@@ -143,9 +147,15 @@ public class AttributeAuthorityProcessorTest
 		replay(this.metadata);
 		replay(this.sessionsDAO);
 
-		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata);
+		this.sessionConfigData = new SessionConfigDataImpl(sessionsDAO, metadata, entityID);
 		
-		this.sessionCache = new SessionCacheImpl();
+		this.logout = createMock(LogoutMechanism.class);
+		this.logoutThreadPool = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutMechanism.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.sessionCache = new SessionCacheImpl(this.logoutThreadPool);
 		this.identityResolver = new IdentityResolverImpl(new Vector<Handler>(0,1));
 		
 		this.handler = new NullHandlerImpl();
@@ -166,31 +176,30 @@ public class AttributeAuthorityProcessorTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 		
-		KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		KeystoreResolver keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 		
 		PublicKey publicKey = keyStoreResolver.resolveKey(esoeKeyAlias);
 		
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(publicKey).anyTimes();
-		expect(this.metadata.getEsoeEntityID()).andReturn("_jfalskjflkeworijqowiejroiajsotijaspgkjplakeprtqwoer").anyTimes();
 		
 		replay(this.metadata);
 		
-		this.key = keyStoreResolver.getPrivateKey();
+		this.key = keyStoreResolver.getLocalPrivateKey();
 		this.keyName = "esoeprimary";
 		SAMLValidator samlValidator = new SAMLValidatorImpl(this.identifierCache, skew);
 		
-		this.aaProcessor = new AttributeAuthorityProcessorImpl(this.metadata, this.sessionsProcessor, samlValidator, this.identifierGenerator, keyStoreResolver, 60);
+		this.aaProcessor = new AttributeAuthorityProcessorImpl(this.metadata, this.sessionsProcessor, samlValidator, this.identifierGenerator, keyStoreResolver, 60, "_jfalskjflkeworijqowiejroiajsotijaspgkjplakeprtqwoer");
 		
-		this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(AttributeQuery.class.getPackage().getName(), new String[] { ConfigurationConstants.samlProtocol },
-				this.keyName, this.key);
+		this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(AttributeQuery.class.getPackage().getName(), new String[] { SchemaConstants.samlProtocol },
+				keyStoreResolver);
 	}
 
 	/**
 	 * Test method for {@link com.qut.middleware.esoe.aa.AttributeAuthorityProcessor#execute(com.qut.middleware.esoe.aa.bean.AAProcessorData)}.
 	 */
 	@Test
-	public final void testProcessRequest()
+	public final void testProcessRequest() throws Exception
 	{
 		String sessionID = this.identifierGenerator.generateSessionID();
 		String samlID = this.identifierGenerator.generateSAMLAuthnID();
@@ -279,6 +288,8 @@ public class AttributeAuthorityProcessorTest
 		}
 		
 		data.setRequestDocument(requestDocument);
+		
+		System.out.println(new String(requestDocument, "UTF-16"));
 		
 		try
 		{

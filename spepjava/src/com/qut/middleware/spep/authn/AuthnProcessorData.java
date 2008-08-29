@@ -87,4 +87,8 @@ public interface AuthnProcessorData
 	public HttpServletResponse getResponse();
 
 	public void setResponse(HttpServletResponse response);
+	
+	public String getDestinationURL();
+	
+	public void setDestinationURL(String destinationURL);
 }

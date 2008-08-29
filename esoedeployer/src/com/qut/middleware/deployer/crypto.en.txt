@@ -1,0 +1,8 @@
+#
+# Questions required to configure crypto
+#
+# Question format: varname|query|default<|supported,values>
+#
+
+issuer|What issuerDN would you like associated with keys in the ESOE environment? eg uid=keyman,dc=esoe,dc=example,dc=com  
+mail|What email address should enquiries about these keys and the above issuer be sent to?: 

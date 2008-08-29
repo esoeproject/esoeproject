@@ -1,0 +1,84 @@
+<h3> Finalize registration process </h3>
+
+#if(!$status1 || $status1.booleanValue() == false || !$status2 || $status2.booleanValue() == false || !$status3 || $status3.booleanValue() == false)
+#if(!$status1 || $status1.booleanValue() == false )
+<strong>You have not completed stage 1 of this process</strong>, please <a href="registerservice.htm">complete stage 1</a>
+<br/>
+#end
+#if(!$status2 || $status2.booleanValue() == false )
+<strong>You have not completed stage 2 of this process</strong>, please <a href="registerservice-stage2.htm">complete stage 2</a>
+<br/>
+#end
+#if(!$status3 || $status3.booleanValue() == false )
+<strong>You have not completed stage 3 of this process</strong>, please <a href="registerservice-stage3.htm">complete stage 3</a>
+<br/>
+#end
+#else
+
+You have submitted the following data
+
+<div id="serviceDetails">
+<table>
+<tr>
+<th>Service Name</th><th>Service URL</th>
+</tr>
+<tr>
+<td>$serviceBean.getServiceName()</td><td>$serviceBean.getServiceURL()</td>
+</tr>
+</table>
+</div>
+
+<div id="contactPersons">
+#if($serviceBean.getContacts())
+#if($serviceBean.getContacts().size() > 0)
+<br/>
+You have added the following contacts for this service
+<br/>
+<table>
+<tr>
+<th>Name</th><th>Email</th><th>Type</th>
+</tr>
+#foreach( $contact in $serviceBean.getContacts() )
+<tr>
+<td>$contact.getGivenName() $contact.getSurName()</td>
+<td>$contact.getEmailAddress()</td>
+<td>$contact.getContactType()</td>
+<td><a href="registerservice-stage2.htm?action=edit&ref=$velocityCount">edit</a></td>
+<td><a href="registerservice-stage2.htm?action=delete&ref=$velocityCount">delete</a></td>
+</tr>
+#end
+</table>
+#end
+#end
+</div>
+
+<div id="serviceNodes">
+#if($serviceBean.getServiceNodes())
+#if($serviceBean.getServiceNodes().size() > 0)
+<br/>
+You have added the following nodes for this service
+<br/>
+<table>
+<tr>
+<th>Base Node URL</th><th>Assertion Consumer Service</th><th>Single Logout Service</th><th>Cache Clear Service</th><th/><th/>
+</tr>
+<tr>
+#foreach( $node in $serviceBean.getServiceNodes() )
+<td>$node.getNodeURL()</td>
+<td>$node.getAssertionConsumerService()</td>
+<td>$node.getSingleLogoutService()</td>
+<td>$node.getCacheClearService()</td>
+<td><a href="registerservice-stage3.htm?action=edit&ref=$velocityCount">edit</a></td>
+<td><a href="registerservice-stage3.htm?action=delete&ref=$velocityCount">delete</a></td>
+</tr>
+#end
+</table>
+#end
+#end
+</div>
+
+<div id="navigation">
+If this is correct click complete, or click edit on section with problems.
+$navigation
+</div>
+#end

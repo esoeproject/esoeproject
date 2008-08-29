@@ -11,6 +11,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.GregorianCalendar;
@@ -27,15 +28,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.pdp.bean.AuthorizationProcessorData;
-import com.qut.middleware.esoe.pdp.bean.impl.AuthorizationProcessorDataImpl;
-import com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache;
-import com.qut.middleware.esoe.pdp.exception.InvalidRequestException;
-import com.qut.middleware.esoe.pdp.impl.AuthorizationProcessorImpl;
+import com.qut.middleware.esoe.authz.AuthorizationProcessor;
+import com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData;
+import com.qut.middleware.esoe.authz.bean.impl.AuthorizationProcessorDataImpl;
+import com.qut.middleware.esoe.authz.exception.InvalidRequestException;
+import com.qut.middleware.esoe.authz.impl.AuthorizationProcessorImpl;
+import com.qut.middleware.esoe.pdp.cache.AuthzPolicyCache;
+import com.qut.middleware.esoe.pdp.processor.DecisionPoint;
+import com.qut.middleware.esoe.pdp.processor.impl.DecisionPointImpl;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Query;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
@@ -43,6 +46,8 @@ import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.impl.IdentityAttributeImpl;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.KeyResolutionException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
@@ -82,6 +87,7 @@ public class AuthorizationProcessorTest
 	AuthorizationProcessorImpl authProcessor;
 
 	AuthzPolicyCache cache;
+	DecisionPoint pdp;
 	SessionsProcessor sessionsProcessor;
 	Principal principal;
 	Query query;
@@ -89,7 +95,7 @@ public class AuthorizationProcessorTest
 	Unmarshaller<PolicySet> policySetUnmarshaller;
 	Unmarshaller<Response> responseUnmarshaller;
 	Marshaller<LXACMLAuthzDecisionQuery> requestMarshaller;
-	Metadata metadata;
+	MetadataProcessor metadata;
 	SPEPProcessor spepProcessor;
 
 	String authnIdentifier = "zitelli";
@@ -100,7 +106,7 @@ public class AuthorizationProcessorTest
 	private IdentifierGenerator identifierGenerator;
 	private PublicKey pubKey;
 	private PrivateKey privKey;
-	KeyStoreResolver keyStoreResolver;
+	KeystoreResolver keyStoreResolver;
 
 	@Before
 	public void setUp() throws Exception
@@ -114,7 +120,7 @@ public class AuthorizationProcessorTest
 		this.query = createMock(Query.class);
 		this.sessionsProcessor = createMock(SessionsProcessor.class);
 		this.cache = createMock(AuthzPolicyCache.class);
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		this.spepProcessor = createMock(SPEPProcessor.class);
 
 		this.attributeList = new HashMap<String, IdentityAttribute>();
@@ -130,6 +136,7 @@ public class AuthorizationProcessorTest
 		attributeList.put("email", emailAttr);
 		attributeList.put("type", typeAttr);
 		attributeList.put("username", userAttr);
+		attributeList.put("uid", userAttr);
 
 		// this.cache = new AuthzPolicyCacheImpl();
 		setupPolicyCache();
@@ -139,26 +146,28 @@ public class AuthorizationProcessorTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 
-		this.privKey = this.keyStoreResolver.getPrivateKey();
-		this.pubKey = this.keyStoreResolver.getPublicKey();
+		this.privKey = this.keyStoreResolver.getLocalPrivateKey();
+		this.pubKey = this.keyStoreResolver.getLocalPublicKey();
 
 		expect(this.metadata.resolveKey("esoeprimary")).andReturn(this.pubKey).anyTimes();
-		expect(this.metadata.getEsoeEntityID()).andReturn(esoeKeyAlias).anyTimes();
 		replay(this.spepProcessor);
 		replay(this.metadata);
+		
+		String esoeIdentifier = "http://esoe.id";
 
 		this.validator = new SAMLValidatorImpl(this.identifierCache, skew);
-		this.authProcessor = new AuthorizationProcessorImpl(cache, sessionsProcessor, this.metadata, this.validator, this.identifierGenerator, this.keyStoreResolver, "DENY", 20);
-
-		String[] schemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.lxacmlSAMLProtocol };
+		this.pdp = new DecisionPointImpl(this.cache, "DENY");
+		this.authProcessor = new AuthorizationProcessorImpl(pdp, sessionsProcessor, this.metadata, this.validator, this.identifierGenerator, this.keyStoreResolver, 20, esoeIdentifier);
+	
+		String[] schemas = new String[] { SchemaConstants.lxacmlSAMLAssertion, SchemaConstants.lxacmlSAMLProtocol };
 		this.responseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName() + ":" + LXACMLAuthzDecisionStatement.class.getPackage().getName(), schemas, metadata);
 
-		String keyName = keyStoreResolver.getKeyAlias();
-		this.privKey = keyStoreResolver.getPrivateKey();
+		String keyName = keyStoreResolver.getLocalKeyAlias();
+		this.privKey = keyStoreResolver.getLocalPrivateKey();
 
-		this.requestMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(LXACMLAuthzDecisionQuery.class.getPackage().getName(), schemas, keyName, this.privKey);
+		this.requestMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(LXACMLAuthzDecisionQuery.class.getPackage().getName(), schemas, keyStoreResolver);
 
 	}
 
@@ -176,7 +185,7 @@ public class AuthorizationProcessorTest
 	 * 
 	 */
 	@Test
-	public final void testValidateAuthzRequest1() throws InvalidRequestException, InvalidSessionIdentifierException, KeyResolutionException
+	public final void testValidateAuthzRequest1() throws InvalidRequestException, InvalidSessionIdentifierException, KeyResolutionException, Exception
 	{
 		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
 
@@ -200,7 +209,9 @@ public class AuthorizationProcessorTest
 		// check the returned response string
 		byte[] responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
-		// //System.out.println(responseXml);
+		
+		System.out.println("************** " + new String(responseXml, "UTF-16"));
+
 		// unmarshall and ensure the result is PERMIT as expected
 		Result result = this.getResult(responseXml);
 		assertNotNull("Failed to unmarshall returned response. ", result);
@@ -288,7 +299,7 @@ public class AuthorizationProcessorTest
 		}
 		catch (Exception e)
 		{
-			fail("Unexpected expetion thrown. Auth processor did not return a valid response.");
+			fail("Unexpected exception thrown. Auth processor did not return a valid response.");
 		}
 	}
 
@@ -310,7 +321,7 @@ public class AuthorizationProcessorTest
 	 * 
 	 */
 	@Test
-	public final void testValidateAuthzRequest2() throws InvalidRequestException, InvalidSessionIdentifierException, KeyResolutionException
+	public final void testValidateAuthzRequest2() throws InvalidRequestException, InvalidSessionIdentifierException, KeyResolutionException, UnsupportedEncodingException
 	{
 		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
 		AuthorizationProcessor.result requestResult;
@@ -433,7 +444,7 @@ public class AuthorizationProcessorTest
 		// check the returned response string
 		responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
-		// //System.out.println(responseXml);
+		System.out.println(new String(responseXml, "Utf-16"));
 		// unmarshall and ensure the result is PERMIT as expected
 		result = this.getResult(responseXml);
 		assertNotNull("Failed to unmarshall returned response. ", result);
@@ -1284,6 +1295,7 @@ public class AuthorizationProcessorTest
 		path + "PolicySetAction2.xml",
 		path + "PolicySetAction3.xml", 
 		path + "PolicySetSimple2.xml" };
+		//path + "NewFile.xml" };
 
 		Map<String, String> config = new HashMap<String, String>();
 		config.put(filenames[0], "urn:test:spep:id:s");
@@ -1294,10 +1306,11 @@ public class AuthorizationProcessorTest
 		config.put(filenames[5], "urn:test:spep:id:5");
 		config.put(filenames[6], "urn:test:spep:id:6");
 		config.put(filenames[7], "urn:test:spep:id:s2");
+//		config.put(filenames[8], "access");
 
 		try
 		{
-			this.policySetUnmarshaller = new UnmarshallerImpl<PolicySet>(PolicySet.class.getPackage().getName(), new String[] { ConfigurationConstants.lxacml });
+			this.policySetUnmarshaller = new UnmarshallerImpl<PolicySet>(PolicySet.class.getPackage().getName(), new String[] { SchemaConstants.lxacml });
 
 			for (String s : filenames)
 			{
@@ -1415,6 +1428,15 @@ public class AuthorizationProcessorTest
 			fail("Failed to marshal auth request");
 		}
 
+		try
+		{
+			System.out.println(new String(requestXml, "UTF-16"));
+		}
+		catch(Exception e)
+		{
+			//
+		}
+		
 		return requestXml;
 	}
 
@@ -1445,5 +1467,51 @@ public class AuthorizationProcessorTest
 		}
 
 		return result;
+	}
+	
+	
+	
+	//@Test
+	public final void testAccessDev() throws InvalidRequestException, InvalidSessionIdentifierException, KeyResolutionException, UnsupportedEncodingException
+	{
+		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
+		AuthorizationProcessor.result requestResult;
+
+		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
+		expect(this.principal.getSAMLAuthnIdentifier()).andReturn(samlIdentifier).anyTimes();
+		expect(this.principal.getAttributes()).andReturn(this.attributeList).anyTimes();
+		expect(this.sessionsProcessor.getQuery()).andReturn(this.query).anyTimes();
+		expect(this.query.querySAMLSession((String) notNull())).andReturn(this.principal).anyTimes();
+		expect(this.cache.getPolicies("access")).andReturn(new Vector(this.database.get("access"))).anyTimes();
+		expect(this.cache.getSize()).andReturn(this.database.size()).anyTimes();
+		setupMock();
+
+		// TEST CASE 1 RULE 2 (complexity:2-12) All rules bar one should eval to PERMIT. This test is essentially
+		// an additional test to ensure that all matching targets are included as authztargets.
+		authData.setRequestDocument(createRequestXml("/ole/blah", "Administrator", "access"));
+		
+		requestResult = this.authProcessor.execute(authData);
+		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
+		// check the returned response string
+		byte[] responseXml = authData.getResponseDocument();
+		assertNotNull(responseXml);
+		// //System.out.println(responseXml);
+		// unmarshall and ensure the result is as expected
+		Result result = this.getResult(responseXml);
+		assertNotNull("Failed to unmarshall returned response. ", result);
+		assertEquals("Incorrect result returned. ", DecisionType.PERMIT, result.getDecision());
+
+
+		// ensure the returned response is valid
+		try
+		{
+			Response response = this.responseUnmarshaller.unMarshallSigned(responseXml);
+
+			this.validator.getResponseValidator().validate(response);
+		}
+		catch (Exception e)
+		{
+			fail("Unexpected expetion thrown. Auth processor did not return a valid response.");
+		}
 	}
 }

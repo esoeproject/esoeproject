@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheQueryData;
+import com.qut.middleware.esoe.authz.cache.sqlmap.impl.PolicyCacheQueryData;
 
 public class PolicyCacheQueryDataTest
 {

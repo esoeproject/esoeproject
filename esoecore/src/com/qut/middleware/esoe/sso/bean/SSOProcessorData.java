@@ -189,17 +189,7 @@ public interface SSOProcessorData extends SAMLProcessorData
 	 * @param returningRequest the returningRequest value
 	 */
 	public void setReturningRequest(boolean returningRequest);
-		
-	/** A list of beans that maintain the state of sent LogoutRequests.
-	 * 
-	 */
-	public List<SSOLogoutState> getLogoutStates();
-	
-	/** A list of beans that maintain the state of sent LogoutRequests.
-	 * 
-	 */
-	public void setLogoutStates(List<SSOLogoutState> logoutStates);
-	
+			
 	/**
 	 * @return The charset used by the caller
 	 */

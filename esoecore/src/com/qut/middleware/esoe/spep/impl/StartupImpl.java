@@ -21,14 +21,14 @@ package com.qut.middleware.esoe.spep.impl;
 
 import java.text.MessageFormat;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor;
-import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor.result;
+import com.ibm.icu.text.CharsetDetector;
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor;
+import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor.result;
 import com.qut.middleware.esoe.spep.Messages;
 import com.qut.middleware.esoe.spep.SPEPRegistrationCache;
 import com.qut.middleware.esoe.spep.Startup;
@@ -38,6 +38,8 @@ import com.qut.middleware.esoe.spep.exception.DatabaseFailureNoSuchSPEPException
 import com.qut.middleware.esoe.spep.exception.InvalidRequestException;
 import com.qut.middleware.esoe.spep.exception.SPEPCacheUpdateException;
 import com.qut.middleware.esoe.util.CalendarUtils;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
@@ -62,7 +64,7 @@ public class StartupImpl implements Startup
 {
 	private SAMLValidator samlValidator;
 	private SPEPRegistrationCache spepRegistrationCache;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private IdentifierGenerator identifierGenerator;
 	private Unmarshaller<ValidateInitializationRequest> validateInitializationRequestUnmarshaller;
 	private Marshaller<ValidateInitializationResponse> statusResponseTypeMarshaller;
@@ -72,7 +74,8 @@ public class StartupImpl implements Startup
 	private final String MAR_PKGNAMES = ValidateInitializationRequest.class.getPackage().getName();
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(StartupImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(StartupImpl.class.getName());
+	private String esoeIdentifier;
 	
 	/**
 	 * Constructor
@@ -85,7 +88,7 @@ public class StartupImpl implements Startup
 	 * @throws UnmarshallerException If the Unmarshaller fails to initialize.
 	 * @throws MarshallerException If the Unmarshaller fails to initialize.
 	 */
-	public StartupImpl(SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, SPEPRegistrationCache spepRegistrationCache, Metadata metadata, KeyStoreResolver keyStoreResolver, PolicyCacheProcessor policyCacheProcessor) throws UnmarshallerException, MarshallerException
+	public StartupImpl(SAMLValidator samlValidator, IdentifierGenerator identifierGenerator, SPEPRegistrationCache spepRegistrationCache, MetadataProcessor metadata, KeystoreResolver keyStoreResolver, PolicyCacheProcessor policyCacheProcessor, String esoeIdentifier) throws UnmarshallerException, MarshallerException
 	{
 		if(samlValidator == null)
 		{
@@ -111,19 +114,24 @@ public class StartupImpl implements Startup
 		{
 			throw new IllegalArgumentException(Messages.getString("StartupImpl.16"));  //$NON-NLS-1$
 		}
+		if(esoeIdentifier == null)
+		{
+			throw new IllegalArgumentException("ESOE identifier cannot be null");
+		}
 		
-		String[] schemas = new String[]{ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlProtocol};
+		String[] schemas = new String[]{SchemaConstants.esoeProtocol, SchemaConstants.samlProtocol};
 
 		this.samlValidator = samlValidator;
 		this.identifierGenerator = identifierGenerator;
 		this.spepRegistrationCache = spepRegistrationCache;
 		this.metadata = metadata;
 		this.policyCacheProcessor = policyCacheProcessor;
+		this.esoeIdentifier = esoeIdentifier;
 		
 		this.validateInitializationRequestUnmarshaller = new UnmarshallerImpl<ValidateInitializationRequest>(this.UNMAR_PKGNAMES, schemas, this.metadata);
-		this.statusResponseTypeMarshaller = new MarshallerImpl<ValidateInitializationResponse>(this.MAR_PKGNAMES, schemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.statusResponseTypeMarshaller = new MarshallerImpl<ValidateInitializationResponse>(this.MAR_PKGNAMES, schemas, keyStoreResolver);
 		
-		this.logger.info(Messages.getString("StartupImpl.5")); //$NON-NLS-1$
+		this.logger.info("Created StartupImpl successfully"); //$NON-NLS-1$
 	}
 
 	/* (non-Javadoc)
@@ -134,14 +142,15 @@ public class StartupImpl implements Startup
 	{
 		ValidateInitializationResponse validateInitializationResponse = null;
 		
-		this.logger.info(MessageFormat.format(Messages.getString("StartupImpl.6") ,data.getIssuerID()) ); //$NON-NLS-1$
+		this.logger.debug("Received SPEP Startup request. Going to unmarshal."); //$NON-NLS-1$
 		
 		String requestSAMLID = null;
 		
 		try
 		{
 			byte[] requestDocument = data.getRequestDocument();
-			this.logger.trace( requestDocument);
+			CharsetDetector detector = new CharsetDetector();
+			this.logger.trace(detector.getString(requestDocument, null));
 			
 			ValidateInitializationRequest request = null;
 
@@ -151,35 +160,84 @@ public class StartupImpl implements Startup
 			}
 			catch (UnmarshallerException e)
 			{
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null);
-				this.logger.error(MessageFormat.format(Messages.getString("StartupImpl.0"), data.getIssuerID())); //$NON-NLS-1$
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null, "ESOE could not unmarshal the startup request document");
+				
+				Object jaxbObject = e.getJAXBObject();
+				String issuerID = "unknown";
+				if (jaxbObject != null && jaxbObject instanceof ValidateInitializationRequest)
+				{
+					request = (ValidateInitializationRequest)jaxbObject;
+					if(request.getIssuer() != null && request.getIssuer().getValue() != null)
+					{
+						issuerID = request.getIssuer().getValue();
+					}
+				}
+				
+				String message = "Failed to unmarshal startup request from SPEP. Presented issuer ID was: " + issuerID;
+				this.logger.error(message); //$NON-NLS-1$
 				this.logger.debug(e.getLocalizedMessage(), e);
-				throw new InvalidRequestException(MessageFormat.format(Messages.getString("StartupImpl.0"), data.getIssuerID()) ); //$NON-NLS-1$
+				throw new InvalidRequestException(message); //$NON-NLS-1$
 			}
 			catch (SignatureValueException e)
 			{
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null);
-				this.logger.error(Messages.getString("StartupImpl.3"), e); //$NON-NLS-1$
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null, "Signature validation failed on startup request document");
+				
+				Object jaxbObject = e.getJAXBObject();
+				String issuerID = "unknown";
+				if (jaxbObject != null && jaxbObject instanceof ValidateInitializationRequest)
+				{
+					request = (ValidateInitializationRequest)jaxbObject;
+					if(request.getIssuer() != null && request.getIssuer().getValue() != null)
+					{
+						issuerID = request.getIssuer().getValue();
+					}
+				}
+				
+				String message = "Failed signature validation for startup request from SPEP. Presented issuer ID was: " + issuerID;
+				this.logger.error(message, e); //$NON-NLS-1$
 				this.logger.debug(e.getLocalizedMessage(), e);
-				throw new InvalidRequestException(Messages.getString("StartupImpl.3")); //$NON-NLS-1$
+				throw new InvalidRequestException(message); //$NON-NLS-1$
 			}
 			catch (ReferenceValueException e)
 			{
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null);
-				this.logger.error(Messages.getString("StartupImpl.4"), e); //$NON-NLS-1$
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null, "Signature reference validation failed on startup request document");
+				
+				Object jaxbObject = e.getJAXBObject();
+				String issuerID = "unknown";
+				if (jaxbObject != null && jaxbObject instanceof ValidateInitializationRequest)
+				{
+					request = (ValidateInitializationRequest)jaxbObject;
+					if(request.getIssuer() != null && request.getIssuer().getValue() != null)
+					{
+						issuerID = request.getIssuer().getValue();
+					}
+				}
+				
+				String message = "Failed signature block reference validation for startup request from SPEP. Presented issuer ID was: " + issuerID;
+				this.logger.error(message, e); //$NON-NLS-1$
 				this.logger.debug(e.getLocalizedMessage(), e);
-				throw new InvalidRequestException(Messages.getString("StartupImpl.4")); //$NON-NLS-1$
+				throw new InvalidRequestException(message); //$NON-NLS-1$
 			}
 			
 			if(request == null)
 			{
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null);
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null, "Error unmarshalling startup request document");
 				this.logger.error(Messages.getString("StartupImpl.1")); //$NON-NLS-1$
 				throw new InvalidRequestException(Messages.getString("StartupImpl.1")); //$NON-NLS-1$
 			}
 			
 			requestSAMLID = request.getID();
-			this.logger.debug(MessageFormat.format(Messages.getString("StartupImpl.7"), requestSAMLID)); //$NON-NLS-1$
+			if(request.getIssuer() == null && request.getIssuer().getValue() == null)
+			{
+				String message = "No Issuer ID was present in the request. Unable to process";
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, requestSAMLID, message);
+				this.logger.error(message);
+				throw new InvalidRequestException(message);
+			}
+			String requestEntityID = request.getIssuer().getValue();
+			this.logger.info("Received startup request from SPEP " + requestEntityID + " .. XML and signature valid, going to perform SAML validation");
+			
+			this.logger.debug(MessageFormat.format("Unmarshalled startup request ID {0} from SPEP. Presented issuer ID was: {1}", requestSAMLID, requestEntityID)); //$NON-NLS-1$
 
 			try
 			{
@@ -187,12 +245,11 @@ public class StartupImpl implements Startup
 			}
 			catch (InvalidSAMLRequestException e)
 			{
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, requestSAMLID);
-				this.logger.debug(MessageFormat.format(Messages.getString("StartupImpl.8"), requestSAMLID), e); //$NON-NLS-1$
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, requestSAMLID, "Startup request document was deemed invalid: " + e.getMessage());
+				this.logger.debug(MessageFormat.format("Request ID {0} is invalid. Failing SPEP startup request for {1}", requestSAMLID, requestEntityID), e); //$NON-NLS-1$
 				throw new InvalidRequestException(e);
 			}
 			
-			String requestEntityID = request.getIssuer().getValue();
 			int authzCacheIndex = request.getAuthzCacheIndex();			
 			
 			data.setIssuerID(requestEntityID);
@@ -210,27 +267,28 @@ public class StartupImpl implements Startup
 			// if startup request fails, set appropriate response
 			if (!spepStartingResult.equals(result.Success))
 			{
-				this.logger.error("PolicyCacheProcessor returned failure result for SPEP Startup Request. Setting Response status to " + StatusCodeConstants.requester);
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, requestSAMLID);
+				this.logger.error("PolicyCacheProcessor returned failure result for SPEP Startup Request. Returning requestor error startup message for " + requestEntityID);
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, requestSAMLID, "Policy cache processor indicated a failure occurred from the startup notification");
 			}
 			else
 			{
-				this.logger.debug("PolicyCacheProcessor returned success result for SPEP Startup Request. Setting Response status to " + StatusCodeConstants.success);
-				validateInitializationResponse = generateResponse(StatusCodeConstants.success, requestSAMLID);
+				this.logger.debug("PolicyCacheProcessor returned success result for SPEP Startup Request. Returning successful startup message for " + requestEntityID);
+				validateInitializationResponse = generateResponse(StatusCodeConstants.success, requestSAMLID, "SPEP Startup request was successful");
 			}
 		}
 		finally
 		{
 			if(validateInitializationResponse == null)
 			{
-				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null);
+				validateInitializationResponse = generateResponse(StatusCodeConstants.requester, null, "Unknown error occurred, no message to explain failure");
 			}
 			
 			try
 			{
 				data.setResponseDocument(this.statusResponseTypeMarshaller.marshallSigned(validateInitializationResponse));
 				
-				this.logger.trace( data.getResponseDocument());
+				CharsetDetector detector = new CharsetDetector();
+				this.logger.trace( detector.getString(data.getResponseDocument(), null) );
 			}
 			catch (MarshallerException e)
 			{
@@ -245,7 +303,7 @@ public class StartupImpl implements Startup
 	 * @param statusCodeValue The status to set the request to.
 	 * @param inResponseTo The SAML ID of the initial request.
 	 */
-	private ValidateInitializationResponse generateResponse(String statusCodeValue, String inResponseTo)
+	private ValidateInitializationResponse generateResponse(String statusCodeValue, String inResponseTo, String statusMessage)
 	{
 		ValidateInitializationResponse validateInitializationResponse = new ValidateInitializationResponse();
 		
@@ -259,10 +317,11 @@ public class StartupImpl implements Startup
 		Status status = new Status();
 		StatusCode statusCode = new StatusCode();
 		statusCode.setValue(statusCodeValue);
+		status.setStatusMessage(statusMessage);
 		status.setStatusCode(statusCode);
 		
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getEsoeEntityID());
+		issuer.setValue(this.esoeIdentifier);
 
 		validateInitializationResponse.setStatus(status);
 		validateInitializationResponse.setIssuer(issuer);

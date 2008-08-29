@@ -1,0 +1,23 @@
+en
+http://esoe.test.intient.com:8080
+http://esoe.test.intient.com:8080
+intient.com
+Intient Pty Ltd
+Intient
+http://www.intient.com
+Bradley Beddoes
+beddoes@intient.com
+(00)12345 6789
+Intient Pty Ltd
+y
+mysql
+jdbc:mysql://localhost:3306/newesoe?useUnicode=true
+newesoe
+newesoe
+y
+http://esoemanager.test.intient.com:8080
+http://esoemanager.test.intient.com:8080
+y
+uid=esoekeys,ou=security,dc=test,dc=intient,dc=com
+nonexistant@test.intient.com
+y

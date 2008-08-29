@@ -1,0 +1,15 @@
+<!--
+	esoe build environment
+	Bradley Beddoes, Queensland University of Technology, 2008
+	Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+-->
+
+<project name="esoe" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<property file="${esoebuild}/ant.build.properties" />
+	<property file="ant.build.properties" />
+
+	<import file="${esoebuild}/antscripts/esoe-build.xml" />
+	<import file="${esoebuild}/antscripts/esoe-ivy.xml" />
+
+</project>

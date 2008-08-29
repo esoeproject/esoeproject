@@ -39,11 +39,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor;
-import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor.result;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor;
+import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor.result;
 import com.qut.middleware.esoe.spep.bean.SPEPProcessorData;
 import com.qut.middleware.esoe.spep.bean.impl.SPEPProcessorDataImpl;
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
@@ -51,6 +49,8 @@ import com.qut.middleware.esoe.spep.exception.DatabaseFailureNoSuchSPEPException
 import com.qut.middleware.esoe.spep.exception.InvalidRequestException;
 import com.qut.middleware.esoe.spep.exception.SPEPCacheUpdateException;
 import com.qut.middleware.esoe.spep.impl.StartupImpl;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
@@ -75,10 +75,10 @@ public class StartupTest
 	private Marshaller<ValidateInitializationRequest> requestMarshaller;
 	private Capture<ValidateInitializationRequest> captureObject;
 	private SPEPRegistrationCache spepRegistrationCache;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private String keyName;
 	private PrivateKey key;
-	private KeyStoreResolverImpl keyStoreResolver;
+	private KeystoreResolverImpl keyStoreResolver;
 	private PolicyCacheProcessor policyCacheProcessor;
 	private String esoeID = "_847329uhfde789fwy94";
 	private IdentifierGenerator identifierGenerator;
@@ -97,7 +97,7 @@ public class StartupTest
 		this.spepRegistrationCache = createMock(SPEPRegistrationCache.class);
 		this.captureObject = new Capture<ValidateInitializationRequest>();
 		this.spepRegistrationCache.registerSPEP(capture(this.captureObject));
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		this.policyCacheProcessor = createMock(PolicyCacheProcessor.class);
 		
 		String keyStorePath = "tests/testdata/testskeystore.ks";
@@ -105,22 +105,21 @@ public class StartupTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 		
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 		
-		PublicKey publicKey = this.keyStoreResolver.getPublicKey();
+		PublicKey publicKey = this.keyStoreResolver.getLocalPublicKey();
 		
 		expect(this.metadata.resolveKey("esoeprimary")).andReturn(publicKey);
-		expect(this.metadata.getEsoeEntityID()).andReturn(this.esoeID).anyTimes();
 		
 		this.keyName = "esoeprimary";
-		this.key = this.keyStoreResolver.getPrivateKey();
+		this.key = this.keyStoreResolver.getLocalPrivateKey();
 		
 		expect(this.policyCacheProcessor.spepStartingNotification((String)notNull(), anyInt())).andReturn(result.Success).anyTimes();
 		
-		this.startup = new StartupImpl(samlValidator, identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor);
+		this.startup = new StartupImpl(samlValidator, identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor, this.esoeID);
 		
-		String[] schemas = new String[]{ConfigurationConstants.esoeProtocol};
-		this.requestMarshaller = new MarshallerImpl<ValidateInitializationRequest>(ValidateInitializationRequest.class.getPackage().getName(), schemas, this.keyName, this.key);
+		String[] schemas = new String[]{SchemaConstants.esoeProtocol};
+		this.requestMarshaller = new MarshallerImpl<ValidateInitializationRequest>(ValidateInitializationRequest.class.getPackage().getName(), schemas, keyStoreResolver);
 	}
 
 	/**
@@ -135,7 +134,7 @@ public class StartupTest
 		String system = "system";
 		String environment = "environment";
 		String version = "version";
-		String issuerNameID = "nameID";
+		String issuerNameID = "http://spep.example.org";
 		String ipAddress = "ipaddr";
 
 		request.setID("spep.test.url");
@@ -227,7 +226,7 @@ public class StartupTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction1() throws Exception
 	{
-		this.startup = new StartupImpl(null, this.identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor);
+		this.startup = new StartupImpl(null, this.identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor, this.esoeID);
 		
 	}
 	
@@ -238,7 +237,7 @@ public class StartupTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction2() throws Exception
 	{
-		this.startup = new StartupImpl(this.samlValidator, null, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor);
+		this.startup = new StartupImpl(this.samlValidator, null, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor, this.esoeID);
 		
 	}
 	
@@ -249,7 +248,7 @@ public class StartupTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction3() throws Exception
 	{
-		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, null, this.metadata, this.keyStoreResolver, this.policyCacheProcessor);
+		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, null, this.metadata, this.keyStoreResolver, this.policyCacheProcessor, this.esoeID);
 		
 	}
 	
@@ -260,7 +259,7 @@ public class StartupTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction4() throws Exception
 	{
-		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, null, this.keyStoreResolver, this.policyCacheProcessor);
+		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, null, this.keyStoreResolver, this.policyCacheProcessor, this.esoeID);
 		
 	}
 	
@@ -271,7 +270,7 @@ public class StartupTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction5() throws Exception
 	{
-		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, this.metadata, null, this.policyCacheProcessor);
+		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, this.metadata, null, this.policyCacheProcessor, this.esoeID);
 		
 	}
 	
@@ -282,7 +281,18 @@ public class StartupTest
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction6() throws Exception
 	{
-		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, null);
+		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, null, this.esoeID);
+		
+	}
+	
+	/** Test construction params.
+	 * 
+	 *
+	 */
+	@Test (expected = IllegalArgumentException.class)
+	public void testConstruction7() throws Exception
+	{
+		this.startup = new StartupImpl(this.samlValidator, this.identifierGenerator, this.spepRegistrationCache, this.metadata, this.keyStoreResolver, this.policyCacheProcessor, null);
 		
 	}
 }

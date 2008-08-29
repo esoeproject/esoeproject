@@ -21,7 +21,8 @@ package com.qut.middleware.delegator.openid.pages;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.delegator.openid.ConfigurationConstants;
 import com.qut.middleware.delegator.openid.pages.forms.impl.AcceptForm;
@@ -34,7 +35,7 @@ public class AcceptPage extends BorderPage
 	public AcceptForm acceptForm;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AcceptPage.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AcceptPage.class.getName());
 	
 	public AcceptPage()
 	{

@@ -1,0 +1,54 @@
+<!--
+	esoe build environment
+	Bradley Beddoes, Queensland University of Technology, 2008
+	Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+-->
+	
+<project name="esoe-ivy" xmlns:ivy="antlib:org.apache.ivy.ant">
+	
+	<ivy:settings file="${esoebuild}/ivysettings.xml" />
+
+	<target name="resolve:all" depends="resolve:compile, resolve:runtime, resolve:optional, resolve:provided"/>
+	
+	<target name="resolve:compile">
+		<ivy:resolve file="ivy.xml" conf="compile" />
+		<ivy:retrieve
+			pattern="${basedir}/${artifacts.compile}/[artifact].[ext]" conf="compile" />
+		<ivy:report conf="compile" graph="false"
+			todir="${basedir}/${artifacts.compile}" />
+	</target>
+
+	<target name="resolve:runtime">
+		<ivy:resolve file="ivy.xml" conf="runtime" />
+		<ivy:retrieve
+			pattern="${basedir}/${artifacts.runtime}/[artifact].[ext]"
+			conf="runtime" />
+		<ivy:report conf="runtime" graph="false"
+			todir="${basedir}/${artifacts.runtime}" />
+	</target>
+	
+	<target name="resolve:optional">
+		<ivy:resolve file="ivy.xml" conf="optional" />
+		<ivy:retrieve
+			pattern="${basedir}/${artifacts.optional}/[artifact].[ext]"
+			conf="optional" />
+		<ivy:report conf="optional" graph="false"
+			todir="${basedir}/${artifacts.optional}" />
+	</target>
+	
+	<target name="resolve:provided">
+		<ivy:resolve file="ivy.xml" conf="provided" />
+		<ivy:retrieve
+			pattern="${basedir}/${artifacts.provided}/[artifact].[ext]"
+			conf="provided" />
+		<ivy:report conf="provided" graph="false"
+			todir="${basedir}/${artifacts.provided}" />
+	</target>
+
+	<target name="publish">
+		<ivy:resolve file="ivy.xml" conf="compile,runtime,optional,provided" />
+		<ivy:publish resolver="local-resolver" forcedeliver="true" overwrite="true">
+			<artifacts pattern="${basedir}/${output}/[artifact].[ext]" />
+		</ivy:publish>
+	</target>
+</project>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Enterprise Sign On Engine Manager | $title</title>
+
+<link rel="stylesheet" href="esoeproject.css" type="text/css">
+$imports 
+#if ($headInclude) 
+#parse($headInclude) 
+#end
+</head>
+<body #if($bodyOnload) onload="$bodyOnload" #end>
+
+<div id="content">
+	<div id="title">
+		<div id="logo">
+			<a href="http://esoeproject.org"><img src="graphics/esoetitlelogo.png" alt="Go Home"/></a>
+		</div>
+		<div id="navigation">
+			<a href="index.htm">Home</a> | <a href="http://esoeproject.org/confluence/">Wiki</a> | <a href="http://esoeproject.org/jira/">Issue Tracking</a>
+		</div>
+	</div>
+
+	<div id="mainContent">
+		<div id="menu">
+			<h4>Navigation</h4>
+			<ul>
+				<li> <a href="registerservice.htm">Register new service</a> </li>
+				<li> <a href="listservices.htm">List Services</a> </li>
+				<li> <a href="editattributes.htm">Edit released attributes</a> </li>
+				<li> <a href="/esoemanager/metadata/retrieve.htm">View current network metadata</a></li>
+			</ul>
+		</div>
+		<div id="contentText">
+			#parse($path)
+		</div>
+	</div>
+
+	<div id="footer">
+		<div id="footerCopyright">
+			ESOE Manager			
+		</div>
+		<div id="footerNavigation">
+			<a href="index.htm">Home</a> | <a href="http://esoeproject.org/confluence/">Wiki</a> | <a href="http://esoeproject.org/jira/">Issue Tracking</a>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>

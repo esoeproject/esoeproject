@@ -23,7 +23,8 @@ package com.qut.middleware.esoe.sessions.impl;
 import java.text.MessageFormat;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.MonitorThread;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
@@ -42,7 +43,7 @@ public class SessionsMonitor extends Thread implements MonitorThread {
 		private volatile boolean running;
 		
 		/* Local logging instance */
-		private Logger logger = Logger.getLogger(this.getClass().getName());
+		private Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
 		/**
 		 * Constructor
@@ -75,7 +76,7 @@ public class SessionsMonitor extends Thread implements MonitorThread {
 			this.idCache = idCache;
 			this.sessionCache =  sessionCache;
 			
-			this.setName("Sessions Monitor Thread {" + new Integer(new Random().nextInt()) + "}" ); //$NON-NLS-1$ //$NON-NLS-2$
+			this.setName("Sessions Monitor Thread" ); //$NON-NLS-1$ //$NON-NLS-2$
 			
 			this.logger.info(MessageFormat.format(Messages.getString("SessionsMonitor.10"), interval, timeout)); //$NON-NLS-1$
 		
@@ -99,21 +100,36 @@ public class SessionsMonitor extends Thread implements MonitorThread {
 				{
 					sleep(this.interval);
 					
-					// clean the identifier cache up
+					// Clean the identifier cache. NOTE: not distributed, so no need to check for processing by another class.
 					int numRemoved = this.idCache.cleanCache(this.timeout);
-
-					this.logger.debug(Messages.getString("SessionsMonitor.5") + numRemoved + Messages.getString("SessionsMonitor.6")); //$NON-NLS-1$ //$NON-NLS-2$ 			
+					this.logger.debug(MessageFormat.format(Messages.getString("SessionsMonitor.5") , numRemoved)); //$NON-NLS-1$
 					
-					// clean the session cache
-					numRemoved = this.sessionCache.cleanCache(this.timeout);
-					
-					this.logger.debug(Messages.getString("SessionsMonitor.7") + numRemoved + Messages.getString("SessionsMonitor.8")); //$NON-NLS-1$ //$NON-NLS-2$
-										
+					int cleanedAgo = (int)(System.currentTimeMillis() - this.sessionCache.getLastCleaned()) ;
+						
+					// clean the session cache if it hasn't been cleaned within the interval range
+					if(cleanedAgo > this.interval)
+					{
+						this.logger.debug("Calling Sessions cache cleanup ...");
+						numRemoved = this.sessionCache.cleanCache(this.timeout);
+						this.logger.debug(MessageFormat.format(Messages.getString("SessionsMonitor.7"), numRemoved )); //$NON-NLS-1$ 
+					}
+					else
+						this.logger.info(MessageFormat.format("Session cache was last cleaned {0} seconds ago. Not calling cleanup.", (cleanedAgo/1000)) );
+			
 				}
 				catch (InterruptedException e)
 				{
 					if(!this.isRunning())
 						break;
+				}
+				catch(Exception e)
+				{					
+					// Any exceptions here is bad. For robustness only, but it's more than likely that the Thread will not continue
+					// to operate as intended if an exception is thrown, so find and eliminate it if possible. 
+					this.logger.debug("Ignoring caught Exception - " + e.fillInStackTrace());
+					// TODO change to trace level
+					this.logger.debug("Stack Trace: ", e);
+					e.printStackTrace();
 				}
 				
 			}

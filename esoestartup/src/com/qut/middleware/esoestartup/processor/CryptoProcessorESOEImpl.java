@@ -26,7 +26,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.security.cert.CertificateException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import com.qut.middleware.crypto.exception.CryptoException;
@@ -36,7 +37,7 @@ import com.qut.middleware.esoestartup.Constants;
 public class CryptoProcessorESOEImpl extends CryptoProcessorImpl
 {
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(CryptoProcessorESOEImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(CryptoProcessorESOEImpl.class.getName());
 	
 	public CryptoProcessorESOEImpl()
 	{
@@ -65,25 +66,25 @@ public class CryptoProcessorESOEImpl extends CryptoProcessorImpl
 		catch (KeyStoreException e)
 		{
 			this.logger.error("KeyStoreException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error("NoSuchAlgorithmException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (CertificateException e)
 		{
 			this.logger.error("CertificateException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 		catch (IOException e)
 		{
 			this.logger.error("IOException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new CryptoException(e.getLocalizedMessage(), e);
 		}
 	}

@@ -22,7 +22,8 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
@@ -55,8 +56,8 @@ public class CreateImpl implements Create
 	private int sessionLength;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(CreateImpl.class.getName());
-	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
+	private Logger logger = LoggerFactory.getLogger(CreateImpl.class.getName());
+	private Logger authnLogger = LoggerFactory.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
 	 * Constructor
@@ -144,7 +145,7 @@ public class CreateImpl implements Create
 
 		/*
 		 * Principal is created and identity information setup from backend stores, add dynamically specified data from
-		 * the authn handler to allow authz decisions to be made on authn type, provides for n-level authn teiring and
+		 * the authn handler to allow authz decisions to be made on authn type, provides for n-level authn and
 		 * higher level security domains
 		 */
 		if (authnIdentityAttributes != null)

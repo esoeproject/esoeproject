@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -45,6 +46,11 @@ import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 import org.w3c.dom.Element;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
@@ -82,9 +88,6 @@ import com.qut.middleware.saml2.schemas.protocol.StatusCode;
 import com.qut.middleware.saml2.schemas.protocol.StatusResponseType;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.qut.middleware.spep.ConfigurationConstants;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
-import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor.decision;
 import com.qut.middleware.spep.pep.impl.PolicyEnforcementProcessorImpl;
 import com.qut.middleware.spep.pep.impl.SessionGroupCacheImpl;
@@ -103,8 +106,8 @@ public class PolicyEnforcementProcessorTest
 	private SessionGroupCache sessionGroupCache;
 	private WSClient wsClient;
 	private IdentifierGenerator identifierGenerator;
-	private KeyStoreResolver keyStoreResolver;
-	private Metadata metadata;
+	private KeystoreResolver keyStoreResolver;
+	private MetadataProcessor metadata;
 	private PolicyEnforcementProcessor processor;
 	private String spepIdentifier;
 	private String documentID;
@@ -123,6 +126,9 @@ public class PolicyEnforcementProcessorTest
 	private String clearAuthzCachePackages;
 	private UnmarshallerImpl<ClearAuthzCacheResponse> clearAuthzCacheResponseUnmarshaller;
 	private String spepKeyAlias = "54f748a6c6b8a4f8";
+	private List<Object> mocked;
+	private EntityData esoeEntityData;
+	private TrustedESOERole esoeRole;
 	
 	public PolicyEnforcementProcessorTest() {}
 	
@@ -132,6 +138,8 @@ public class PolicyEnforcementProcessorTest
 	@Before
 	public void setUp() throws Exception
 	{
+		this.mocked = new ArrayList<Object>();
+		
 		this.spepIdentifier = "_joqijoiqfjoimaslkjflaksjdflkasjdlfasdf-awjoertjq908jr9182j30r91j203r9";
 		this.esoeIdentifier = "_5thqweroqir82u39r8juq9238jrt0q29j3r09q0r9jq-t0iq0-2jtiopqwjeotijowijt";
 		this.esoeSessionIndex = "_jtlaksjdoriqwjeoriuqwoeruiqwoeijroqwijf-q095801293u092u13059u120935u0";
@@ -140,18 +148,28 @@ public class PolicyEnforcementProcessorTest
 		this.authzServiceEndpoint = "https://esoe.url/authz";
 		
 		this.wsClient = createMock(WSClient.class);
+		this.mocked.add(this.wsClient);
 		
 		this.identifierGenerator = createMock(IdentifierGenerator.class);
+		this.mocked.add(this.identifierGenerator);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.documentID).anyTimes();
 		
-		this.keyStoreResolver = new KeyStoreResolverImpl(new FileInputStream( "tests" + File.separator + "testdata" + File.separator + "testspkeystore.ks"), "esoekspass", "54f748a6c6b8a4f8", "9d600hGZQV7591nWVtNcwAtU");
+		this.keyStoreResolver = new KeystoreResolverImpl(new File( "tests" + File.separator + "testdata" + File.separator + "testspkeystore.ks"), "esoekspass", "54f748a6c6b8a4f8", "9d600hGZQV7591nWVtNcwAtU");
 
-		this.metadata = createMock(Metadata.class);
-		expect(this.metadata.getSPEPIdentifier()).andReturn(this.spepIdentifier).anyTimes();
-		expect(this.metadata.getAuthzServiceEndpoint()).andReturn(this.authzServiceEndpoint).anyTimes();
-		expect(this.metadata.resolveKey(this.spepKeyAlias)).andReturn(this.keyStoreResolver.resolveKey(this.spepKeyAlias)).anyTimes();
+		this.metadata = createMock(MetadataProcessor.class);
+		this.mocked.add(this.metadata);
+		this.esoeEntityData = createMock(EntityData.class);
+		this.mocked.add(this.esoeEntityData);
+		this.esoeRole = createMock(TrustedESOERole.class);
+		this.mocked.add(this.esoeRole);
+		expect(this.metadata.getEntityData(this.esoeIdentifier)).andReturn(this.esoeEntityData).anyTimes();
+		expect(this.metadata.getEntityRoleData(this.esoeIdentifier, TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeEntityData.getRoleData(TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeRole.getLXACMLAuthzServiceEndpoint((String)notNull())).andReturn(this.authzServiceEndpoint).anyTimes();
+		expect(this.metadata.resolveKey(this.spepKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 		
 		IdentifierCache identifierCache = createMock(IdentifierCache.class);
+		this.mocked.add(identifierCache);
 		identifierCache.registerIdentifier((String)notNull());
 		expectLastCall().anyTimes();
 		
@@ -166,12 +184,14 @@ public class PolicyEnforcementProcessorTest
 				ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget,
 				ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion};
 		
-		this.responseMarshaller = new MarshallerImpl<Response>(this.marshallPackages, schemas, this.keyStoreResolver.getKeyAlias(), this.keyStoreResolver.getPrivateKey());
+		this.responseMarshaller = new MarshallerImpl<Response>(this.marshallPackages, schemas, this.keyStoreResolver);
 
 		this.principalSession = createMock(PrincipalSession.class);
+		this.mocked.add(this.principalSession);
 		expect(this.principalSession.getEsoeSessionID()).andReturn(this.esoeSessionIndex).anyTimes();
 		
 		this.sessionCache = createMock(SessionCache.class);
+		this.mocked.add(this.sessionCache);
 		expect(this.sessionCache.getPrincipalSession((String)notNull())).andReturn(this.principalSession).anyTimes();
 		
 		String[] groupTargetSchemas = new String[]{ConfigurationConstants.lxacmlGroupTarget};
@@ -182,7 +202,7 @@ public class PolicyEnforcementProcessorTest
 			RequestAbstractType.class.getPackage().getName();
 		
 		String[] clearAuthzCacheSchemas = new String[]{ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol};
-		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.clearAuthzCachePackages, clearAuthzCacheSchemas, this.keyStoreResolver.getKeyAlias(), this.keyStoreResolver.getPrivateKey());
+		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.clearAuthzCachePackages, clearAuthzCacheSchemas, this.keyStoreResolver);
 		this.clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(this.clearAuthzCachePackages, clearAuthzCacheSchemas, this.keyStoreResolver);
 	}
 	
@@ -191,7 +211,7 @@ public class PolicyEnforcementProcessorTest
 		this.sessionGroupCache = new SessionGroupCacheImpl(defaultDecision);
 		try
 		{
-			this.processor = new PolicyEnforcementProcessorImpl(this.sessionCache, this.sessionGroupCache, this.wsClient, this.identifierGenerator, this.metadata, this.keyStoreResolver, this.samlValidator);
+			this.processor = new PolicyEnforcementProcessorImpl(this.sessionCache, this.sessionGroupCache, this.wsClient, this.identifierGenerator, this.metadata, this.keyStoreResolver, this.samlValidator, this.esoeIdentifier, this.spepIdentifier, false, false);
 		}
 		catch (Exception e)
 		{
@@ -201,20 +221,12 @@ public class PolicyEnforcementProcessorTest
 	
 	private void startMock()
 	{
-		replay(this.sessionCache);
-		replay(this.wsClient);
-		replay(this.identifierGenerator);
-		replay(this.metadata);
-		replay(this.principalSession);
+		for (Object o : this.mocked) replay(o);
 	}
 	
 	private void endMock()
 	{
-		verify(this.sessionCache);
-		verify(this.wsClient);
-		verify(this.identifierGenerator);
-		verify(this.metadata);
-		verify(this.principalSession);
+		for (Object o : this.mocked) verify(o);
 	}
 
 	/**
@@ -876,9 +888,9 @@ public class PolicyEnforcementProcessorTest
 		return requestXml;
 	}
 	
-	protected void validateClearAuthzCacheResponse(byte[] responseDocument) throws SignatureValueException, ReferenceValueException, UnmarshallerException
+	protected void validateClearAuthzCacheResponse(byte[] responseDocument) throws UnmarshallerException
 	{
-		ClearAuthzCacheResponse response = this.clearAuthzCacheResponseUnmarshaller.unMarshallSigned(responseDocument);
+		ClearAuthzCacheResponse response = this.clearAuthzCacheResponseUnmarshaller.unMarshallUnSigned(responseDocument);
 		
 		assertEquals("Clear authz cache response was invalid", StatusCodeConstants.success, response.getStatus().getStatusCode().getValue());
 	}

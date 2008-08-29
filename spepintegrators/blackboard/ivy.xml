@@ -23,6 +23,7 @@
 	<dependencies>
         <!-- Development dependencies -->
         <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
+        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev->default"/>
         <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>
         
         <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 

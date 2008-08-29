@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="esoecore" revision="${esoe.version}">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Bradley Beddoes"
+			url="http://intient.com/blogs/beddoes" />
+	</info>
+
+	<configurations>
+		<conf name="endorsed" visibility="public" description="Compile dependencies" />
+		<conf name="shared" visibility="public" description="Runtime dependencies" />
+	</configurations>
+
+	<dependencies>		
+		<dependency org="org.apache.xalan" name="com.springsource.org.apache.xalan" rev="2.7.0" conf="endorsed->runtime"/>
+	    <dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.8.1"  conf="endorsed->runtime"/>
+	    <dependency org="sun" name="jaxb" rev="2.0.5A" conf="endorsed->runtime"/>
+	    
+	    <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.dbcp" rev="1.2.2.osgi" conf="shared->runtime"/>
+	    <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.pool" rev="1.4.0" conf="shared->runtime"/>
+			
+		<exclude artifact=".*-sources" matcher="regexp" conf="endorsed,shared"/>          
+	</dependencies>
+
+</ivy-module>

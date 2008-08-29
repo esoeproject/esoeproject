@@ -1,0 +1,10 @@
+#
+# Questions required to configure data repository
+#
+# Question format: varname|query|default<|supported,values>
+#
+
+driver|Which database engine are you deploying with? mysql/oracle [mysql]: |mysql|mysql,oracle
+url|What is the URL for your database server? (must be JDBC format, see install instructions) : 
+username|Database username? [esoe]: |esoe
+password|Database password?: 

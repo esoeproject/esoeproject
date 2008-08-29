@@ -27,10 +27,16 @@ import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 import org.w3c.dom.Element;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.exception.MetadataStateException;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.BindingConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
@@ -48,7 +54,6 @@ import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.assertion.StatementAbstractType;
 import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmation;
 import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmationDataType;
-import com.qut.middleware.saml2.schemas.esoe.lxacml.Actions;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.AttributeAssignment;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligation;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligations;
@@ -71,8 +76,6 @@ import com.qut.middleware.saml2.schemas.protocol.Status;
 import com.qut.middleware.saml2.schemas.protocol.StatusCode;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.spep.ConfigurationConstants;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.spep.pep.Messages;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
@@ -89,7 +92,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	private static String OBLIGATION_ID = "lxacmlpdp:obligation:cachetargets"; //$NON-NLS-1$
 
 	private IdentifierGenerator identifierGenerator;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private Marshaller<LXACMLAuthzDecisionQuery> lxacmlAuthzDecisionQueryMarshaller;
 	private Unmarshaller<Response> responseUnmarshaller;
 	private WSClient wsClient;
@@ -105,10 +108,14 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	private final String UNMAR_PKGNAMES3 = GroupTarget.class.getPackage().getName();
 	private final String MAR_PKGNAMES = LXACMLAuthzDecisionQuery.class.getPackage().getName();
 	private final String MAR_PKGNAMES2 = ClearAuthzCacheRequest.class.getPackage().getName() + ":" + Request.class.getPackage().getName(); //$NON-NLS-1$
+	private final String IMPLEMENTED_BINDING = BindingConstants.soap;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(PolicyEnforcementProcessorImpl.class.getName());
-	private Logger authzLogger = Logger.getLogger(ConfigurationConstants.authzLogger);
+	private Logger logger = LoggerFactory.getLogger(PolicyEnforcementProcessorImpl.class.getName());
+	private Logger authzLogger = LoggerFactory.getLogger(ConfigurationConstants.authzLogger);
+	private String spepIdentifier;
+	private String trustedESOEIdentifier;
+	private boolean disablePolicyEnforcement;
 
 	/**
 	 * @param reportingProcessor
@@ -132,7 +139,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 * @throws UnmarshallerException
 	 *             if the unmarshaller canot be created.
 	 */
-	public PolicyEnforcementProcessorImpl(SessionCache sessionCache, SessionGroupCache sessionGroupCache, WSClient wsClient, IdentifierGenerator identifierGenerator, Metadata metadata, KeyStoreResolver keyStoreResolver, SAMLValidator samlValidator) throws MarshallerException, UnmarshallerException
+	public PolicyEnforcementProcessorImpl(SessionCache sessionCache, SessionGroupCache sessionGroupCache, WSClient wsClient, IdentifierGenerator identifierGenerator, MetadataProcessor metadata, KeystoreResolver keyStoreResolver, SAMLValidator samlValidator, String trustedESOEIdentifier, String spepIdentifier, boolean disablePolicyEnforcement, boolean enableCompatibility) throws MarshallerException, UnmarshallerException
 	{
 		if (sessionCache == null)
 		{
@@ -169,20 +176,27 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		this.identifierGenerator = identifierGenerator;
 		this.metadata = metadata;
 		this.samlValidator = samlValidator;
+		this.spepIdentifier = spepIdentifier;
+		this.trustedESOEIdentifier = trustedESOEIdentifier;
+		this.disablePolicyEnforcement = disablePolicyEnforcement;
 
 		String[] authzDecisionSchemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.samlProtocol };
-		this.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(this.MAR_PKGNAMES, authzDecisionSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, authzDecisionSchemas, this.metadata);
-
 		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
-
+		
 		// create marshallers/unmarshallers
 		this.clearAuthzCacheRequestUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheRequest>(this.UNMAR_PKGNAMES2, clearAuthzCacheSchemas, this.metadata);
-		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(this.MAR_PKGNAMES2, clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(this.MAR_PKGNAMES2, clearAuthzCacheSchemas, keyStoreResolver);
 
-		String[] groupTargetSchemas = new String[] { ConfigurationConstants.lxacmlGroupTarget };
-		this.groupTargetUnmarshaller = new UnmarshallerImpl<GroupTarget>(this.UNMAR_PKGNAMES3, groupTargetSchemas);
-
+		// We don't need the LXACML marshaller/unmarshaller if we're not enforcing policies
+		if (!disablePolicyEnforcement)
+		{
+			this.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(this.MAR_PKGNAMES, authzDecisionSchemas, keyStoreResolver);
+			this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, authzDecisionSchemas, this.metadata);
+	
+			String[] groupTargetSchemas = new String[] { ConfigurationConstants.lxacmlGroupTarget };
+			this.groupTargetUnmarshaller = new UnmarshallerImpl<GroupTarget>(this.UNMAR_PKGNAMES3, groupTargetSchemas);
+		}
+		
 		this.logger.info(Messages.getString("PolicyEnforcementProcessorImpl.40")); //$NON-NLS-1$
 	}
 
@@ -195,7 +209,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	{
 		String id = null, statusCodeValue = null, statusMessage = null;
 		PrincipalSession principal;
-
+		
 		try
 		{
 			this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.0")); //$NON-NLS-1$
@@ -203,6 +217,13 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 			id = clearAuthzCacheRequest.getID();
 
 			this.samlValidator.getRequestValidator().validate(clearAuthzCacheRequest);
+
+			// If policy enforcement is disabled, we don't need to do any further processing.
+			if (this.disablePolicyEnforcement)
+			{
+				statusCodeValue = StatusCodeConstants.success;
+				return buildResponse(id, statusMessage, statusCodeValue);
+			}
 
 			/*
 			 * Determine if the ESOE has identifier the principal whose session we are to terminate, if this does not
@@ -311,7 +332,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getSPEPIdentifier());
+		issuer.setValue(this.spepIdentifier);
 
 		Status status = new Status();
 		StatusCode statusCode = new StatusCode();
@@ -342,6 +363,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 */
 	public decision makeAuthzDecision(String sessionID, String resource)
 	{
+		// This calls the method below
 		return makeAuthzDecision(sessionID, resource, null);
 	}
 
@@ -350,6 +372,12 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 */
 	public decision makeAuthzDecision(String sessionID, String resource, String action)
 	{
+		// Return a permit quickly if policy enforcement is disabled.
+		if (this.disablePolicyEnforcement)
+		{
+			return decision.permit;
+		}
+		
 		PrincipalSession principalSession = this.sessionCache.getPrincipalSession(sessionID);
 		if (principalSession == null)
 			return decision.error;
@@ -388,7 +416,24 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 			}
 
 			// Make the web service call.. could be a lengthy process
-			String endpoint = this.metadata.getAuthzServiceEndpoint();
+			String endpoint = null;
+			try
+			{
+				TrustedESOERole trustedESOERole = this.metadata.getEntityRoleData(this.trustedESOEIdentifier, TrustedESOERole.class);
+				endpoint = trustedESOERole.getLXACMLAuthzServiceEndpoint(IMPLEMENTED_BINDING);
+			}
+			catch (MetadataStateException e)
+			{
+				this.logger.error("Unable to get trusted ESOE role from metadata processor - the state is invalid. Returning error result from PEP for ESOE session ID " + principalSession.getEsoeSessionID(), e);
+				return decision.error;
+			}
+			
+			if (endpoint == null)
+			{
+				this.logger.error("Unable to get trusted ESOE role from metadata processor - No trusted ESOE was found with the given identifier. Returning error result from PEP for ESOE session ID " + principalSession.getEsoeSessionID());
+				return decision.error;
+			}
+			
 			byte[] responseDocument;
 			try
 			{
@@ -440,7 +485,6 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		decision policyDecision = null;
 
 		this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.18")); //$NON-NLS-1$
-		this.logger.debug(responseDocument);
 
 		Response response = this.responseUnmarshaller.unMarshallSigned(responseDocument);
 
@@ -644,7 +688,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 		// SPEP <Issuer> tag
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getSPEPIdentifier());
+		issuer.setValue(this.spepIdentifier);
 
 		// The actual authz query.
 		LXACMLAuthzDecisionQuery lxacmlAuthzDecisionQuery = new LXACMLAuthzDecisionQuery();

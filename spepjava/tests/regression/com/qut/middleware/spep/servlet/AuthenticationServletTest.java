@@ -21,18 +21,13 @@ package com.qut.middleware.spep.servlet;
 
 import static com.qut.middleware.test.regression.Capture.capture;
 import static com.qut.middleware.test.regression.Modify.modify;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -46,11 +41,14 @@ import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.SPEPRole;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.spep.SPEP;
 import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessorData;
 import com.qut.middleware.spep.exception.AuthenticationException;
-import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.test.regression.Capture;
 import com.qut.middleware.test.regression.LineVectorOutputStream;
 import com.qut.middleware.test.regression.Modify;
@@ -64,12 +62,17 @@ public class AuthenticationServletTest
 	private ServletContext servletContext;
 	private ServletConfig servletConfig;
 	private AuthnProcessor authnProcessor;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private String tokenName;
 	private String serviceHost;
+	private String spepIdentifier;
+	private String esoeIdentifier;
 	private byte[] authnRequest;
 	private String singleSignOnEndpoint;
 	private String defaultRequestURL;
+	private List<Object> mocked;
+	private EntityData esoeEntityData;
+	private TrustedESOERole esoeRole;
 
 	/**
 	 * @throws java.lang.Exception
@@ -77,29 +80,46 @@ public class AuthenticationServletTest
 	@Before
 	public void setUp() throws Exception
 	{
+		this.mocked = new ArrayList<Object>();
+		
 		this.tokenName = "spep-session";
-		this.serviceHost = "spep-dev.qut.edu.au";
+		this.serviceHost = "http://spep-dev.example.com";
+		this.spepIdentifier = "spep-dev.example.com";
+		this.esoeIdentifier = "esoe.example.com";
 		this.authnRequest = new String("This is an authn request.").getBytes();
 		this.singleSignOnEndpoint = "this is the single sign-on endpoint";
-		this.defaultRequestURL = "http://this.is.the.default/url";
+		this.defaultRequestURL = "http://spep-dev.example.com/default";
 		
 		this.authnProcessor = createMock(AuthnProcessor.class);
+		this.mocked.add(this.authnProcessor);
 		
-		this.metadata = createMock(Metadata.class);
-		expect(this.metadata.getSingleSignOnEndpoint()).andReturn(this.singleSignOnEndpoint).anyTimes();
+		this.metadata = createMock(MetadataProcessor.class);
+		this.mocked.add(this.metadata);
+		this.esoeEntityData = createMock(EntityData.class);
+		this.mocked.add(this.esoeEntityData);
+		this.esoeRole = createMock(TrustedESOERole.class);
+		this.mocked.add(this.esoeRole);
+		expect(this.metadata.getEntityData(this.esoeIdentifier)).andReturn(this.esoeEntityData).anyTimes();
+		expect(this.metadata.getEntityRoleData(this.esoeIdentifier, TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeEntityData.getRoleData(TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeRole.getSingleSignOnService((String)notNull())).andReturn(this.singleSignOnEndpoint).anyTimes();
 		
 		this.spep = createMock(SPEP.class);
+		this.mocked.add(this.spep);
 		expect(this.spep.getAuthnProcessor()).andReturn(this.authnProcessor).anyTimes();
-		expect(this.spep.getMetadata()).andReturn(this.metadata).anyTimes();
+		expect(this.spep.getMetadataProcessor()).andReturn(this.metadata).anyTimes();
 		expect(this.spep.getTokenName()).andReturn(this.tokenName).anyTimes();
 		expect(this.spep.getServiceHost()).andReturn(this.serviceHost).anyTimes();
 		expect(this.spep.getDefaultUrl()).andReturn(this.defaultRequestURL).anyTimes();
 		expect(this.spep.isStarted()).andReturn(Boolean.TRUE).anyTimes();
+		expect(this.spep.getTrustedESOEIdentifier()).andReturn(this.esoeIdentifier).anyTimes();
 		
 		this.servletContext = createMock(ServletContext.class);
+		this.mocked.add(this.servletContext);
 		expect(this.servletContext.getAttribute((String)notNull())).andReturn(this.spep).anyTimes();
 		
 		this.servletConfig = createMock(ServletConfig.class);
+		this.mocked.add(this.servletConfig);
 		expect(this.servletConfig.getServletContext()).andReturn(this.servletContext).anyTimes();
 
 		this.authenticationServlet = new AuthenticationServlet();
@@ -107,20 +127,12 @@ public class AuthenticationServletTest
 	
 	private void startMock()
 	{
-		replay(this.spep);
-		replay(this.servletContext);
-		replay(this.servletConfig);
-		replay(this.authnProcessor);
-		replay(this.metadata);
+		for (Object o : this.mocked) replay(o);
 	}
 	
 	private void endMock()
 	{
-		verify(this.spep);
-		verify(this.servletContext);
-		verify(this.servletConfig);
-		verify(this.authnProcessor);
-		verify(this.metadata);
+		for (Object o : this.mocked) verify(o);
 	}
 
 	/**

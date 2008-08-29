@@ -36,8 +36,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.qut.middleware.metadata.bean.saml.IdentityProviderRole;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.exception.MetadataStateException;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.BindingConstants;
 import com.qut.middleware.spep.Initializer;
 import com.qut.middleware.spep.SPEP;
 import com.qut.middleware.spep.authn.AuthnProcessorData;
@@ -55,9 +61,10 @@ public class AuthenticationServlet extends HttpServlet
 	private SPEP spep;
 	private boolean initDone = false;
 	private MessageFormat samlMessageFormat;
+	private static final String IMPLEMENTED_BINDING = BindingConstants.httpPost;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AuthenticationServlet.class.getName());
 
 	/**
 	 * 
@@ -107,6 +114,13 @@ public class AuthenticationServlet extends HttpServlet
 		super.init(config);
 		initSPEP();
 	}
+	
+	@Override
+	public void destroy()
+	{
+		super.destroy();
+		Initializer.cleanup( this.getServletContext() );
+	}
 
 	private synchronized void initSPEP() throws ServletException
 	{
@@ -121,7 +135,7 @@ public class AuthenticationServlet extends HttpServlet
 		}
 		catch (Exception e)
 		{
-			this.logger.fatal("Initializer exception: " + e.getLocalizedMessage());
+			this.logger.error("Initializer exception: " + e.getLocalizedMessage());
 			throw new ServletException(e);
 		}
 
@@ -253,15 +267,41 @@ public class AuthenticationServlet extends HttpServlet
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
 		data.setRequest(request);
 		data.setResponse(response);
-		data.setRequestURL(requestedURL);
+		/* Base64 strings do not have spaces in them. So if one does, it means
+		 * that something strange has happened to make the servlet engine translate
+		 * the plus symbols into spaces. We just need to translate them back.
+		 */
+		requestedURL = requestedURL.replace(' ', '+');
+		data.setRequestURL( requestedURL );
+		
+		this.logger.debug("RequestedURL: " + requestedURL);
 
+		String ssoURL;
+		try
+		{
+			MetadataProcessor metadataProcessor = this.spep.getMetadataProcessor();
+			IdentityProviderRole identityProviderRole;
+			if (this.spep.enableCompatibility())
+			{
+				identityProviderRole = metadataProcessor.getEntityRoleData(this.spep.getTrustedESOEIdentifier(), IdentityProviderRole.class);
+			}
+			else
+			{
+				identityProviderRole = metadataProcessor.getEntityRoleData(this.spep.getTrustedESOEIdentifier(), TrustedESOERole.class);
+			}
+			ssoURL = identityProviderRole.getSingleSignOnService(IMPLEMENTED_BINDING);
+		}
+		catch (MetadataStateException e)
+		{
+			throw new AuthenticationException("Authentication could not be completed because the metadata state is invalid. Exception was: " + e.getMessage(), e);
+		}
+
+		data.setDestinationURL(ssoURL);
 		this.spep.getAuthnProcessor().generateAuthnRequest(data);
 
 		samlRequestEncoded = Base64.encodeBase64(data.getRequestDocument());
 
 		String base64SAMLDocument = new String(samlRequestEncoded); //$NON-NLS-1$
-		String ssoURL = this.spep.getMetadata().getSingleSignOnEndpoint();
-
 		this.logger.debug(Messages.getString("AuthenticationServlet.10")); //$NON-NLS-1$
 		this.logger.debug("Using ssoURL of: " + ssoURL);
 		this.logger.debug("Using samlDocument encode of: \n" + base64SAMLDocument);

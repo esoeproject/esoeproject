@@ -23,7 +23,8 @@ import java.lang.reflect.Proxy;
 
 import javax.servlet.ServletContext;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.SPEPProxy;
@@ -36,14 +37,14 @@ import com.qut.middleware.spep.filter.proxy.GenericObjectInvocationHandler;
 public class Initializer {
 	
 	/* Local logging instance */
-	static private Logger logger = Logger.getLogger(Initializer.class.getName());
+	static private Logger logger = LoggerFactory.getLogger(Initializer.class.getName());
 	
 	/**
 	 * @param context The servlet context in which to initialize a SPEP
 	 * @return The SPEP for the given servlet context.
 	 * @throws SPEPInitializationException 
 	 */
-	public static synchronized SPEPProxy init(ServletContext context) throws SPEPInitializationException
+	public static SPEPProxy init(ServletContext context) throws SPEPInitializationException
 	{
 		if( context == null )
 		{

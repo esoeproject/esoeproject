@@ -22,7 +22,8 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
@@ -43,8 +44,8 @@ public class UpdateImpl implements Update
 	private SessionCache cache;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(UpdateImpl.class.getName());
-	private Logger authnLogger = Logger.getLogger(ConfigurationConstants.authnLogger);
+	private Logger logger = LoggerFactory.getLogger(UpdateImpl.class.getName());
+	private Logger authnLogger = LoggerFactory.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
 	 * Constructor.

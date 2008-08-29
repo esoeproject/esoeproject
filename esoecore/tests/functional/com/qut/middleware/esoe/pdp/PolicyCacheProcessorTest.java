@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -43,28 +44,30 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.metadata.exception.InvalidMetadataEndpointException;
-import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
-import com.qut.middleware.esoe.pdp.cache.PolicyCacheProcessor;
-import com.qut.middleware.esoe.pdp.cache.bean.AuthzPolicyCache;
-import com.qut.middleware.esoe.pdp.cache.bean.impl.AuthzPolicyCacheImpl;
-import com.qut.middleware.esoe.pdp.cache.impl.AuthzCacheUpdateFailureRepositoryImpl;
-import com.qut.middleware.esoe.pdp.cache.impl.PolicyCacheProcessorImpl;
-import com.qut.middleware.esoe.pdp.cache.sqlmap.PolicyCacheDao;
-import com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheData;
-import com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheQueryData;
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.esoe.authz.cache.AuthzCacheUpdateFailureRepository;
+import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor;
+import com.qut.middleware.esoe.authz.cache.impl.AuthzCacheUpdateFailureRepositoryImpl;
+import com.qut.middleware.esoe.authz.cache.impl.PolicyCacheProcessorImpl;
+import com.qut.middleware.esoe.authz.cache.sqlmap.PolicyCacheDao;
+import com.qut.middleware.esoe.authz.cache.sqlmap.impl.PolicyCacheData;
+import com.qut.middleware.esoe.authz.cache.sqlmap.impl.PolicyCacheQueryData;
+import com.qut.middleware.esoe.pdp.cache.AuthzPolicyCache;
+import com.qut.middleware.esoe.pdp.cache.impl.AuthzPolicyCacheImpl;
 import com.qut.middleware.esoe.ws.WSClient;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.SPEPRole;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpoint;
+import com.qut.middleware.metadata.bean.saml.endpoint.impl.IndexedEndpointImpl;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
-import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
-import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
@@ -79,24 +82,20 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
-/**
- * @author zedly
- *
- */
 @SuppressWarnings("nls")
 public class PolicyCacheProcessorTest
 {
 	private PolicyCacheProcessorImpl testCacheProcessor;
 	private AuthzCacheUpdateFailureRepository failureRep;
 	private AuthzPolicyCache testCache;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private Map<Integer,String> endpoints;
 	private PolicyCacheDao policyCacheDao;
 	private WSClient webServiceClient;
 	private String validSpep = "_123456-validspep";
 	private String validSpep2 = "urn:spep:entity:2";
 	private String invalidSpep = "_123456-invalidspep";
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private Marshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseMarshaller;
 	private Marshaller<Policy> policyMarshaller;
 	private IdentifierGeneratorImpl idGenerator;
@@ -110,6 +109,8 @@ public class PolicyCacheProcessorTest
 	
 	List<PolicyCacheData> fullList ;
 	List<PolicyCacheData> updateList;
+	private String esoeKeyAlias;
+	private int spepIndex;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -128,14 +129,14 @@ public class PolicyCacheProcessorTest
 		
 		String keyStorePath = "tests" + File.separator + "testdata" + File.separator + "testskeystore.ks";
 		String keyStorePassword = "Es0EKs54P4SSPK";
-		String esoeKeyAlias = "esoeprimary";
+		esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 	
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 				
-		String[] clearAuthzCacheSchemas = new String[]{ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol};
-		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(ClearAuthzCacheRequest.class.getPackage().getName() + ":" + Request.class.getPackage().getName(), clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-		this.policyMarshaller = new MarshallerImpl<Policy>(Policy.class.getPackage().getName(), new String[] { ConfigurationConstants.lxacml });
+		String[] clearAuthzCacheSchemas = new String[]{SchemaConstants.esoeProtocol, SchemaConstants.samlAssertion, SchemaConstants.samlProtocol};
+		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(ClearAuthzCacheRequest.class.getPackage().getName() + ":" + Request.class.getPackage().getName(), clearAuthzCacheSchemas, keyStoreResolver);
+		this.policyMarshaller = new MarshallerImpl<Policy>(Policy.class.getPackage().getName(), new String[] { SchemaConstants.lxacml });
 		
 		this.validator = new SAMLValidatorImpl(new IdentifierCacheImpl(), skew);
 		this.identifierCache = new IdentifierCacheImpl();
@@ -151,6 +152,8 @@ public class PolicyCacheProcessorTest
 		// 1 with an existing entity ID, but no policies for a remove
 		fullList = new Vector<PolicyCacheData>();
 		updateList = new Vector<PolicyCacheData>();
+		
+		this.spepIndex = 12345;
 		
 		// SETUP policies to be included in startup rebuild - 4 Policies to start
 		PolicyCacheData testPolicy = new PolicyCacheData();
@@ -194,12 +197,28 @@ public class PolicyCacheProcessorTest
 		expect(this.policyCacheDao.queryPolicyCache((PolicyCacheQueryData)notNull()) ).andReturn(updateList).anyTimes();
 		//replay(this.policyCacheDao);
 		
+		EntityData entityData = createMock(EntityData.class);
+		SPEPRole spepRole = createMock(SPEPRole.class);
+		
+		expect(entityData.getRoleData(SPEPRole.class)).andReturn(spepRole).anyTimes();
+		
+		List<IndexedEndpoint> indexedEndpointList = new ArrayList<IndexedEndpoint>();
+		for (Map.Entry<Integer, String> endpoint : this.endpoints.entrySet())
+		{
+			indexedEndpointList.add(new IndexedEndpointImpl(BindingConstants.soap, endpoint.getValue(), endpoint.getKey().intValue()));
+		}
+		
+		expect(spepRole.getCacheClearServiceEndpointList()).andReturn(indexedEndpointList).anyTimes();
+		expect(spepRole.getCacheClearServiceEndpoint(BindingConstants.soap, this.spepIndex)).andReturn(this.endpoints.get(0)).anyTimes();
+		
+		replay(entityData);
+		replay(spepRole);
+		
 		// setup  SPEPs to resolve
-		this.metadata = createMock(Metadata.class);
-		expect(this.metadata.resolveCacheClearService(this.invalidSpep)).andThrow(new InvalidMetadataEndpointException()).anyTimes();
-		expect(this.metadata.resolveCacheClearService((String)notNull())).andReturn(this.endpoints).atLeastOnce();
-		expect(this.metadata.getEsoeEntityID()).andReturn(esoeKeyAlias).anyTimes();
-		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
+		this.metadata = createMock(MetadataProcessor.class);
+		expect(this.metadata.getEntityData(this.invalidSpep)).andReturn(null).anyTimes();
+		expect(this.metadata.getEntityData((String)notNull())).andReturn(entityData).atLeastOnce();
+		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 		replay(this.metadata);
 		
 	}
@@ -220,7 +239,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 	
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		assertTrue(this.testCacheProcessor.isAlive());
 	}
@@ -242,13 +261,13 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 	
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 		
 		Thread.sleep(1000);
 		
 		PolicyCacheProcessor.result result;
 		
-		result = this.testCacheProcessor.spepStartingNotification(this.validSpep, 0);
+		result = this.testCacheProcessor.spepStartingNotification(this.validSpep, this.spepIndex);
 		
 		// assert valid SPEP endpoint notification succeeds
 		
@@ -275,7 +294,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 		
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		Thread.sleep(1000);
 		
@@ -297,7 +316,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 	
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		Thread.sleep(2000);
 		
@@ -328,7 +347,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		Thread.sleep(5000);
 		
@@ -366,7 +385,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 	
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		Thread.sleep(5000);
 		
@@ -397,7 +416,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 	
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		Thread.sleep(5000);
 		
@@ -417,7 +436,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 	
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		assertTrue(this.testCacheProcessor.isAlive()); 	
 		
@@ -518,7 +537,7 @@ public class PolicyCacheProcessorTest
 		replay(this.policyCacheDao);
 		
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 1, esoeKeyAlias);
 	
 		Thread.sleep(10000);
 		
@@ -537,7 +556,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction1() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(null, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 5);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -547,7 +566,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction2() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, null, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 5);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -557,7 +576,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction3() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, null, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 5);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -567,7 +586,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction4() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				null, webServiceClient, keyStoreResolver, idGenerator, validator, 5);
+				null, webServiceClient, keyStoreResolver, idGenerator, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -577,7 +596,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction5() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, null, keyStoreResolver, idGenerator, validator, 5);
+				policyCacheDao, null, keyStoreResolver, idGenerator, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -587,7 +606,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction6() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, null, idGenerator, validator, 5);
+				policyCacheDao, webServiceClient, null, idGenerator, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -597,7 +616,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction7() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, null, validator, 5);
+				policyCacheDao, webServiceClient, keyStoreResolver, null, validator, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -607,7 +626,7 @@ public class PolicyCacheProcessorTest
 	public void testConstruction8() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, null, 5);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, null, 5, esoeKeyAlias);
 	}
 	
 	/** Test invalid parameters in constructor
@@ -617,6 +636,6 @@ public class PolicyCacheProcessorTest
 	public void testConstruction9() throws Exception
 	{
 		this.testCacheProcessor = new PolicyCacheProcessorImpl(failureRep, testCache, metadata, 
-				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, -5);
+				policyCacheDao, webServiceClient, keyStoreResolver, idGenerator, validator, -5, esoeKeyAlias);
 	}
 }

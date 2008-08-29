@@ -1,0 +1,16 @@
+
+SAML 2 for Java
+Copyright 2006-2008, Queensland University of Technology
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+The Simple Logging Facade for Java is used in this project. This is available
+freely from http://www.slf4j.org
+
+The Easymock testing framework is used in this project. 
+This is available freely from http://www.easymock.org
+
+
+
+

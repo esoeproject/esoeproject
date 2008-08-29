@@ -1,0 +1,112 @@
+<h3> Service Details - $serviceDetails.getServiceName()</h3>
+
+Below are the current details of your service
+
+<div id="serviceDetails">
+<h4>Service Description</h4>
+<table>
+<tr>
+<th>Service Name</th>
+<td>$serviceDetails.getServiceName()</td>
+<td/><td/>
+</tr>
+
+<tr>
+<th>Service URL</th>
+<td>$serviceDetails.getServiceURL()</td>
+<td/><td/>
+<tr/>
+
+<tr>
+<th>Service Description</th>
+<td>$serviceDetails.getServiceDescription()</td>
+<td><a href="editservicedescription.htm?eid=$eid">edit</a></td>
+<td/>
+</tr>
+
+<tr>
+<th>Service Authorization Failure Message</th>
+<td>$serviceDetails.getServiceAuthzFailureMsg()</td>
+</tr>
+
+<tr>
+<th>Service Authorization Policy</th>
+<td><a href="editserviceauthorizationpolicy.htm?eid=$serviceDetails.getEntID()&did=$serviceDetails.getDescID()">view / edit</a></td>
+<td/>
+</tr>
+
+<tr>
+<th>Service State</th>
+<td>
+#if($serviceDetails.getActiveFlag().equals("y"))
+active (<a href="modifyservicestate.htm?eid=$serviceDetails.getEntID()&state=deactivate">deactivate</a>)
+#else
+inactive (<a href="modifyservicestate.htm?eid=$serviceDetails.getEntID()&state=activate">activate</a>)
+#end
+</td>
+<td/><td/>
+</tr>
+
+<tr>
+<th>Service configuration</th>
+<td><a href="servicenodeconfiguration.htm?eid=$serviceDetails.getEntID()&did=$serviceDetails.getDescID()&sid=$sid">nodes</a> | <a href="retrievekeystore.htm?did=$serviceDetails.getDescID()">keystore</a></td>
+<td/><td/>
+</tr>
+
+</table>
+</div>
+
+<div id="contactPersons">
+<h4>Service Contacts</h4>
+#if($serviceDetails.getContacts())
+#if($serviceDetails.getContacts().size() > 0)
+You have added the following contacts for this service
+<table>
+<tr>
+<th>Name</th><th>Email</th><th>Telephone</th><th>Company</th><th>Type</th>
+</tr>
+#foreach( $contact in $serviceDetails.getContacts() )
+<tr>
+<td>$contact.getGivenName() $contact.getSurName()</td>
+<td>$contact.getEmailAddress()</td>
+<td>$contact.getTelephoneNumber()</td>
+<td>$contact.getCompany()</td>
+<td>$contact.getContactType()</td>
+<td><a href="editservicecontacts.htm?eid=$serviceDetails.getEntID()&contactID=$contact.getContactID()&action=edit">edit</a></td>
+#if( $serviceDetails.getContacts().size() > 1 )
+<td><a href="editservicecontacts.htm?eid=$serviceDetails.getEntID()&action=delete&contactID=$contact.getContactID()">delete</a></td>
+#end
+</tr>
+#end
+</table>
+#end
+#end
+<a href="editservicecontacts.htm?eid=$serviceDetails.getEntID()&action=add">add new contact</a>
+</div>
+
+<div id="serviceNodes">
+<h4>Service Nodes</h4>
+#if($serviceDetails.getServiceNodes())
+#if($serviceDetails.getServiceNodes().size() > 0)
+You have added the following nodes for this service
+<table>
+<tr>
+<th>Base Node URL</th><th>Assertion Consumer Service</th><th>Single Logout Service</th><th>Cache Clear Service</th><th/><th/>
+</tr>
+<tr>
+#foreach( $node in $serviceDetails.getServiceNodes() )
+<td>$node.getNodeURL()</td>
+<td>$node.getAssertionConsumerService()</td>
+<td>$node.getSingleLogoutService()</td>
+<td>$node.getCacheClearService()</td>
+</tr>
+#end
+</table>
+#end
+#end
+</div>
+
+<div id="saml">
+<h4>SAML XML Descriptor</h4>
+$samlDescriptor
+</div>

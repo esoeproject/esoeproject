@@ -22,11 +22,12 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
 import com.qut.middleware.esoe.delegauthn.DelegatedAuthenticationProcessor;
 import com.qut.middleware.esoe.delegauthn.bean.DelegatedAuthenticationData;
 import com.qut.middleware.esoe.delegauthn.exception.InvalidResponseException;
@@ -34,10 +35,10 @@ import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
-import com.qut.middleware.esoe.sso.impl.Messages;
 import com.qut.middleware.esoe.util.CalendarUtils;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.ConsentIdentifierConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
@@ -63,52 +64,52 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 	private SAMLValidator samlValidator;
 	private SessionsProcessor sessionsProcessor;
 	private IdentifierGenerator identifierGenerator;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private List<String> deniedIdentifiers;
 	private String delegatedAuthnIdentifier;
 
 	private Unmarshaller<RegisterPrincipalRequest> unmarshaller;
 	private Marshaller<RegisterPrincipalResponse> marshaller;
 
-	private final String[] schemas = new String[]{ConfigurationConstants.delegatedAuthn};
+	private final String[] schemas = new String[]{SchemaConstants.delegatedAuthn};
 	private final String UNMAR_PKGNAMES = RegisterPrincipalRequest.class.getPackage().getName();
 	private final String MAR_PKGNAMES = RegisterPrincipalResponse.class.getPackage().getName();
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(DelegatedAuthenticationProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(DelegatedAuthenticationProcessorImpl.class.getName());
 
 	public DelegatedAuthenticationProcessorImpl(SAMLValidator samlValidator, SessionsProcessor sessionsProcessor,
-			IdentifierGenerator identifierGenerator, KeyStoreResolver keyStoreResolver, List<String> deniedIdentifiers, String delegatedAuthnIdentifier) throws UnmarshallerException,
+			IdentifierGenerator identifierGenerator, KeystoreResolver keyStoreResolver, List<String> deniedIdentifiers, String delegatedAuthnIdentifier) throws UnmarshallerException,
 			MarshallerException
 	{
 		if (samlValidator == null)
 		{
-			this.logger.fatal(Messages.getString("DelegatedAuthenticationProcessorImpl.0")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("DelegatedAuthenticationProcessorImpl.0")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("DelegatedAuthenticationProcessorImpl.1")); //$NON-NLS-1$
 		}
 		if (sessionsProcessor == null)
 		{
-			this.logger.fatal(Messages.getString("DelegatedAuthenticationProcessorImpl.2")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("DelegatedAuthenticationProcessorImpl.2")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("DelegatedAuthenticationProcessorImpl.3")); //$NON-NLS-1$
 		}
 		if (identifierGenerator == null)
 		{
-			this.logger.fatal(Messages.getString("DelegatedAuthenticationProcessorImpl.4")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("DelegatedAuthenticationProcessorImpl.4")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("DelegatedAuthenticationProcessorImpl.5")); //$NON-NLS-1$
 		}
 		if (keyStoreResolver == null)
 		{
-			this.logger.fatal(Messages.getString("DelegatedAuthenticationProcessorImpl.6")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("DelegatedAuthenticationProcessorImpl.6")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("DelegatedAuthenticationProcessorImpl.7")); //$NON-NLS-1$
 		}
 		if(deniedIdentifiers == null)
 		{
-			this.logger.fatal(Messages.getString("DelegatedAuthenticationProcessorImpl.8")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("DelegatedAuthenticationProcessorImpl.8")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("DelegatedAuthenticationProcessorImpl.9")); //$NON-NLS-1$
 		}
 		if(delegatedAuthnIdentifier == null)
 		{
-			this.logger.fatal(Messages.getString("DelegatedAuthenticationProcessorImpl.10")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("DelegatedAuthenticationProcessorImpl.10")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("DelegatedAuthenticationProcessorImpl.11")); //$NON-NLS-1$
 		}
 
@@ -120,7 +121,7 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 		this.delegatedAuthnIdentifier = delegatedAuthnIdentifier;
 
 		this.unmarshaller = new UnmarshallerImpl<RegisterPrincipalRequest>(this.UNMAR_PKGNAMES, this.schemas, this.keyStoreResolver);
-		this.marshaller = new MarshallerImpl<RegisterPrincipalResponse>(this.MAR_PKGNAMES, this.schemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		this.marshaller = new MarshallerImpl<RegisterPrincipalResponse>(this.MAR_PKGNAMES, this.schemas, keyStoreResolver);
 	}
 
 	public result execute(DelegatedAuthenticationData processorData)

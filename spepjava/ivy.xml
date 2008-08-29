@@ -7,51 +7,40 @@
 		<license name="Apache 2.0"
 			url="http://www.apache.org/licenses/LICENSE-2.0" />
 		<ivyauthor name="Bradley Beddoes"
-			url="http://intient.com/roller/beddoes" />
-		<repository name="intient-ivy"
-			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+			url="http://intient.com/blogs/beddoes" />
 	</info>
 
 	<configurations>
-		<conf name="default" />
-	
-		<conf name="dev" />
+		<conf name="compile" visibility="public" description="Compile dependencies" />
+		<conf name="runtime" visibility="public" description="Runtime dependencies" />
 		
-		<conf name="dev-release" />
-		<conf name="dev-release-endorsed" />
+		<conf name="optional" visibility="public" description="Optional dependencies" />
+		<conf name="provided" visibility="public" description="Provided dependencies" />
 	</configurations>
 	
 	<publications>
-		<artifact name="spep" type="jar" conf="*"/>
+		<artifact name="spep" type="jar"/>
 	</publications>
 
-	<dependencies>
-		<!-- Development release JDK endorsed dependencies (excluded below) -->
-	    <dependency org="sun" name="jaxb" rev="latest.integration" conf="dev-release-endorsed->default"/>
-	    <dependency org="apache" name="xalan" rev="latest.integration" conf="dev-release-endorsed->default"/>
-	    <dependency org="apache" name="xerces" rev="latest.integration" conf="dev-release-endorsed->default"/>
-		
-		<!-- Development release dependencies -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev-release->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
+	<dependencies>		
+        <dependency org="apache" name="axis2" rev="1.1.1A" conf="compile,runtime"/>
+        <dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile,runtime"/>
+        <dependency org="org.apache.commons" name="com.springsource.org.apache.commons.lang" rev="2.4.0" conf="compile,runtime"/>
+        <dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" conf="compile,runtime"/>
         
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev-release->dev-release">
-        	<exclude org="sun" module="jaxb" />
-        	<exclude org="apache" module="xalan"/>
-        	<exclude org="apache" module="xerces"/>
-        </dependency>
+        <dependency org="esoeproject" name="esoecrypto" rev="${esoe.version}" conf="compile,runtime"/>	
+        <dependency org="esoeproject" name="saml2metadata" rev="${esoe.version}" conf="compile,runtime"/>
+        <dependency org="esoeproject" name="saml2lib-j" rev="${esoe.version}" conf="compile,runtime"/>
         
-        <!-- Development dependencies -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/> 
-        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/> 
-        <dependency org="apache" name="xerces" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="javax.servlet" name="com.springsource.javax.servlet" rev="2.5.0" conf="provided"/>
+		<dependency org="sun" name="jaxb" rev="2.0.5A" conf="provided"/>
+	    <dependency org="org.apache.xalan" name="com.springsource.org.apache.xalan" rev="2.7.0" conf="provided"/>
+	    <dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.8.1"  conf="provided"/>
+	    
+	    <dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="optional"/>
+	    <dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="optional"/>
         
-        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
-        
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev->dev"/>	
+        <exclude artifact=".*-sources" matcher="regexp" conf="runtime,optional,provided"/>	
 	</dependencies>
 
 </ivy-module>

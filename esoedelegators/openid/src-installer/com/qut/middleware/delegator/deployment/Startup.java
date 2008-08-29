@@ -33,9 +33,9 @@ import java.security.KeyStore;
 import java.util.Properties;
 
 import com.qut.middleware.crypto.CryptoProcessor;
-import com.qut.middleware.crypto.KeyStoreResolver;
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.CryptoProcessorImpl;
-import com.qut.middleware.crypto.impl.KeyStoreResolverImpl;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
 import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
@@ -54,7 +54,7 @@ public class Startup
 	private final int KEY_SIZE = 2048;
 
 	private IdentifierGenerator identifierGenerator;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private CryptoProcessor cryptoProcessor;
 
 	private ConfigBean configBean;
@@ -202,7 +202,7 @@ public class Startup
 		loadESOEConfigProperties();
 		this.configBean.setIssuerID(this.identifierGenerator.generateSAMLID());
 
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(this.configBean.getEsoeKeystore()), this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getEsoeKeyName(), this.configBean.getEsoeKeyPassphrase());
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(this.configBean.getEsoeKeystore()), this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getEsoeKeyName(), this.configBean.getEsoeKeyPassphrase());
 		this.cryptoProcessor = new CryptoProcessorImpl(this.keyStoreResolver, this.CERT_ISSUER_DN, this.CERT_ISSUER_EMAIL, this.configBean.getCertExpiryInterval(), this.KEY_SIZE);
 
 		RenderOIDDelegatorConfigLogic renderer = new RenderOIDDelegatorConfigLogic();
@@ -248,11 +248,11 @@ public class Startup
 		oidKeyPair = this.cryptoProcessor.generateKeyPair();
 		this.cryptoProcessor.addKeyPair(oidKeyStore, oidKeyStorePassphrase, oidKeyPair, oidKeyPairName, oidKeyPairPassphrase, this.generateSubjectDN(this.configBean.getOpenIDEndpoint()));
 
-		esoeKeyPair = new KeyPair(this.keyStoreResolver.getPublicKey(), this.keyStoreResolver.getPrivateKey());
-		this.cryptoProcessor.addPublicKey(oidKeyStore, esoeKeyPair, this.keyStoreResolver.getKeyAlias(), this.generateSubjectDN(this.configBean.getEsoeURL()));
-		this.cryptoProcessor.addPublicKey(this.keyStoreResolver.getKeyStore(), oidKeyPair, oidKeyPairName, this.generateSubjectDN(this.configBean.getOpenIDEndpoint()));
+		esoeKeyPair = new KeyPair(this.keyStoreResolver.getLocalPublicKey(), this.keyStoreResolver.getLocalPrivateKey());
+		this.cryptoProcessor.addPublicKey(oidKeyStore, esoeKeyPair, this.keyStoreResolver.getLocalKeyAlias(), this.generateSubjectDN(this.configBean.getEsoeURL()));
+		this.cryptoProcessor.addPublicKey(this.keyStoreResolver., oidKeyPair, oidKeyPairName, this.generateSubjectDN(this.configBean.getOpenIDEndpoint()));
 
-		/* Store the updated ESOE keystore to disk for manual updaing by deployer */
+		/* Store the updated ESOE keystore to disk for manual updating by deployer */
 		this.cryptoProcessor.serializeKeyStore(this.keyStoreResolver.getKeyStore(), this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + ESOE_KEYSTORE_NAME);
 
 		/* Store new OpenID delegator keystore for insertion to war */

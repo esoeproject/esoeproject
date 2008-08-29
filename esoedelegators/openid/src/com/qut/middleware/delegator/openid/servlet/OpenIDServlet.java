@@ -31,7 +31,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -54,7 +55,7 @@ public class OpenIDServlet extends HttpServlet
 	private static final long serialVersionUID = 6215353757431245631L;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(OpenIDServlet.class.getName());
+	private Logger logger = LoggerFactory.getLogger(OpenIDServlet.class.getName());
 
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -103,22 +104,22 @@ public class OpenIDServlet extends HttpServlet
 		}
 		catch (BeansException e)
 		{
-			this.logger.fatal("Exception state encountered while attempting to resolve bean for authnProcessor identified as " + ConfigurationConstants.AUTHN_PROCESSOR);
+			this.logger.error("Exception state encountered while attempting to resolve bean for authnProcessor identified as " + ConfigurationConstants.AUTHN_PROCESSOR);
 			throw new ServletException("Exception state encountered while attempting to resolve bean for authnProcessor identified as " + ConfigurationConstants.AUTHN_PROCESSOR, e);
 		}
 		catch (MalformedURLException e)
 		{
-			this.logger.fatal("Unable to locate configuration properties file in servlet context path named " + ConfigurationConstants.DELEGATOR_CONFIG);
+			this.logger.error("Unable to locate configuration properties file in servlet context path named " + ConfigurationConstants.DELEGATOR_CONFIG);
 			throw new ServletException("Unable to locate configuration properties file in servlet context path named " + ConfigurationConstants.DELEGATOR_CONFIG, e);
 		}
 		catch (IllegalStateException e)
 		{
-			this.logger.fatal("Spring configuration is not in an appropriate state to resolve configured beans");
+			this.logger.error("Spring configuration is not in an appropriate state to resolve configured beans");
 			throw new ServletException("Spring configuration is not in an appropriate state to resolve configured beans");
 		}
 		catch (IOException e)
 		{
-			this.logger.fatal("IOException while attempting to load configuration properties for shibboleth delegator");
+			this.logger.error("IOException while attempting to load configuration properties for shibboleth delegator");
 			throw new ServletException("IOException while attempting to load configuration properties for shibboleth delegator", e);
 		}
 	}

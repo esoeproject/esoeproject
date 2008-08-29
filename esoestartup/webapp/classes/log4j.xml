@@ -4,7 +4,7 @@
 	debug="true">
 
 	<appender name="esoestartup-core-logger"
-		class="org.apache.log4j.DailyDailyRollingFileAppender">
+		class="org.apache.log4j.DailyRollingFileAppender">
 		<param name="File"
 			value="${java.io.tmpdir}/logging/esoestartup.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
@@ -15,7 +15,7 @@
 	</appender>
 
 	<appender name="saml2-logger"
-		class="org.apache.log4j.DailyDailyRollingFileAppender">
+		class="org.apache.log4j.DailyRollingFileAppender">
 		<param name="File" value="${java.io.tmpdir}/logging/saml2.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 

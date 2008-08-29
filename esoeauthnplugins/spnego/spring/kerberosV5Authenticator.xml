@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+	
+ 		<bean id="kerberosV5Config" class="com.qut.middleware.esoe.authn.plugins.spnego.authenticator.KerberosV5Configuration">
+        	<constructor-arg index="0">
+            	<map>
+					<entry key="principal">
+				    	<value>${kerberosV5Authenticator.option.serverPrincipal}</value>
+				    </entry>
+				    <entry key="useKeyTab">
+				    	<value>${kerberosV5Authenticator.option.useKeyTab}</value>
+				    </entry>
+				    <entry key="storeKey">
+				    	<value>${kerberosV5Authenticator.option.storeKey}</value>
+				    </entry>
+				    <entry key="doNotPrompt">
+				    	<value>${kerberosV5Authenticator.option.doNotPrompt}</value>
+				    </entry>
+				    <entry key="debug">
+				    	<value>${kerberosV5Authenticator.option.debug}</value>
+				    </entry>
+				</map>
+			</constructor-arg>
+            <constructor-arg index="1">
+            	<map>					
+				    <entry key="keyTab">
+				    	<value type="java.io.File">${kerberosV5Authenticator.file.keyTab}</value>
+				    </entry>
+				</map>
+            </constructor-arg>
+            
+        </bean>
+        
+        <!-- Authenticates principal against a kerberos AS -->
+        <bean id="kerberosV5Authenticator" class="com.qut.middleware.esoe.authn.plugins.spnego.authenticator.KerberosV5Authenticator">
+                <constructor-arg ref="kerberosV5Config" />
+        </bean>
+
+</beans>

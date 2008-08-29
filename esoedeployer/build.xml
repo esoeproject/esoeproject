@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<project name="esoedeployer" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<import file="${esoebuild}/esoe.xml" />
+
+	<target name="release" depends="">
+		<mkdir dir="${output}/${output.tar}" />
+
+		<copy todir="${output}/${output.tar}/runtime">
+			<fileset dir="${artifacts.runtime}" />
+		</copy>
+
+		<copy file="${output}/${output.jar}" todir="${output}/${output.tar}/runtime" />
+
+		<copy todir="${output}/${output.tar}/data">
+			<fileset dir="data" />
+		</copy>
+
+		<copy todir="${output}/${output.tar}/configs">
+			<fileset dir="configs" />
+		</copy>
+
+		<copy todir="${output}/${output.tar}/spring">
+			<fileset dir="spring" />
+		</copy>
+
+		<copy todir="${output}/${output.tar}/sql">
+			<fileset dir="sql" />
+		</copy>
+
+	</target>
+
+	<target name="jar" depends="build" description="Assembles project as a jar">
+		<jar destfile="${output}/${output.jar}">
+			<manifest>
+				<attribute name="Main-Class" value="com.qut.middleware.deployer.Main" />				
+			</manifest>
+			<fileset dir="${src}">
+				<exclude name="**/*.java" />
+			</fileset>
+			<fileset dir="${output.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+</project>

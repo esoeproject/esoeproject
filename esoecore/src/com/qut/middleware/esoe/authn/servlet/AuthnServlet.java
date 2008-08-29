@@ -22,7 +22,6 @@ package com.qut.middleware.esoe.authn.servlet;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Properties;
 
@@ -34,7 +33,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -44,6 +44,7 @@ import com.qut.middleware.esoe.authn.AuthnProcessor;
 import com.qut.middleware.esoe.authn.bean.AuthnProcessorData;
 import com.qut.middleware.esoe.authn.bean.impl.AuthnProcessorDataImpl;
 import com.qut.middleware.esoe.authn.exception.AuthnFailureException;
+import com.qut.middleware.esoe.logout.LogoutProcessor;
 
 /** Control point for principal authentication and identification, conforms to 2.4 servlet spec. */
 public class AuthnServlet extends HttpServlet
@@ -51,16 +52,16 @@ public class AuthnServlet extends HttpServlet
 	private static final long serialVersionUID = -7214377113642690032L;
 	private final String DYNAMIC_RESPONSE_URL_SESSION_NAME = "com.qut.middleware.esoe.authn.servlet.dynamicresponseurl"; //$NON-NLS-1$
 
-	private AuthnProcessor authnProcessor;
-	private String authnDynamicURLParam;
-	private String sessionTokenName;
-	private String sessionDomain;
-	private String disableSSOTokenName;
+	protected AuthnProcessor authnProcessor;
+	protected String authnDynamicURLParam;
+	protected String sessionTokenName;
+	protected String sessionDomain;
+	protected String disableSSOTokenName;
 
 	private String servletInfo = Messages.getString("AuthnServlet.0"); //$NON-NLS-1$
-	
+
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AuthnServlet.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AuthnServlet.class.getName());
 
 	/*
 	 * (non-Javadoc)
@@ -81,8 +82,7 @@ public class AuthnServlet extends HttpServlet
 	 *      javax.servlet.http.HttpServletResponse)
 	 */
 	@Override
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-			IOException
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		execAuthnProcessor(request, response);
 	}
@@ -114,9 +114,9 @@ public class AuthnServlet extends HttpServlet
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		processCookies(data);
-		
+
 		/* Determine if we have previously setup our dynamic URL */
-		dynamicResponseURL = (String) request.getSession().getAttribute(this.DYNAMIC_RESPONSE_URL_SESSION_NAME);	
+		dynamicResponseURL = (String) request.getSession().getAttribute(this.DYNAMIC_RESPONSE_URL_SESSION_NAME);
 		if (dynamicResponseURL == null)
 		{
 			/* Determine if a BASE64 encoded dynamic response URL has been supplied with the request */
@@ -136,21 +136,22 @@ public class AuthnServlet extends HttpServlet
 		}
 		else
 			this.logger.debug(Messages.getString("AuthnServlet.25")); //$NON-NLS-1$
-		
+
 		try
 		{
 			result = this.authnProcessor.execute(data);
 			this.logger.debug(Messages.getString("AuthnServlet.26") + result.toString()); //$NON-NLS-1$
-			
+
 			switch (result)
 			{
 				case Completed:
 					this.logger.debug(Messages.getString("AuthnServlet.27")); //$NON-NLS-1$
+					request.getSession().removeAttribute(AuthnProcessorData.SESSION_NAME);
+
 					setSessionCookie(data);
 					if (data.getRedirectTarget() == null)
 						throw new AuthnFailureException(Messages.getString("AuthnServlet.3")); //$NON-NLS-1$
 
-					request.getSession().removeAttribute(AuthnProcessorData.SESSION_NAME);
 					if (dynamicResponseURL != null)
 					{
 						/* Remove the dynamic URL from the session as we are about to finish with it */
@@ -160,29 +161,35 @@ public class AuthnServlet extends HttpServlet
 					else
 						response.sendRedirect(data.getRedirectTarget());
 					break;
-					
-				case Failure:
-					this.logger.debug(Messages.getString("AuthnServlet.28")); //$NON-NLS-1$
-					if (data.getRedirectTarget() == null)
-						throw new AuthnFailureException(Messages.getString("AuthnServlet.4")); //$NON-NLS-1$
-					request.getSession().setAttribute(AuthnProcessorData.SESSION_NAME, data);
-					response.sendRedirect(data.getRedirectTarget());
-					break;
-					
+
 				case UserAgent:
 					this.logger.debug(Messages.getString("AuthnServlet.29")); //$NON-NLS-1$
+					request.getSession().setAttribute(AuthnProcessorData.SESSION_NAME, data);
+
 					if (data.getRedirectTarget() != null)
 						response.sendRedirect(data.getRedirectTarget());
-					else if(data.getErrorCode() > 0)
-						response.sendError(data.getErrorCode(), data.getErrorMessage());
 					else
-						throw new AuthnFailureException(Messages.getString("AuthnServlet.5")); //$NON-NLS-1$
-					request.getSession().setAttribute(AuthnProcessorData.SESSION_NAME, data);
+						if (data.getErrorCode() > 0)
+							response.sendError(data.getErrorCode(), data.getErrorMessage());
+						else
+							throw new AuthnFailureException(Messages.getString("AuthnServlet.5")); //$NON-NLS-1$
 					break;
-					
-				case Invalid:
+
+				case Failure:
+					this.logger.debug(Messages.getString("AuthnServlet.28")); //$NON-NLS-1$
+					request.getSession().removeAttribute(AuthnProcessorData.SESSION_NAME);
+
 					clearSessionCookie(data);
+					if (data.getRedirectTarget() == null)
+						throw new AuthnFailureException(Messages.getString("AuthnServlet.4")); //$NON-NLS-1$
+					response.sendRedirect(data.getRedirectTarget());
+					break;
+
+				case Invalid:
 					this.logger.debug(Messages.getString("AuthnServlet.30")); //$NON-NLS-1$
+					request.getSession().removeAttribute(AuthnProcessorData.SESSION_NAME);
+
+					clearSessionCookie(data);
 					if (data.getInvalidURL() == null)
 						throw new AuthnFailureException(Messages.getString("AuthnServlet.6")); //$NON-NLS-1$
 					response.sendRedirect(data.getInvalidURL());
@@ -210,13 +217,11 @@ public class AuthnServlet extends HttpServlet
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see javax.servlet.GenericServlet#init(javax.servlet.ServletConfig)
+	 * @see javax.servlet.GenericServlet#init()
 	 */
 	@Override
-	public void init(ServletConfig servletConfig) throws ServletException
+	public void init() throws ServletException
 	{
-		super.init(servletConfig);
-
 		FileInputStream configFile;
 		Properties props;
 		WebApplicationContext webAppContext;
@@ -232,12 +237,11 @@ public class AuthnServlet extends HttpServlet
 			/* Spring integration to make our servlet aware of IoC */
 			webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(this.getServletContext());
 
-			this.authnProcessor = (AuthnProcessor) webAppContext.getBean(ConfigurationConstants.AUTHN_PROCESSOR,
-					com.qut.middleware.esoe.authn.AuthnProcessor.class);
+			this.authnProcessor = (AuthnProcessor) webAppContext.getBean(ConfigurationConstants.AUTHN_PROCESSOR, com.qut.middleware.esoe.authn.AuthnProcessor.class);
 
 			if (this.authnProcessor == null)
 			{
-				this.logger.fatal(MessageFormat.format(Messages.getString("AuthnServlet.1"),ConfigurationConstants.AUTHN_PROCESSOR) ); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("AuthnServlet.1"), ConfigurationConstants.AUTHN_PROCESSOR)); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.1") + ConfigurationConstants.AUTHN_PROCESSOR); //$NON-NLS-1$
 			}
 
@@ -248,67 +252,66 @@ public class AuthnServlet extends HttpServlet
 
 			if (this.authnDynamicURLParam == null)
 			{
-				this.logger.fatal(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
+				this.logger.error(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.AUTHN_DYNAMIC_URL_PARAM + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.AUTHN_DYNAMIC_URL_PARAM + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 			}
 			if (this.sessionTokenName == null)
 			{
-				this.logger.fatal(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
+				this.logger.error(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.ESOE_SESSION_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.ESOE_SESSION_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 			}
 			if (this.sessionDomain == null)
 			{
-				this.logger.fatal(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
+				this.logger.error(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.ESOE_SESSION_DOMAIN + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.ESOE_SESSION_DOMAIN + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 			}
 			if (this.disableSSOTokenName == null)
 			{
-				this.logger.fatal(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
+				this.logger.error(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.DISABLE_SSO_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 				throw new IllegalArgumentException(Messages.getString("AuthnServlet.10") //$NON-NLS-1$
 						+ ConfigurationConstants.DISABLE_SSO_TOKEN_NAME + Messages.getString("AuthnServlet.11")); //$NON-NLS-1$
 			}
-			
+
 			this.logger.info(Messages.getString("AuthnServlet.33")); //$NON-NLS-1$
 		}
 		catch (BeansException e)
 		{
-			this.logger.fatal(MessageFormat.format(Messages.getString("AuthnServlet.12"), ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR, e.getLocalizedMessage()) ); //$NON-NLS-1$
-			throw new ServletException(MessageFormat.format(Messages.getString("AuthnServlet.12"), ConfigurationConstants.AUTHN_AUTHORITY_PROCESSOR, e.getLocalizedMessage()) ); //$NON-NLS-1$
+			this.logger.error(MessageFormat.format(Messages.getString("AuthnServlet.12"), ConfigurationConstants.AUTHN_PROCESSOR, e.getLocalizedMessage())); //$NON-NLS-1$
+			throw new ServletException(MessageFormat.format(Messages.getString("AuthnServlet.12"), ConfigurationConstants.AUTHN_PROCESSOR, e.getLocalizedMessage())); //$NON-NLS-1$
 		}
 		catch (MalformedURLException e)
 		{
-			this.logger.fatal(Messages.getString("AuthnServlet.14") //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnServlet.14") //$NON-NLS-1$
 					+ ConfigurationConstants.ESOE_CONFIG + Messages.getString("AuthnServlet.15") + e.getLocalizedMessage()); //$NON-NLS-1$
-			throw new ServletException(
-					Messages.getString("AuthnServlet.14") //$NON-NLS-1$
-							+ ConfigurationConstants.ESOE_CONFIG + Messages.getString("AuthnServlet.15")); //$NON-NLS-1$
+			throw new ServletException(Messages.getString("AuthnServlet.14") //$NON-NLS-1$
+					+ ConfigurationConstants.ESOE_CONFIG + Messages.getString("AuthnServlet.15")); //$NON-NLS-1$
 		}
 		catch (IllegalStateException e)
 		{
-			this.logger.fatal(Messages.getString("AuthnServlet.16") + e.getLocalizedMessage()); //$NON-NLS-1$
-			throw new ServletException(
-					Messages.getString("AuthnServlet.16")); //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnServlet.16") + e.getLocalizedMessage()); //$NON-NLS-1$
+			throw new ServletException(Messages.getString("AuthnServlet.16")); //$NON-NLS-1$
 		}
 		catch (IOException e)
 		{
-			this.logger.fatal(Messages.getString("AuthnServlet.17") //$NON-NLS-1$
+			this.logger.error(Messages.getString("AuthnServlet.17") //$NON-NLS-1$
 					+ ConfigurationConstants.ESOE_CONFIG + Messages.getString("AuthnServlet.18") + e.getLocalizedMessage()); //$NON-NLS-1$
-			throw new ServletException(
-					Messages.getString("AuthnServlet.17") //$NON-NLS-1$
-							+ ConfigurationConstants.ESOE_CONFIG + Messages.getString("AuthnServlet.18")); //$NON-NLS-1$
+			throw new ServletException(Messages.getString("AuthnServlet.17") //$NON-NLS-1$
+					+ ConfigurationConstants.ESOE_CONFIG + Messages.getString("AuthnServlet.18")); //$NON-NLS-1$
 		}
 	}
-	
+
 	/**
 	 * Iteraties through all cookies presented by user request and retrieves details about SSO and any current session
-	 * @param data Local request AuthnProcessoreData bean
+	 * 
+	 * @param data
+	 *            Local request AuthnProcessoreData bean
 	 */
 	private void processCookies(AuthnProcessorData data)
 	{
@@ -332,24 +335,27 @@ public class AuthnServlet extends HttpServlet
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets the session cookie for this principal
+	 * 
 	 * @param data
 	 */
 	private void setSessionCookie(AuthnProcessorData data)
 	{
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, data.getSessionID());
 		sessionCookie.setDomain(this.sessionDomain);
-		sessionCookie.setMaxAge(-1); //negative indicates session scope cookie
+		sessionCookie.setMaxAge(-1); // negative indicates session scope cookie
 		sessionCookie.setPath("/");
-		
+
 		data.getHttpResponse().addCookie(sessionCookie);
 	}
-	
+
 	/**
 	 * Clears a provided session identifying cookie when some invalid value has been presented
-	 * @param data Local request AuthnProcessoreData bean
+	 * 
+	 * @param data
+	 *            Local request AuthnProcessoreData bean
 	 */
 	private void clearSessionCookie(AuthnProcessorData data)
 	{

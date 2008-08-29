@@ -1,10 +1,14 @@
 package com.qut.middleware.esoe.sessions;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.qut.middleware.esoe.logout.LogoutMechanism;
+import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl;
@@ -22,13 +26,19 @@ public class SessionsMonitorTest
 	private SessionCache sessioncache;
 	private int interval;
 	private int timeout;
+	private LogoutThreadPool logoutThreadPool;
 	
 	@SuppressWarnings("unqualified-field-access")
 	@Before
 	public void setUp() throws Exception 
 	{
 		this.idcache = new IdentifierCacheImpl();
-		this.sessioncache = new SessionCacheImpl();
+		
+		this.logoutThreadPool = createMock(LogoutThreadPool.class);
+		expect(this.logoutThreadPool.createLogoutTask((Principal)notNull(), eq(false)) ).andReturn("BlahTaskID").anyTimes();
+		replay(this.logoutThreadPool);
+		
+		this.sessioncache = new SessionCacheImpl(this.logoutThreadPool);
 		this.interval = 2;
 		this.timeout = 5;
 

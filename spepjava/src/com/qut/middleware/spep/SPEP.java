@@ -23,11 +23,14 @@ import java.util.List;
 
 import javax.servlet.http.Cookie;
 
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.metadata.processor.impl.MetadataUpdateThread;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessor;
-import com.qut.middleware.spep.metadata.Metadata;
+import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
+import com.qut.middleware.spep.sessions.SessionCache;
 
 /** Interface for filters and other implementations of the SPEP to use this library.*/
 public interface SPEP
@@ -47,7 +50,7 @@ public interface SPEP
 	/**
 	 * @return The metadata instance.
 	 */
-	public Metadata getMetadata();
+	public MetadataProcessor getMetadataProcessor();
 	
 	/**
 	 * @return The policy enforcement processor.
@@ -76,9 +79,34 @@ public interface SPEP
 	public String getDefaultUrl();
 	
 	/**
+	 * @return The entity identifier for the trusted ESOE that this SPEP talks to.
+	 */
+	public String getTrustedESOEIdentifier();
+	
+	/**
+	 * @return The entity identifier of this SPEP.
+	 */
+	public String getSPEPIdentifier();
+	
+	/**
 	 * @return The session group cache.
 	 */
 	public SessionGroupCache getSessionGroupCache();
+	
+	/**
+	 * @return The session cache
+	 */
+	public SessionCache getSessionCache();
+	
+	/**
+	 * @return The identifier cache monitor
+	 */
+	public IdentifierCacheMonitor getIdentifierCacheMonitor();
+	
+	/**
+	 * @return The metadata update thread.
+	 */
+	public MetadataUpdateThread getMetadataUpdateThread();
 	
 	/**
 	 * @return Boolean true if SPEP has started successfully.
@@ -112,5 +140,24 @@ public interface SPEP
 	 * @return The default action for lazy session init.
 	 */
 	public defaultAction getLazyInitDefaultAction();
+	
+	/**
+	 * @return Boolean value indicating whether attribute queries are disabled for this SPEP.
+	 */
+	public boolean disableAttributeQuery();
+	
+	/**
+	 * @return Boolean value indicating whether policy enforcement is disabled for this SPEP.
+	 */
+	public boolean disablePolicyEnforcement();
+	
+	/**
+	 * @return Boolean value indicating whether the SPEP startup protocol is disabled for this SPEP.
+	 */
+	public boolean disableSPEPStartup();
 
+	/**
+	 * @return Boolean value indicating whether the SPEP will attempt to be compatible with a non-ESOE identity provider.
+	 */
+	public boolean enableCompatibility();
 }

@@ -35,7 +35,8 @@ import org.apache.axis2.AxisFault;
 import org.apache.axis2.addressing.EndpointReference;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.spep.ws.Messages;
 import com.qut.middleware.spep.ws.WSClient;
@@ -48,7 +49,7 @@ public class WSClientImpl implements WSClient
 	private static XMLOutputFactory xmlOutputFactory;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(WSClientImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(WSClientImpl.class.getName());
 	
 	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
 	static

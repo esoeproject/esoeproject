@@ -18,17 +18,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
-import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
-import com.qut.middleware.esoe.pdp.cache.bean.impl.FailedAuthzCacheUpdateImpl;
-import com.qut.middleware.esoe.pdp.cache.impl.AuthzCacheUpdateFailureRepositoryImpl;
-import com.qut.middleware.esoe.pdp.cache.impl.CacheUpdateFailureMonitor;
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.esoe.authz.cache.AuthzCacheUpdateFailureRepository;
+import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
+import com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl;
+import com.qut.middleware.esoe.authz.cache.impl.AuthzCacheUpdateFailureRepositoryImpl;
+import com.qut.middleware.esoe.authz.cache.impl.CacheUpdateFailureMonitor;
 import com.qut.middleware.esoe.ws.WSClient;
 import com.qut.middleware.esoe.ws.exception.WSClientException;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -57,8 +57,8 @@ public class CacheUpdateFailureMonitorTest
 	private CacheUpdateFailureMonitor testMonitor;
 	private AuthzCacheUpdateFailureRepository failures;
 	private WSClient webServiceClient;
-	private KeyStoreResolver keyStoreResolver;
-	private Metadata metadata ;
+	private KeystoreResolver keyStoreResolver;
+	private MetadataProcessor metadata ;
 	
 	// use this as SAML issuer ID in requests
 	private String issuerIDRequest1 = "_948756943y897fudghs99";
@@ -79,10 +79,10 @@ public class CacheUpdateFailureMonitorTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 	
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
-		publicKey = keyStoreResolver.getPublicKey();
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		publicKey = keyStoreResolver.getLocalPublicKey();
 		
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		expect(metadata.resolveKey((String)notNull())).andReturn(this.publicKey).anyTimes();
 		replay(metadata);
 		
@@ -91,15 +91,15 @@ public class CacheUpdateFailureMonitorTest
 		// setup Request marshaller
 		String cacheClearPackages = ClearAuthzCacheRequest.class.getPackage().getName() + ":" +
 		StatusResponseType.class.getPackage().getName() + ":" + RequestAbstractType.class.getPackage().getName();
-		String[] cacheClearSchemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.esoeProtocol};
-		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(cacheClearPackages, cacheClearSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		String[] cacheClearSchemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.samlAssertion, SchemaConstants.esoeProtocol};
+		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(cacheClearPackages, cacheClearSchemas, keyStoreResolver);
 		
 			// setu response marshaller
-		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol,
-				ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
+		String[] clearAuthzCacheSchemas = new String[] { SchemaConstants.esoeProtocol,
+				SchemaConstants.samlAssertion, SchemaConstants.samlProtocol };
 		String MAR_PKGNAMES = LXACMLAuthzDecisionQuery.class.getPackage().getName() + ":" + ClearAuthzCacheResponse.class.getPackage().getName();
 		this.clearAuthzCacheResponseMarshaller =   new MarshallerImpl<ClearAuthzCacheResponse>(MAR_PKGNAMES,
-		clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+		clearAuthzCacheSchemas, keyStoreResolver);
 		
 		
 		// setup some authz failures and add to failure repository

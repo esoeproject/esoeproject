@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.sso.bean.SSOLogoutState;
-import com.qut.middleware.esoe.sso.bean.impl.SSOLogoutStateImpl;
+import com.qut.middleware.esoe.logout.bean.SSOLogoutState;
+import com.qut.middleware.esoe.logout.bean.impl.SSOLogoutStateImpl;
 
 public class SSOLogoutStateTest {
 

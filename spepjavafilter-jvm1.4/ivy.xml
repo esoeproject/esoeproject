@@ -16,7 +16,7 @@
 		<conf name="default"/>
 		
 		<conf name="dev" />
-		<conf name="dev-release" />
+		<conf name="release" />
 	</configurations>
 	
 	<publications>
@@ -25,12 +25,14 @@
 
 	<dependencies>
 		<!-- Development release dependencies -->
-		<dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev-release->default"/>
-         <dependency org="apache" name="log4j" rev="latest.integration" conf="dev-release->default"/>
+		<dependency org="apache" name="commons-codec" rev="latest.integration" conf="release->default"/>
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="release->default"/>
+         <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="release->default"/>
         
         <!-- Development dependencies -->
         <dependency org="apache" name="commons-codec" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>  
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
+        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev->default"/>  
         <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>  
         
         <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 

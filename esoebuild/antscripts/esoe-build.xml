@@ -1,0 +1,47 @@
+<!--
+	esoe build environment
+	Bradley Beddoes, Queensland University of Technology, 2008
+	Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+-->
+		
+<project name="esoe-build" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<import file="${esoebuild}/antscripts/esoe-ivy.xml" />
+	<import file="${esoebuild}/antscripts/esoe-env.xml" />
+
+	<target name="jar" depends="build" description="Assembles project as a jar">
+		<jar destfile="${output}/${output.jar}">
+			<fileset dir="${src}">
+				<exclude name="**/*.java" />
+			</fileset>
+			<fileset dir="${output.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+	
+	<target name="jar-source" depends="build" description="Assembles project as a jar containing binary artifacts and source code">
+		<jar destfile="${output}/${output.jar}">
+			<fileset dir="${src}">
+				<include name="**/*" />
+			</fileset>
+			<fileset dir="${output.build}">
+				<include name="**/*" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="build" depends="setup" description="Builds the project binaries">
+		<javac destdir="${output.build}" srcdir="${src}" debug="true" debuglevel="lines,vars,source">
+			<classpath>
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.provided}">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+	
+</project>

@@ -23,7 +23,8 @@ import java.text.MessageFormat;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.spep.Messages;
 import com.qut.middleware.esoe.spep.SPEPRegistrationCache;
@@ -43,7 +44,7 @@ public class SPEPRegistrationCacheImpl implements SPEPRegistrationCache
 	private SPEPRegistrationDao spepRegistrationDao;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SPEPRegistrationCacheImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SPEPRegistrationCacheImpl.class.getName());
 	
 	/**
 	 * Default constructor.

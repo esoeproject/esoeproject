@@ -4,21 +4,27 @@
 	<classpathentry kind="src" path="src-installer"/>
 	<classpathentry kind="src" path="tests/regression"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/dev/axiom-api.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axiom-dom.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axiom-impl.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axis2-kernel.jar"/>
-	<classpathentry kind="lib" path="lib/dev/spring.jar"/>
-	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
-	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
-	<classpathentry kind="lib" path="lib/dev/openid4java.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
-	<classpathentry kind="lib" path="lib/dev/click.jar"/>
-	<classpathentry kind="lib" path="lib/dev/click-extras.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-kernel.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.log4j.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.openid4java.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.openxri.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.api.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j.jar"/>
+	<classpathentry kind="lib" path="lib/optional/com.springsource.org.easymock.jar"/>
+	<classpathentry kind="lib" path="lib/provided/com.springsource.javax.servlet.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.axiom.jar"/>
+	<classpathentry kind="lib" path="lib/compile/click-extras.jar"/>
+	<classpathentry kind="lib" path="lib/compile/click.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.beans.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.context.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.core.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.web.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoetools"/>
-	<classpathentry kind="lib" path="lib/dev/wstx.jar"/>
-	<classpathentry kind="lib" path="lib/dev/easymock.jar"/>
+	<classpathentry kind="lib" path="lib/provided/com.springsource.org.apache.xalan.jar"/>
+	<classpathentry kind="lib" path="lib/provided/com.springsource.org.apache.xerces.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.javax.xml.stream.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

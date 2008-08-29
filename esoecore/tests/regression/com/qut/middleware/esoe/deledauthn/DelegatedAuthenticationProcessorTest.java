@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.security.PrivateKey;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -18,9 +19,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
 import com.qut.middleware.esoe.delegauthn.DelegatedAuthenticationProcessor;
 import com.qut.middleware.esoe.delegauthn.bean.DelegatedAuthenticationData;
 import com.qut.middleware.esoe.delegauthn.bean.impl.DelegatedAuthenticationDataImpl;
@@ -29,6 +30,7 @@ import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -55,7 +57,7 @@ public class DelegatedAuthenticationProcessorTest
 	private SAMLValidator samlValidator;
 	private SessionsProcessor sessionsProcessor;
 	private IdentifierGenerator identifierGenerator;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private List<String> deniedIdentifiers;
 	private String delegatedAuthnIdentifier;
 	
@@ -85,16 +87,16 @@ public class DelegatedAuthenticationProcessorTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 		
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 		
-		this.privKey = this.keyStoreResolver.getPrivateKey();
-		String keyName = this.keyStoreResolver.getKeyAlias();
+		this.privKey = this.keyStoreResolver.getLocalPrivateKey();
+		String keyName = this.keyStoreResolver.getLocalKeyAlias();
 		
 		this.samlValidator = new SAMLValidatorImpl(this.identifierCache, skew);		
 			
-		String[] schemas = new String[]  {ConfigurationConstants.delegatedAuthn};
+		String[] schemas = new String[]  {SchemaConstants.delegatedAuthn};
 		this.responseUnmarshaller = new UnmarshallerImpl<RegisterPrincipalResponse>(RegisterPrincipalResponse.class.getPackage().getName(), schemas, keyStoreResolver);
-		this.requestMarshaller = new MarshallerImpl<RegisterPrincipalRequest>(RegisterPrincipalRequest.class.getPackage().getName(), schemas, keyName, this.privKey);
+		this.requestMarshaller = new MarshallerImpl<RegisterPrincipalRequest>(RegisterPrincipalRequest.class.getPackage().getName(), schemas, keyStoreResolver);
 		
 		// add a denied attribute. The delagator should never add this to a user session.
 		this.deniedIdentifiers = new Vector<String>();

@@ -1,0 +1,883 @@
+2008-08-27 18:09:07,468 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 18:09:07,468 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 18:09:07,468 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 18:09:07,468 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 18:09:07,469 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:94)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 18:09:07,469 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 18:09:07,469 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 18:09:07,472 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 18:09:07,476 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 18:09:07,477 - Do unicode file recognition:  false
+2008-08-27 18:09:07,477 - FileResourceLoader : adding path '.'
+2008-08-27 18:09:07,513 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 18:09:07,514 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 18:09:07,516 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 18:09:07,518 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 18:09:07,519 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 18:09:07,520 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 18:09:07,578 - Created '20' parsers.
+2008-08-27 18:09:07,593 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 18:09:07,594 - Velocimacro : Default library not found.
+2008-08-27 18:09:07,594 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 18:09:07,594 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 18:09:07,594 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 18:09:07,594 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 18:09:07,664 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 18:09:07,664 - Null reference [template 'esoe.config', line 37, column 13] : $esoeBean.getServiceURL() cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 43, column 14] : $esoeBean.getCommonDomain() cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 174, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 175, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 176, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 177, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 178, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 179, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 180, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 181, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 184, column 35] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 185, column 39] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 186, column 31] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 187, column 34] : ${keyPassword-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 190, column 39] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 191, column 43] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 192, column 35] : ${keyAlias-2} cannot be resolved.
+2008-08-27 18:09:07,665 - Null reference [template 'esoe.config', line 201, column 31] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 204, column 38] : ${identifierCacheClean} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 205, column 42] : ${identifierExpiryInterval} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 210, column 37] : ${sessionTokenName} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 211, column 34] : ${sessionDomain} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 214, column 33] : ${activeAuthnPlugins} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 217, column 31] : ${securityLevelIdentifer} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 218, column 23] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 222, column 22] : ${sessionLength} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 225, column 36] : ${activeIdentityPlugins} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 229, column 26] : ${sessionCacheClean} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 231, column 26] : ${sessionLength} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 232, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 237, column 14] : ${metadataURL} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 238, column 32] : ${networkUpdateInterval} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 239, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 244, column 27] : ${allowedActiveAuthSkew} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 245, column 28] : ${sessionRemainingLength} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 246, column 33] : ${acceptUnsignedAuthnRequests} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 247, column 20] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 251, column 20] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 252, column 19] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 257, column 49] : ${authorizationDefaultMode} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 258, column 40] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 259, column 39] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,666 - Null reference [template 'esoe.config', line 262, column 35] : ${authorizationPollInterval} cannot be resolved.
+2008-08-27 18:09:07,667 - Null reference [template 'esoe.config', line 263, column 37] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 30, column 16] : ${esoemanager.data} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 48, column 15] : $esoeBean.getIdpEntityID() cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 50, column 18] : ${esoemanager.data} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 112, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 113, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 114, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 115, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 116, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 117, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 118, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 18:09:07,711 - Null reference [template 'esoemanager.config', line 119, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 120, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 129, column 42] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 130, column 48] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 131, column 38] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 132, column 43] : ${keyPassword-1} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 136, column 30] : ${issuerDN} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 137, column 33] : ${issuerEmail} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 138, column 25] : ${keySize} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 139, column 36] : ${certExpiryInterval} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 142, column 31] : ${attributeConfig} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 146, column 34] : ${historyDirectory} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 147, column 39] : ${historyFileName} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 148, column 39] : ${refreshInterval} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 152, column 39] : ${organizationName} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 153, column 46] : ${organizationDisplayName} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 154, column 38] : ${organizationURL} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 155, column 33] : ${activeFlag} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 157, column 36] : ${defaultPolicy} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 159, column 45] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 163, column 41] : ${java.defaultACS} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 164, column 43] : ${apache.defaultACS} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 165, column 40] : ${iis.defaultACS} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 166, column 41] : ${java.defaultSLS} cannot be resolved.
+2008-08-27 18:09:07,712 - Null reference [template 'esoemanager.config', line 167, column 43] : ${apache.defaultSLS} cannot be resolved.
+2008-08-27 18:09:07,713 - Null reference [template 'esoemanager.config', line 168, column 40] : ${iis.defaultSLS} cannot be resolved.
+2008-08-27 18:09:07,713 - Null reference [template 'esoemanager.config', line 169, column 41] : ${java.defaultCCS} cannot be resolved.
+2008-08-27 18:09:07,713 - Null reference [template 'esoemanager.config', line 170, column 43] : ${apache.defaultCCS} cannot be resolved.
+2008-08-27 18:09:07,713 - Null reference [template 'esoemanager.config', line 171, column 40] : ${iis.defaultCCS} cannot be resolved.
+2008-08-27 18:09:07,713 - Null reference [template 'esoemanager.config', line 173, column 44] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 18:09:07,713 - Null reference [template 'esoemanager.config', line 174, column 46] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:09:07,732 - Null reference [template 'spep.config', line 18, column 14] : ${spep.data} cannot be resolved.
+2008-08-27 18:09:07,733 - Null reference [template 'spep.config', line 28, column 16] : $esoeBean.getEntityID() cannot be resolved.
+2008-08-27 18:09:07,733 - Null reference [template 'spep.config', line 31, column 13] : $esoeBean.getServiceURL() cannot be resolved.
+2008-08-27 18:09:07,733 - Null reference [template 'spep.config', line 34, column 12] : $esoeBean.getServiceName() cannot be resolved.
+2008-08-27 18:09:07,733 - Null reference [template 'spep.config', line 45, column 13] : $esoeBean.getEsoeManagerHost() cannot be resolved.
+2008-08-27 18:09:08,300 - Null reference [template 'spep.config', line 54, column 12] : $esoeBean.getServiceURL() cannot be resolved.
+2008-08-27 18:19:31,374 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 18:19:31,374 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 18:19:31,374 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 18:19:31,374 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 18:19:31,375 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:94)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 18:19:31,375 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 18:19:31,375 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 18:19:31,378 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 18:19:31,381 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 18:19:31,382 - Do unicode file recognition:  false
+2008-08-27 18:19:31,382 - FileResourceLoader : adding path '.'
+2008-08-27 18:19:31,393 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 18:19:31,394 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 18:19:31,396 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 18:19:31,397 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 18:19:31,399 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 18:19:31,400 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 18:19:31,429 - Created '20' parsers.
+2008-08-27 18:19:31,437 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 18:19:31,437 - Velocimacro : Default library not found.
+2008-08-27 18:19:31,437 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 18:19:31,437 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 18:19:31,437 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 18:19:31,437 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 18:19:31,517 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 43, column 14] : $esoeBean.getCommonDomain() cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 174, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 175, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 176, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 177, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 18:19:31,518 - Null reference [template 'esoe.config', line 178, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 179, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 180, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 181, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 184, column 35] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 185, column 39] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 186, column 31] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 187, column 34] : ${keyPassword-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 190, column 39] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 191, column 43] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 192, column 35] : ${keyAlias-2} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 201, column 31] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 204, column 38] : ${identifierCacheClean} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 205, column 42] : ${identifierExpiryInterval} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 210, column 37] : ${sessionTokenName} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 211, column 34] : ${sessionDomain} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 214, column 33] : ${activeAuthnPlugins} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 217, column 31] : ${securityLevelIdentifer} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 218, column 23] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 222, column 22] : ${sessionLength} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 225, column 36] : ${activeIdentityPlugins} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 229, column 26] : ${sessionCacheClean} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 231, column 26] : ${sessionLength} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 232, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 237, column 14] : ${metadataURL} cannot be resolved.
+2008-08-27 18:19:31,519 - Null reference [template 'esoe.config', line 238, column 32] : ${networkUpdateInterval} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 239, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 244, column 27] : ${allowedActiveAuthSkew} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 245, column 28] : ${sessionRemainingLength} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 246, column 33] : ${acceptUnsignedAuthnRequests} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 247, column 20] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 251, column 20] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 252, column 19] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 257, column 49] : ${authorizationDefaultMode} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 258, column 40] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 259, column 39] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 262, column 35] : ${authorizationPollInterval} cannot be resolved.
+2008-08-27 18:19:31,520 - Null reference [template 'esoe.config', line 263, column 37] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:19:31,565 - Null reference [template 'esoemanager.config', line 30, column 16] : ${esoemanager.data} cannot be resolved.
+2008-08-27 18:19:31,565 - Null reference [template 'esoemanager.config', line 50, column 18] : ${esoemanager.data} cannot be resolved.
+2008-08-27 18:19:31,565 - Null reference [template 'esoemanager.config', line 112, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 18:19:31,565 - Null reference [template 'esoemanager.config', line 113, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 18:19:31,565 - Null reference [template 'esoemanager.config', line 114, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 115, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 116, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 117, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 118, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 119, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 120, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 129, column 42] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 130, column 48] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 131, column 38] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 132, column 43] : ${keyPassword-1} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 136, column 30] : ${issuerDN} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 137, column 33] : ${issuerEmail} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 138, column 25] : ${keySize} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 139, column 36] : ${certExpiryInterval} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 142, column 31] : ${attributeConfig} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 146, column 34] : ${historyDirectory} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 147, column 39] : ${historyFileName} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 148, column 39] : ${refreshInterval} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 152, column 39] : ${organizationName} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 153, column 46] : ${organizationDisplayName} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 154, column 38] : ${organizationURL} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 155, column 33] : ${activeFlag} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 157, column 36] : ${defaultPolicy} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 159, column 45] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 18:19:31,566 - Null reference [template 'esoemanager.config', line 163, column 41] : ${java.defaultACS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 164, column 43] : ${apache.defaultACS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 165, column 40] : ${iis.defaultACS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 166, column 41] : ${java.defaultSLS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 167, column 43] : ${apache.defaultSLS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 168, column 40] : ${iis.defaultSLS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 169, column 41] : ${java.defaultCCS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 170, column 43] : ${apache.defaultCCS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 171, column 40] : ${iis.defaultCCS} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 173, column 44] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 18:19:31,567 - Null reference [template 'esoemanager.config', line 174, column 46] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:19:31,588 - Null reference [template 'spep.config', line 18, column 14] : ${spep.data} cannot be resolved.
+2008-08-27 18:19:31,588 - Null reference [template 'spep.config', line 45, column 13] : $esoeBean.getEsoeManagerHost() cannot be resolved.
+2008-08-27 18:22:39,687 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 18:22:39,687 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 18:22:39,687 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 18:22:39,687 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 18:22:39,688 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:94)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 18:22:39,689 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 18:22:39,689 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 18:22:39,691 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 18:22:39,694 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 18:22:39,695 - Do unicode file recognition:  false
+2008-08-27 18:22:39,695 - FileResourceLoader : adding path '.'
+2008-08-27 18:22:39,706 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 18:22:39,707 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 18:22:39,709 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 18:22:39,710 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 18:22:39,714 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 18:22:39,715 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 18:22:39,746 - Created '20' parsers.
+2008-08-27 18:22:39,755 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 18:22:39,755 - Velocimacro : Default library not found.
+2008-08-27 18:22:39,755 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 18:22:39,755 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 18:22:39,755 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 18:22:39,755 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 18:22:39,830 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 43, column 14] : $esoeBean.getCommonDomain() cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 174, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 175, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 176, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 177, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 178, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 179, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 180, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 181, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 184, column 35] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 185, column 39] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:22:39,831 - Null reference [template 'esoe.config', line 186, column 31] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 187, column 34] : ${keyPassword-1} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 190, column 39] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 191, column 43] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 192, column 35] : ${keyAlias-2} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 201, column 31] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 204, column 38] : ${identifierCacheClean} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 205, column 42] : ${identifierExpiryInterval} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 210, column 37] : ${sessionTokenName} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 211, column 34] : ${sessionDomain} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 214, column 33] : ${activeAuthnPlugins} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 217, column 31] : ${securityLevelIdentifer} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 218, column 23] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 222, column 22] : ${sessionLength} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 225, column 36] : ${activeIdentityPlugins} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 229, column 26] : ${sessionCacheClean} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 231, column 26] : ${sessionLength} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 232, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 237, column 14] : ${metadataURL} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 238, column 32] : ${networkUpdateInterval} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 239, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 244, column 27] : ${allowedActiveAuthSkew} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 245, column 28] : ${sessionRemainingLength} cannot be resolved.
+2008-08-27 18:22:39,832 - Null reference [template 'esoe.config', line 246, column 33] : ${acceptUnsignedAuthnRequests} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 247, column 20] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 251, column 20] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 252, column 19] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 257, column 49] : ${authorizationDefaultMode} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 258, column 40] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 259, column 39] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 262, column 35] : ${authorizationPollInterval} cannot be resolved.
+2008-08-27 18:22:39,833 - Null reference [template 'esoe.config', line 263, column 37] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 18:22:39,904 - Null reference [template 'esoemanager.config', line 30, column 16] : ${esoemanager.data} cannot be resolved.
+2008-08-27 18:22:39,904 - Null reference [template 'esoemanager.config', line 50, column 18] : ${esoemanager.data} cannot be resolved.
+2008-08-27 18:22:39,904 - Null reference [template 'esoemanager.config', line 112, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 18:22:39,904 - Null reference [template 'esoemanager.config', line 113, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 18:22:39,904 - Null reference [template 'esoemanager.config', line 114, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 115, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 116, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 117, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 118, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 119, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 120, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 129, column 42] : ${keystorePath-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 130, column 48] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 131, column 38] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 132, column 43] : ${keyPassword-1} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 136, column 30] : ${issuerDN} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 137, column 33] : ${issuerEmail} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 138, column 25] : ${keySize} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 139, column 36] : ${certExpiryInterval} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 142, column 31] : ${attributeConfig} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 146, column 34] : ${historyDirectory} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 147, column 39] : ${historyFileName} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 148, column 39] : ${refreshInterval} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 152, column 39] : ${organizationName} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 153, column 46] : ${organizationDisplayName} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 154, column 38] : ${organizationURL} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 155, column 33] : ${activeFlag} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 157, column 36] : ${defaultPolicy} cannot be resolved.
+2008-08-27 18:22:39,905 - Null reference [template 'esoemanager.config', line 159, column 45] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 163, column 41] : ${java.defaultACS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 164, column 43] : ${apache.defaultACS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 165, column 40] : ${iis.defaultACS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 166, column 41] : ${java.defaultSLS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 167, column 43] : ${apache.defaultSLS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 168, column 40] : ${iis.defaultSLS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 169, column 41] : ${java.defaultCCS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 170, column 43] : ${apache.defaultCCS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 171, column 40] : ${iis.defaultCCS} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 173, column 44] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 18:22:39,906 - Null reference [template 'esoemanager.config', line 174, column 46] : ${keyAlias-1} cannot be resolved.
+2008-08-27 18:22:39,951 - Null reference [template 'spep.config', line 18, column 14] : ${spep.data} cannot be resolved.
+2008-08-27 19:51:57,187 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 19:51:57,187 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 19:51:57,187 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 19:51:57,187 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 19:51:57,188 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:94)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 19:51:57,188 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 19:51:57,188 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 19:51:57,191 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 19:51:57,194 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 19:51:57,195 - Do unicode file recognition:  false
+2008-08-27 19:51:57,196 - FileResourceLoader : adding path '.'
+2008-08-27 19:51:57,206 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 19:51:57,207 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 19:51:57,208 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 19:51:57,210 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 19:51:57,211 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 19:51:57,212 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 19:51:57,241 - Created '20' parsers.
+2008-08-27 19:51:57,249 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 19:51:57,249 - Velocimacro : Default library not found.
+2008-08-27 19:51:57,249 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 19:51:57,249 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 19:51:57,249 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 19:51:57,249 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 19:51:57,333 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 19:51:57,334 - Null reference [template 'esoe.config', line 43, column 14] : $esoeBean.getCommonDomain() cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 174, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 175, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 176, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 177, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 178, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 179, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 180, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 181, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 184, column 35] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 185, column 39] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 186, column 31] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 187, column 34] : ${keyPassword-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 190, column 39] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 191, column 43] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 192, column 35] : ${keyAlias-2} cannot be resolved.
+2008-08-27 19:51:57,335 - Null reference [template 'esoe.config', line 201, column 31] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 204, column 38] : ${identifierCacheClean} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 205, column 42] : ${identifierExpiryInterval} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 210, column 37] : ${sessionTokenName} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 211, column 34] : ${sessionDomain} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 214, column 33] : ${activeAuthnPlugins} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 217, column 31] : ${securityLevelIdentifer} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 218, column 23] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 222, column 22] : ${sessionLength} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 225, column 36] : ${activeIdentityPlugins} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 229, column 26] : ${sessionCacheClean} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 231, column 26] : ${sessionLength} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 232, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 237, column 14] : ${metadataURL} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 238, column 32] : ${networkUpdateInterval} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 239, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 244, column 27] : ${allowedActiveAuthSkew} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 245, column 28] : ${sessionRemainingLength} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 246, column 33] : ${acceptUnsignedAuthnRequests} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 247, column 20] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 251, column 20] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 252, column 19] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 257, column 49] : ${authorizationDefaultMode} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 258, column 40] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 259, column 39] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,336 - Null reference [template 'esoe.config', line 262, column 35] : ${authorizationPollInterval} cannot be resolved.
+2008-08-27 19:51:57,337 - Null reference [template 'esoe.config', line 263, column 37] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 30, column 16] : ${esoemanager.data} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 50, column 18] : ${esoemanager.data} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 112, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 113, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 114, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 115, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 116, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 117, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 118, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 119, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 120, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 129, column 42] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 130, column 48] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:51:57,390 - Null reference [template 'esoemanager.config', line 131, column 38] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 132, column 43] : ${keyPassword-1} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 136, column 30] : ${issuerDN} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 137, column 33] : ${issuerEmail} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 138, column 25] : ${keySize} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 139, column 36] : ${certExpiryInterval} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 142, column 31] : ${attributeConfig} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 146, column 34] : ${historyDirectory} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 147, column 39] : ${historyFileName} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 148, column 39] : ${refreshInterval} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 152, column 39] : ${organizationName} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 153, column 46] : ${organizationDisplayName} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 154, column 38] : ${organizationURL} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 155, column 33] : ${activeFlag} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 157, column 36] : ${defaultPolicy} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 159, column 45] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 163, column 41] : ${java.defaultACS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 164, column 43] : ${apache.defaultACS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 165, column 40] : ${iis.defaultACS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 166, column 41] : ${java.defaultSLS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 167, column 43] : ${apache.defaultSLS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 168, column 40] : ${iis.defaultSLS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 169, column 41] : ${java.defaultCCS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 170, column 43] : ${apache.defaultCCS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 171, column 40] : ${iis.defaultCCS} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 173, column 44] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 19:51:57,391 - Null reference [template 'esoemanager.config', line 174, column 46] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:51:57,413 - Null reference [template 'spep.config', line 18, column 14] : ${spep.data} cannot be resolved.
+2008-08-27 19:54:21,345 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 19:54:21,346 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 19:54:21,346 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 19:54:21,346 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 19:54:21,346 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:94)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 19:54:21,347 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 19:54:21,347 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 19:54:21,350 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 19:54:21,354 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 19:54:21,355 - Do unicode file recognition:  false
+2008-08-27 19:54:21,355 - FileResourceLoader : adding path '.'
+2008-08-27 19:54:21,366 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 19:54:21,367 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 19:54:21,372 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 19:54:21,373 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 19:54:21,375 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 19:54:21,376 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 19:54:21,408 - Created '20' parsers.
+2008-08-27 19:54:21,416 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 19:54:21,417 - Velocimacro : Default library not found.
+2008-08-27 19:54:21,417 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 19:54:21,417 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 19:54:21,417 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 19:54:21,417 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 19:54:21,490 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 43, column 14] : $esoeBean.getCommonDomain() cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 174, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 175, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 176, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 177, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 178, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 19:54:21,491 - Null reference [template 'esoe.config', line 179, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 180, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 181, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 184, column 35] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 185, column 39] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 186, column 31] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 187, column 34] : ${keyPassword-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 190, column 39] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 191, column 43] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 192, column 35] : ${keyAlias-2} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 201, column 31] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 204, column 38] : ${identifierCacheClean} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 205, column 42] : ${identifierExpiryInterval} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 210, column 37] : ${sessionTokenName} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 211, column 34] : ${sessionDomain} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 214, column 33] : ${activeAuthnPlugins} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 217, column 31] : ${securityLevelIdentifer} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 218, column 23] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 222, column 22] : ${sessionLength} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 225, column 36] : ${activeIdentityPlugins} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 229, column 26] : ${sessionCacheClean} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 231, column 26] : ${sessionLength} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 232, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 237, column 14] : ${metadataURL} cannot be resolved.
+2008-08-27 19:54:21,492 - Null reference [template 'esoe.config', line 238, column 32] : ${networkUpdateInterval} cannot be resolved.
+2008-08-27 19:54:21,493 - Null reference [template 'esoe.config', line 239, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,493 - Null reference [template 'esoe.config', line 244, column 27] : ${allowedActiveAuthSkew} cannot be resolved.
+2008-08-27 19:54:21,493 - Null reference [template 'esoe.config', line 245, column 28] : ${sessionRemainingLength} cannot be resolved.
+2008-08-27 19:54:21,493 - Null reference [template 'esoe.config', line 246, column 33] : ${acceptUnsignedAuthnRequests} cannot be resolved.
+2008-08-27 19:54:21,493 - Null reference [template 'esoe.config', line 247, column 20] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 251, column 20] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 252, column 19] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 257, column 49] : ${authorizationDefaultMode} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 258, column 40] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 259, column 39] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 262, column 35] : ${authorizationPollInterval} cannot be resolved.
+2008-08-27 19:54:21,494 - Null reference [template 'esoe.config', line 263, column 37] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 30, column 16] : ${esoemanager.data} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 50, column 18] : ${esoemanager.data} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 112, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 113, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 114, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 115, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 116, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 117, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 118, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 119, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 120, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 129, column 42] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:54:21,540 - Null reference [template 'esoemanager.config', line 130, column 48] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 131, column 38] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 132, column 43] : ${keyPassword-1} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 136, column 30] : ${issuerDN} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 137, column 33] : ${issuerEmail} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 138, column 25] : ${keySize} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 139, column 36] : ${certExpiryInterval} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 142, column 31] : ${attributeConfig} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 146, column 34] : ${historyDirectory} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 147, column 39] : ${historyFileName} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 148, column 39] : ${refreshInterval} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 152, column 39] : ${organizationName} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 153, column 46] : ${organizationDisplayName} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 154, column 38] : ${organizationURL} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 155, column 33] : ${activeFlag} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 157, column 36] : ${defaultPolicy} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 159, column 45] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 163, column 41] : ${java.defaultACS} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 164, column 43] : ${apache.defaultACS} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 165, column 40] : ${iis.defaultACS} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 166, column 41] : ${java.defaultSLS} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 167, column 43] : ${apache.defaultSLS} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 168, column 40] : ${iis.defaultSLS} cannot be resolved.
+2008-08-27 19:54:21,541 - Null reference [template 'esoemanager.config', line 169, column 41] : ${java.defaultCCS} cannot be resolved.
+2008-08-27 19:54:21,542 - Null reference [template 'esoemanager.config', line 170, column 43] : ${apache.defaultCCS} cannot be resolved.
+2008-08-27 19:54:21,542 - Null reference [template 'esoemanager.config', line 171, column 40] : ${iis.defaultCCS} cannot be resolved.
+2008-08-27 19:54:21,542 - Null reference [template 'esoemanager.config', line 173, column 44] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 19:54:21,542 - Null reference [template 'esoemanager.config', line 174, column 46] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:54:21,562 - Null reference [template 'spep.config', line 18, column 14] : ${spep.data} cannot be resolved.
+2008-08-27 19:59:52,899 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 19:59:52,899 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 19:59:52,899 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 19:59:52,899 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 19:59:52,899 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:95)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 19:59:52,900 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 19:59:52,900 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 19:59:52,902 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 19:59:52,906 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 19:59:52,907 - Do unicode file recognition:  false
+2008-08-27 19:59:52,907 - FileResourceLoader : adding path '.'
+2008-08-27 19:59:52,917 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 19:59:52,918 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 19:59:52,920 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 19:59:52,922 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 19:59:52,923 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 19:59:52,924 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 19:59:52,953 - Created '20' parsers.
+2008-08-27 19:59:52,962 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 19:59:52,962 - Velocimacro : Default library not found.
+2008-08-27 19:59:52,962 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 19:59:52,962 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 19:59:52,962 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 19:59:52,962 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 19:59:53,034 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 19:59:53,034 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,034 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 19:59:53,034 - Null reference [template 'esoe.config', line 174, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 19:59:53,034 - Null reference [template 'esoe.config', line 175, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 19:59:53,034 - Null reference [template 'esoe.config', line 176, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 177, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 178, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 179, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 180, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 181, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 184, column 35] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 185, column 39] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 186, column 31] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 187, column 34] : ${keyPassword-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 190, column 39] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 191, column 43] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 192, column 35] : ${keyAlias-2} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 201, column 31] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 204, column 38] : ${identifierCacheClean} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 205, column 42] : ${identifierExpiryInterval} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 210, column 37] : ${sessionTokenName} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 211, column 34] : ${sessionDomain} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 214, column 33] : ${activeAuthnPlugins} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 217, column 31] : ${securityLevelIdentifer} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 218, column 23] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 222, column 22] : ${sessionLength} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 225, column 36] : ${activeIdentityPlugins} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 229, column 26] : ${sessionCacheClean} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 231, column 26] : ${sessionLength} cannot be resolved.
+2008-08-27 19:59:53,035 - Null reference [template 'esoe.config', line 232, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 237, column 14] : ${metadataURL} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 238, column 32] : ${networkUpdateInterval} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 239, column 25] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 244, column 27] : ${allowedActiveAuthSkew} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 245, column 28] : ${sessionRemainingLength} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 246, column 33] : ${acceptUnsignedAuthnRequests} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 247, column 20] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 251, column 20] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 252, column 19] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 257, column 49] : ${authorizationDefaultMode} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 258, column 40] : ${allowedSPEPSkew} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 259, column 39] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 262, column 35] : ${authorizationPollInterval} cannot be resolved.
+2008-08-27 19:59:53,036 - Null reference [template 'esoe.config', line 263, column 37] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 19:59:53,080 - Null reference [template 'esoemanager.config', line 30, column 16] : ${esoemanager.data} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 50, column 18] : ${esoemanager.data} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 112, column 25] : ${databaseDriver-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 113, column 22] : ${databaseURL-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 114, column 27] : ${databaseUsername-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 115, column 27] : ${databasePassword-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 116, column 34] : ${databaseRemoveAbandoned-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 117, column 41] : ${databaseRemoveAbandonedTimeout-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 118, column 31] : ${databaseLogAbandoned-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 119, column 26] : ${databaseMaxIdle-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 120, column 28] : ${databaseMaxActive-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 129, column 42] : ${keystorePath-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 130, column 48] : ${keystorePassword-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 131, column 38] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 132, column 43] : ${keyPassword-1} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 136, column 30] : ${issuerDN} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 137, column 33] : ${issuerEmail} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 138, column 25] : ${keySize} cannot be resolved.
+2008-08-27 19:59:53,081 - Null reference [template 'esoemanager.config', line 139, column 36] : ${certExpiryInterval} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 142, column 31] : ${attributeConfig} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 146, column 34] : ${historyDirectory} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 147, column 39] : ${historyFileName} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 148, column 39] : ${refreshInterval} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 152, column 39] : ${organizationName} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 153, column 46] : ${organizationDisplayName} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 154, column 38] : ${organizationURL} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 155, column 33] : ${activeFlag} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 157, column 36] : ${defaultPolicy} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 159, column 45] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 163, column 41] : ${java.defaultACS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 164, column 43] : ${apache.defaultACS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 165, column 40] : ${iis.defaultACS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 166, column 41] : ${java.defaultSLS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 167, column 43] : ${apache.defaultSLS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 168, column 40] : ${iis.defaultSLS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 169, column 41] : ${java.defaultCCS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 170, column 43] : ${apache.defaultCCS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 171, column 40] : ${iis.defaultCCS} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 173, column 44] : ${esoeTrustedID} cannot be resolved.
+2008-08-27 19:59:53,082 - Null reference [template 'esoemanager.config', line 174, column 46] : ${keyAlias-1} cannot be resolved.
+2008-08-27 19:59:53,106 - Null reference [template 'spep.config', line 18, column 14] : ${spep.data} cannot be resolved.
+2008-08-27 20:45:55,904 - Log4JLogChute initialized using file 'velocity.log'
+2008-08-27 20:45:55,905 - Starting Apache Velocity v1.5 (compiled: 2007-02-22 08:52:29)
+2008-08-27 20:45:55,905 - Default Properties File: org/apache/velocity/runtime/defaults/velocity.properties
+2008-08-27 20:45:55,905 - Trying to use logger class org.apache.velocity.runtime.log.AvalonLogChute
+2008-08-27 20:45:55,905 - Couldn't find class org.apache.velocity.runtime.log.AvalonLogChute or necessary supporting classes in classpath.
+java.lang.NoClassDefFoundError: org/apache/log/format/Formatter
+	at java.lang.Class.forName0(Native Method)
+	at java.lang.Class.forName(Class.java:247)
+	at org.apache.velocity.util.ClassUtils.getClass(ClassUtils.java:63)
+	at org.apache.velocity.util.ClassUtils.getNewInstance(ClassUtils.java:95)
+	at org.apache.velocity.runtime.log.LogManager.createLogChute(LogManager.java:147)
+	at org.apache.velocity.runtime.log.LogManager.updateLog(LogManager.java:208)
+	at org.apache.velocity.runtime.RuntimeInstance.initializeLog(RuntimeInstance.java:728)
+	at org.apache.velocity.runtime.RuntimeInstance.init(RuntimeInstance.java:240)
+	at org.apache.velocity.runtime.RuntimeSingleton.init(RuntimeSingleton.java:113)
+	at org.apache.velocity.app.Velocity.init(Velocity.java:83)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.generateConfig(RenderESOEConfigLogic.java:119)
+	at com.qut.middleware.deployer.logic.RenderESOEConfigLogic.renderESOEConfig(RenderESOEConfigLogic.java:67)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.writeESOEContent(RegisterESOELogic.java:283)
+	at com.qut.middleware.deployer.logic.RegisterESOELogic.execute(RegisterESOELogic.java:209)
+	at com.qut.middleware.deployer.Deployer.execute(Deployer.java:69)
+	at com.qut.middleware.deployer.Main.main(Main.java:21)
+Caused by: java.lang.ClassNotFoundException: org.apache.log.format.Formatter
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:200)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:188)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:276)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:251)
+	at java.lang.ClassLoader.loadClassInternal(ClassLoader.java:319)
+	... 16 more
+2008-08-27 20:45:55,906 - Trying to use logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 20:45:55,906 - Using logger class org.apache.velocity.runtime.log.Log4JLogChute
+2008-08-27 20:45:55,908 - Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+2008-08-27 20:45:55,913 - ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+2008-08-27 20:45:55,915 - Do unicode file recognition:  false
+2008-08-27 20:45:55,915 - FileResourceLoader : adding path '.'
+2008-08-27 20:45:55,927 - ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl)
+2008-08-27 20:45:55,929 - Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+2008-08-27 20:45:55,930 - Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+2008-08-27 20:45:55,932 - Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+2008-08-27 20:45:55,934 - Loaded System Directive: org.apache.velocity.runtime.directive.Include
+2008-08-27 20:45:55,935 - Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+2008-08-27 20:45:55,995 - Created '20' parsers.
+2008-08-27 20:45:56,017 - Velocimacro : "velocimacro.library" is not set.  Trying default library: VM_global_library.vm
+2008-08-27 20:45:56,017 - Velocimacro : Default library not found.
+2008-08-27 20:45:56,017 - Velocimacro : allowInline = true : VMs can be defined inline in templates
+2008-08-27 20:45:56,017 - Velocimacro : allowInlineToOverride = false : VMs defined inline may NOT replace previous VM definitions
+2008-08-27 20:45:56,017 - Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+2008-08-27 20:45:56,017 - Velocimacro : autoload off : VM system will not automatically reload global library macros
+2008-08-27 20:45:56,095 - Null reference [template 'esoe.config', line 27, column 16] : ${esoe.data} cannot be resolved.
+2008-08-27 20:45:56,095 - Null reference [template 'esoe.config', line 37, column 13] : $esoeBean.getManagerServiceNode() cannot be resolved.
+2008-08-27 20:45:56,096 - Null reference [template 'esoe.config', line 104, column 33] : ${esoeIdentifier} cannot be resolved.
+2008-08-27 20:45:56,096 - Null reference [template 'esoe.config', line 173, column 25] : ${databaseDriver-1} cannot be resolved.

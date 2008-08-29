@@ -24,9 +24,14 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.BindingConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
@@ -48,8 +53,6 @@ import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.Messages;
 import com.qut.middleware.spep.StartupProcessor;
 import com.qut.middleware.spep.exception.SPEPInitializationException;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
 import com.qut.middleware.spep.util.CalendarUtils;
 import com.qut.middleware.spep.ws.WSClient;
 import com.qut.middleware.spep.ws.exception.WSClientException;
@@ -65,19 +68,23 @@ public class StartupProcessorImpl implements StartupProcessor
 	private String swVersion;
 	private String environment;
 	private int nodeID;
-	private int startupRetryInterval = 20000;
+	private int startupRetryInterval;
 	private List<String> ipAddressList;
 	private WSClient wsClient;
 	private Marshaller<ValidateInitializationRequest> validateInitializationRequestMarshaller;
 	private Unmarshaller<ValidateInitializationResponse> validateInitializationResponseUnmarshaller;
 	private SAMLValidator samlValidator;
-	private final Metadata metadata;
+	private final MetadataProcessor metadata;
 	
 	private final String UNMAR_PKGNAMES = ValidateInitializationRequest.class.getPackage().getName() + ":" + RequestAbstractType.class.getPackage().getName();
 	private final String MAR_PKGNAMES = ValidateInitializationRequest.class.getPackage().getName() + ":" + RequestAbstractType.class.getPackage().getName();
+	private final String IMPLEMENTED_BINDING = BindingConstants.soap;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(StartupProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(StartupProcessorImpl.class.getName());
+	private String trustedESOEIdentifier;
+	private boolean enableCompatibility;
+	private boolean disableSPEPStartup;
 	
 	/**
 	 * constructor
@@ -94,7 +101,7 @@ public class StartupProcessorImpl implements StartupProcessor
 	 * @throws MarshallerException 
 	 * @throws UnmarshallerException 
 	 */
-	public StartupProcessorImpl(Metadata metadata, String spepIdentifier, IdentifierGenerator identifierGenerator, WSClient wsClient, SAMLValidator samlValidator, KeyStoreResolver keyStoreResolver, List<String> ipAddressList, String serverInfo, int nodeID) throws MarshallerException, UnmarshallerException
+	public StartupProcessorImpl(MetadataProcessor metadata, String spepIdentifier, String trustedESOEIdentifier, IdentifierGenerator identifierGenerator, WSClient wsClient, SAMLValidator samlValidator, KeystoreResolver keyStoreResolver, List<String> ipAddressList, String serverInfo, int nodeID, int spepStartupInterval, boolean disableSPEPStartup, boolean enableCompatibility) throws MarshallerException, UnmarshallerException
 	{	
 		if(metadata == null)
 		{
@@ -131,14 +138,24 @@ public class StartupProcessorImpl implements StartupProcessor
 		if(nodeID < 0 || nodeID > Integer.MAX_VALUE)
 			throw new IllegalArgumentException(Messages.getString("StartupProcessorImpl.34") + Integer.MAX_VALUE); //$NON-NLS-1$
 		
+		if(spepStartupInterval < 0 || spepStartupInterval > Integer.MAX_VALUE)
+			throw new IllegalArgumentException(Messages.getString("StartupProcessorImpl.34") + Integer.MAX_VALUE); //$NON-NLS-1$
+		
+		
 		this.metadata = metadata;
 		this.spepIdentifier = spepIdentifier;
 		this.identifierGenerator = identifierGenerator;
 		this.samlValidator = samlValidator;
 		this.wsClient = wsClient;
 		this.nodeID = nodeID;
+		this.startupRetryInterval = spepStartupInterval;
+		
+		this.trustedESOEIdentifier = trustedESOEIdentifier;
 		
 		this.startupResult = result.wait;
+		
+		this.disableSPEPStartup = disableSPEPStartup;
+		this.enableCompatibility = enableCompatibility;
 		
 		ResourceBundle bundle = ResourceBundle.getBundle(ConfigurationConstants.SPEP_COMPILE_TIME);
 		
@@ -157,8 +174,12 @@ public class StartupProcessorImpl implements StartupProcessor
 		this.ipAddressList.addAll(ipAddressList);
 		
 		String[] validateInitializationSchemas = new String[]{ConfigurationConstants.esoeProtocol};
-		this.validateInitializationRequestMarshaller = new MarshallerImpl<ValidateInitializationRequest>(this.MAR_PKGNAMES, validateInitializationSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-		this.validateInitializationResponseUnmarshaller = new UnmarshallerImpl<ValidateInitializationResponse>(this.UNMAR_PKGNAMES, validateInitializationSchemas, this.metadata);
+		
+		if (!disableSPEPStartup)
+		{
+			this.validateInitializationRequestMarshaller = new MarshallerImpl<ValidateInitializationRequest>(this.MAR_PKGNAMES, validateInitializationSchemas, keyStoreResolver);
+			this.validateInitializationResponseUnmarshaller = new UnmarshallerImpl<ValidateInitializationResponse>(this.UNMAR_PKGNAMES, validateInitializationSchemas, this.metadata);
+		}
 		
 		this.logger.info(Messages.getString("StartupProcessorImpl.0")); //$NON-NLS-1$
 	}
@@ -177,6 +198,12 @@ public class StartupProcessorImpl implements StartupProcessor
 	public synchronized void beginSPEPStartup()
 	{
 		this.logger.debug(Messages.getString("StartupProcessorImpl.1")); //$NON-NLS-1$
+		
+		if (this.disableSPEPStartup)
+		{
+			setStartupResult(result.allow);
+			return;
+		}
 		
 		Thread thread = new StartupProcessorThread();
 		thread.start();
@@ -208,7 +235,9 @@ public class StartupProcessorImpl implements StartupProcessor
 				String samlID = this.identifierGenerator.generateSAMLID();
 				
 				byte[] requestDocument = buildRequest(samlID);
-				String endpoint = this.metadata.getSPEPStartupServiceEndpoint();
+				
+				TrustedESOERole trustedESOERole = this.metadata.getEntityRoleData(this.trustedESOEIdentifier, TrustedESOERole.class);
+				String endpoint = trustedESOERole.getSPEPStartupServiceEndpoint(IMPLEMENTED_BINDING);
 				
 				this.logger.debug(MessageFormat.format(Messages.getString("StartupProcessorImpl.3"), endpoint) ); //$NON-NLS-1$
 				
@@ -256,13 +285,13 @@ public class StartupProcessorImpl implements StartupProcessor
 			{
 				e.printStackTrace();
 				setStartupResult(result.fail);
-				this.logger.fatal(MessageFormat.format(Messages.getString("StartupProcessorImpl.11"), e.getMessage())); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("StartupProcessorImpl.11"), e.getMessage())); //$NON-NLS-1$
 			}
 			
 			try
 			{
-				Thread.sleep(this.startupRetryInterval);
-				this.logger.fatal(MessageFormat.format(Messages.getString("StartupProcessorImpl.30"), this.startupRetryInterval/1000) ); //$NON-NLS-1$
+				Thread.sleep(this.startupRetryInterval*1000);
+				this.logger.error(MessageFormat.format(Messages.getString("StartupProcessorImpl.30"), this.startupRetryInterval) ); //$NON-NLS-1$
 			}
 			catch (InterruptedException e)
 			{
@@ -324,11 +353,11 @@ public class StartupProcessorImpl implements StartupProcessor
 		}
 
 		// check that issuer was ESOE
-		if(!this.metadata.getESOEIdentifier().equals(validateInitializationResponse.getIssuer().getValue()))
+		if(!this.trustedESOEIdentifier.equals(validateInitializationResponse.getIssuer().getValue()))
 		{
-			this.logger.error(MessageFormat.format(Messages.getString("StartupProcessorImpl.31"), this.metadata.getESOEIdentifier(), validateInitializationResponse.getIssuer().getValue())); //$NON-NLS-1$
+			this.logger.error(MessageFormat.format(Messages.getString("StartupProcessorImpl.31"), this.trustedESOEIdentifier, validateInitializationResponse.getIssuer().getValue())); //$NON-NLS-1$
 
-			throw new SPEPInitializationException(MessageFormat.format(Messages.getString("StartupProcessorImpl.32"), this.metadata.getESOEIdentifier(), validateInitializationResponse.getIssuer().getValue())); //$NON-NLS-1$
+			throw new SPEPInitializationException(MessageFormat.format(Messages.getString("StartupProcessorImpl.32"), this.trustedESOEIdentifier, validateInitializationResponse.getIssuer().getValue())); //$NON-NLS-1$
 		
 		}
 				
@@ -340,7 +369,7 @@ public class StartupProcessorImpl implements StartupProcessor
 			throw new SPEPInitializationException(Messages.getString("StartupProcessorImpl.15")); //$NON-NLS-1$
 		}
 			
-		this.logger.debug(Messages.getString("StartupProcessorImpl.17")); //$NON-NLS-1$
+		this.logger.info(Messages.getString("StartupProcessorImpl.17")); //$NON-NLS-1$
 		return;
 	}
 

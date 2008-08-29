@@ -21,7 +21,8 @@ package com.qut.middleware.delegator.shib.pages;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.delegator.shib.ConfigurationConstants;
 import com.qut.middleware.saml2.schemas.assertion.AttributeType;
@@ -32,7 +33,7 @@ public class AcceptPage extends BorderPage
 	public List<AttributeType> attributes;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AcceptPage.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AcceptPage.class.getName());
 	
 	public AcceptPage()
 	{

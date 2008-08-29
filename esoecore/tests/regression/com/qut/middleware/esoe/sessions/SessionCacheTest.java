@@ -19,6 +19,11 @@
  */
 package com.qut.middleware.esoe.sessions;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.notNull;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -28,6 +33,8 @@ import java.text.MessageFormat;
 
 import org.junit.Test;
 
+import com.qut.middleware.esoe.logout.LogoutThreadPool;
+import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl;
@@ -52,13 +59,20 @@ public class SessionCacheTest
 	private final String samlID3 = "gnqiopehjyptoiajsdopig"; //$NON-NLS-01$
 	private final String sessionID3 = "4980984098109519819815"; //$NON-NLS-01$
 
+	private LogoutThreadPool logout;
+
 	/**
 	 * 
 	 */
 	@Test
 	public final void testAddSession1()
 	{
-		this.cache = new SessionCacheImpl();
+		this.logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
 		data.setPrincipalAuthnIdentifier(this.principal1);
@@ -107,7 +121,12 @@ public class SessionCacheTest
 	@Test
 	public final void testAddSession2()
 	{
-		this.cache = new SessionCacheImpl();
+		this.logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
 		boolean trapped = false;
@@ -156,7 +175,12 @@ public class SessionCacheTest
 	@Test
 	public final void testGetSessionBySamlID1()
 	{
-		this.cache = new SessionCacheImpl();
+		this.logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
 		data.setPrincipalAuthnIdentifier(this.principal1);
@@ -188,7 +212,12 @@ public class SessionCacheTest
 	@Test
 	public void testUpdateSessionID()
 	{
-		this.cache = new SessionCacheImpl();
+		this.logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 
 		// attempt to update an invalid principal. A valid one is updated in the previous test.
 		try
@@ -223,7 +252,12 @@ public class SessionCacheTest
 	@Test
 	public final void testRemoveSession()
 	{
-		this.cache = new SessionCacheImpl();
+		this.logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
 		data.setPrincipalAuthnIdentifier(this.principal1);
@@ -260,7 +294,13 @@ public class SessionCacheTest
 		Principal data = new PrincipalImpl(10);
 		data.setSessionID(sessionID);
 		data.setPrincipalAuthnIdentifier("Test");
-		this.cache = new SessionCacheImpl();
+		
+		this.logout = createMock(LogoutThreadPool.class);
+		expect(this.logout.createLogoutTask((Principal)notNull(), eq(false)) ).andReturn("BlahTaskID").anyTimes();
+		
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 		this.cache.addSession(data);
 		
 		// prove its in there
@@ -284,7 +324,13 @@ public class SessionCacheTest
 		data.setSessionID(sessionID);
 		data.setPrincipalAuthnIdentifier("Test");
 		data.setAuthnTimestamp(System.currentTimeMillis());
-		this.cache = new SessionCacheImpl();
+		
+		this.logout = createMock(LogoutThreadPool.class);
+		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		replay(this.logout);
+		
+		this.cache = new SessionCacheImpl(logout);
 		this.cache.addSession(data);
 		
 		// the session is valid is it exists in the cache

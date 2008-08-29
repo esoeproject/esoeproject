@@ -7,8 +7,8 @@
 	<!-- Data object being mapped to -->
 	<typeAlias alias="spepRegistration" type="com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationData" />
 	<typeAlias alias="spepRegistrationQuery" type="com.qut.middleware.esoe.spep.sqlmap.impl.SPEPRegistrationQueryData" />
-	<typeAlias alias="policyCacheData" type="com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheData" />
-	<typeAlias alias="policyCacheQuery" type="com.qut.middleware.esoe.pdp.cache.sqlmap.impl.PolicyCacheQueryData" />
+	<typeAlias alias="policyCacheData" type="com.qut.middleware.esoe.authz.cache.sqlmap.impl.PolicyCacheData" />
+	<typeAlias alias="policyCacheQuery" type="com.qut.middleware.esoe.authz.cache.sqlmap.impl.PolicyCacheQueryData" />
 	
 	<!-- Parameter Maps -->
 	<parameterMap id="spepRegistrationQueryParam" class="spepRegistrationQuery">

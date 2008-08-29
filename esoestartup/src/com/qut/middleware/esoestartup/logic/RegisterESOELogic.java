@@ -37,7 +37,8 @@ import java.util.Calendar;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.w3c.dom.Element;
 
@@ -108,7 +109,7 @@ public class RegisterESOELogic
 	private final String MAR_PKGNAMES = SPSSODescriptor.class.getPackage().getName() + Constants.SCHEMA_SEPERATOR + LXACMLPDPDescriptor.class.getPackage().getName() + Constants.SCHEMA_SEPERATOR + CacheClearService.class.getPackage().getName();
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(RegisterESOELogic.class.getName());
+	private Logger logger = LoggerFactory.getLogger(RegisterESOELogic.class.getName());
 
 	public RegisterESOELogic(GenerateWarLogic generateWarLogic, RenderESOEConfigLogic renderESOEConfigLogic, IdentifierGenerator identifierGenerator, ESOEDAO esoeDAO, BasicDataSource dataSource, File policyFile, File managementPolicyFile, File attributePolicyFile) throws MarshallerException, IOException
 	{
@@ -157,7 +158,7 @@ public class RegisterESOELogic
 		catch (DataAccessException e)
 		{
 			this.logger.error("Unable to connect with database " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -220,49 +221,49 @@ public class RegisterESOELogic
 		catch (FileNotFoundException e)
 		{
 			this.logger.error("FileNotFoundException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("FileNotFoundException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (KeyStoreException e)
 		{
 			this.logger.error("KeyStoreException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("KeyStoreException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (NoSuchAlgorithmException e)
 		{
 			this.logger.error("NoSuchAlgorithmException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("NoSuchAlgorithmException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (CertificateException e)
 		{
 			this.logger.error("CertificateException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("CertificateException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (CryptoException e)
 		{
 			this.logger.error("CryptoException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("CryptoException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (IOException e)
 		{
 			this.logger.error("IOException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("IOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (RenderConfigException e)
 		{
 			this.logger.error("RenderConfigException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("RenderConfigException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 		catch (ESOEDAOException e)
 		{
 			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 	}
@@ -408,7 +409,7 @@ public class RegisterESOELogic
 		catch (ESOEDAOException e)
 		{
 			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 
@@ -426,13 +427,13 @@ public class RegisterESOELogic
 		catch (MarshallerException e)
 		{
 			this.logger.error("Marshaller exception when attempting to create ESOE xml descriptor " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("Marshaller exception when attempting to create ESOE xml descriptor " + e.getLocalizedMessage());
 		}
 		catch (ESOEDAOException e)
 		{
 			this.logger.error("ESOEDAOException when attempting to configure insert ESOE xml descriptor details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure insert ESOE xml descriptor details " + e.getLocalizedMessage());
 		}
 	}
@@ -449,7 +450,7 @@ public class RegisterESOELogic
 		catch (ESOEDAOException e)
 		{
 			this.logger.error("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure ESOE details " + e.getLocalizedMessage());
 		}
 
@@ -462,13 +463,13 @@ public class RegisterESOELogic
 		catch (MarshallerException e)
 		{
 			this.logger.error("Marshaller exception when attempting to create ESOE Manager xml descriptor " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("Marshaller exception when attempting to create ESOE Manager xml descriptor " + e.getLocalizedMessage());
 		}
 		catch (ESOEDAOException e)
 		{
 			this.logger.error("ESOEDAOException when attempting to configure insert ESOE Manager xml descriptor details " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RegisterESOEException("ESOEDAOException when attempting to configure insert ESOE Manager xml descriptor details " + e.getLocalizedMessage());
 		}
 	}
@@ -489,7 +490,7 @@ public class RegisterESOELogic
 			catch (ESOEDAOException e)
 			{
 				this.logger.error("ESOEDAOException when attempting to configure insert ESOE contacts " + e.getLocalizedMessage());
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 				throw new RegisterESOEException("ESOEDAOException when attempting to configure insert ESOE contacts " + e.getLocalizedMessage());
 			}
 		}
@@ -735,7 +736,7 @@ public class RegisterESOELogic
 		catch (MalformedURLException e)
 		{
 			this.logger.error("Error attempting to generate certificate subjectDN " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			return "dc=" + dn;
 		}
 	}
@@ -756,7 +757,7 @@ public class RegisterESOELogic
 		}
 		catch (NoSuchAlgorithmException nsae)
 		{
-			this.logger.fatal("NoSuchAlgorithmException when trying to create SecureRandom instance " + nsae.getLocalizedMessage()); //$NON-NLS-1$
+			this.logger.error("NoSuchAlgorithmException when trying to create SecureRandom instance " + nsae.getLocalizedMessage()); //$NON-NLS-1$
 			this.logger.debug(nsae.getLocalizedMessage(), nsae);
 			random = new SecureRandom();
 		}

@@ -26,7 +26,8 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -34,7 +35,7 @@ import org.apache.log4j.Logger;
 public class GenericObjectInvocationHandler extends Object implements
 		InvocationHandler
 {
-	private Logger logger = Logger.getLogger(GenericObjectInvocationHandler.class);
+	private Logger logger = LoggerFactory.getLogger(GenericObjectInvocationHandler.class);
 	
 	private Object invocationTarget;
 	

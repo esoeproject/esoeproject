@@ -19,7 +19,8 @@
  */
 package com.qut.middleware.esoestartup.logic;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -32,7 +33,7 @@ public class TestDatabaseLogic
 	private JdbcTemplate jdbcTemplate;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(TestDatabaseLogic.class.getName());
+	private Logger logger = LoggerFactory.getLogger(TestDatabaseLogic.class.getName());
 	
 	public TestDatabaseLogic()
 	{
@@ -66,7 +67,7 @@ public class TestDatabaseLogic
 		catch(DataAccessException e)
 		{
 			this.logger.error("Unable to connect with database " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new TestDatabaseException(e.getLocalizedMessage(), e);
 		}
 	}

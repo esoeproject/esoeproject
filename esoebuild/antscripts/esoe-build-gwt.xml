@@ -1,0 +1,65 @@
+
+	<!--
+		esoe build environment Bradley Beddoes, Queensland University of
+		Technology, 2008 Licenced Under Apache 2.0, available from
+		http://www.apache.org/licenses/LICENSE-2.0.html
+	-->
+<project name="esoe-build-gwt" xmlns:ivy="antlib:org.apache.ivy.ant">
+	<import file="${esoebuild}/antscripts/esoe-build.xml" />
+	<import file="${esoebuild}/antscripts/esoe-ivy.xml" />
+	<import file="${esoebuild}/antscripts/esoe-env.xml" />
+	
+	<target name="gwt-userinterface" depends="gwt-check"
+		unless="gwtGenerate.common.notRequired">
+		<gwt-compile module="${gwt.modulename}" />
+	</target>
+	
+	<target name="gwt-check">
+		<mkdir dir="${output.build}-gwt/gwt" />
+		<mkdir dir="${output.build}-gwt/gwt/tmp" />
+		<mkdir dir="${output.build}-gwt/gwt/out" />
+		<gwt-uptodate property="gwtGenerate.common.notRequired"
+			module="${gwt.modulename}" package="${gwt.package}" />
+		<gwt-uptodate property="gwtGenerate.demo.notRequired"
+			module="${gwt.modulename}" package="${gwt.package}" />
+	</target>
+	
+	<target name="gwt-clean" description="Removes base directories">
+		<delete dir="${output.build}-gwt" />
+		<delete dir="${output}" />
+	</target>
+	
+	<macrodef name="gwt-uptodate"
+		description="sets a property indicating if the module is up to date">
+		<attribute name="property" />
+		<attribute name="module" />
+		<attribute name="package" />
+		<sequential>
+			<uptodate property="@{property}"
+				targetfile="${output.build}-gwt/gwt/out/@{module}/@{module}.nocache.html">
+				<srcfiles dir="@{package}" includes="**/*.*" />
+			</uptodate>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="gwt-compile" description="generates the GWT client code">
+		<attribute name="module" />
+		<sequential>
+			<java dir="${output.build}-gwt/gwt/tmp" classname="com.google.gwt.dev.GWTCompiler"
+				fork="true">
+				<classpath>
+					<pathelement location="${src-ui}" />
+					<fileset dir="${artifacts.compile}">
+						<include name="*.jar" />
+					</fileset>
+					<fileset dir="${artifacts.gwt}">
+						<include name="*.jar" />
+					</fileset>
+				</classpath>
+				<arg value="-out" />
+				<arg value="../out" />
+				<arg value="@{module}" />
+			</java>
+		</sequential>
+	</macrodef>
+</project>

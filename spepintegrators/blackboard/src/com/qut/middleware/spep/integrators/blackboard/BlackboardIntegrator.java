@@ -23,11 +23,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import blackboard.platform.BbServiceManager;
 import blackboard.platform.log.LogService;
@@ -53,7 +55,7 @@ public class BlackboardIntegrator extends BaseAuthenticationModule
 	
 	/* Integrate with Blackboard log service */
 	private LogService logger;
-	private Logger log4jLogger = Logger.getLogger(BlackboardIntegrator.class);
+	private Logger slf4jLogger = LoggerFactory.getLogger(BlackboardIntegrator.class);
 	
 	public BlackboardIntegrator()
 	{
@@ -62,21 +64,36 @@ public class BlackboardIntegrator extends BaseAuthenticationModule
 	
 	public String doAuthenticate(HttpServletRequest request, HttpServletResponse response) throws BbSecurityException, BbAuthenticationFailedException, BbCredentialsNotFoundException
 	{
-		String userID;
 		HashMap<String, List<Object>> attributes = (HashMap<String, List<Object>>)request.getSession().getAttribute(SPEPFilter.ATTRIBUTES);
 		
+		/* Ensure SPEP filter has protected this request */
 		if(attributes == null)
 		{
-			throw new BbCredentialsNotFoundException("User credentials were not located in the session");
+			/* Enable failover to standard blackboard authentication if SPEP has chosen not to get involved */
+			this.logger.logInfo("Failing over from SPEP to Blackboard default as SPEP has not populated the environment");
+			return super.doAuthenticate(request, response);
+			// throw new BbCredentialsNotFoundException("User credentials were not located in the session");
 		}
 		
 		/* Get the UserIdentifier value from the session map to return */
-		userID = (String) attributes.get(authConfig.getProperty("userID")).get(0);
 		
-		if(userID != null && userID.length() > 0)
+		StringTokenizer userIDAttributeTokens = new StringTokenizer(authConfig.getProperty("userID").toString(), ", ");
+		// Search through the attribute names in the order given to find one we can use.
+		while(userIDAttributeTokens.hasMoreTokens())
 		{
-			this.logger.logInfo("Got user identifier of " + userID + " starting blackboard session as this user");
-			return userID;
+			String attributeName = userIDAttributeTokens.nextToken();
+			List<Object> userIDs = attributes.get(attributeName);
+			if (userIDs != null && userIDs.size() > 0)
+			{
+				String userID = (String) userIDs.get(0);
+				
+				// Check if we got a value, and return it
+				if(userID != null && userID.length() > 0)
+				{
+					this.logger.logInfo("Got user identifier from attribute " + attributeName + "  Value was: " + userID + "  Starting blackboard session as this user");
+					return userID;
+				}
+			}
 		}
 		
 		this.logger.logInfo("Attempted to start user session but couldn't find user identifer, about to abort");
@@ -85,7 +102,7 @@ public class BlackboardIntegrator extends BaseAuthenticationModule
 
 	public void doLogout(HttpServletRequest request, HttpServletResponse response) throws BbSecurityException
 	{
-		this.log4jLogger.debug("executing doLogout()");
+		this.slf4jLogger.debug("executing doLogout()");
 		
 		URL logoutURL = (URL)authConfig.getProperty("logoutURL");
 		
@@ -95,7 +112,7 @@ public class BlackboardIntegrator extends BaseAuthenticationModule
 
 		try
 		{
-			this.log4jLogger.debug("About to redirect to URL: " + logoutURL);
+			this.slf4jLogger.debug("About to redirect to URL: " + logoutURL);
 			this.logger.logInfo("About to redirect to URL: " + logoutURL);
 			response.sendRedirect(logoutURL.toExternalForm());
 		}

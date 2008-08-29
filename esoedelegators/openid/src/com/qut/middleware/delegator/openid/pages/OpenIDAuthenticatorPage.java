@@ -24,7 +24,8 @@ import java.util.Map;
 
 import net.sf.click.Page;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.openid4java.message.AuthRequest;
 
 import com.qut.middleware.delegator.openid.ConfigurationConstants;
@@ -35,7 +36,7 @@ public class OpenIDAuthenticatorPage extends Page
 	public Map<String, String> openIDParameters;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(OpenIDAuthenticatorPage.class.getName());
+	private Logger logger = LoggerFactory.getLogger(OpenIDAuthenticatorPage.class.getName());
 	
 	public OpenIDAuthenticatorPage()
 	{
@@ -62,7 +63,7 @@ public class OpenIDAuthenticatorPage extends Page
 			catch (IOException e)
 			{
 				this.logger.error("IOException while attempting to send error response");
-				this.logger.debug(e);
+				this.logger.debug(e.toString());
 			}
 		}
 		

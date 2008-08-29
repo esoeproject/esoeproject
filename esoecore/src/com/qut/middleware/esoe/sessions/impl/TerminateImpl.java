@@ -20,7 +20,8 @@ package com.qut.middleware.esoe.sessions.impl;
 
 import java.text.MessageFormat;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
@@ -34,7 +35,7 @@ public class TerminateImpl implements Terminate
 	private SessionCache cache;
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(TerminateImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(TerminateImpl.class.getName());
 
 	/**
 	 * Constructor

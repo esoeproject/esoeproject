@@ -36,7 +36,8 @@ import org.apache.axis2.AxisFault;
 import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.description.Parameter;
 import org.apache.axis2.transport.http.HTTPConstants;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.spep.Initializer;
 import com.qut.middleware.spep.SPEP;
@@ -59,7 +60,7 @@ public class WSProcessorImpl implements WSProcessor
 		xmlOutputFactory = XMLOutputFactory.newInstance();
 	}
 
-	private Logger logger = Logger.getLogger(WSProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(WSProcessorImpl.class.getName());
 
 	/**
 	 * Default constructor

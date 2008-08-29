@@ -30,14 +30,10 @@ public interface SSOProcessor
 	{
 		/** Indicates that the SSO Generation was successful */
 		SSOGenerationSuccessful, 
-		/** Indicates that the logout operation was successful */
-		LogoutSuccessful, 
 		/** Force authorization using a passive handler */
 		ForcePassiveAuthn,
 		/** Force authorization using a non-passive handler */
-		ForceAuthn,
-		/** Failure result when attempting to send a logout request to an SPEP */
-		LogoutRequestFailed,
+		ForceAuthn
 	};
 	
 	/** Perform required logic.

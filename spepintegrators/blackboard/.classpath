@@ -5,6 +5,8 @@
 	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/spepjavafilter"/>
 	<classpathentry kind="lib" path="lib/bb-platform.jar"/>
+	<classpathentry kind="lib" path="lib/dev/slf4j-api.jar"/>
 	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/dev/slf4j-log4j12.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

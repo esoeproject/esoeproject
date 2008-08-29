@@ -19,7 +19,7 @@
  */
 package com.qut.middleware.esoe.sso.servlet;
 
-import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.matches;
@@ -65,7 +65,7 @@ public class SSOAAServletTest
 	private final String SAML_REQUEST_SIGNATURE = "Signature";
 	
 	
-	private SSOAAServlet ssoAAServlet;
+	private SSOServlet ssoAAServlet;
 	private SSOProcessor ssoProcessor;
 	private SSOProcessorData data;
 	private HttpServletRequest request;
@@ -142,7 +142,7 @@ public class SSOAAServletTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the principal is redirected to the login page for GET
 	 * requests that are not returning from an SPEP.
 	 */
@@ -155,7 +155,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		expect(session.getAttribute("com.qut.middleware.esoe.sso.bean")).andReturn(null);
@@ -172,7 +172,7 @@ public class SSOAAServletTest
 		
 		setUpMock();
 		
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doGet(request, response);
 		
@@ -186,7 +186,7 @@ public class SSOAAServletTest
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the principal is given a successfull SAML response when valid data already exists in the session
 	 */
 	@Test
@@ -201,7 +201,7 @@ public class SSOAAServletTest
 		
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		expect(session.getAttribute("com.qut.middleware.esoe.sso.bean")).andReturn(data);
@@ -210,6 +210,9 @@ public class SSOAAServletTest
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
 		
 		response.addCookie((Cookie)notNull());
+		expectLastCall().anyTimes();
+		response.setContentType("text/html");
+		expectLastCall().atLeastOnce();
 		
 		try
 		{
@@ -228,7 +231,7 @@ public class SSOAAServletTest
 		
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doGet(request, response);
 		tearDownMock();
@@ -236,7 +239,7 @@ public class SSOAAServletTest
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when an existing session requires ForcePassiveAuthn (this should however never occur in our impl)
 	 */
 	@Test
@@ -247,7 +250,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -259,6 +262,9 @@ public class SSOAAServletTest
 			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andReturn(
 					SSOProcessor.result.ForcePassiveAuthn);
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -271,7 +277,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doGet(request, response);
 
@@ -280,7 +286,7 @@ public class SSOAAServletTest
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when session establishment attempt results in
 	 * InvalidSessionIdentifierException
 	 */
@@ -292,7 +298,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -303,6 +309,9 @@ public class SSOAAServletTest
 			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andThrow(
 					new InvalidSessionIdentifierException("mock"));
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -315,7 +324,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doGet(request, response);
 
@@ -324,7 +333,7 @@ public class SSOAAServletTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when existing session establishment attempt results in
 	 * InvalidRequestException
 	 */
@@ -336,7 +345,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -347,6 +356,9 @@ public class SSOAAServletTest
 			expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andThrow(
 					new InvalidRequestException("mock"));
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -359,7 +371,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doGet(request, response);
 
@@ -368,7 +380,7 @@ public class SSOAAServletTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the principal is redirected to the esoe login URL when SSOProcessor.result.ForceAuthn is
 	 * returned
 	 */
@@ -389,7 +401,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		expect(request.getParameter(this.SAML_REQUEST_ELEMENT)).andReturn(this.SAML_REQUEST);
@@ -399,6 +411,9 @@ public class SSOAAServletTest
 
 		expect(request.getSession()).andReturn(session).anyTimes();
 		response.addCookie((Cookie)notNull());
+		expectLastCall().anyTimes();
+		response.setContentType("text/html");
+		expectLastCall().atLeastOnce();
 		
 		expect(request.getCookies()).andReturn(cookies).anyTimes();
 		expect(this.ssoProcessor.execute((SSOProcessorData) notNull())).andReturn(SSOProcessor.result.ForceAuthn);
@@ -406,7 +421,7 @@ public class SSOAAServletTest
 
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doPost(request, response);
 
@@ -416,7 +431,7 @@ public class SSOAAServletTest
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the principal is redirected to the esoe login URL when SSOProcessor.result.ForceAuthn is
 	 * returned.
 	 * 
@@ -439,7 +454,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 				
 		expect(request.getSession()).andReturn(session).anyTimes();
@@ -452,7 +467,7 @@ public class SSOAAServletTest
 
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doPost(request, response);
 
@@ -462,7 +477,7 @@ public class SSOAAServletTest
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when session establishment is successful
 	 */
 	@Test
@@ -489,7 +504,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -502,6 +517,9 @@ public class SSOAAServletTest
 			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andReturn(SSOProcessor.result.SSOGenerationSuccessful);
 			
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -514,7 +532,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doPost(request, response);
 
@@ -523,7 +541,7 @@ public class SSOAAServletTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when session establishment requires ForcePassiveAuthn
 	 */
 	@Test
@@ -541,7 +559,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -555,6 +573,9 @@ public class SSOAAServletTest
 					SSOProcessor.result.ForcePassiveAuthn);
 			expect(response.getWriter()).andReturn(writer);
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 		}
 		catch (InvalidSessionIdentifierException e)
 		{
@@ -566,7 +587,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doPost(request, response);
 
@@ -575,7 +596,7 @@ public class SSOAAServletTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when session establishment attempt results in
 	 * InvalidSessionIdentifierException
 	 */
@@ -594,7 +615,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -607,6 +628,9 @@ public class SSOAAServletTest
 					new InvalidSessionIdentifierException("mock"));
 			expect(response.getWriter()).andReturn(writer);
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 		}
 		catch (InvalidSessionIdentifierException e)
 		{
@@ -618,7 +642,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doPost(request, response);
 
@@ -627,7 +651,7 @@ public class SSOAAServletTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.servlet.SSOAAServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
+	 * {@link com.qut.middleware.esoe.sso.servlet.SSOServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)}.
 	 * Tests to ensure that the user gets a SAML response when session establishment attempt results in
 	 * InvalidRequestException
 	 */
@@ -646,7 +670,7 @@ public class SSOAAServletTest
 
 		expect(servletContext.getAttribute("org.springframework.web.context.WebApplicationContext.ROOT")).andReturn(
 				webApplicationContext);
-		expect(webApplicationContext.getBean("authnAuthorityProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
+		expect(webApplicationContext.getBean("ssoProcessor", com.qut.middleware.esoe.sso.SSOProcessor.class))
 				.andReturn(ssoProcessor);
 		
 		try
@@ -658,6 +682,9 @@ public class SSOAAServletTest
 			expect(this.ssoProcessor.execute(Modify.modify(modifyProcessorData))).andThrow(
 					new InvalidRequestException("mock"));
 			response.addCookie((Cookie)notNull());
+			expectLastCall().anyTimes();
+			response.setContentType("text/html");
+			expectLastCall().atLeastOnce();
 			expect(response.getWriter()).andReturn(writer);
 		}
 		catch (InvalidSessionIdentifierException e)
@@ -670,7 +697,7 @@ public class SSOAAServletTest
 		}
 		setUpMock();
 
-		ssoAAServlet = new SSOAAServlet();
+		ssoAAServlet = new SSOServlet();
 		ssoAAServlet.init(this.servletConfig);
 		ssoAAServlet.doPost(request, response);
 

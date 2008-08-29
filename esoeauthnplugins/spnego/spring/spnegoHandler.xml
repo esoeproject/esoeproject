@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- Supported Authenticators -->
+	<import resource="kerberosV5Authenticator.xml" />
+		
+	<bean id="spnegoSecurityLevel"
+		class="com.qut.middleware.esoe.authn.bean.impl.AuthnIdentityAttributeImpl">
+		<property name="name" value="${spnegohandler.securityLevelIdentifier}" />
+		<property name="values">
+			<list>
+				<value>${spnegohandler.securityLevel}</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="targetNetworkList"
+		class="com.qut.middleware.esoe.authn.plugins.spnego.bean.impl.CommaSeparatedStringListImpl">
+		<constructor-arg index="0" value="${spnegohandler.targetNetworks}"/>
+	</bean>
+
+	<bean id="spnegoHandler"
+		class="com.qut.middleware.esoe.authn.plugins.spnego.handler.SPNEGOHandler">
+		<constructor-arg index="0" ref="kerberosV5Authenticator" />
+		<constructor-arg index="1" ref="sessionsProcessor" />
+		<constructor-arg index="2" ref="identifierGenerator" />
+		<constructor-arg index="3">
+			<list>
+				<ref bean="spnegoSecurityLevel" />
+			</list>
+		</constructor-arg>
+		<constructor-arg index="4" type="java.lang.String" value="${spnegohandler.successURL}" />
+		<constructor-arg index="5" type="java.lang.String"
+			value="${spnegohandler.spnegoUserAgentID}" />
+		<constructor-arg index="6" ref="targetNetworksList"/>
+	</bean>
+
+	<bean id="localConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="locations">
+			<list>
+				<value>file://${esoe.data}/config/esoe.config</value>
+				<value>file://${esoe.data}/plugins/plugins.config</value>
+				<value>file://${esoe.data}/plugins/authentication/authplugins.config</value>
+				<value>file://${esoe.data}/plugins/authentication/spnego/plugin.config</value>
+			</list>
+		</property>
+	</bean>
+	
+</beans>

@@ -22,7 +22,8 @@
 package com.qut.middleware.esoestartup;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.OracleLobHandler;
 import org.springframework.orm.ibatis.SqlMapClientFactoryBean;
@@ -34,7 +35,7 @@ public class DynamicSqlMapClientFactoryBean extends SqlMapClientFactoryBean
 	DefaultLobHandler defaultLobHandler;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(DynamicSqlMapClientFactoryBean.class.getName());
+	private Logger logger = LoggerFactory.getLogger(DynamicSqlMapClientFactoryBean.class.getName());
 
 	public DynamicSqlMapClientFactoryBean(BasicDataSource dataSource, OracleLobHandler oracleLobHandler,
 			DefaultLobHandler defaultLobHandler)
@@ -89,7 +90,7 @@ public class DynamicSqlMapClientFactoryBean extends SqlMapClientFactoryBean
 		}
 		catch (Exception e)
 		{
-			this.logger.fatal("Exception while retrieving sqlMap");
+			this.logger.error("Exception while retrieving sqlMap");
 			return null;
 		}
 	}

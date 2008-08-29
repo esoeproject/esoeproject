@@ -22,7 +22,6 @@ package com.qut.middleware.esoe.sso.impl;
 import static org.easymock.EasyMock.createMock;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -31,10 +30,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.metadata.Metadata;
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ExternalKeyResolver;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
@@ -44,15 +42,16 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 @SuppressWarnings("unqualified-field-access")
 public class AuthenticationAuthorityProcessorTest
 {
-	private AuthenticationAuthorityProcessor authAuthorityProcessor;
+	private SSOProcessorImpl authAuthorityProcessor;
 	private SAMLValidator samlValidator;
 	private SessionsProcessor sessionsProcessor;
 	private IdentifierGenerator identifierGenerator;
 	private HttpServletRequest request;
 	private HttpServletResponse response;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private ExternalKeyResolver externalKeyResolver;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
+	private String esoeIdentifier;
 
 	public AuthenticationAuthorityProcessorTest()
 	{
@@ -61,9 +60,10 @@ public class AuthenticationAuthorityProcessorTest
 		identifierGenerator = createMock(IdentifierGenerator.class);
 		request = createMock(HttpServletRequest.class);
 		response = createMock(HttpServletResponse.class);
-		metadata = createMock(Metadata.class);
+		metadata = createMock(MetadataProcessor.class);
 		externalKeyResolver = createMock(ExternalKeyResolver.class);
-		keyStoreResolver = createMock(KeyStoreResolver.class);
+		keyStoreResolver = createMock(KeystoreResolver.class);
+		esoeIdentifier = "esoe";
 	}
 
 	/**
@@ -84,90 +84,101 @@ public class AuthenticationAuthorityProcessorTest
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(null, sessionsProcessor, 
-				this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver, 120, 20, true, new HashMap<String, String>());
+		authAuthorityProcessor = new SSOProcessorImpl(null, sessionsProcessor, 
+				this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver, 120, 20, true, new HashMap<String, String>(), esoeIdentifier);
 	}
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1a() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, null, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>());
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, null, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>(), esoeIdentifier);
 	}
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1b() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, null, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>());
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, null, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>(), esoeIdentifier);
 	}
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1c() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, null, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>());
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, null, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>(), esoeIdentifier);
 	}
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1d() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, null);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, null, esoeIdentifier);
 	}
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1e() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, null, keyStoreResolver,  120, 20, true, new HashMap<String, String>());
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, null, keyStoreResolver,  120, 20, true, new HashMap<String, String>(), esoeIdentifier);
 	}
 
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1f() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, null,  120, 20, true, new HashMap<String, String>());
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, null,  120, 20, true, new HashMap<String, String>(), esoeIdentifier);
 	}
 	
 	/**
 	 * Test method for
-	 * {@link com.qut.middleware.esoe.sso.impl.AuthenticationAuthorityProcessor#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
 	 * Ensures null parameters are trapped
 	 */
 	@Test(expected = IllegalArgumentException.class)
 	public void testAuthenticationAuthorityProcessor1g() throws UnmarshallerException, MarshallerException
 	{
-		authAuthorityProcessor = new AuthenticationAuthorityProcessor(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, null);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, null, esoeIdentifier);
+	}
+	
+	/**
+	 * Test method for
+	 * {@link com.qut.middleware.esoe.sso.impl.SSOProcessorImpl#AuthenticationAuthorityProcessor(com.qut.middleware.saml2.validator.SAMLValidator, com.qut.middleware.esoe.sessions.SessionsProcessor, com.qut.middleware.esoe.spep.SPEPProcessor, com.qut.middleware.saml2.identifier.IdentifierGenerator, java.lang.String, int)}.
+	 * Ensures null parameters are trapped
+	 */
+	@Test(expected = IllegalArgumentException.class)
+	public void testAuthenticationAuthorityProcessor1h() throws UnmarshallerException, MarshallerException
+	{
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, externalKeyResolver, keyStoreResolver,  120, 20, true, new HashMap<String, String>(), null);
 	}
 }

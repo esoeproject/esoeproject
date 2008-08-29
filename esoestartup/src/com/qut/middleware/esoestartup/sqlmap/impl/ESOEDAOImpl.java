@@ -24,7 +24,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.orm.ibatis.support.SqlMapClientDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +40,7 @@ import com.qut.middleware.esoestartup.sqlmap.ESOEDAO;
 public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 {
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(ESOEDAOImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(ESOEDAOImpl.class.getName());
 	
 
 	/* (non-Javadoc)
@@ -63,7 +64,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -89,7 +90,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -111,7 +112,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 
@@ -136,7 +137,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -159,7 +160,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -184,7 +185,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -206,7 +207,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 
@@ -226,7 +227,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}		
 	}
@@ -250,7 +251,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -268,7 +269,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}		
 	}
@@ -290,7 +291,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}
 	}
@@ -310,7 +311,7 @@ public class ESOEDAOImpl extends SqlMapClientDaoSupport implements ESOEDAO
 		catch (SQLException e)
 		{
 			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new ESOEDAOException(e.getLocalizedMessage(), e);
 		}		
 	}

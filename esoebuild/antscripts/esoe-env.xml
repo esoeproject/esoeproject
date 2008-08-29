@@ -1,0 +1,21 @@
+<!--
+	esoe build environment
+	Bradley Beddoes, Queensland University of Technology, 2008
+	Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+-->
+		
+<project name="esoe-env" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<target name="setup" depends="clean"
+		description="Creates base directories">
+		<mkdir dir="${output.build}" />
+		<mkdir dir="${output}" />
+		<mkdir dir="${artifacts}" />
+	</target>
+
+	<target name="clean" description="Removes base directories">
+		<delete dir="${output.build}" />
+		<delete dir="${output}" />
+	</target>
+	
+</project>

@@ -28,7 +28,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.MethodInvocationException;
@@ -53,7 +54,7 @@ public class RenderESOEConfigLogic
 	private final String VELOCITY_SERVICE_NODE_URL = "serviceNodeURL";
 	
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(RenderESOEConfigLogic.class.getName());
+	private Logger logger = LoggerFactory.getLogger(RenderESOEConfigLogic.class.getName());
 
 	public RenderESOEConfigLogic(File esoeConfig, File esoeManagerConfig, File esoeManagerSPEPConfig)
 	{
@@ -144,31 +145,31 @@ public class RenderESOEConfigLogic
 		catch (ParseErrorException e)
 		{
 			this.logger.error("ParseErrorException when creating config file " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RenderConfigException("ParseErrorException when creating config file " + e.getLocalizedMessage());
 		}
 		catch (MethodInvocationException e)
 		{
 			this.logger.error("MethodInvocationException when creating config file " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RenderConfigException("MethodInvocationException when creating config file " + e.getLocalizedMessage());
 		}
 		catch (ResourceNotFoundException e)
 		{
 			this.logger.error("ResourceNotFoundException when creating config file " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RenderConfigException("ResourceNotFoundException when creating config file " + e.getLocalizedMessage());
 		}
 		catch (IOException e)
 		{
 			this.logger.error("IOException when creating config file " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RenderConfigException("IOException when creating config file " + e.getLocalizedMessage());
 		}
 		catch (Exception e)
 		{
 			this.logger.error("Exception when creating config file " + e.getLocalizedMessage());
-			this.logger.debug(e);
+			this.logger.debug(e.toString());
 			throw new RenderConfigException("Exception when creating config file " + e.getLocalizedMessage());
 		}
 	}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<bean name="esoeDAO" class="com.qut.middleware.deployer.sqlmap.impl.ESOEDAOImpl">
+		<property name="sqlMapClient" ref="sqlMapClient" />
+	</bean>
+
+	<bean name="testDatabaseLogic" class="com.qut.middleware.deployer.logic.TestDatabaseLogic">
+	</bean>
+	
+	<bean name="renderESOEConfigLogic" class="com.qut.middleware.deployer.logic.RenderESOEConfigLogic">
+		<constructor-arg index="0" type="java.io.File" value="configs/esoe.config" />
+		<constructor-arg index="1" type="java.io.File" value="configs/esoemanager.config" />
+		<constructor-arg index="2" type="java.io.File" value="configs/spep.config" />
+	</bean>
+	
+	<bean name="generateWarLogic" class="com.qut.middleware.tools.war.logic.GenerateWarLogic">
+	</bean>
+
+	<bean name="registerESOELogic" class="com.qut.middleware.deployer.logic.RegisterESOELogic">
+		<constructor-arg index="0" ref="generateWarLogic" />
+		<constructor-arg index="1" ref="renderESOEConfigLogic" />
+		<constructor-arg index="2" ref="identifierGenerator" />
+		<constructor-arg index="3" ref="esoeDAO" />
+		<constructor-arg index="4" ref="ibatisDataSource" />
+		<constructor-arg index="5" type="java.io.File" value="configs/defaultAccessPolicy.xml" />
+		<constructor-arg index="6" type="java.io.File" value="configs/defaultManagementPolicy.xml" />
+		<constructor-arg index="7" type="java.io.File" value="configs/defaultAttributeRelease.xml" />
+	</bean>
+	
+	<bean name="deployer" class="com.qut.middleware.deployer.Deployer">
+		<property name="register" ref="registerESOELogic"/>
+		<property name="testDBLogic" ref="testDatabaseLogic"/>
+	</bean>
+
+</beans>

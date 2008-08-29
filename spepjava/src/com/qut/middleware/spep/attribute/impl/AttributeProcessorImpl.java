@@ -19,10 +19,7 @@
  */
 package com.qut.middleware.spep.attribute.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -30,9 +27,18 @@ import java.util.Vector;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.metadata.bean.saml.AttributeAuthorityRole;
+import com.qut.middleware.metadata.bean.saml.IdentityProviderRole;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.exception.MetadataStateException;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -55,15 +61,11 @@ import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmationDataType;
 import com.qut.middleware.saml2.schemas.protocol.AttributeQuery;
 import com.qut.middleware.saml2.schemas.protocol.Response;
 import com.qut.middleware.saml2.schemas.spep.attributes.AttributeConfig;
-import com.qut.middleware.saml2.schemas.spep.attributes.RequestedAttributeType;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
 import com.qut.middleware.spep.attribute.Messages;
 import com.qut.middleware.spep.exception.AttributeProcessingException;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
-import com.qut.middleware.spep.metadata.impl.MetadataImpl;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 import com.qut.middleware.spep.util.CalendarUtils;
 import com.qut.middleware.spep.ws.WSClient;
@@ -72,21 +74,26 @@ import com.qut.middleware.spep.ws.exception.WSClientException;
 /** Implements the AttributeProcessor interface. */
 public class AttributeProcessorImpl implements AttributeProcessor
 {
-	private static int BUFFER_LEN = 4096;
-	protected Metadata metadata;
+	//private static int BUFFER_LEN = 4096;
+	protected MetadataProcessor metadata;
 	protected WSClient wsClient;
 	protected IdentifierGenerator identifierGenerator;
 	private String[] schemas = new String[] { ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
 	private Marshaller<AttributeQuery> attributeQueryMarshaller;
 	private Unmarshaller<Response> responseUnmarshaller;
 	private SAMLValidator samlValidator;
+	private String trustedESOEIdentifier;
 
 	private final String UNMAR_PKGNAMES = Response.class.getPackage().getName();
-	private final String UNMAR_PKGNAMES2 = AttributeConfig.class.getPackage().getName();
+	//private final String UNMAR_PKGNAMES2 = AttributeConfig.class.getPackage().getName();
 	private final String MAR_PKGNAMES = AttributeQuery.class.getPackage().getName();
+	private final String IMPLEMENTED_BINDING = BindingConstants.soap;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AttributeProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AttributeProcessorImpl.class.getName());
+	private String spepIdentifier;
+	private boolean disableAttributeQuery;
+	private boolean enableCompatibility;
 
 	/**
 	 * Constructor
@@ -108,7 +115,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 	 * @throws IOException
 	 *             if there is an error reading the xml FileStream.
 	 */
-	public AttributeProcessorImpl(Metadata metadata, WSClient wsClient, IdentifierGenerator identifierGenerator, SAMLValidator samlValidator, KeyStoreResolver keyStoreResolver) throws MarshallerException, UnmarshallerException, IOException
+	public AttributeProcessorImpl(MetadataProcessor metadata, WSClient wsClient, IdentifierGenerator identifierGenerator, SAMLValidator samlValidator, KeystoreResolver keyStoreResolver, String trustedESOEIdentifier, String spepIdentifier, boolean disableAttributeQuery, boolean enableCompatibility) throws MarshallerException, UnmarshallerException, IOException
 	{
 		if (metadata == null)
 		{
@@ -130,13 +137,27 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		{
 			throw new IllegalArgumentException(Messages.getString("AttributeProcessorImpl.37")); //$NON-NLS-1$
 		}
+		if (trustedESOEIdentifier == null)
+		{
+			throw new IllegalArgumentException("trustedESOEIdentifier cannot be null");
+		}
 
 		this.metadata = metadata;
 		this.wsClient = wsClient;
 		this.identifierGenerator = identifierGenerator;
-		this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(this.MAR_PKGNAMES, this.schemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, this.schemas, this.metadata);
+		
+		// We don't need a marshaller/unmarshaller if we're not going to do any attribute queries
+		if (!disableAttributeQuery)
+		{
+			this.attributeQueryMarshaller = new MarshallerImpl<AttributeQuery>(this.MAR_PKGNAMES, this.schemas, keyStoreResolver);
+			this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, this.schemas, this.metadata);
+		}
+		
 		this.samlValidator = samlValidator;
+		this.trustedESOEIdentifier = trustedESOEIdentifier;
+		this.spepIdentifier = spepIdentifier;
+		this.disableAttributeQuery = disableAttributeQuery;
+		this.enableCompatibility = enableCompatibility;
 
 		this.logger.info(Messages.getString("AttributeProcessorImpl.27")); //$NON-NLS-1$
 	}
@@ -163,6 +184,11 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			this.logger.error(Messages.getString("AttributeProcessorImpl.9")); //$NON-NLS-1$
 			throw new AttributeProcessingException(Messages.getString("AttributeProcessorImpl.10")); //$NON-NLS-1$
 		}
+		
+		// Now that we've sanity checked everything, return if attribute processing is disabled.
+		if (this.disableAttributeQuery) return;
+		
+		this.logger.info("Going to do attribute processing for new session with ESOE session ID: " + principalSession.getEsoeSessionID());
 
 		// Build the attribute query
 		String samlID = this.identifierGenerator.generateSAMLID();
@@ -181,8 +207,30 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		{
 			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.29"), samlID)); //$NON-NLS-1$
 
-			String endpoint = this.metadata.getAttributeServiceEndpoint();
+			String endpoint;
+			AttributeAuthorityRole attributeAuthorityRole;
+			
+			// If we're running in compatibility mode, don't enforce that the target identity provider be an ESOE.
+			if (this.enableCompatibility)
+			{
+				attributeAuthorityRole = this.metadata.getEntityRoleData(this.trustedESOEIdentifier, AttributeAuthorityRole.class);
+			}
+			else
+			{
+				attributeAuthorityRole = this.metadata.getEntityRoleData(this.trustedESOEIdentifier, TrustedESOERole.class);
+			}
+			
+			if (attributeAuthorityRole == null)
+			{
+				throw new AttributeProcessingException("Attribute authority value was null. ESOE entity (" + this.trustedESOEIdentifier + ") did not exist or did not have the expected role. Unable to continue processing for session " + principalSession.getEsoeSessionID());
+			}
 
+			endpoint = attributeAuthorityRole.getAttributeServiceEndpoint(IMPLEMENTED_BINDING);
+			
+			if (endpoint == null)
+			{
+				throw new AttributeProcessingException("Attribute authority endpoint was null for binding " + IMPLEMENTED_BINDING + " - unable to continue processing for session " + principalSession.getEsoeSessionID());
+			}
 			responseDocument = this.wsClient.attributeAuthority(requestDocument, endpoint);
 
 			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.30"), samlID)); //$NON-NLS-1$
@@ -191,6 +239,11 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		{
 			this.logger.error(Messages.getString("AttributeProcessorImpl.13") + e.getLocalizedMessage()); //$NON-NLS-1$
 			throw new AttributeProcessingException(Messages.getString("AttributeProcessorImpl.14"), e); //$NON-NLS-1$
+		}
+		catch (MetadataStateException e)
+		{
+			this.logger.error("Failed to resolve trusted ESOE from metadata - state was invalid. Exception was: " + e.getMessage());
+			throw new AttributeProcessingException("Failed to resolve trusted ESOE from metadata - state was invalid.", e);
 		}
 
 		this.logger.trace(Messages.getString("AttributeProcessorImpl.0") + new String(responseDocument)); //$NON-NLS-1$
@@ -244,7 +297,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		subject.setNameID(subjectNameID);
 
 		NameIDType issuer = new NameIDType();
-		issuer.setValue(this.metadata.getSPEPIdentifier());
+		issuer.setValue(this.spepIdentifier);
 
 		// Build the attribute query.
 		AttributeQuery attributeQuery = new AttributeQuery();
@@ -299,6 +352,14 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		try
 		{
 			this.samlValidator.getResponseValidator().validate(response);
+			
+			String statusCodeValue = response.getStatus().getStatusCode().getValue();
+			
+			if(!response.getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success))
+			{
+				this.logger.error("Status code in response to attribute query " + response.getInResponseTo() + " did not indicate success. Status code returned was: " + statusCodeValue);
+				return null;
+			}
 		}
 		catch (InvalidSAMLResponseException e)
 		{
@@ -307,10 +368,10 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		}
 
 		// verify the issuer was the ESOE
-		if (!this.metadata.getESOEIdentifier().equals(response.getIssuer().getValue()))
+		if (!this.trustedESOEIdentifier.equals(response.getIssuer().getValue()))
 		{
 			this.logger.error(Messages.getString("AttributeProcessorImpl.39")); //$NON-NLS-1$
-			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.40"), this.metadata.getESOEIdentifier(), response.getIssuer().getValue())); //$NON-NLS-1$
+			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.40"), this.trustedESOEIdentifier, response.getIssuer().getValue())); //$NON-NLS-1$
 			return null;
 		}
 

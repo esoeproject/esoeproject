@@ -4,7 +4,6 @@
 	Author: Bradley Beddoes
 	Date: 20/11/2006                                                        
 	Purpose: Builds the SPEP Filter for java for JVM 1.4
-	
 	====================================================================== -->
 
 <project name="spepjavafilter-jvm1.4" xmlns:ivy="antlib:org.apache.ivy.ant">
@@ -23,10 +22,6 @@
 		</classpath>
 	</taskdef>
 
-	<!-- 
-		Integration with apache ivy for dependency resolution in the development environment, this is a standalone target and should be run manually before invoking other
-		ant operations associated with SAML2 lib for Java
-	-->
 	<target name="dev-resolve">
 		<ivy:configure />
 		<ivy:resolve file="ivy.xml" conf="dev" />
@@ -34,61 +29,55 @@
 		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
 	</target>
 	
-	<target name="dev-release-resolve">
+	<target name="release-resolve">
 		<ivy:configure />
-		<ivy:resolve file="ivy.xml" conf="dev-release" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev-release}/[artifact].[ext]" conf="dev-release" />
-		<ivy:report conf="dev-release" graph="false" todir="${basedir}/${artifacts.dev-release}" />
+		<ivy:resolve file="ivy.xml" conf="release" />
+		<ivy:retrieve pattern="${basedir}/${artifacts.release}/[artifact].[ext]" conf="release" />
+		<ivy:report conf="release" graph="false" todir="${basedir}/${artifacts.release}" />
 	</target>
 
-	<!-- 
-		SPEP Filter Development environment compilation and release creation
-	-->
-	<target name="dev-release" depends="dev-release-resolve, dev-jar" description="Builds a release tar ball for the filter">
-		<tar destfile="${output.dev}/${output.dev.tar}.tar.gz" compression="gzip">
-			<tarfileset file="${output.dev}/${output.dev.jar}.jar" />
-			<tarfileset file="../spepjava-jvm1.4/${output.dev}/spep-interfaces-jvm1.4.jar"/>
-			<tarfileset dir="${artifacts.dev-release}" />
+	<target name="release" depends="release-resolve, jar" description="Builds a release tar ball for the filter">
+		<tar destfile="${output}/${output.tar}.tar.gz" compression="gzip">
+			<tarfileset file="${output}/${output.jar}.jar" />
+			<tarfileset file="../spepjava-jvm1.4/${output}/spep-interfaces-jvm1.4.jar"/>
+			<tarfileset dir="${artifacts.release}" />
 		</tar>
 	</target>
 
-	<target name="dev-jar" depends="translate-spepfilter" description="Assembles SPEP filter jar">
-		<jar destfile="${output.dev}/${output.dev.jar}.jar">
-			<fileset dir="${output.dev.build}">
+	<target name="jar" depends="translate-spepfilter" description="Assembles SPEP filter jar">
+		<jar destfile="${output}/${output.jar}.jar">
+			<fileset dir="${output.build}">
 				<include name="**/*" />
 			</fileset>
 		</jar>
 	</target>
 
 	<target name="translate-spepfilter" depends="setup, dev-resolve">
-		<retrotranslator destdir="${output.dev.build}" verify="true">
-			<jarfileset dir="../spepjavafilter/${output.dev}" includes="**/*.jar" />
+		<retrotranslator destdir="${output.build}" verify="true">
+			<jarfileset dir="../spepjavafilter/${output}" includes="**/*.jar" />
 			<classpath location="${java142.home}/jre/lib/rt.jar" />
 			<classpath>
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts}/dev">
+				<fileset dir="${artifacts.dev}">
 					<include name="*.jar" />
 				</fileset>
-				<fileset dir="../spepjava-jvm1.4/${output.dev}/">
+				<fileset dir="../spepjava-jvm1.4/${output}/">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
 		</retrotranslator>
 	</target>
 
-	<!-- 
-		General operations to setup and cleanup environment 
-	-->
 	<target name="setup" depends="clean" description="Creates base directories">
-		<mkdir dir="${output.dev.build}" />
-		<mkdir dir="${output.dev}" />
+		<mkdir dir="${output.build}" />
+		<mkdir dir="${output}" />
 	</target>
 
 	<target name="clean" description="Removes base directories">
-		<delete dir="${output.dev.build}" />
-		<delete dir="${output.dev}" />
+		<delete dir="${output.build}" />
+		<delete dir="${output}" />
 	</target>
 
 	<target name="javadoc" description="Create Javadocs">

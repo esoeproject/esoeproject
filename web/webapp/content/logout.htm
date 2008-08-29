@@ -1,10 +1,11 @@
 <center>
 <p>You are about to logout of all ESOE services. Check the box below if you wish to disable the automated single sign on for the remainder of this session.</p>
 
-	  <form method="post" name="logout" action="/logout" id="esoe_logout_form">
-            <input type="hidden" name="esoelogout_nonsso" />
-            Disable SSO <input type="checkbox" name="disablesso" />
-            <br/><br/>
+	  <form method="post" name="logout" action="/logout" name="esoesso_logout" id="esoe_logout_form">
+            <div id="logout_controls">
+                <input type="hidden" name="esoesso_logout" />
+                <label for="disablesso">Disable automated sign on</label> <input type="checkbox" id="disablesso" name="disablesso" />
+                        </div>
             <input type="submit" name="logout" value="Logout" />
-      </form>
+        </form>
 </center>

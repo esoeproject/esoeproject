@@ -45,7 +45,7 @@ public interface Handler
 	 * Main Handler logic.
 	 * Undertakes processing related to specific authn requirements that the implimentation is designed to solve, either
 	 * for principal identification or non principal identification but related authn tasks. The processing will conform to one of
-	 * the borad handler categories of Automated, Non Automated, Non Passive or Passive.
+	 * the broad handler categories of Automated, Non Automated, Non Passive or Passive.
 	 * 
 	 * @param data An AuthnProcessorData bean containing details about the principals request
 	 * @return The outcome of this handler.

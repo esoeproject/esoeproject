@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<click-app>
+
+	<pages autoconf="false">
+		<page path="manager/index.htm"
+			classname="com.qut.middleware.esoemanager.pages.IndexPage" />
+		<page path="metadata/retrieve.htm"
+			classname="com.qut.middleware.esoemanager.pages.RetrieveMetadataPage" />
+		<page path="manager/registerservice.htm"
+			classname="com.qut.middleware.esoemanager.pages.RegisterServicePage" />
+		<page path="manager/registerservice-stage2.htm"
+			classname="com.qut.middleware.esoemanager.pages.RegisterServiceContactPersonPage" />
+		<page path="manager/registerservice-stage3.htm"
+			classname="com.qut.middleware.esoemanager.pages.RegisterServiceSPEPPage" />
+		<page path="manager/registerservice-stage3-ajax.htm"
+			classname="com.qut.middleware.esoemanager.pages.RegisterServiceSPEPPageAjax" />
+		<page path="manager/registerservice-finalize.htm"
+			classname="com.qut.middleware.esoemanager.pages.RegisterServiceFinalizePage" />
+		<page path="manager/registerservice-complete.htm"
+			classname="com.qut.middleware.esoemanager.pages.RegisterServiceCompletePage" />
+		<page path="manager/retrievekeystore.htm"
+			classname="com.qut.middleware.esoemanager.pages.RetrieveKeystorePage" />
+		<page path="manager/listservices.htm"
+			classname="com.qut.middleware.esoemanager.pages.ListServicesPage" />
+		<page path="manager/viewservice.htm"
+			classname="com.qut.middleware.esoemanager.pages.ViewServicePage" />
+		<page path="manager/editservicecontacts.htm"
+			classname="com.qut.middleware.esoemanager.pages.EditServiceContactsPage" />
+		<page path="manager/servicenodeconfiguration.htm"
+			classname="com.qut.middleware.esoemanager.pages.ServiceNodeConfigurationPage" />
+		<page path="manager/modifyservicestate.htm"
+			classname="com.qut.middleware.esoemanager.pages.ModifyServiceStatePage" />
+		<page path="manager/editservicedescription.htm"
+			classname="com.qut.middleware.esoemanager.pages.EditServiceDescriptionPage" />
+		<page path="manager/editserviceauthorizationpolicy.htm"
+			classname="com.qut.middleware.esoemanager.pages.ConfigureServiceAuthorizationPolicyPage" />
+		<page path="manager/editattributes.htm" classname="com.qut.middleware.esoemanager.pages.ConfigureAttributePolicyPage" />
+		<page path="manager/help.htm" classname="com.qut.middleware.esoemanager.pages.HelpPage" />
+	</pages>
+
+	<mode value="production" />
+
+</click-app>

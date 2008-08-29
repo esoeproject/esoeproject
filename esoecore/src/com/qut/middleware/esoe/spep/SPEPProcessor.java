@@ -18,9 +18,6 @@
  */
 package com.qut.middleware.esoe.spep;
 
-import java.util.List;
-
-import com.qut.middleware.esoe.metadata.Metadata;
 import com.qut.middleware.esoe.sessions.Principal;
 
 /** Provides an central place for other packages to interface with the SPEP Processor. */
@@ -32,8 +29,8 @@ public interface SPEPProcessor
 	 * @deprecated Use the shared Metadata object directly.
 	 * 
 	 */
-	@Deprecated
-	public Metadata getMetadata();
+	//@Deprecated
+	//public Metadata getMetadata();
 	
 	/**
 	 * @return SPEP startup instance.

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="esoepdp"
+		revision="${esoe.version}">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Andre Zitelli" />
+	</info>
+
+	<configurations>
+		<conf name="compile" visibility="public" description="Compile dependencies" />
+		<conf name="runtime" visibility="public" description="Runtime dependencies" />
+		
+		<conf name="optional" visibility="public" description="Optional dependencies" />
+		<conf name="provided" visibility="public" description="Provided dependencies" />
+	</configurations>
+
+	<publications>
+		<artifact name="esoepdp" type="jar" />
+	</publications>
+
+	<dependencies>
+		<dependency org="org.springframework" name="org.springframework.spring-library" rev="2.5.4.A" conf="compile,runtime"/>
+		<dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile,runtime"/>
+		
+		<dependency org="esoeproject" name="saml2lib-j" rev="${esoe.version}" conf="compile,runtime" />
+		
+		<dependency org="org.apache.xalan" name="com.springsource.org.apache.xalan" rev="2.7.0" conf="provided"/>
+	    <dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.8.1"  conf="provided"/>
+	    <dependency org="sun" name="jaxb" rev="2.0.5A" conf="provided"/>
+	    
+	    <dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="optional"/>
+	    <dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="optional"/>
+			
+		<exclude artifact=".*-sources" matcher="regexp" conf="runtime,optional,provided"/>
+	</dependencies>
+
+</ivy-module>

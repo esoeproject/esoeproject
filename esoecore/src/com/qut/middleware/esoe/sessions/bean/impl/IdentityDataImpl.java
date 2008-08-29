@@ -20,10 +20,9 @@
  */
 package com.qut.middleware.esoe.sessions.bean.impl;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
@@ -46,7 +45,7 @@ public class IdentityDataImpl implements IdentityData
 	 */
 	public IdentityDataImpl()
 	{
-		this.attributes = Collections.synchronizedMap(new HashMap<String, IdentityAttribute>());
+		this.attributes = new ConcurrentHashMap<String, IdentityAttribute>();
 	}
 
 	/** Retrieve the identity attributes from the identity data. The map is considered a live 

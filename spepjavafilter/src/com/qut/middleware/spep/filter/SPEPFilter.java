@@ -37,7 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qut.middleware.spep.SPEPProxy;
 import com.qut.middleware.spep.sessions.PrincipalSession;
@@ -46,13 +47,14 @@ import com.qut.middleware.spep.sessions.PrincipalSession;
 public class SPEPFilter implements Filter
 {
 	public static final String ATTRIBUTES = "com.qut.middleware.spep.filter.attributes"; //$NON-NLS-1$
+	public static final String SPEP_SESSIONID = "com.qut.middleware.spep.filter.sessionid"; //$NON-NLS-1$
 
 	private FilterConfig filterConfig;
 	private static final String SPEP_CONTEXT_PARAM_NAME = "spep-context"; //$NON-NLS-1$
 	private String spepContextName;
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(SPEPFilter.class.getName());
+	private Logger logger = LoggerFactory.getLogger(SPEPFilter.class.getName());
 
 	public void init(FilterConfig filterConfig) throws ServletException
 	{
@@ -106,7 +108,7 @@ public class SPEPFilter implements Filter
 		}
 		catch (Exception e)
 		{
-			this.logger.fatal("Unable to process request to acces resource, SPEP is not responding, check cross context configuration is enabled \n" + e.getLocalizedMessage());
+			this.logger.error("Unable to process request to acces resource, SPEP is not responding, check cross context configuration is enabled \n" + e.getLocalizedMessage());
 			throw new ServletException(Messages.getString("SPEPFilter.3"), e); //$NON-NLS-1$
 		}
 
@@ -114,7 +116,7 @@ public class SPEPFilter implements Filter
 		if (!spep.isStarted())
 		{
 			// Don't allow anything to occur if SPEP hasn't started correctly.
-			this.logger.fatal("Unable to process request to acces resource, SPEP is not initialized correcty ");
+			this.logger.error("Unable to process request to acces resource, SPEP is not initialized correcty ");
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			throw new ServletException(Messages.getString("SPEPFilter.4")); //$NON-NLS-1$
 		}
@@ -163,6 +165,7 @@ public class SPEPFilter implements Filter
 					attributeMap.close();
 
 					request.getSession().setAttribute(ATTRIBUTES, attributeMap);
+					request.getSession().setAttribute(SPEP_SESSIONID, sessionID);
 				}
 
 				/*
@@ -335,17 +338,28 @@ public class SPEPFilter implements Filter
 		 */
 		serviceHost = new URL(spep.getServiceHost());
 
+		String ssoRedirect = spep.getSsoRedirect();
+		String timestampParameter;
+		if( ssoRedirect.indexOf('?') > -1 )
+		{
+			timestampParameter = "&ts=" + System.currentTimeMillis();
+		}
+		else
+		{
+			timestampParameter = "?ts=" + System.currentTimeMillis();
+		}
+		
 		if (request.getServerName().equals(serviceHost.getHost()))
 		{
 			/* Ensures that SSL offloading in Layer 7 environments is correctly handled */
 			requested = spep.getServiceHost() + requested;
 			String base64RequestURI = new String(Base64.encodeBase64(requested.getBytes()));
-			redirectURL = MessageFormat.format(spep.getServiceHost() + spep.getSsoRedirect(), new Object[] { base64RequestURI });
+			redirectURL = MessageFormat.format(spep.getServiceHost() + spep.getSsoRedirect(), new Object[] { base64RequestURI + timestampParameter });
 		}
 		else
 		{
 			String base64RequestURI = new String(Base64.encodeBase64(requested.getBytes()));
-			redirectURL = MessageFormat.format(spep.getSsoRedirect(), new Object[] { base64RequestURI });
+			redirectURL = MessageFormat.format(spep.getSsoRedirect(), new Object[] { base64RequestURI + timestampParameter });
 		}
 
 		this.logger.debug("Redirecting to " + redirectURL + " to establish secure session");

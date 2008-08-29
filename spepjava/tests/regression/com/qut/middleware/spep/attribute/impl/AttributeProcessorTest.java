@@ -20,11 +20,7 @@
 package com.qut.middleware.spep.attribute.impl;
 
 import static com.qut.middleware.test.regression.Capture.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -32,9 +28,11 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.SimpleTimeZone;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -43,6 +41,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.SPEPRole;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
 import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
@@ -69,9 +73,6 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.exception.AttributeProcessingException;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
-import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
 import com.qut.middleware.spep.sessions.PrincipalSession;
 import com.qut.middleware.spep.sessions.impl.PrincipalSessionImpl;
 import com.qut.middleware.spep.ws.WSClient;
@@ -87,11 +88,10 @@ public class AttributeProcessorTest
 	private String samlID1;
 	private String keyName;
 	private PrivateKey key;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private IdentifierGenerator identifierGenerator;
 	private IdentifierCache identifierCache;
 	private SAMLValidator samlValidator;
-	private String xmlConfigFilename;
 	private AttributeProcessorImpl attributeProcessor;
 	private String[] schemas;
 	private Marshaller<Response> responseMarshaller;
@@ -104,29 +104,54 @@ public class AttributeProcessorTest
 	private String esoeID = "89548958904543563";
 	private String assertionConsumerServiceLocation = "some.place/someservice";
 	
+	private List<Object> mocked;
+	private EntityData spepEntityData;
+	private SPEPRole spepRole;
+	private EntityData esoeEntityData;
+	private TrustedESOERole esoeRole;
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception
-	{	
-		InputStream in = new FileInputStream( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks");
-		KeyStoreResolver keyStoreResolver = new KeyStoreResolverImpl(in, "Es0EKs54P4SSPK", "esoeprimary", "Es0EKs54P4SSPK");
-		this.key = keyStoreResolver.getPrivateKey();
-		this.publicKey = keyStoreResolver.getPublicKey();
-		this.keyName = keyStoreResolver.getKeyAlias();
+	{
+		this.mocked = new ArrayList<Object>();
+		File in = new File( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks");
+		KeystoreResolver keyStoreResolver = new KeystoreResolverImpl(in, "Es0EKs54P4SSPK", "esoeprimary", "Es0EKs54P4SSPK");
+		this.key = keyStoreResolver.getLocalPrivateKey();
+		this.publicKey = keyStoreResolver.getLocalPublicKey();
+		this.keyName = keyStoreResolver.getLocalKeyAlias();
 		
 		this.samlID1 = "jfaosjdofiqjwoerjqoweijr-hjosadijroqwiejroijo";
 		this.spepIdentifier = "_JAFIOSJEOIFJQWEIOJFQPWOEJPQOWREPOQWERPOIQWEPORIQWPOEKPAOSDGPOJAKGJWQLEKGJ";
 		
-		this.metadata = createMock(Metadata.class);
-		expect(this.metadata.getSPEPIdentifier()).andReturn(this.spepIdentifier).anyTimes();
-		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
-		expect(this.metadata.getSPEPAssertionConsumerLocation()).andReturn(this.assertionConsumerServiceLocation).anyTimes();
+		this.metadata = createMock(MetadataProcessor.class);
+		this.mocked.add(this.metadata);
+		this.spepEntityData = createMock(EntityData.class);
+		this.mocked.add(this.spepEntityData);
+		this.spepRole = createMock(SPEPRole.class);
+		this.mocked.add(this.spepRole);
+		expect(this.metadata.getEntityData(spepIdentifier)).andReturn(this.spepEntityData).anyTimes();
+		expect(this.metadata.getEntityRoleData(spepIdentifier, SPEPRole.class)).andReturn(this.spepRole).anyTimes();
+		expect(this.spepEntityData.getRoleData(SPEPRole.class)).andReturn(this.spepRole).anyTimes();
+		expect(this.spepRole.getAssertionConsumerServiceEndpoint((String)notNull(), anyInt())).andReturn(this.assertionConsumerServiceLocation).anyTimes();
+		
+		this.esoeEntityData = createMock(EntityData.class);
+		this.mocked.add(esoeEntityData);
+		this.esoeRole = createMock(TrustedESOERole.class);
+		this.mocked.add(esoeRole);
+		expect(this.metadata.getEntityData(esoeID)).andReturn(this.esoeEntityData).anyTimes();
+		expect(this.metadata.getEntityRoleData(esoeID, TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeEntityData.getRoleData(TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
 		
 		this.identifierGenerator = createMock(IdentifierGenerator.class);
+		this.mocked.add(this.identifierGenerator);
 		
-		this.identifierCache = new IdentifierCacheImpl();
+		this.identifierCache = createMock(IdentifierCache.class);
+		this.mocked.add(this.identifierCache);
+		expect(this.identifierCache.containsIdentifier(this.samlID1)).andReturn(Boolean.TRUE).anyTimes();
+		
 		this.samlValidator = new SAMLValidatorImpl(this.identifierCache, 180);
 		
 		this.identifierCache.registerIdentifier(this.samlID1);
@@ -134,25 +159,22 @@ public class AttributeProcessorTest
 		this.internalSAMLValidator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 180);
 		
 		this.wsClient = createMock(WSClient.class);
+		this.mocked.add(this.wsClient);
 		
-		this.attributeProcessor = new AttributeProcessorImpl(this.metadata, this.wsClient, this.identifierGenerator, this.samlValidator, keyStoreResolver);
+		this.attributeProcessor = new AttributeProcessorImpl(this.metadata, this.wsClient, this.identifierGenerator, this.samlValidator, keyStoreResolver, esoeID, spepIdentifier, false, false);
 		
 		this.schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion};
-		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, this.keyName, this.key);
+		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, keyStoreResolver);
 	}
 	
 	private void startMock()
 	{
-		replay(this.wsClient);
-		replay(this.metadata);
-		replay(this.identifierGenerator);
+		for (Object o : this.mocked) replay(o);
 	}
 	
 	private void endMock()
 	{
-		verify(this.wsClient);
-		verify(this.metadata);
-		verify(this.identifierGenerator);
+		for (Object o : this.mocked) verify(o);
 	}
 
 	/**
@@ -171,7 +193,7 @@ public class AttributeProcessorTest
 		expect(this.wsClient.attributeAuthority(capture(captureRequest),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
-		expect(this.metadata.getAttributeServiceEndpoint()).andReturn("").anyTimes();
+		expect(this.esoeRole.getAttributeServiceEndpoint((String)notNull())).andReturn("").anyTimes();
 		
 		startMock();
 
@@ -212,7 +234,7 @@ public class AttributeProcessorTest
 		expect(this.wsClient.attributeAuthority((byte[])notNull(),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
-		expect(this.metadata.getAttributeServiceEndpoint()).andReturn("").anyTimes();
+		expect(this.esoeRole.getAttributeServiceEndpoint((String)notNull())).andReturn("").anyTimes();
 		
 		startMock();
 
@@ -247,7 +269,7 @@ public class AttributeProcessorTest
 		expect(this.wsClient.attributeAuthority((byte[])notNull(),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
-		expect(this.metadata.getAttributeServiceEndpoint()).andReturn("").anyTimes();
+		expect(this.esoeRole.getAttributeServiceEndpoint((String)notNull())).andReturn("").anyTimes();
 		
 		startMock();
 
@@ -321,7 +343,7 @@ public class AttributeProcessorTest
 		this.attributeProcessor.doAttributeProcessing(principalSession);
 	}
 
-	private Response buildResponse()
+	private Response buildResponse() throws Exception
 	{
 		String responseID = "faoiwehroiqjweorijqwoeirj-oasdjogijqwoeijroqwiejroqwe";
 		String subjectNameIDValue = "subject";

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([SPEPD], 0.5)
+AC_INIT([SPEPD], 0.5.2)
 AC_CONFIG_SRCDIR([include/StreamLogHandler.h])
 #AC_CONFIG_HEADER([config.h])
 

@@ -22,10 +22,13 @@ package com.qut.middleware.esoe.spep;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.notNull;
+import static org.easymock.EasyMock.or;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,27 +44,25 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.ConfigurationConstants;
-import com.qut.middleware.esoe.crypto.KeyStoreResolver;
-import com.qut.middleware.esoe.crypto.impl.KeyStoreResolverImpl;
-import com.qut.middleware.esoe.metadata.Metadata;
-import com.qut.middleware.esoe.metadata.exception.InvalidMetadataEndpointException;
-import com.qut.middleware.esoe.pdp.cache.AuthzCacheUpdateFailureRepository;
-import com.qut.middleware.esoe.pdp.cache.bean.FailedAuthzCacheUpdate;
+import com.qut.middleware.esoe.authz.cache.AuthzCacheUpdateFailureRepository;
+import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
 import com.qut.middleware.esoe.sessions.Principal;
-import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.impl.PrincipalImpl;
-import com.qut.middleware.esoe.spep.SPEPProcessor;
-import com.qut.middleware.esoe.spep.Startup;
 import com.qut.middleware.esoe.spep.impl.SPEPProcessorImpl;
 import com.qut.middleware.esoe.ws.WSClient;
-import com.qut.middleware.esoe.ws.exception.WSClientException;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.SPEPRole;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpoint;
+import com.qut.middleware.metadata.bean.saml.endpoint.impl.IndexedEndpointImpl;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
-import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
-import com.qut.middleware.saml2.exception.KeyResolutionException;
 import com.qut.middleware.saml2.exception.MarshallerException;
-import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
@@ -79,9 +80,9 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 public class SPEPProcessorTest
 {
 	private AuthzCacheUpdateFailureRepository failureRep;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private WSClient webServiceClient;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private Marshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseMarshaller;
 	private Startup startup;
 	private SAMLValidator samlValidator;
@@ -94,6 +95,7 @@ public class SPEPProcessorTest
 	private final String DESC1 = "_098098-098098";
 	private final String DESC2 = "_098098-0980981";
 	private final String esoeKeyAlias = "esoeprimary";
+	private final String esoeIdentifier = "_esoeid1234";
 	public Map<Integer,String> endpoints;
 
 	/**
@@ -103,7 +105,7 @@ public class SPEPProcessorTest
 	public void setUp() throws Exception
 	{
 		this.failureRep = createMock(AuthzCacheUpdateFailureRepository.class);
-		this.metadata = createMock(Metadata.class);
+		this.metadata = createMock(MetadataProcessor.class);
 		this.startup = createMock(Startup.class);
 		this.samlValidator = createMock(SAMLValidator.class);
 		this.respVal = createMock(SAMLResponseValidator.class);
@@ -111,8 +113,10 @@ public class SPEPProcessorTest
 		this.idGenerator = createMock(IdentifierGenerator.class);
 
 		this.endpoints = Collections.synchronizedMap(new HashMap<Integer,String>());
-		this.endpoints.put(0,"http://spep.qut.edu.au/ws/Service");
-		this.endpoints.put(1,"http://spep2.qut.edu.au/ws/Service");
+		String endpointLocation1 = "http://spep.qut.edu.au/ws/Service";
+		this.endpoints.put(0,endpointLocation1);
+		String endpointLocation2 = "http://spep2.qut.edu.au/ws/Service";
+		this.endpoints.put(1,endpointLocation2);
 
 		String keyStorePath = "tests" + File.separator + "testdata" + File.separator
 				+ "testskeystore.ks";
@@ -120,15 +124,31 @@ public class SPEPProcessorTest
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPassword = "Es0EKs54P4SSPK";
 
-		this.keyStoreResolver = new KeyStoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias,
+		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias,
 				esoeKeyPassword);
 
-		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol,
-				ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
+		String[] clearAuthzCacheSchemas = new String[] { SchemaConstants.esoeProtocol,
+				SchemaConstants.samlAssertion, SchemaConstants.samlProtocol };
 		this.clearAuthzCacheResponseMarshaller = new MarshallerImpl<ClearAuthzCacheResponse>(
 				ClearAuthzCacheRequest.class.getPackage().getName() + ":" + Request.class.getPackage().getName(),
-				clearAuthzCacheSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
+				clearAuthzCacheSchemas, keyStoreResolver);
 
+		EntityData entityData = createMock(EntityData.class);
+		SPEPRole spepRole = createMock(SPEPRole.class);
+		expect(entityData.getRoleData(SPEPRole.class)).andReturn(spepRole).anyTimes();
+		expect(spepRole.getCacheClearServiceEndpoint(or(eq(this.DESC1),eq(this.DESC2)), eq(0))).andReturn(endpointLocation1).anyTimes();
+		expect(spepRole.getCacheClearServiceEndpoint(or(eq(this.DESC1),eq(this.DESC2)), eq(1))).andReturn(endpointLocation2).anyTimes();
+		
+		List<IndexedEndpoint> indexedEndpointList = new ArrayList<IndexedEndpoint>();
+		indexedEndpointList.add(new IndexedEndpointImpl(BindingConstants.soap, endpointLocation1, 0));
+		indexedEndpointList.add(new IndexedEndpointImpl(BindingConstants.soap, endpointLocation2, 1));
+		expect(spepRole.getCacheClearServiceEndpointList()).andReturn(indexedEndpointList).anyTimes();
+		
+		replay(entityData);
+		replay(spepRole);
+		
+		expect(metadata.getEntityData((String)notNull())).andReturn(entityData).anyTimes();
+		expect(metadata.getEntityRoleData((String)notNull(), eq(SPEPRole.class))).andReturn(spepRole).anyTimes();
 	}
 
 	/**
@@ -168,68 +188,31 @@ public class SPEPProcessorTest
 	 * SPEP
 	 */
 	@Test
-	public void testSPEPProcessor1()
+	public void testSPEPProcessor1() throws Exception
 	{
 		Principal principal = new PrincipalImpl(null, 360);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
 		principal.addActiveDescriptor(this.DESC1);
 
-		try
-		{
-			SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-					this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
 
-			
-			// test that the startup object is as expected
-			assertEquals("SPEPProcessor did not return expected startup object", this.startup, spepProcessor.getStartup());
-			
-			// for block coverage reports ONLY. This method is deprecated
-			assertEquals("SPEPProcessor did not return expected metadata object", this.metadata, spepProcessor.getMetadata());
-			
-			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
-			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
-			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
-			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse());
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse());
-			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
+		
+		// test that the startup object is as expected
+		assertEquals("SPEPProcessor did not return expected startup object", this.startup, spepProcessor.getStartup());
+		
+		//expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
+		expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
+		expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse());
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse());
+		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 
-			setUpMock();
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-			tearDownMock();
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected MarshallerException was thrown");
-		}
-		catch (UnmarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected UnmarshallerException was thrown");
-		}
-		catch (InvalidMetadataEndpointException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidMetadataEndpointException was thrown");
-		}
-		catch (InvalidSAMLResponseException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidSAMLResponseException was thrown");
-		}
-		catch (WSClientException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected WSClientException was thrown");
-		}
-		catch (KeyResolutionException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected KeyResolutionException was thrown");
-		}
+		setUpMock();
+		spepProcessor.clearPrincipalSPEPCaches(principal);
+		tearDownMock();
 	}
 	
 	/*
@@ -237,141 +220,75 @@ public class SPEPProcessorTest
 	 * SPEP
 	 */
 	@Test
-	public void testSPEPProcessor1a()
+	public void testSPEPProcessor1a() throws Exception
 	{
 		Principal principal = new PrincipalImpl(null, 360);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
 		principal.addActiveDescriptor(this.DESC1);
 		principal.addActiveDescriptor(this.DESC2);
 
-		try
-		{
-			SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-					this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
 
-			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
-			expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
-			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
-			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
-			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse()).times(2);
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse()).times(2);
-			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
+//		expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
+//		expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
+//		expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
+		expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
+		expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse()).times(2);
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse()).times(2);
+		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 
-			setUpMock();
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-			tearDownMock();
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected MarshallerException was thrown");
-		}
-		catch (UnmarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected UnmarshallerException was thrown");
-		}
-		catch (InvalidMetadataEndpointException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidMetadataEndpointException was thrown");
-		}
-		catch (InvalidSAMLResponseException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidSAMLResponseException was thrown");
-		}
-		catch (WSClientException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected WSClientException was thrown");
-		}
-		catch (KeyResolutionException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected KeyResolutionException was thrown");
-		}
+		setUpMock();
+		spepProcessor.clearPrincipalSPEPCaches(principal);
+		tearDownMock();
 	}
 	
 	/*
 	 * Creates SPEPProcessor and tests to ensure that failure authz update handler is correctly populated
 	 */
 	@Test
-	public void testSPEPProcessor2()
+	public void testSPEPProcessor2() throws Exception
 	{
 		Principal principal = new PrincipalImpl(null, 360);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
 		principal.addActiveDescriptor(this.DESC1);
 		principal.addActiveDescriptor(this.DESC2);
 
-		try
-		{
-			SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-					this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
 
-			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
-			expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
-			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
-			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
-			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
-			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
+//		expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
+//		expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
+//		expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
+		expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
+		expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		this.respVal.validate((StatusResponseType) notNull());
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
+		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
+		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
+		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
+		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
+		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
 
-			setUpMock();
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-			tearDownMock();
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected MarshallerException was thrown");
-		}
-		catch (UnmarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected UnmarshallerException was thrown");
-		}
-		catch (InvalidMetadataEndpointException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidMetadataEndpointException was thrown");
-		}
-		catch (InvalidSAMLResponseException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidSAMLResponseException was thrown");
-		}
-		catch (WSClientException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected WSClientException was thrown");
-		}
-		catch (KeyResolutionException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected KeyResolutionException was thrown");
-		}
+		setUpMock();
+		spepProcessor.clearPrincipalSPEPCaches(principal);
+		tearDownMock();
 	}
 	
 	/*
 	 * Creates SPEPProcessor and tests to ensure that invalid descriptorID's do not invoke further processing
 	 */
 	@Test
-	public void testSPEPProcessor3()
+	public void testSPEPProcessor3() throws Exception
 	{
 		Principal principal = new PrincipalImpl(null, 360);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
@@ -379,63 +296,26 @@ public class SPEPProcessorTest
 		principal.addActiveDescriptor(this.DESC2);
 		principal.addActiveDescriptor("_iaminvalid-123");
 
-		try
-		{
-			SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-					this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+//
+//		expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
+//		expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
+//		expect(this.metadata.resolveCacheClearService("_iaminvalid-123")).andThrow(new InvalidMetadataEndpointException());
+//		expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
+		expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
+		expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
+		this.respVal.validate((StatusResponseType) notNull());
+		expectLastCall().atLeastOnce();
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).atLeastOnce();
+		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).atLeastOnce();
+		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
+		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
+		expectLastCall().atLeastOnce();
 
-			expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
-			expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
-			expect(this.metadata.resolveCacheClearService("_iaminvalid-123")).andThrow(new InvalidMetadataEndpointException());
-			expect(this.metadata.getEsoeEntityID()).andReturn("_esoeid1234").anyTimes();
-			expect(this.samlValidator.getResponseValidator()).andReturn(this.respVal).anyTimes();
-			expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			this.respVal.validate((StatusResponseType) notNull());
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
-			expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
-			expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getPublicKey()).anyTimes();
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-			this.failureRep.add((FailedAuthzCacheUpdate)notNull());
-
-			setUpMock();
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-			tearDownMock();
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected MarshallerException was thrown");
-		}
-		catch (UnmarshallerException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected UnmarshallerException was thrown");
-		}
-		catch (InvalidMetadataEndpointException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidMetadataEndpointException was thrown");
-		}
-		catch (InvalidSAMLResponseException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected InvalidSAMLResponseException was thrown");
-		}
-		catch (WSClientException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected WSClientException was thrown");
-		}
-		catch (KeyResolutionException e)
-		{
-			e.printStackTrace();
-			fail("Unexpected KeyResolutionException was thrown");
-		}
+		setUpMock();
+		spepProcessor.clearPrincipalSPEPCaches(principal);
+		tearDownMock();
 	}	
 	
 	private byte[] generateResponse() throws MarshallerException

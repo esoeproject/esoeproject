@@ -26,7 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
 import com.qut.middleware.crypto.KeyStoreResolver;
@@ -79,7 +80,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	private final String MAR_PKGNAMES = RegisterPrincipalRequest.class.getPackage().getName();
 
 	/* Local logging instance */
-	private Logger logger = Logger.getLogger(AuthnProcessorImpl.class.getName());
+	private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
 
 	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeyStoreResolver keyStoreResolver, String issuerID, String principalRegistrationEndpoint, List<ShibAttribute> defaultSiteAttributes, List<ShibAttribute> requestedAttributes, String userIdentifier) throws UnmarshallerException, MarshallerException
 	{

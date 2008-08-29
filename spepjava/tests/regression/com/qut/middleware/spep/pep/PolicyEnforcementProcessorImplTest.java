@@ -20,21 +20,13 @@
 package com.qut.middleware.spep.pep;
 
 import static com.qut.middleware.test.regression.Capture.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.not;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -49,6 +41,11 @@ import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
 import org.w3c.dom.Element;
 
+import com.qut.middleware.crypto.KeystoreResolver;
+import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
+import com.qut.middleware.metadata.bean.EntityData;
+import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
+import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
@@ -87,9 +84,6 @@ import com.qut.middleware.saml2.schemas.protocol.StatusCode;
 import com.qut.middleware.saml2.schemas.protocol.StatusResponseType;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.qut.middleware.spep.ConfigurationConstants;
-import com.qut.middleware.spep.metadata.KeyStoreResolver;
-import com.qut.middleware.spep.metadata.Metadata;
-import com.qut.middleware.spep.metadata.impl.KeyStoreResolverImpl;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor.decision;
 import com.qut.middleware.spep.pep.impl.PolicyEnforcementProcessorImpl;
 import com.qut.middleware.spep.sessions.PrincipalSession;
@@ -106,7 +100,7 @@ public class PolicyEnforcementProcessorImplTest
 	private static String cacheClearPackages;
 	private static String groupTargetPackages;
 	private static Marshaller<Response> responseMarshaller;
-	private static KeyStoreResolver keyStoreResolver;
+	private static KeystoreResolver keyStoreResolver;
 	private static Marshaller<ClearAuthzCacheRequest> clearAuthzCacheRequestMarshaller;
 	private static Unmarshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseUnmarshaller;
 	private static Marshaller<GroupTarget> groupTargetElementMarshaller;
@@ -116,7 +110,7 @@ public class PolicyEnforcementProcessorImplTest
 	private SessionGroupCache sessionGroupCache;
 	private WSClient wsClient;
 	private IdentifierGenerator identifierGenerator;
-	private Metadata metadata;
+	private MetadataProcessor metadata;
 	private PolicyEnforcementProcessor processor;
 	private String spepIdentifier;
 	private String documentID;
@@ -128,56 +122,41 @@ public class PolicyEnforcementProcessorImplTest
 	private PrincipalSession principalSession;
 	private SessionCache sessionCache;
 	private String esoeIdentifier;
+	private List<Object> mocked;
+	private EntityData esoeEntityData;
+	private TrustedESOERole esoeRole;
 	
-	static
+	public PolicyEnforcementProcessorImplTest() throws Exception
 	{
-		try
-		{
+		keyStoreResolver = new KeystoreResolverImpl(new File( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks"), "Es0EKs54P4SSPK", "esoeprimary", "Es0EKs54P4SSPK");
 
-			keyStoreResolver = new KeyStoreResolverImpl(new FileInputStream( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks"), "Es0EKs54P4SSPK", "esoeprimary", "Es0EKs54P4SSPK");
+		authzQueryPackages = LXACMLAuthzDecisionQuery.class.getPackage().getName() + ":" + //$NON-NLS-1$
+			GroupTarget.class.getPackage().getName() + ":" + //$NON-NLS-1$
+			StatementAbstractType.class.getPackage().getName() + ":" + //$NON-NLS-1$
+			LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" + //$NON-NLS-1$
+			Response.class.getPackage().getName();
 
-			authzQueryPackages = LXACMLAuthzDecisionQuery.class.getPackage().getName() + ":" + //$NON-NLS-1$
-				GroupTarget.class.getPackage().getName() + ":" + //$NON-NLS-1$
-				StatementAbstractType.class.getPackage().getName() + ":" + //$NON-NLS-1$
-				LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" + //$NON-NLS-1$
-				Response.class.getPackage().getName();
+		String[] schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.lxacml,
+			ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget,
+			ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion};
 
-			String[] schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.lxacml,
-				ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget,
-				ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion};
-
-			responseMarshaller = new MarshallerImpl<Response>(authzQueryPackages,  schemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-			
-			cacheClearPackages = ClearAuthzCacheRequest.class.getPackage().getName() + ":" +
-				StatusResponseType.class.getPackage().getName() + ":" +
-				RequestAbstractType.class.getPackage().getName();
-			
-			String[] cacheClearSchemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.esoeProtocol};
-			
-			clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(cacheClearPackages, cacheClearSchemas, keyStoreResolver.getKeyAlias(), keyStoreResolver.getPrivateKey());
-			clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(cacheClearPackages, cacheClearSchemas, keyStoreResolver);
-			
-			groupTargetPackages = GroupTarget.class.getPackage().getName();
-			
-			String[] groupTargetSchemas = new String[]{ConfigurationConstants.lxacmlGroupTarget};
-			
-			groupTargetElementMarshaller = new MarshallerImpl<GroupTarget>(groupTargetPackages, groupTargetSchemas);
-		}
-		catch (UnmarshallerException e)
-		{
-			e.printStackTrace();
-		}
-		catch (MarshallerException e)
-		{
-			e.printStackTrace();
-		}
-		catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
-		}
+		responseMarshaller = new MarshallerImpl<Response>(authzQueryPackages,  schemas, keyStoreResolver);
+		
+		cacheClearPackages = ClearAuthzCacheRequest.class.getPackage().getName() + ":" +
+			StatusResponseType.class.getPackage().getName() + ":" +
+			RequestAbstractType.class.getPackage().getName();
+		
+		String[] cacheClearSchemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.esoeProtocol};
+		
+		clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(cacheClearPackages, cacheClearSchemas, keyStoreResolver);
+		clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(cacheClearPackages, cacheClearSchemas, keyStoreResolver);
+		
+		groupTargetPackages = GroupTarget.class.getPackage().getName();
+		
+		String[] groupTargetSchemas = new String[]{ConfigurationConstants.lxacmlGroupTarget};
+		
+		groupTargetElementMarshaller = new MarshallerImpl<GroupTarget>(groupTargetPackages, groupTargetSchemas);
 	}
-	
-	public PolicyEnforcementProcessorImplTest() {}
 	
 	/**
 	 * @throws java.lang.Exception
@@ -185,6 +164,8 @@ public class PolicyEnforcementProcessorImplTest
 	@Before
 	public void setUp() throws Exception
 	{
+		this.mocked = new ArrayList<Object>();
+		
 		this.spepIdentifier = "_joqijoiqfjoimaslkjflaksjdflkasjdlfasdf-awjoertjq908jr9182j30r91j203r9";
 		this.esoeIdentifier = "esoe.url";
 		this.documentID = "_21830958712983749-12538719283749182734987-1oasodifjoqiwjfoiajsdf";
@@ -192,46 +173,51 @@ public class PolicyEnforcementProcessorImplTest
 		this.sessionID = "_uu9t8u98q3u032u509qwui095i0923i-4iq02395u0q9wuetoijsdlkgjlksda";
 		
 		this.sessionGroupCache = createMock(SessionGroupCache.class);
+		this.mocked.add(this.sessionGroupCache);
 		this.wsClient = createMock(WSClient.class);
+		this.mocked.add(this.wsClient);
 		
 		this.identifierGenerator = createMock(IdentifierGenerator.class);
+		this.mocked.add(this.identifierGenerator);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.documentID).anyTimes();
 		
 
-		this.metadata = createMock(Metadata.class);
-		expect(this.metadata.getSPEPIdentifier()).andReturn(this.spepIdentifier).anyTimes();
-		expect(this.metadata.getAuthzServiceEndpoint()).andReturn(this.authzServiceEndpoint).anyTimes();
-		expect(this.metadata.resolveKey("esoeprimary")).andReturn(keyStoreResolver.resolveKey("esoeprimary")).anyTimes();
+		this.metadata = createMock(MetadataProcessor.class);
+		this.mocked.add(this.metadata);
+		this.esoeEntityData = createMock(EntityData.class);
+		this.mocked.add(this.esoeEntityData);
+		this.esoeRole = createMock(TrustedESOERole.class);
+		this.mocked.add(this.esoeRole);
+		expect(this.metadata.getEntityData(this.esoeIdentifier)).andReturn(this.esoeEntityData).anyTimes();
+		expect(this.metadata.getEntityRoleData(this.esoeIdentifier, TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeEntityData.getRoleData(TrustedESOERole.class)).andReturn(this.esoeRole).anyTimes();
+		expect(this.esoeRole.getLXACMLAuthzServiceEndpoint((String)notNull())).andReturn(this.authzServiceEndpoint).anyTimes();
+		expect(this.metadata.resolveKey("esoeprimary")).andReturn(keyStoreResolver.getLocalPublicKey()).anyTimes();
 		
 		IdentifierCache identifierCache = createMock(IdentifierCache.class);
+		this.mocked.add(identifierCache);
 		identifierCache.registerIdentifier((String)notNull());
 		expectLastCall().anyTimes();
 		
 		this.samlValidator = new SAMLValidatorImpl(identifierCache, 180);
 		
 		this.principalSession = createMock(PrincipalSession.class);
+		this.mocked.add(this.principalSession);
 		this.sessionCache = createMock(SessionCache.class);
+		this.mocked.add(this.sessionCache);
 		expect(this.sessionCache.getPrincipalSession((String)notNull())).andReturn(this.principalSession).anyTimes();
 		
-		this.processor = new PolicyEnforcementProcessorImpl(this.sessionCache, this.sessionGroupCache, this.wsClient, this.identifierGenerator, this.metadata, keyStoreResolver, this.samlValidator);
+		this.processor = new PolicyEnforcementProcessorImpl(this.sessionCache, this.sessionGroupCache, this.wsClient, this.identifierGenerator, this.metadata, keyStoreResolver, this.samlValidator, this.esoeIdentifier, this.spepIdentifier, false, false);
 	}
 	
 	private void startMock()
 	{
-		replay(this.sessionCache);
-		replay(this.sessionGroupCache);
-		replay(this.wsClient);
-		replay(this.identifierGenerator);
-		replay(this.metadata);
+		for (Object o : this.mocked) replay(o);
 	}
 	
 	private void endMock()
 	{
-		verify(this.sessionCache);
-		verify(this.sessionGroupCache);
-		verify(this.wsClient);
-		verify(this.identifierGenerator);
-		verify(this.metadata);
+		for (Object o : this.mocked) verify(o);
 	}
 
 	/**
@@ -249,15 +235,11 @@ public class PolicyEnforcementProcessorImplTest
 		expect(this.sessionGroupCache.makeCachedAuthzDecision(this.principalSession, this.resource, null)).andReturn(decision.deny).anyTimes();
 		expect(this.sessionCache.getPrincipalSession( this.sessionID )).andReturn( this.principalSession ).anyTimes();
 		
-		replay(this.principalSession);
-		
 		startMock();
 		
 		assertEquals(decision.deny, this.processor.makeAuthzDecision(sessionID, this.resource));
 		
 		endMock();
-		
-		verify(this.principalSession);
 	}
 
 	/**
@@ -277,15 +259,11 @@ public class PolicyEnforcementProcessorImplTest
 		expect(this.sessionGroupCache.makeCachedAuthzDecision(this.principalSession, this.resource, null)).andReturn(decision.permit).anyTimes();
 		expect(this.sessionCache.getPrincipalSession( this.sessionID )).andReturn( this.principalSession ).anyTimes();
 		
-		replay(this.principalSession);
-		
 		startMock();
 		
 		assertEquals(decision.permit, this.processor.makeAuthzDecision(sessionID, this.resource));
 		
 		endMock();
-		
-		verify(this.principalSession);
 	}
 
 	/**
@@ -302,15 +280,11 @@ public class PolicyEnforcementProcessorImplTest
 		expect(this.sessionGroupCache.makeCachedAuthzDecision(this.principalSession, this.resource, null)).andReturn(decision.error).anyTimes();
 		expect(this.sessionCache.getPrincipalSession( this.sessionID )).andReturn( this.principalSession ).anyTimes();
 		
-		replay(this.principalSession);
-		
 		startMock();
 		
 		assertEquals(decision.error, this.processor.makeAuthzDecision(sessionID, resource));
 		
 		endMock();
-		
-		verify(this.principalSession);
 	}
 	
 	/**
@@ -362,15 +336,11 @@ public class PolicyEnforcementProcessorImplTest
 		expect(this.principalSession.getEsoeSessionID()).andReturn(samlID).anyTimes();
 		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
-		replay(this.principalSession);
-		
 		startMock();
 		
 		assertEquals(decision.permit, this.processor.makeAuthzDecision(sessionID, resource));
 		
 		endMock();
-		
-		verify(this.principalSession);
 		
 		assertTrue(captureAuthzTargets.getCaptured().size() > 0);
 		assertTrue(captureAuthzTargets.getCaptured().get(0).containsAll(authzTargets));
@@ -422,15 +392,11 @@ public class PolicyEnforcementProcessorImplTest
 		this.sessionCache.terminatePrincipalSession(this.principalSession);
 		expectLastCall().anyTimes();
 		
-		replay(this.principalSession);
-		
 		startMock();
 		
 		assertEquals(decision.deny, this.processor.makeAuthzDecision(sessionID, resource));
 		
 		endMock();
-		
-		verify(this.principalSession);
 	}
 	
 	/**
@@ -496,15 +462,11 @@ public class PolicyEnforcementProcessorImplTest
 		expect(this.principalSession.getEsoeSessionID()).andReturn(samlID).anyTimes();
 		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
-		replay(this.principalSession);
-		
 		startMock();
 		
 		assertEquals(decision.permit, this.processor.makeAuthzDecision(sessionID, resource));
 		
 		endMock();
-		
-		verify(this.principalSession);
 		
 		assertTrue(captureAuthzTargets.getCaptured().size() > 1);
 		assertTrue(captureAuthzTargets.getCaptured().get(0).containsAll(authzTargets));

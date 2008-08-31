@@ -17,13 +17,15 @@
  * Purpose: 
  */
 
-package com.qut.middleware.esoe.authn.plugins.spnego.bean;
+package com.qut.middleware.esoe.authn.plugins.spnego.bean.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+
+import com.qut.middleware.esoe.authn.plugins.spnego.bean.CommaSeparatedStringList;
 
 public class CommaSeparatedStringListImpl implements CommaSeparatedStringList
 {

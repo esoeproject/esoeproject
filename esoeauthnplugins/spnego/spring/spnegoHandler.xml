@@ -17,7 +17,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		</property>
 	</bean>
 	
-	<bean id="targetNetworkList"
+	<bean id="targetNetworksList"
 		class="com.qut.middleware.esoe.authn.plugins.spnego.bean.impl.CommaSeparatedStringListImpl">
 		<constructor-arg index="0" value="${spnegohandler.targetNetworks}"/>
 	</bean>

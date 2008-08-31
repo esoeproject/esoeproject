@@ -22,7 +22,7 @@ package com.qut.middleware.esoe.authn.plugins.spnego.handlers;
 import org.junit.*;
 
 import com.qut.middleware.esoe.authn.plugins.spnego.bean.CommaSeparatedStringList;
-import com.qut.middleware.esoe.authn.plugins.spnego.bean.CommaSeparatedStringListImpl;
+import com.qut.middleware.esoe.authn.plugins.spnego.bean.impl.CommaSeparatedStringListImpl;
 
 import static org.junit.Assert.*;
 

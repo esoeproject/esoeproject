@@ -55,8 +55,6 @@
 	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.api.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j-sources.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j.jar"/>
-	<classpathentry kind="lib" path="lib/compile/esoecrypto.jar"/>
-	<classpathentry kind="lib" path="lib/compile/esoepdp.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.aop-sources.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.aop.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.beans-sources.jar"/>
@@ -79,8 +77,6 @@
 	<classpathentry kind="lib" path="lib/compile/org.springframework.web.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.web.servlet-sources.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.web.servlet.jar"/>
-	<classpathentry kind="lib" path="lib/compile/saml2lib-j.jar"/>
-	<classpathentry kind="lib" path="lib/compile/saml2metadata.jar"/>
 	<classpathentry kind="lib" path="lib/compile/wsdl4j.jar"/>
 	<classpathentry kind="lib" path="lib/compile/xmlsec.jar"/>
 	<classpathentry kind="lib" path="lib/provided/activation.jar"/>

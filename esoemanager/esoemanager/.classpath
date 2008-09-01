@@ -19,7 +19,6 @@
 	<classpathentry kind="lib" path="lib/compile/org.springframework.web.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.context.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.beans.jar"/>
-	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xml.resolver.jar"/>
 	<classpathentry kind="lib" path="lib/provided/com.springsource.org.apache.xerces.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.codec.jar"/>
 	<classpathentry kind="lib" path="lib/provided/com.springsource.org.apache.commons.dbcp.jar"/>

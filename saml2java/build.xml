@@ -5,8 +5,8 @@
 
 	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask" onerror="ignore">
 		<classpath>
-			<fileset dir="${basedir}/${artifacts}">
-				<include name="**/*.jar" />
+			<fileset dir="${basedir}">
+				<include name="${artifacts}/**/*.jar" />
 			</fileset>
 		</classpath>
 	</taskdef>

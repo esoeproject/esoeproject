@@ -15,7 +15,6 @@
 	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j.jar"/>
 	<classpathentry kind="lib" path="lib/optional/com.springsource.org.easymock.jar"/>
 	<classpathentry kind="lib" path="lib/provided/com.springsource.javax.servlet.jar"/>
-	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.axiom.jar"/>
 	<classpathentry kind="lib" path="lib/compile/click-extras.jar"/>
 	<classpathentry kind="lib" path="lib/compile/click.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.beans.jar"/>
@@ -26,5 +25,85 @@
 	<classpathentry kind="lib" path="lib/provided/com.springsource.org.apache.xalan.jar"/>
 	<classpathentry kind="lib" path="lib/provided/com.springsource.org.apache.xerces.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.javax.xml.stream.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axiom-api.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axiom-dom.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axiom-impl.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-adb-codegen.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-adb.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-java2wsdl.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-saaj.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-spring.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-tools.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.javax.xml.bind-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.javax.xml.bind.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.javax.xml.stream-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.net.sf.ehcache-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.net.sf.ehcache.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.aopalliance-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.aopalliance.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.bcel-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.bcel.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.codec-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.codec.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.collections-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.collections.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.fileupload-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.fileupload.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.httpclient-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.httpclient.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.io-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.io.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.lang-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.lang.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.logging-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.logging.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.log4j-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.regexp-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.regexp.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xalan-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xalan.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xerces-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xerces.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xml.resolver-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xml.resolver.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xml.security-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.xml.security.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.bouncycastle.jce-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.bouncycastle.jce.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.codehaus.annogen-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.codehaus.annogen.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.doomdark.uuid-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.doomdark.uuid.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.htmlparser-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.htmlparser.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.openid4java-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.openxri-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.openxri.resolve-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.openxri.resolve.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.api-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/esoecrypto.jar"/>
+	<classpathentry kind="lib" path="lib/compile/esoetools.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.aop-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.aop.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.beans-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.context-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.context.support-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.context.support.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.core-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.jdbc-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.jdbc.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.jms-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.jms.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.orm-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.orm.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.transaction-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.transaction.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.web-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.web.servlet-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.web.servlet.jar"/>
+	<classpathentry kind="lib" path="lib/compile/saml2lib-j.jar"/>
+	<classpathentry kind="lib" path="lib/compile/wsdl4j.jar"/>
+	<classpathentry kind="lib" path="lib/compile/xmlsec.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -14,13 +14,6 @@
 	<description>
 		Builds the example ESOE web environment
 	</description>
-
-	<taskdef resource="emma_ant.properties">
-		<classpath>
-			<pathelement location="${ant.emma}" />
-			<pathelement location="${ant.emma_ant}" />
-		</classpath>
-	</taskdef>
 	
 	<target name="release" depends="war" description="Builds a release tar ball for the example web app">
 		<tar destfile="${output}/${output.tar}.tar.gz" compression="gzip">
@@ -28,7 +21,7 @@
 		</tar>
 	</target>
 	
-	<target name="war" depends="jar, release-resolve" description="Assembles SPEP Filter war">
+	<target name="war" depends="jar" description="Assembles SPEP Filter war">
 		<war destfile="${output}/${output.war}" webxml="${war.descriptor}">
 			<lib file="${output}/${output.jar}.jar" />
 			<lib dir="${artifacts.release}"/>

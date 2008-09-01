@@ -23,6 +23,5 @@
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.logging.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.aopalliance.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.bouncycastle.jce.jar"/>
-	<classpathentry kind="lib" path="/Users/beddoes/Downloads/mysql-connector-java-5.1.6/mysql-connector-java-5.1.6-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

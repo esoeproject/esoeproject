@@ -93,5 +93,6 @@
 	<classpathentry kind="lib" path="lib/provided/jaxb-impl.jar"/>
 	<classpathentry kind="lib" path="lib/provided/jaxb-xjc.jar"/>
 	<classpathentry kind="lib" path="lib/provided/jsr173_1.0_api.jar"/>
+	<classpathentry kind="lib" path="lib/optional/com.springsource.org.easymock.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

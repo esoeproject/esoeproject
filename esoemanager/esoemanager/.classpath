@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="src-ui"/>
 	<classpathentry kind="src" path="tests-ui"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/gwt/gwt-user.jar"/>
+	<classpathentry kind="var" path="GWT_HOME/gwt-user.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/gwtuilib"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>

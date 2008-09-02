@@ -2,7 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/dev/click.jar"/>
-	<classpathentry kind="lib" path="lib/dev/click-extras.jar"/>
+	<classpathentry kind="lib" path="lib/compile/click-extras.jar"/>
+	<classpathentry kind="lib" path="lib/compile/click.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.log4j.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.api.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

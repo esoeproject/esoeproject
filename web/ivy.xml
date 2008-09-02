@@ -13,23 +13,21 @@
 	</info>
 
 	<configurations>
-		<conf name="dev" />
-		<conf name="release" />
+		<conf name="compile" visibility="public" description="Compile dependencies"/>
+		<conf name="runtime" visibility="public" description="Runtime dependencies"/>
+		
+		<conf name="optional" visibility="public" description="Optional dependencies"/>
+		<conf name="provided" visibility="public" description="Provided dependencies"/>
 	</configurations>
 
 	<dependencies>
-		<!-- Development release dependencies -->
-        <dependency org="sourceforge" name="click" rev="latest.integration" conf="release->default"/>
+        <dependency org="sourceforge" name="click" rev="1.2A" conf="compile,runtime"/>
+        <dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile,runtime"/>
+        <dependency org="javax.servlet" name="com.springsource.javax.servlet" rev="2.5.0" conf="provided"/>
         
-        <!-- Development dependencies -->
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
-        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/> 	  
+	    <dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="optional"/>
         
-        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 	
-        
-        <dependency org="sourceforge" name="click" rev="latest.integration" conf="dev->default"/>
-        
+        <exclude artifact=".*-sources" matcher="regexp" conf="runtime,optional,provided"/>	
 	</dependencies>
 
 </ivy-module>

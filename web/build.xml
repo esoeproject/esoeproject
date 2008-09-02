@@ -23,7 +23,7 @@
 	
 	<target name="war" depends="jar" description="Assembles SPEP Filter war">
 		<war destfile="${output}/${output.war}" webxml="${war.descriptor}">
-			<lib file="${output}/${output.jar}.jar" />
+			<lib file="${output}/${output.jar}" />
 			<lib dir="${artifacts.release}"/>
 			
 			<webinf file="webapp/click.xml"/>

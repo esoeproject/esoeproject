@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="esoe-release">
+	<!--
+		ESOE development environment setup
+		Shaun Mangelsdorf, Queensland University of Technology, 2008
+		Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+	-->
+
+	<property file="release.properties" />
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: run-release                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="run-release">
+		<fail message="Do not run this target directly" unless="dir" />
+		<ant dir="${dir}" antfile="${esoeproject.antfilename}" target="release" />
+	</target>
+
+
+	<!-- ================================= 
+          target: release              
+         ================================= -->
+	<target name="release" description="Runs release logic on all projects to create a release">
+		<fail message="Please set esoe.version before running this target" unless="esoe.version" />
+		<!--<ant antfile="${esoeproject.dev-setup}" target="build"/>-->
+
+		<!-- Generic targets, only need "release" run -->
+		<antcall target="run-release">
+			<param name="dir" value="${esoeproject.spepjava}" />
+		</antcall>
+		<antcall target="run-release">
+			<param name="dir" value="${esoeproject.esoecore}" />
+		</antcall>
+		<antcall target="run-release">
+			<param name="dir" value="${esoeproject.esoedeployer}" />
+		</antcall>
+		<antcall target="run-release">
+			<param name="dir" value="${esoeproject.spepjavafilter}" />
+		</antcall>
+
+		<!-- Other targets with specific release requirements -->
+		<!-- TODO make a release target for these -->
+		<ant dir="${esoeproject.esoemanager}" antfile="${esoeproject.antfilename}">
+			<target name="gwt-userinterface" />
+			<target name="war" />
+		</ant>
+	</target>
+
+</project>

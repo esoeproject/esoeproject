@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="esoe-dev-setup">
+	<!--
+		ESOE development environment setup
+		Shaun Mangelsdorf, Queensland University of Technology, 2008
+		Licenced Under Apache 2.0, available from http://www.apache.org/licenses/LICENSE-2.0.html
+	-->
+	<property file="release.properties"/>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: check-exists                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="check-antfile-exists">
+		<fail message="Do not run this target directly" unless="dir"/>
+		<fail message="${dir}/${esoeproject.antfilename} does not exist.">
+			<condition>
+				<not>
+					<available type="file" file="${dir}/${esoeproject.antfilename}" />
+				</not>
+			</condition>
+		</fail>
+	</target>
+
+	<!-- ================================= 
+          target: check              
+         ================================= -->
+	<target name="check" description="Checks that the required directories exist">
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.saml2java}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.esoecrypto}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.saml2metadata}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.spepjava}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.esoepdp}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.esoecore}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.esoetools}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.esoedeployer}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.spepjavafilter}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.gwtuilib}" />
+		</antcall>
+		<antcall target="check-antfile-exists">
+			<param name="dir" value="${esoeproject.esoemanager}" />
+		</antcall>
+	</target>
+
+	<!-- ================================= 
+          target: build              
+         ================================= -->
+	<target name="build" depends="check" description="Starts the build process to set up the development environment for ESOE">
+		<ant dir="${esoeproject.saml2java}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+		</ant>
+		<!-- Need to do resolve:all separately for saml2java because it gives us the XJC task. -->
+		<ant dir="${esoeproject.saml2java}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="jar" />
+			<target name="publish" />
+			<target name="eclipsexml" />
+		</ant>
+		<ant dir="${esoeproject.esoecrypto}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.esoecrypto}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.saml2metadata}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.spepjava}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.esoepdp}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.esoecore}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.esoetools}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.esoedeployer}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.spepjavafilter}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.gwtuilib}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+		<ant dir="${esoeproject.esoemanager}" antfile="${esoeproject.antfilename}" inheritall="no">
+			<target name="resolve:all" />
+			<target name="jar" />
+			<target name="publish" />
+		</ant>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: clean-full-project                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="clean-full-project">
+		<fail message="Do not run this target directly" unless="dir"/>
+		<ant dir="${dir}" antfile="${esoeproject.antfilename}" inheritall="no" target="clean" />
+		<delete failonerror="yes">
+			<fileset dir="${dir}/lib/compile">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${dir}/lib/provided">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${dir}/lib/optional">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${dir}/lib/runtime">
+				<include name="*.jar" />
+			</fileset>
+		</delete>
+	</target>
+
+	<!-- ================================= 
+          target: clean-full              
+         ================================= -->
+	<target name="clean-full" depends="check" description="Cleans all projects and the local ivy resolver and cache">
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.saml2java}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.esoecrypto}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.saml2metadata}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.spepjava}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.esoepdp}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.esoecore}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.esoetools}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.esoedeployer}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.spepjavafilter}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.gwtuilib}" />
+		</antcall>
+		<antcall target="clean-full-project">
+			<param name="dir" value="${esoeproject.esoemanager}" />
+		</antcall>
+	</target>
+
+
+</project>

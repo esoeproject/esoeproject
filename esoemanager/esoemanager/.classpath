@@ -4,7 +4,6 @@
 	<classpathentry kind="src" path="src-ui"/>
 	<classpathentry kind="src" path="tests-ui"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="var" path="GWT_HOME/gwt-user.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/gwtuilib"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>
@@ -26,5 +25,6 @@
 	<classpathentry kind="lib" path="lib/compile/org.springframework.jdbc.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.orm.jar"/>
 	<classpathentry kind="lib" path="lib/compile/org.springframework.transaction.jar"/>
+	<classpathentry kind="var" path="GWT_HOME/gwt-user.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

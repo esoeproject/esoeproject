@@ -19,6 +19,9 @@
 				<fileset dir="${artifacts.compile}">
 					<include name="*.jar" />
 				</fileset>
+				<fileset dir="${artifacts.provided}">
+					<include name="*.jar" />
+				</fileset>
 			</classpath>
 			<include name="**/client/rpc/*" />
 			<include name="**/client/rpc/bean/**" />
@@ -28,6 +31,9 @@
 			<src path="${src}" />
 			<classpath>
 				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.provided}">
 					<include name="*.jar" />
 				</fileset>
 				<fileset dir="${output.build}" />

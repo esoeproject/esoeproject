@@ -7,9 +7,6 @@
 	-->
 	<property file="release.properties"/>
 	
-	<!-- - - - - - - - - - - - - - - - - - 
-          target: check-exists                      
-         - - - - - - - - - - - - - - - - - -->
 	<target name="check-antfile-exists">
 		<fail message="Do not run this target directly" unless="dir"/>
 		<fail message="${dir}/${esoeproject.antfilename} does not exist.">
@@ -21,9 +18,6 @@
 		</fail>
 	</target>
 
-	<!-- ================================= 
-          target: check              
-         ================================= -->
 	<target name="check" description="Checks that the required directories exist">
 		<antcall target="check-antfile-exists">
 			<param name="dir" value="${esoeproject.saml2java}" />
@@ -60,9 +54,6 @@
 		</antcall>
 	</target>
 
-	<!-- ================================= 
-          target: build              
-         ================================= -->
 	<target name="build" depends="check" description="Starts the build process to set up the development environment for ESOE">
 		<ant dir="${esoeproject.saml2java}" antfile="${esoeproject.antfilename}" inheritall="no">
 			<target name="resolve:all" />
@@ -130,9 +121,6 @@
 		</ant>
 	</target>
 
-	<!-- - - - - - - - - - - - - - - - - - 
-          target: clean-full-project                      
-         - - - - - - - - - - - - - - - - - -->
 	<target name="clean-full-project">
 		<fail message="Do not run this target directly" unless="dir"/>
 		<ant dir="${dir}" antfile="${esoeproject.antfilename}" inheritall="no" target="clean" />
@@ -152,9 +140,6 @@
 		</delete>
 	</target>
 
-	<!-- ================================= 
-          target: clean-full              
-         ================================= -->
 	<target name="clean-full" depends="check" description="Cleans all projects and the local ivy resolver and cache">
 		<antcall target="clean-full-project">
 			<param name="dir" value="${esoeproject.saml2java}" />

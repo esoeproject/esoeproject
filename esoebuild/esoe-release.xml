@@ -8,18 +8,11 @@
 
 	<property file="release.properties" />
 
-	<!-- - - - - - - - - - - - - - - - - - 
-          target: run-release                      
-         - - - - - - - - - - - - - - - - - -->
 	<target name="run-release">
 		<fail message="Do not run this target directly" unless="dir" />
 		<ant dir="${dir}" antfile="${esoeproject.antfilename}" target="release" />
 	</target>
 
-
-	<!-- ================================= 
-          target: release              
-         ================================= -->
 	<target name="release" description="Runs release logic on all projects to create a release">
 		<fail message="Please set esoe.version before running this target" unless="esoe.version" />
 		<!--<ant antfile="${esoeproject.dev-setup}" target="build"/>-->

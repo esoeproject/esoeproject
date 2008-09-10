@@ -52,7 +52,7 @@ public interface SessionCache
 	 *            Session ID of principal to remove.
 	 * @return Principal object that was removed.
 	 */
-	public Principal removeSession(String sessionID);
+	public boolean removeSession(String sessionID);
 
 	/**
 	 * Retrieves the specified session from the session cache. The implementing method

@@ -25,15 +25,13 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.notNull;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.text.MessageFormat;
-
 import org.junit.Test;
 
-import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
@@ -68,10 +66,11 @@ public class SessionCacheTest
 	public final void testAddSession1()
 	{
 		this.logout = createMock(LogoutThreadPool.class);
-		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
-		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		// expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		// expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID),
+		// anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
@@ -82,12 +81,12 @@ public class SessionCacheTest
 		{
 			this.cache.addSession(data);
 		}
-		catch(DuplicateSessionException ex)
+		catch (DuplicateSessionException ex)
 		{
 			fail("Duplicate session in empty session cache.");
 			return;
 		}
-		
+
 		data = new PrincipalImpl(new IdentityDataImpl(), 360);
 		data.setPrincipalAuthnIdentifier(this.principal2);
 		data.setSAMLAuthnIdentifier(this.samlID2);
@@ -96,25 +95,25 @@ public class SessionCacheTest
 		{
 			this.cache.addSession(data);
 		}
-		catch(DuplicateSessionException ex)
+		catch (DuplicateSessionException ex)
 		{
 			fail("Duplicate session in empty session cache.");
 			return;
 		}
-		
+
 		Principal principal = this.cache.getSession(this.sessionID1);
-		assertEquals("First added principal - Comparing session principal name", principal.getPrincipalAuthnIdentifier(),
-				this.principal1);
+		assertEquals("First added principal - Comparing session principal name",
+				principal.getPrincipalAuthnIdentifier(), this.principal1);
 		assertEquals("First added principal - Comparing session ID", principal.getSessionID(), this.sessionID1);
 		assertEquals("First added principal - Comparing SAML ID", principal.getSAMLAuthnIdentifier(), this.samlID1);
 
 		principal = this.cache.getSession(this.sessionID2);
-		assertEquals("Second added principal - Comparing session principal name", principal.getPrincipalAuthnIdentifier(),
-				this.principal2);
+		assertEquals("Second added principal - Comparing session principal name",
+				principal.getPrincipalAuthnIdentifier(), this.principal2);
 		assertEquals("Second added principal - Comparing session ID", principal.getSessionID(), this.sessionID2);
 		assertEquals("Second added principal - Comparing SAML ID", principal.getSAMLAuthnIdentifier(), this.samlID2);
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -122,10 +121,11 @@ public class SessionCacheTest
 	public final void testAddSession2()
 	{
 		this.logout = createMock(LogoutThreadPool.class);
-		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
-		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		// expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		// expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID),
+		// anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
@@ -140,12 +140,12 @@ public class SessionCacheTest
 		{
 			trapped = true;
 		}
-		catch(DuplicateSessionException ex)
+		catch (DuplicateSessionException ex)
 		{
 			fail("Duplicate session when session should have been rejected.");
 			return;
 		}
-		
+
 		assertTrue("Empty session ID is not rejected", trapped);
 
 		data = new PrincipalImpl(new IdentityDataImpl(), 360);
@@ -160,7 +160,7 @@ public class SessionCacheTest
 		{
 			trapped = true;
 		}
-		catch(DuplicateSessionException ex)
+		catch (DuplicateSessionException ex)
 		{
 			fail("Duplicate session when session should have been rejected.");
 			return;
@@ -176,47 +176,49 @@ public class SessionCacheTest
 	public final void testGetSessionBySamlID1()
 	{
 		this.logout = createMock(LogoutThreadPool.class);
-		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
-		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		// expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		// expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID),
+		// anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
 		data.setPrincipalAuthnIdentifier(this.principal1);
 		data.setSAMLAuthnIdentifier(this.samlID1);
 		data.setSessionID(this.sessionID1);
-		
+
 		try
 		{
 			this.cache.addSession(data);
-			
+
 			this.cache.updateSessionSAMLID(data);
 		}
-		catch(DuplicateSessionException ex)
+		catch (DuplicateSessionException ex)
 		{
 			fail("Duplicate session in empty session cache.");
 			return;
 		}
 
 		Principal principal = this.cache.getSessionBySAMLID(this.samlID1);
-		assertEquals("First added principal - Comparing session principal name", principal.getPrincipalAuthnIdentifier(),
-				this.principal1);
+		assertEquals("First added principal - Comparing session principal name",
+				principal.getPrincipalAuthnIdentifier(), this.principal1);
 		assertEquals("First added principal - Comparing session ID", principal.getSessionID(), this.sessionID1);
 		assertEquals("First added principal - Comparing SAML ID", principal.getSAMLAuthnIdentifier(), this.samlID1);
 	}
 
-	/* Test invalid update for block coverage.
-	 * 
+	/*
+	 * Test invalid update for block coverage.
 	 */
 	@Test
 	public void testUpdateSessionID()
 	{
 		this.logout = createMock(LogoutThreadPool.class);
-		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
-		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		// expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		// expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID),
+		// anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 
 		// attempt to update an invalid principal. A valid one is updated in the previous test.
@@ -224,28 +226,27 @@ public class SessionCacheTest
 		{
 			Principal invalidData = new PrincipalImpl(new IdentityDataImpl(), 360);
 			invalidData.setPrincipalAuthnIdentifier("test");
-			//invalidData.setSAMLAuthnIdentifier("_blahd76test");
+			// invalidData.setSAMLAuthnIdentifier("_blahd76test");
 			invalidData.setSessionID("90480f8d9");
-			
+
 			// first set some invalid data to set off an exception for block coverage
-			this.cache.updateSessionSAMLID(invalidData);	
-			
+			this.cache.updateSessionSAMLID(invalidData);
+
 			fail("Illegal argument exception not thrown.");
-			
+
 		}
-		catch(IllegalArgumentException e)
+		catch (IllegalArgumentException e)
 		{
 			// we expect one of these
-			//e.printStackTrace();
+			// e.printStackTrace();
 		}
-		catch(DuplicateSessionException e)
+		catch (DuplicateSessionException e)
 		{
 			fail("Unexpected exception thrown.");
 		}
-		
+
 	}
-	
-	
+
 	/**
 	 * 
 	 */
@@ -253,10 +254,11 @@ public class SessionCacheTest
 	public final void testRemoveSession()
 	{
 		this.logout = createMock(LogoutThreadPool.class);
-		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
-		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		// expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		// expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID),
+		// anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 
 		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
@@ -267,7 +269,7 @@ public class SessionCacheTest
 		{
 			this.cache.addSession(data);
 		}
-		catch(DuplicateSessionException ex)
+		catch (DuplicateSessionException ex)
 		{
 			fail("Duplicate session in empty session cache.");
 			return;
@@ -276,17 +278,16 @@ public class SessionCacheTest
 		Principal principal = this.cache.getSession(this.sessionID1);
 		assertEquals("Session added to cache", principal.getPrincipalAuthnIdentifier(), this.principal1);
 
-		principal = this.cache.removeSession(this.sessionID1);
-		assertEquals("Removed correct object", principal.getPrincipalAuthnIdentifier(), this.principal1);
+		boolean result = this.cache.removeSession(this.sessionID1);
+		assertTrue("Removed session correctly", result);
 
 		principal = this.cache.getSession(this.sessionID1);
 		assertNull("Retrieving removed object returns null", principal);
 
-		principal = this.cache.removeSession(this.sessionID2);
-		assertNull("Removing non existent object returns null", principal);
+		result = this.cache.removeSession(this.sessionID2);
+		assertFalse("Removing non existent object returns false", result);
 	}
-	
-	
+
 	@Test
 	public void testCleanCache() throws Exception
 	{
@@ -294,28 +295,28 @@ public class SessionCacheTest
 		Principal data = new PrincipalImpl(10);
 		data.setSessionID(sessionID);
 		data.setPrincipalAuthnIdentifier("Test");
-		
+
 		this.logout = createMock(LogoutThreadPool.class);
-		expect(this.logout.createLogoutTask((Principal)notNull(), eq(false)) ).andReturn("BlahTaskID").anyTimes();
-		
+		expect(this.logout.createLogoutTask((Principal) notNull(), eq(false))).andReturn("BlahTaskID").anyTimes();
+
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 		this.cache.addSession(data);
-		
+
 		// prove its in there
 		assertEquals(data, this.cache.getSession(sessionID));
-				
+
 		// we have to sleep for a touch, because calling getSession() updates the entry lastAccessed
 		// timestamp. If you're running these tests on a slow box you might want to raise it a little
 		Thread.sleep(100);
-		
+
 		// no getSize method .. setting to 0 should remove all entries
 		this.cache.cleanCache(0);
-		
+
 		assertEquals(null, this.cache.getSession(sessionID));
 	}
-	
+
 	@Test
 	public void testValidSession() throws Exception
 	{
@@ -324,18 +325,19 @@ public class SessionCacheTest
 		data.setSessionID(sessionID);
 		data.setPrincipalAuthnIdentifier("Test");
 		data.setAuthnTimestamp(System.currentTimeMillis());
-		
+
 		this.logout = createMock(LogoutThreadPool.class);
-		//expect(logout.getEndPoints(entityID)).andReturn(endpoints);
-		//expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID), anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
+		// expect(logout.getEndPoints(entityID)).andReturn(endpoints);
+		// expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID),
+		// anyBoolean())).andReturn(LogoutThreadPool.result.LogoutSuccessful).anyTimes();
 		replay(this.logout);
-		
+
 		this.cache = new SessionCacheImpl(logout);
 		this.cache.addSession(data);
-		
+
 		// the session is valid is it exists in the cache
 		assertTrue(!this.cache.validSession("notinthere"));
-		
+
 		assertTrue(this.cache.validSession(sessionID));
 	}
 

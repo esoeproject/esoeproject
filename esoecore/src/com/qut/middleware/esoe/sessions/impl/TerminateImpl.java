@@ -61,9 +61,9 @@ public class TerminateImpl implements Terminate
 	 */
 	public void terminateSession(String sessionID) throws InvalidSessionIdentifierException
 	{
-		Principal principal = this.cache.removeSession(sessionID);
+		boolean result = this.cache.removeSession(sessionID);
 
-		if (principal == null)
+		if (!result)
 		{
 			this.logger.warn(MessageFormat.format(Messages.getString("TerminateImpl.1"), sessionID)); //$NON-NLS-1$
 			throw new InvalidSessionIdentifierException();

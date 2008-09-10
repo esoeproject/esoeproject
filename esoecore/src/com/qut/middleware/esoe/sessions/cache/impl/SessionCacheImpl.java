@@ -181,10 +181,10 @@ public class SessionCacheImpl implements SessionCache
 	 * 
 	 * @see com.qut.middleware.esoe.sessions.cache.SessionCache#removeSession(java.lang.String)
 	 */
-	public Principal removeSession(String sessionID)
+	public boolean removeSession(String sessionID)
 	{
 		if(sessionID == null)
-			return null;
+			return false;
 				
 		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.11"), sessionID)); //$NON-NLS-1$
 				
@@ -193,7 +193,7 @@ public class SessionCacheImpl implements SessionCache
 		if (p != null && p.getSAMLAuthnIdentifier() != null)
 			this.sessionMap.remove(p.getSAMLAuthnIdentifier());
 	
-		return p;
+		return (p != null);
 	}
 
 

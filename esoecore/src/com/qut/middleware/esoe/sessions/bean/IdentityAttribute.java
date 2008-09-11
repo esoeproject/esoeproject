@@ -18,10 +18,11 @@
  */
 package com.qut.middleware.esoe.sessions.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 /** */
-public interface IdentityAttribute
+public interface IdentityAttribute extends Serializable
 {
 	/**
 	 * Accessor for attribute type.

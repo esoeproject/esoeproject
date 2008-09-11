@@ -22,6 +22,7 @@ package com.qut.middleware.esoe.sessions.cache.impl;
 import java.text.MessageFormat;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,11 +34,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.logout.LogoutThreadPool;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.util.CalendarUtils;
 
 /** 
@@ -370,5 +374,20 @@ public class SessionCacheImpl implements SessionCache
 	public int getSize()
 	{
 		return (this.sessionMap.size()/2);
+	}
+	
+	public void addDescriptor(Principal principal, String entityID) throws InvalidSessionIdentifierException
+	{
+		// noop, not required for this implementation
+	}
+	
+	public void addDescriptorSessionIdentifier(Principal principal, String entityID, String descriptorSessionID) throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException
+	{
+		// noop, not required for this implementation
+	}
+	
+	public void updatePrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes) throws InvalidSessionIdentifierException
+	{
+		// noop, not required for this implementation
 	}
 }

@@ -18,8 +18,13 @@
  */
 package com.qut.middleware.esoe.sessions.cache;
 
+import java.util.List;
+
+import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 
 /** 
  * Interface for the local session cache. Stores information about authenticated principals. 
@@ -110,4 +115,43 @@ public interface SessionCache
 	 */
 	public int getSize();
 	
+	/**
+	 * Signals to the session cache that the entity ID has been added to the principal, and 
+	 * therefore should be updated in any underlying data source/sink.
+	 * 
+	 * For an in-memory cache, this will be a no-op because the principal object will be updated
+	 * before this method is called.
+	 * @param sessionID
+	 * @param entityID
+	 * @throws InvalidSessionIdentifierException
+	 */
+	public void addDescriptor(Principal principal, String entityID) throws InvalidSessionIdentifierException;
+	
+	/**
+	 * Signals to the session cache that an entity session identifier has been associated with
+	 * an existing principal session, and therefore should be updated in any underlying data source/sink.
+	 * 
+	 * For an in-memory cache, this will be a no-op because the principal object will be updated
+	 * before this method is called.
+	 * @param sessionID
+	 * @param entityID
+	 * @param descriptorSessionID
+	 * @throws InvalidSessionIdentifierException
+	 * @throws InvalidDescriptorIdentifierException
+	 */
+	public void addDescriptorSessionIdentifier(Principal principal, String entityID, String descriptorSessionID)
+		throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException;
+	
+	/**
+	 * Signals to the session cache that the attributes for a principal session have been modified,
+	 * and therefore should be updated in any underlying data source/sink.
+	 * 
+	 * For an in-memory cache, this will be a no-op because the principal object will be updated
+	 * before this method is called.
+	 * @param sessionID
+	 * @param authnIdentityAttributes
+	 * @throws InvalidSessionIdentifierException
+	 */
+	public void updatePrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes)
+		throws InvalidSessionIdentifierException;
 }

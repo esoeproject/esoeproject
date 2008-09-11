@@ -28,6 +28,8 @@ import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 /** */
 public class IdentityAttributeImpl extends Object implements IdentityAttribute
 {
+	private static final long serialVersionUID = 1746235388797252959L;
+	
 	private List<Object> values;
 	private String type;
 	private List<String> handlers;

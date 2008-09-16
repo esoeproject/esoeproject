@@ -23,55 +23,51 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Date: 20/11/2006                                                        
 		Purpose: Defines spring integration for
 		====================================================================== -->
-			
-		<!-- Session caching handler >
-		<bean id="sessionCache" class="com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl">
-			<constructor-arg index="0" ref="logoutMechanism" />
-		</bean -->
 		
-		<!-- Session caching handler -->
-		<bean id="sessionCache" class="com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl">
-			<constructor-arg index="0" ref="logoutThreadPool" />
+		<bean id="sessionCachePlugin" class="com.qut.middleware.esoe.plugins.OverridePluginLoader">
+			<constructor-arg index="0" value="${esoe.data}/plugins/sessioncache" />
+			<constructor-arg index="1" value="WEB-INF/resources/sessions/defaultSessionCache.xml" />
+			<constructor-arg index="2" ref="globalConfig" />
+		</bean>
+		
+		<bean id="sessionCache" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="sessionCache" />
 		</bean>
 		
 		<!-- Session creation handler -->
-		<bean id="create" class="com.qut.middleware.esoe.sessions.impl.CreateImpl">
-			<constructor-arg index="0" ref="sessionCache"/>
-			<constructor-arg index="1" ref="sessionConfigData"/>
-			<constructor-arg index="2" ref="identityResolver"/>
-			<constructor-arg index="3" ref="identifierGenerator"/>
-			<constructor-arg index="4" value="${create.sessionLength}" />
+		<bean id="create" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="create" />
 		</bean>
 		
 		<!-- Session query handler -->
-		<bean id="query" class="com.qut.middleware.esoe.sessions.impl.QueryImpl">
-			<constructor-arg ref="sessionCache"/>
+		<bean id="query" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="query" />
 		</bean>
 		
 		<!-- Session termination handler -->
-		<bean id="terminate" class="com.qut.middleware.esoe.sessions.impl.TerminateImpl">
-			<constructor-arg ref="sessionCache"/>
+		<bean id="terminate" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="terminate" />
 		</bean>
 		
 		<!-- Session updates handler -->
-		<bean id="update" class="com.qut.middleware.esoe.sessions.impl.UpdateImpl">
-			<constructor-arg ref="sessionCache"/>
+		<bean id="update" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="update" />
 		</bean>
 			
 		<!-- Processor responsible for all session activity in the ESOE -->
-		<bean id="sessionsProcessor" class="com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl">
-			<constructor-arg ref="create"/>
-			<constructor-arg ref="query"/>
-			<constructor-arg ref="terminate"/>
-			<constructor-arg ref="update"/>
+		<bean id="sessionsProcessor" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="sessionsProcessor" />
 		</bean>
 		
 		<!--  Sessions monitor. Removes expired data from caches -->
-		<bean id="sessionsMonitorThread" class="com.qut.middleware.esoe.sessions.impl.SessionsMonitor"
-		destroy-method="shutdown">
-			<constructor-arg index="0" ref="identifierCache"/>
-			<constructor-arg index="1" ref="sessionCache"/>
-			<constructor-arg index="2" value="${sessions.cleanupInterval}"/>
-			<constructor-arg index="3" value="${sessions.timeoutInterval}"/>
+		<bean id="sessionsMonitorThread" destroy-method="shutdown" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+			<constructor-arg index="0" ref="sessionCachePlugin" />
+			<constructor-arg index="1" value="sessionsMonitorThread" />
 		</bean>
 </beans>

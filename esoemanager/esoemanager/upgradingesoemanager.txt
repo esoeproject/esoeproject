@@ -71,6 +71,11 @@ defaultCCS=/spep/services/spep/authzCacheClear
 
 sqlmap.config=WEB-INF/${databaseType}SqlMapConfig.xml
 
+
+Also, need to add this and set it to the correct value for your deployment:
+esoeManagerEntityID=https://esoe/esoemanager
+
+
 The new ESOE Manager performs authorization and UI modifications to fine grained levels. To ensure your able to access the system to start handing out
 privileges ensure that for the ESOE Manager EntID/DescID combination you create a policy similar to the example "sample-superuser-policy.xml" available from
 SVN for this project.

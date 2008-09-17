@@ -20,6 +20,8 @@
 
 package com.qut.middleware.esoemanager.manager.bean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 
 import com.qut.middleware.esoemanager.exception.ManagerDAOException;
@@ -31,9 +33,11 @@ public class ServiceEntIDFactoryBean implements FactoryBean
 
 	public ServiceEntIDFactoryBean(ManagerDAO managerDAO, String entityIdentifier)
 	{
+		Logger logger = LoggerFactory.getLogger(this.getClass());
 		try
 		{
 			this.value = managerDAO.getEntID(entityIdentifier);
+			logger.info("Resolved ENTID: {} for EntityID: {}", String.valueOf(this.value), entityIdentifier);
 		}
 		catch (ManagerDAOException e)
 		{

@@ -10,12 +10,12 @@
 	
 	<bean name="esoeEntID" class="com.qut.middleware.esoemanager.manager.bean.ServiceEntIDFactoryBean">
 		<constructor-arg index="0" ref="managerDAO" />
-		<constructor-arg index="1" ref="${esoeTrustedID}" />
+		<constructor-arg index="1" value="${esoeTrustedID}" />
 	</bean>
 	
 	<bean name="esoeManagerEntID" class="com.qut.middleware.esoemanager.manager.bean.ServiceEntIDFactoryBean">
 		<constructor-arg index="0" ref="managerDAO" />
-		<constructor-arg index="1" ref="${esoeManagerEntityID}" />
+		<constructor-arg index="1" value="${esoeManagerEntityID}" />
 	</bean>
 	
 	<bean name="convertToUIPolicy"

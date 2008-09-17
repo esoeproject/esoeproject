@@ -8,6 +8,16 @@
 		<property name="sqlMapClient" ref="sqlMapClient" />
 	</bean>
 	
+	<bean name="esoeEntID" class="com.qut.middleware.esoemanager.manager.bean.ServiceEntIDFactoryBean">
+		<constructor-arg index="0" ref="managerDAO" />
+		<constructor-arg index="1" ref="${esoeTrustedID}" />
+	</bean>
+	
+	<bean name="esoeManagerEntID" class="com.qut.middleware.esoemanager.manager.bean.ServiceEntIDFactoryBean">
+		<constructor-arg index="0" ref="managerDAO" />
+		<constructor-arg index="1" ref="${esoeManagerEntityID}" />
+	</bean>
+	
 	<bean name="convertToUIPolicy"
 		class="com.qut.middleware.esoemanager.util.ConvertToUIPolicy">
 	</bean>
@@ -32,14 +42,14 @@
 	<bean id="attributes"
 		class="com.qut.middleware.esoemanager.manager.logic.impl.AttributesImpl">
 		<property name="managerDAO" ref="managerDAO" />
-		<property name="esoeENTID" value="1"/>
+		<property name="esoeENTID" ref="esoeEntID"/>
 		<property name="utils" ref="util"/>
 	</bean>
 	
 	<bean id="dashboard"
 		class="com.qut.middleware.esoemanager.manager.logic.impl.DashboardImpl">
 		<property name="managerDAO" ref="managerDAO" />
-		<property name="esoeENTID" value="1"/>
+		<property name="esoeENTID" ref="esoeEntID"/>
 	</bean>
 	
 	<bean id="serviceContacts"
@@ -67,7 +77,7 @@
 		<property name="managerDAO" ref="managerDAO" />
 		<property name="cryptoProcessor" ref="cryptoProcessor"/>
 		<property name="identifierGenerator" ref="identifierGenerator"/>
-		<property name="esoeENTID" value="1"/>
+		<property name="esoeENTID" ref="esoeEntID"/>
 		<property name="esoeEntityID" value="${esoeTrustedID}"/>
 	</bean>
 	
@@ -87,7 +97,7 @@
 		<property name="organizationURL" value="${organizationURL}"/>
 		<property name="defaultServiceAccessPolicyLocation" value="WEB-INF/defaultAccessPolicy.xml"/>
 		<property name="defaultServiceManagementPolicyLocation" value="WEB-INF/defaultManagementPolicy.xml"/>
-		<property name="esoeManagerENTID" value="2"/>
+		<property name="esoeManagerENTID" ref="esoeManagerEntID"/>
 	</bean>
 	
 	<bean name="esoeManager" class="com.qut.middleware.esoemanager.EsoeManagerImpl">		

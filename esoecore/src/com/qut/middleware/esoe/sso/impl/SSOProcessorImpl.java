@@ -169,7 +169,7 @@ public class SSOProcessorImpl extends SSOProcessorBase
 		 * If we're dealing with google insert mail identifier specially now and in special format until they correct
 		 * their problems
 		 */
-		if (data.getAuthnRequest().getIssuer().getValue().contains("google"))
+		if (data.getAuthnRequest().getIssuer().getValue().toLowerCase().contains("google"))
 		{
 			/* Figure out what value we should try and get from the principals attributes - google wants email */
 			String attribName = this.identifierAttributeMapping.get(NameIDFormatConstants.emailAddress);
@@ -186,11 +186,27 @@ public class SSOProcessorImpl extends SSOProcessorBase
 						String completeEmailAddress = (String) attribValues.get(0);
 
 						int indAt = completeEmailAddress.indexOf('@');
-						nameID.setValue(completeEmailAddress.substring(0, indAt));
+						if(indAt != -1)
+							nameID.setValue(completeEmailAddress.substring(0, indAt));
+						else
+							nameID.setValue(completeEmailAddress);
+						
 						nameID.setFormat(NameIDFormatConstants.emailAddress);
 						setNameID = true;
 					}
+					else
+					{
+						this.logger.error("Could not retrieve valid data for mail attribute to send to Google will send transient to Google, this will probably cause a fault");
+					}
 				}
+				else
+				{
+					this.logger.error("Could not retrieve valid identity attribute attribute to send to Google will send transient to Google, this will probably cause a fault");
+				}
+			}
+			else
+			{
+				this.logger.error("No mapping for " + NameIDFormatConstants.emailAddress + " will send transient to Google, this will probably cause a fault");
 			}
 		}
 		else

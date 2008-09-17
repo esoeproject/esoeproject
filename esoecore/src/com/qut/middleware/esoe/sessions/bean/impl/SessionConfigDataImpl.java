@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ibm.icu.text.CharsetDetector;
-import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
 import com.qut.middleware.esoe.sessions.exception.ConfigurationValidationException;

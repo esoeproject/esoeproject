@@ -73,7 +73,7 @@ public class UpdateImpl implements Update
 	{
 		Principal principal = this.getPrincipal(sessionID);
 
-		principal.addActiveDescriptor(entityID);
+		this.cache.addDescriptor(principal, entityID);
 
 		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.1"), entityID, sessionID)); //$NON-NLS-1$
 	}
@@ -89,7 +89,7 @@ public class UpdateImpl implements Update
 	{
 		Principal principal = this.getPrincipal(sessionID);
 
-		principal.addDescriptorSessionIdentifier(entityID, descriptorSessionID);
+		this.cache.addDescriptorSessionIdentifier(principal, entityID, descriptorSessionID);
 
 		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.2"), descriptorSessionID, entityID, sessionID)); //$NON-NLS-1$
 	}

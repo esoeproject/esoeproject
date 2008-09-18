@@ -405,8 +405,6 @@ public abstract class SSOProcessorBase implements SSOProcessor
 				sessionIndex = this.identifierGenerator.generateSAMLSessionID();
 				this.logger.debug("DescriptorID  " + data.getIssuerID() + " -- " + sessionIndex + " === " + principal);
 
-				principal.addDescriptorSessionIdentifier(data.getIssuerID(), sessionIndex);
-
 				this.authnLogger.info(Messages.getString("SSOProcessor.47") + sessionIndex + Messages.getString("SSOProcessor.48") + data.getIssuerID() + Messages.getString("SSOProcessor.49") + principal.getPrincipalAuthnIdentifier()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				this.sessionsProcessor.getUpdate().updateDescriptorSessionIdentifierList(data.getSessionID(), data.getIssuerID(), sessionIndex);
 

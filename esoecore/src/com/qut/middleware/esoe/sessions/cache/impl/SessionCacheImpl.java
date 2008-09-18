@@ -378,12 +378,12 @@ public class SessionCacheImpl implements SessionCache
 	
 	public void addDescriptor(Principal principal, String entityID) throws InvalidSessionIdentifierException
 	{
-		// noop, not required for this implementation
+		principal.addActiveDescriptor(entityID);
 	}
 	
 	public void addDescriptorSessionIdentifier(Principal principal, String entityID, String descriptorSessionID) throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException
 	{
-		// noop, not required for this implementation
+		principal.addDescriptorSessionIdentifier(entityID, descriptorSessionID);
 	}
 	
 	public void updatePrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes) throws InvalidSessionIdentifierException

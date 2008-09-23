@@ -116,12 +116,12 @@
 			<jaxb:package name="com.qut.middleware.saml2.schemas.esoe.delegated" />
 		</jaxb:schemaBindings>
 	</jaxb:bindings>
-	<jaxb:bindings schemaLocation="soap-1.1-envelope.xsd" node="/xs:schema">
+	<jaxb:bindings schemaLocation="soap-1.1-envelope.xsd" node="/xsd:schema">
 		<jaxb:schemaBindings>
 			<jaxb:package name="com.qut.middleware.saml2.schemas.soap.v11" />
 		</jaxb:schemaBindings>
 	</jaxb:bindings>
-	<jaxb:bindings schemaLocation="soap-1.2-envelope.xsd" node="/xs:schema">
+	<jaxb:bindings schemaLocation="soap-1.2-envelope.xsd" node="/xsd:schema">
 		<jaxb:schemaBindings>
 			<jaxb:package name="com.qut.middleware.saml2.schemas.soap.v12" />
 		</jaxb:schemaBindings>

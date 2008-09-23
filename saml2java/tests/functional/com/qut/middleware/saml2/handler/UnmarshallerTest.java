@@ -885,7 +885,7 @@ public class UnmarshallerTest
 		String[] schemas = new String[] { "saml-schema-protocol-2.0.xsd", "saml-schema-assertion-2.0.xsd" };
 		unmarshaller = new UnmarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), schemas);
 
-		AuthnRequest authn = unmarshaller.unMarshallSigned(null);
+		AuthnRequest authn = unmarshaller.unMarshallSigned((byte[])null);
 	}
 
 	/*

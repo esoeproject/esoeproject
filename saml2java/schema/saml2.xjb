@@ -116,6 +116,16 @@
 			<jaxb:package name="com.qut.middleware.saml2.schemas.esoe.delegated" />
 		</jaxb:schemaBindings>
 	</jaxb:bindings>
+	<jaxb:bindings schemaLocation="soap-1.1-envelope.xsd" node="/xs:schema">
+		<jaxb:schemaBindings>
+			<jaxb:package name="com.qut.middleware.saml2.schemas.soap.v11" />
+		</jaxb:schemaBindings>
+	</jaxb:bindings>
+	<jaxb:bindings schemaLocation="soap-1.2-envelope.xsd" node="/xs:schema">
+		<jaxb:schemaBindings>
+			<jaxb:package name="com.qut.middleware.saml2.schemas.soap.v12" />
+		</jaxb:schemaBindings>
+	</jaxb:bindings>
 		<jaxb:bindings schemaLocation="delegated-schema-saml-protocol.xsd" node="/xsd:schema/xsd:complexType[@name='RegisterPrincipalRequestType']/xsd:complexContent/xsd:extension/xsd:sequence/xsd:choice/xsd:element[@ref='saml:Attribute']">
       	<jaxb:property name="AttributesAndEncryptedAttributes" />
     </jaxb:bindings> 

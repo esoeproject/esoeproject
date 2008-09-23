@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
@@ -74,6 +75,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.apache.xml.serialize.OutputFormat;
+import org.apache.xml.serialize.XMLSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -458,6 +461,48 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		}
 	}
 	
+	public Element marshallSignedElement(T xmlObj) throws MarshallerException
+	{
+		return this.marshallSignedElement(xmlObj, this.defaultCharset);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.saml2.handler.Marshaller#marshallSigned(java.lang.Object, java.lang.String)
+	 */
+	public Element marshallSignedElement(T xmlObj, String encoding) throws MarshallerException
+	{
+		this.logger.debug(Messages.getString("MarshallerImpl.40")); //$NON-NLS-1$
+
+		if (xmlObj == null)
+		{
+			this.logger.error(Messages.getString("MarshallerImpl.8")); //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.8")); //$NON-NLS-1$
+		}
+
+		if (this.keyPairName == null || this.pk == null)
+		{
+			this.logger.error(Messages.getString("MarshallerImpl.9")); //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.9")); //$NON-NLS-1$
+		}
+
+		ByteArrayInputStream byteArrayInputStream;
+		byte[] xml = marshallUnSigned(xmlObj, encoding);
+
+		try
+		{
+			this.logger.error("marshalledElement:\n{}", new String(xml, "UTF-16"));
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		byteArrayInputStream = new ByteArrayInputStream(xml); //$NON-NLS-1$
+		Document doc = signDocument(byteArrayInputStream, encoding);
+
+		return doc.getDocumentElement();
+	}
+
 	/**
 	 * Validates, Signs and creates XML content.
 	 * 
@@ -473,12 +518,61 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	 */
 	private byte[] sign(InputStream document, String encoding) throws MarshallerException
 	{
+		try
+		{
+			StreamResult streamResult;
+			Transformer trans;
+	
+			Document doc = this.signDocument(document, encoding);
+	
+			/* Create Transformer */
+			Properties properties = new Properties();
+			properties.setProperty(OutputKeys.ENCODING, encoding); //$NON-NLS-1$
+	
+			trans = this.transFac.newTransformer();
+			trans.setOutputProperties(properties);
+			
+			this.logger.debug(Messages.getString("MarshallerImpl.55")); //$NON-NLS-1$
+	
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			streamResult = new StreamResult(bytes);
+			trans.transform(new DOMSource(doc), streamResult);
+	
+			return bytes.toByteArray(); //$NON-NLS-1$
+		}
+		catch (TransformerConfigurationException tce)
+		{
+			this.logger.error(Messages.getString("MarshallerImpl.33")); //$NON-NLS-1$
+			this.logger.debug(tce.getLocalizedMessage(), tce);
+			throw new MarshallerException(tce.getMessage(), tce);
+		}
+		catch (TransformerException te)
+		{
+			this.logger.warn(Messages.getString("MarshallerImpl.63")); //$NON-NLS-1$
+			this.logger.debug(te.getLocalizedMessage(), te);
+			throw new MarshallerException(te.getMessage(), te);
+		}
+	}
+	
+	/**
+	 * Validates, Signs and creates XML DOM object.
+	 * 
+	 * This function will validate the supplied schema. For each supplied XML compliant id in idList an empty
+	 * <Signature/> block is assumed to be present so that the Signature generation output can be inserted in a valid
+	 * position in the final document.
+	 * 
+	 * @param schema
+	 *            The name of the schema file eg "my-schema.xsd" to validate against
+	 * @param document
+	 *            The validated xml content to be signed
+	 * @return A DOM representation of the completed document
+	 */
+	private Document signDocument(InputStream document, String encoding) throws MarshallerException
+	{
 		XMLSignatureFactory xmlSigFac;
 		DigestMethod digestMethod;
 		CanonicalizationMethod canocMeth;
 		SignatureMethod sigMeth;
-		Transformer trans;
-		Properties properties;
 
 		ArrayList<Transform> transformList;
 		Document doc;
@@ -494,8 +588,6 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 		KeyName keyName;
 		NodeList nodeList;
 		String id;
-
-		StreamResult streamResult;
 
 		this.logger.debug(Messages.getString("MarshallerImpl.52")); //$NON-NLS-1$
 		try
@@ -525,13 +617,6 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			}
 
 			doc = validate(document);
-
-			/* Create Transformer */
-			properties = new Properties();
-			properties.setProperty(OutputKeys.ENCODING, encoding); //$NON-NLS-1$
-
-			trans = this.transFac.newTransformer();
-			trans.setOutputProperties(properties);
 
 			/* Locate all the empty Signature elements we wish to populate */
 			nodeList = doc.getElementsByTagNameNS(XMLSignature.XMLNS, Constants.SIGNATURE_ELEMENT);
@@ -619,13 +704,7 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 				signature.sign(domSignContext);
 			}
 
-			this.logger.debug(Messages.getString("MarshallerImpl.55")); //$NON-NLS-1$
-
-			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			streamResult = new StreamResult(bytes);
-			trans.transform(new DOMSource(doc), streamResult);
-
-			return bytes.toByteArray(); //$NON-NLS-1$
+			return doc;
 		}
 		catch (InvalidAlgorithmParameterException iape)
 		{
@@ -657,12 +736,6 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			this.logger.debug(cfe.getLocalizedMessage(), cfe);
 			throw new MarshallerException(cfe.getMessage(), cfe);
 		}
-		catch (TransformerConfigurationException tce)
-		{
-			this.logger.error(Messages.getString("MarshallerImpl.33")); //$NON-NLS-1$
-			this.logger.debug(tce.getLocalizedMessage(), tce);
-			throw new MarshallerException(tce.getMessage(), tce);
-		}
 		catch (IOException ioe)
 		{
 			this.logger.warn(Messages.getString("MarshallerImpl.56")); //$NON-NLS-1$
@@ -692,12 +765,6 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			this.logger.warn(Messages.getString("MarshallerImpl.62")); //$NON-NLS-1$
 			this.logger.debug(me.getLocalizedMessage(), me);
 			throw new MarshallerException(me.getMessage(), me);
-		}
-		catch (TransformerException te)
-		{
-			this.logger.warn(Messages.getString("MarshallerImpl.63")); //$NON-NLS-1$
-			this.logger.debug(te.getLocalizedMessage(), te);
-			throw new MarshallerException(te.getMessage(), te);
 		}
 	}
 

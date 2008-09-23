@@ -20,8 +20,10 @@
 package com.qut.middleware.saml2.handler.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.Key;
@@ -35,6 +37,8 @@ import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.crypto.AlgorithmMethod;
 import javax.xml.crypto.KeySelector;
@@ -59,6 +63,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -78,6 +83,7 @@ import com.qut.middleware.saml2.exception.ReferenceValueException;
 import com.qut.middleware.saml2.exception.ResourceException;
 import com.qut.middleware.saml2.exception.SignatureValueException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
+import com.qut.middleware.saml2.namespace.NamespacePrefixMapperImpl;
 import com.qut.middleware.saml2.resolver.ResourceResolver;
 import com.qut.middleware.saml2.resolver.SchemaResolver;
 import com.qut.middleware.saml2.schemas.metadata.KeyTypes;
@@ -769,7 +775,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 			/* Unmarshall object for application use, or informative purposes if validation fails */
 			unmarshaller = this.jaxbContext.createUnmarshaller();
 			jaxbObject = (T) unmarshaller.unmarshal(doc);
-
+			
 			this.logger.debug(Messages.getString("UnmarshallerImpl.82")); //$NON-NLS-1$
 			validateSignature(doc, pk, jaxbObject);
 			
@@ -835,6 +841,83 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 			validateSignature(doc, null, jaxbObject);
 			
 			/* Document and Signatures are all valid, return */
+			return jaxbObject;
+		}
+		catch (JAXBException je)
+		{
+			this.logger.warn(Messages.getString("UnmarshallerImpl.93")); //$NON-NLS-1$
+			this.logger.debug(je.getLocalizedMessage(), je);
+			throw new UnmarshallerException(je.getMessage(), je, jaxbObject);
+		}
+		catch (MarshalException me)
+		{
+			this.logger.warn(Messages.getString("UnmarshallerImpl.94")); //$NON-NLS-1$
+			this.logger.debug(me.getLocalizedMessage(), me);
+			throw new UnmarshallerException(me.getMessage(), me, jaxbObject);
+		}
+		catch (XMLSignatureException xse)
+		{
+			this.logger.error(Messages.getString("UnmarshallerImpl.95")); //$NON-NLS-1$ 
+			this.logger.debug(xse.getLocalizedMessage(), xse);
+			throw new UnmarshallerException(xse.getMessage(), xse, jaxbObject);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.saml2.handler.UnMarshaller#unMarshall(java.lang.String, java.net.URL)
+	 */
+	public T unMarshallSigned(Node node) throws SignatureValueException, ReferenceValueException,
+			UnmarshallerException
+	{
+		this.logger.debug(Messages.getString("UnmarshallerImpl.86")); //$NON-NLS-1$ 
+
+		if (node == null)
+		{
+			this.logger.error(Messages.getString("UnmarshallerImpl.10")); //$NON-NLS-1$ 
+			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.10")); //$NON-NLS-1$
+		}
+
+		if (this.extKeyResolver == null)
+		{
+			this.logger.error(Messages.getString("UnmarshallerImpl.32")); //$NON-NLS-1$
+			throw new IllegalArgumentException(Messages.getString("UnmarshallerImpl.32")); //$NON-NLS-1$
+		}
+
+		T jaxbObject = null;
+
+		try
+		{
+			/* Document is valid, unmarshall object for application use */
+
+			Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
+			jaxbObject = (T) unmarshaller.unmarshal(node);
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			// TODO configurable encoding here?
+			marshaller.setProperty("jaxb.encoding", "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
+
+			/* Setup the configured prefix mapper to make our saml easy for human consumption */
+			try
+			{
+				marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl()); //$NON-NLS-1$
+			}
+			catch (PropertyException pe)
+			{
+				this.logger.error(Messages.getString("MarshallerImpl.43")); //$NON-NLS-1$
+				this.logger.debug(pe.getLocalizedMessage(), pe);
+				throw new UnmarshallerException(pe.getMessage(), pe, jaxbObject);
+			}
+			
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			StreamResult streamResult = new StreamResult(outputStream);
+			marshaller.marshal(jaxbObject, streamResult);
+
+			byte[] document = outputStream.toByteArray();
+			
+			Document doc = this.generateDocument(document);
+			this.validateSignature(doc, null, jaxbObject);
+			
 			return jaxbObject;
 		}
 		catch (JAXBException je)

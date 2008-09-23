@@ -56,4 +56,8 @@ public class SchemaConstants
 	public static final String attributeConfig = "attributeconfig-schema.xsd"; //$NON-NLS-1$
 	/** Delegated Authentication schema */
 	public static final String delegatedAuthn = "delegated-schema-saml-protocol.xsd";
+	/** SOAP v1.1 schema */
+	public static final String soapv11 = "soap-1.1-envelope.xsd"; // $NON-NLS-1$
+	/** SOAP v1.2 schema */
+	public static final String soapv12 = "soap-1.2-envelope.xsd"; // $NON-NLS-1$
 }

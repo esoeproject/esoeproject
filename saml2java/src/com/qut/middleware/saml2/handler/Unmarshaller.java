@@ -63,6 +63,19 @@ public interface Unmarshaller<T>
 	public T unMarshallSigned( PublicKey pk, byte[] document ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
 	
 	/**
+	 * Validates xml signatures and Unmarshalls supplied element to JAXB compiled object instantiated as T.
+	 * Utilised where public key information is extracted from submitted document
+	 * 
+	 * @param pk The public key of the entity generating the document to validate signatures
+	 * @param document The document to unmarshall
+	 * @return The JAXB unmarshalled object or null if an error occurs.
+	 * @throws SignatureValueException if the signature cannot be decoded.
+	 * @throws ReferenceValueException if the reference cannot be decoded.
+	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
+	 */
+	public T unMarshallSigned(Node element) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
+	
+	/**
 	 * Validates document against schema and Unmarshalls supplied document to JAXB compiled object instatiated as T.
 	 * 
 	 * @param document The document to unmarshall

@@ -131,6 +131,16 @@ public class NamespacePrefixMapperImpl extends NamespacePrefixMapper
 			return "spep"; //$NON-NLS-1$
 		}
 		
+		if (namespaceURI.equals("http://schemas.xmlsoap.org/soap/envelope/")) //$NON-NLS-1$
+		{
+			return "soap"; //$NON-NLS-1$
+		}
+		
+		if (namespaceURI.equals("http://www.w3.org/2003/05/soap-envelope")) //$NON-NLS-1$
+		{
+			return "soap"; //$NON-NLS-1$
+		}
+
 		this.logger.debug("Prefix mapper has no mapping for the presented namespaceURI:" + namespaceURI); //$NON-NLS-1$
 
 		/* No preference for this namespace, use default */

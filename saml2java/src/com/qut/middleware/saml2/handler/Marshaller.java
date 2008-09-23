@@ -97,4 +97,26 @@ public interface Marshaller<T>
 	 * @throws MarshallerException if an error occurs marshalling the document.
 	 */
 	public Element marshallUnSignedElement( T xmlObj, String encoding )  throws MarshallerException;
+	
+	/**
+	 * Marshalls content that requires enveloped XML signature creation.
+	 * 
+	 * This marshaller will validate the supplied object to schema, the final document will include enveloped digital signatures for the elements listed
+	 * 
+	 * @param xmlObj JAXB created implementation of some defined schema object
+	 * @return An XML DOM object if no errors occur.
+	 * @throws MarshallerException if an error occurs marshalling the document.
+	 */
+	public Element marshallSignedElement(T xmlObj) throws MarshallerException;
+	
+	/**
+	 * Marshalls content that requires enveloped XML signature creation and requires a certain type of charset encoding on this call.
+	 * 
+	 * This marshaller will validate the supplied object to schema, the final document will include enveloped digital signatures for the elements listed
+	 * 
+	 * @param xmlObj JAXB created implementation of some defined schema object
+	 * @return An XML DOM object if no errors occur.
+	 * @throws MarshallerException if an error occurs marshalling the document.
+	 */
+	public Element marshallSignedElement(T xmlObj, String encoding) throws MarshallerException;
 }

@@ -57,8 +57,11 @@ public interface SOAPHandler
 		}
 	}
 	
-	public Element unwrapDocument(byte[] soapDocument) throws SOAPException;
-	public byte[] wrapDocument(Element samlDocument) throws SOAPException;
 	public boolean canHandle(String contentType);
-	public byte[] generateFaultResponse(String reason, FaultCode faultCode, String subCode, Collection<Element> detail) throws SOAPException;
+	public byte[] wrapDocument(Element samlDocument) throws SOAPException;
+	public byte[] wrapDocument(Element samlDocument, String encoding) throws SOAPException;
+	public byte[] generateFaultResponse(String reason, FaultCode faultCode, String subCode, Collection<Element> detailElements, String encoding) throws SOAPException;
+	public Element unwrapDocument(byte[] soapDocument) throws SOAPException;
+	public String getContentType(String encoding);
+	public String getDefaultEncoding();
 }

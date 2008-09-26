@@ -19,6 +19,7 @@
 
 package com.qut.middleware.saml2.handler.impl;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
 
@@ -46,6 +47,7 @@ public class SOAPv11Handler implements SOAPHandler
 {
 	public static final String SOAP11_CONTENT_TYPE = "text/xml";
 	public static final String SOAP11_SCHEMA_URI = "http://schemas.xmlsoap.org/soap/envelope/";
+	public static final String SOAP11_DEFAULT_ENCODING = "utf-16";
 	
 	private Marshaller<Envelope> envelopeMarshaller;
 	private Unmarshaller<Envelope> envelopeUnmarshaller;
@@ -84,6 +86,11 @@ public class SOAPv11Handler implements SOAPHandler
 
 	public byte[] wrapDocument(Element samlDocument) throws SOAPException
 	{
+		return this.wrapDocument(samlDocument, SOAP11_DEFAULT_ENCODING);
+	}
+	
+	public byte[] wrapDocument(Element samlDocument, String encoding) throws SOAPException
+	{
 		try
 		{
 			Body body = new Body();
@@ -101,7 +108,7 @@ public class SOAPv11Handler implements SOAPHandler
 		}
 	}
 
-	public byte[] generateFaultResponse(String reason, FaultCode faultCode, String subCode, Collection<Element> detailElements) throws SOAPException
+	public byte[] generateFaultResponse(String reason, FaultCode faultCode, String subCode, Collection<Element> detailElements, String encoding) throws SOAPException
 	{
 		this.logger.debug("Creating SOAP fault with reason: {}", reason);
 		try
@@ -135,7 +142,7 @@ public class SOAPv11Handler implements SOAPHandler
 			envelope.setBody(body);
 
 			this.logger.debug("Creating SOAP fault - Going to marshal fault envelope");
-			return this.envelopeMarshaller.marshallUnSigned(envelope);
+			return this.envelopeMarshaller.marshallUnSigned(envelope, encoding);
 		}
 		catch (MarshallerException e)
 		{
@@ -143,7 +150,7 @@ public class SOAPv11Handler implements SOAPHandler
 			throw new SOAPException("Exception occurred while marshalling fault response. Error was: " + e.getMessage(), e);
 		}
 	}
-
+	
 	public Element unwrapDocument(byte[] soapDocument) throws SOAPException
 	{
 		try
@@ -208,5 +215,15 @@ public class SOAPv11Handler implements SOAPHandler
 			}
 		}
 		throw new SOAPException("No content and no SOAP fault was sent with the SOAP envelope. Unable to process.");
+	}
+	
+	public String getContentType(String encoding)
+	{
+		return MessageFormat.format("{0}; charset={1}", SOAPv11Handler.SOAP11_CONTENT_TYPE, encoding);
+	}
+	
+	public String getDefaultEncoding()
+	{
+		return SOAPv11Handler.SOAP11_DEFAULT_ENCODING;
 	}
 }

@@ -19,6 +19,7 @@
 
 package com.qut.middleware.saml2.handler.impl;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -49,6 +50,7 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 public class SOAPv12Handler implements SOAPHandler
 {
 	public static final String SOAP12_CONTENT_TYPE = "application/soap+xml";
+	public static final String SOAP12_DEFAULT_ENCODING = "utf-16";
 	public static final String SOAP12_SCHEMA_URI = "http://www.w3.org/2003/05/soap-envelope";
 
 	private Marshaller<Envelope> envelopeMarshaller;
@@ -88,6 +90,11 @@ public class SOAPv12Handler implements SOAPHandler
 
 	public byte[] wrapDocument(Element samlDocument) throws SOAPException
 	{
+		return this.wrapDocument(samlDocument, SOAPv12Handler.SOAP12_DEFAULT_ENCODING);
+	}
+	
+	public byte[] wrapDocument(Element samlDocument, String encoding) throws SOAPException
+	{
 		try
 		{
 			Body body = new Body();
@@ -105,7 +112,7 @@ public class SOAPv12Handler implements SOAPHandler
 		}
 	}
 
-	public byte[] generateFaultResponse(String reason, FaultCode faultCodeValue, String subCodeValue, Collection<Element> detailElements) throws SOAPException
+	public byte[] generateFaultResponse(String reason, FaultCode faultCodeValue, String subCodeValue, Collection<Element> detailElements, String encoding) throws SOAPException
 	{
 		this.logger.debug("Creating SOAP fault with reason: {}", reason);
 		try
@@ -147,7 +154,7 @@ public class SOAPv12Handler implements SOAPHandler
 			envelope.setBody(body);
 
 			this.logger.debug("Creating SOAP fault - Going to marshal fault envelope");
-			return this.envelopeMarshaller.marshallUnSigned(envelope);
+			return this.envelopeMarshaller.marshallUnSigned(envelope, encoding);
 		}
 		catch (MarshallerException e)
 		{
@@ -230,5 +237,15 @@ public class SOAPv12Handler implements SOAPHandler
 			}
 		}
 		throw new SOAPException("No content and no SOAP fault was sent with the SOAP envelope. Unable to process.");
+	}
+	
+	public String getContentType(String encoding)
+	{
+		return MessageFormat.format("{0}; charset={1}", SOAPv12Handler.SOAP12_CONTENT_TYPE, encoding);
+	}
+	
+	public String getDefaultEncoding()
+	{
+		return SOAPv12Handler.SOAP12_DEFAULT_ENCODING;
 	}
 }

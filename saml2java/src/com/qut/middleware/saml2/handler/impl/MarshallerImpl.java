@@ -23,7 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
@@ -75,8 +74,6 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.xml.serialize.OutputFormat;
-import org.apache.xml.serialize.XMLSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -485,19 +482,9 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 			throw new IllegalArgumentException(Messages.getString("MarshallerImpl.9")); //$NON-NLS-1$
 		}
 
-		ByteArrayInputStream byteArrayInputStream;
 		byte[] xml = marshallUnSigned(xmlObj, encoding);
 
-		try
-		{
-			this.logger.error("marshalledElement:\n{}", new String(xml, "UTF-16"));
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		byteArrayInputStream = new ByteArrayInputStream(xml); //$NON-NLS-1$
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml); //$NON-NLS-1$
 		Document doc = signDocument(byteArrayInputStream, encoding);
 
 		return doc.getDocumentElement();

@@ -152,7 +152,7 @@ public class SOAPv12HandlerTest
 	@Test
 	public void testGenerateFaultResponse() throws Exception
 	{
-		this.logger.debug(new String(this.handler.generateFaultResponse(this.faultReason, FaultCode.Receiver, null, null), "UTF-16"));
+		this.logger.debug(new String(this.handler.generateFaultResponse(this.faultReason, FaultCode.Receiver, null, null, "UTF-16"), "UTF-16"));
 	}
 
 	/*
@@ -215,7 +215,7 @@ public class SOAPv12HandlerTest
 	@Test(expected = SOAPException.class)
 	public void testUnwrapFaultDocument1() throws Exception
 	{
-		byte[] document = this.handler.generateFaultResponse(this.faultReason, FaultCode.Receiver, null, null);
+		byte[] document = this.handler.generateFaultResponse(this.faultReason, FaultCode.Receiver, null, null, SOAPv12Handler.SOAP12_DEFAULT_ENCODING);
 
 		this.handler = new SOAPv12Handler();
 
@@ -227,7 +227,7 @@ public class SOAPv12HandlerTest
 	{
 		try
 		{
-			byte[] document = this.handler.generateFaultResponse(this.faultReason, FaultCode.Receiver, null, null);
+			byte[] document = this.handler.generateFaultResponse(this.faultReason, FaultCode.Receiver, null, null, SOAPv12Handler.SOAP12_DEFAULT_ENCODING);
 	
 			this.handler = new SOAPv12Handler();
 	

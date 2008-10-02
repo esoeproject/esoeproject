@@ -23,7 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.Key;
@@ -260,9 +259,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 		}
 	}
 
-	private String providerName;
 	private JAXBContext jaxbContext;
-	// private XMLSignatureFactory xmlSigFac;
 	private ResourceResolver resourceResolver;
 	private ExternalKeyResolver extKeyResolver;
 
@@ -398,6 +395,11 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 			throw new UnmarshallerException(e.getLocalizedMessage(), e, null);
 		}
 	}
+	
+	private Document generateDocument(byte[] document) throws UnmarshallerException
+	{
+		return this.generateDocument(document, true);
+	}
 
 	/**
 	 * Translates a String into a w3c XML document object and validates against schema
@@ -409,7 +411,7 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 * @return A valid w3c.org Document object
 	 * @throws UnmarshallerException
 	 */
-	private Document generateDocument(byte[] document) throws UnmarshallerException
+	public Document generateDocument(byte[] document, boolean validate) throws UnmarshallerException
 	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.56")); //$NON-NLS-1$ 
 
@@ -420,9 +422,8 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 		{
 			/* Create JAXP DocumentBuilder to retrieve Document */
 			doc = new ByteArrayInputStream(document); //$NON-NLS-1$ 
-			result = validate(doc);
+			result = buildDocument(doc, validate);
 
-			// return (Document) result.getNode();
 			return result;
 		}
 		catch (IOException ioe)
@@ -1035,6 +1036,11 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 	 */
 	private Document validate(InputStream document) throws ParserConfigurationException, IOException, SAXException
 	{
+		return this.buildDocument(document, true);
+	}
+	
+	private Document buildDocument(InputStream document, boolean validate) throws ParserConfigurationException, IOException, SAXException
+	{
 		this.logger.debug(Messages.getString("UnmarshallerImpl.111")); //$NON-NLS-1$
 
 		DocumentBuilderFactory docBuildFac = DocumentBuilderFactory.newInstance();
@@ -1045,11 +1051,14 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 		DocumentBuilder docBuilder = docBuildFac.newDocumentBuilder();
 		Document doc = docBuilder.parse(document);
 
-		Validator validator = this.schema.newValidator();
-		validator.setErrorHandler(this.validationHandler);
-
-		validator.validate(new DOMSource(doc));
-
+		if (validate)
+		{
+			Validator validator = this.schema.newValidator();
+			validator.setErrorHandler(this.validationHandler);
+	
+			validator.validate(new DOMSource(doc));
+		}
+		
 		return doc;
 	}
 

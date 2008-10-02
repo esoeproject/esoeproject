@@ -27,7 +27,9 @@ import javax.xml.namespace.QName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -155,19 +157,40 @@ public class SOAPv11Handler implements SOAPHandler
 	{
 		try
 		{
-			Envelope envelope = this.envelopeUnmarshaller.unMarshallUnSigned(soapDocument);
-			Body body = envelope.getBody();
+			// We can't do schema validation here, because we don't have the schema for the contents of the <Body>
+			Document doc = this.envelopeUnmarshaller.generateDocument(soapDocument, false);
+			
+			Element envelopeElement = doc.getDocumentElement();
+			if (!envelopeElement.getNamespaceURI().equals(SOAP11_SCHEMA_URI)
+				|| !envelopeElement.getLocalName().equals("Envelope"))
+			{
+				throw new SOAPException("SOAP document did not have {" + SOAP11_SCHEMA_URI + "}Envelope as the root node. Element was: {" + envelopeElement.getNamespaceURI() + "}" + envelopeElement.getLocalName());
+			}
+			NodeList bodyList = envelopeElement.getElementsByTagNameNS(SOAP11_SCHEMA_URI, "Body");
+
+			// To be schema valid, the <Envelope> must have exactly 1 <Body>
+			// But we haven't done schema validation
+			
+			if (bodyList == null || bodyList.getLength() != 1)
+			{
+				throw new SOAPException("SOAP document did not contain exactly one {" + SOAP11_SCHEMA_URI + "}Body element. Not schema valid, unable to process.");
+			}
+
+			Element bodyElement = (Element)bodyList.item(0);
 			
 			Element result = null;
-			for (Element element : body.getAnies())
+			
+			NodeList bodyChildren = bodyElement.getChildNodes();
+			for (int i=0; i<bodyChildren.getLength(); ++i)
 			{
+				Element element = (Element)bodyChildren.item(i);
 				// We only expect one element in the body, so grab any non-null element
 				// Check for faults on the way through.
 				if (element != null)
 				{
 					if (element.getLocalName().equals("Fault"))
 					{
-						this.processErrorBody(body);
+						this.processErrorBody(bodyElement);
 					}
 					
 					result = element;
@@ -186,14 +209,16 @@ public class SOAPv11Handler implements SOAPHandler
 		throw new SOAPException("SOAP body was present but no document element contained within. Unable to process.");
 	}
 
-	private void processErrorBody(Body body) throws SOAPException
+	private void processErrorBody(Element bodyElement) throws SOAPException
 	{
-		if (body != null)
+		if (bodyElement != null)
 		{
 			try
 			{
-				for (Element element : body.getAnies())
+				NodeList bodyChildren = bodyElement.getChildNodes();
+				for (int i=0; i<bodyChildren.getLength(); ++i)
 				{
+					Element element = (Element)bodyChildren.item(i);
 					if (element.getLocalName().equals("Fault"))
 					{
 						this.logger.debug("Unwrapping SOAP body, got fault element. Namespace {}  local name {}", element.getNamespaceURI(), element.getLocalName());
@@ -202,7 +227,11 @@ public class SOAPv11Handler implements SOAPHandler
 						String faultCode = fault.getFaultcode().getLocalPart();
 						String faultMessage = fault.getFaultstring();
 						
-						List<Element> details = fault.getDetail().getAnies();
+						Detail detail = fault.getDetail();
+						List<Element> details = null;
+						if (detail != null) {
+							details = detail.getAnies();
+						}
 
 						throw new SOAPException(faultCode, faultMessage, details);
 					}

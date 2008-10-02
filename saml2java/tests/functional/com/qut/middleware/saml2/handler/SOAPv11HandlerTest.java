@@ -47,6 +47,7 @@ import org.w3c.dom.Element;
 
 import com.qut.middleware.saml2.ExternalKeyResolver;
 import com.qut.middleware.saml2.LocalKeyResolver;
+import com.qut.middleware.saml2.NameIDFormatConstants;
 import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.SOAPException;
@@ -55,6 +56,19 @@ import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
 import com.qut.middleware.saml2.handler.impl.SOAPv11Handler;
 import com.qut.middleware.saml2.handler.impl.SOAPv12Handler;
 import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
+import com.qut.middleware.saml2.schemas.assertion.Assertion;
+import com.qut.middleware.saml2.schemas.assertion.AttributeStatement;
+import com.qut.middleware.saml2.schemas.assertion.AttributeType;
+import com.qut.middleware.saml2.schemas.assertion.NameIDType;
+import com.qut.middleware.saml2.schemas.assertion.StatementAbstractType;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.EffectType;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligation;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.Obligations;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.assertion.LXACMLAuthzDecisionStatement;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.context.DecisionType;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.context.Result;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.grouptarget.GroupTarget;
+import com.qut.middleware.saml2.schemas.esoe.lxacml.protocol.LXACMLAuthzDecisionQuery;
 import com.qut.middleware.saml2.schemas.protocol.Response;
 import com.qut.middleware.saml2.schemas.protocol.Status;
 import com.qut.middleware.saml2.schemas.protocol.StatusCode;
@@ -104,9 +118,14 @@ public class SOAPv11HandlerTest
 		replay(externalKeyResolver);
 
 		this.handler = new SOAPv11Handler();
-		String[] schemas = new String[] { SchemaConstants.samlProtocol };
-		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), schemas, localKeyResolver);
-		this.responseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName(), schemas, externalKeyResolver);
+		String[] schemas = new String[] { SchemaConstants.samlProtocol, SchemaConstants.lxacmlSAMLProtocol, SchemaConstants.lxacmlGroupTarget, SchemaConstants.lxacmlSAMLAssertion, SchemaConstants.samlAssertion };
+		String packages = LXACMLAuthzDecisionQuery.class.getPackage().getName() + ":" +
+			GroupTarget.class.getPackage().getName() + ":" +
+			StatementAbstractType.class.getPackage().getName() + ":" +
+			LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" +
+			Response.class.getPackage().getName();
+		this.responseMarshaller = new MarshallerImpl<Response>(packages, schemas, localKeyResolver);
+		this.responseUnmarshaller = new UnmarshallerImpl<Response>(packages, schemas, externalKeyResolver);
 	}
 
 	@Test
@@ -161,12 +180,22 @@ public class SOAPv11HandlerTest
 	 * the problem there before worrying about these ones.
 	 */
 	
+	/*
+	 * Test case:
+	 * <Envelope><Body>
+	 * 	<ns1:Root>
+	 * 		<ns1:Element xsi:type="xs:string" xmlns:xsi="..." xmlns:ns1="..." xmlns:xs="..." />
+	 * 	</ns1:Root>
+	 * </Body></Envelope>
+	 * 
+	 * Where ns1:Element is defined as type="xs:anyType"
+	 */
 	@Test
-	public void testUnwrapDocument() throws Exception
+	public void testUnwrapDocument1() throws Exception
 	{
-		
+
 		byte[] document;
-		{
+		{		
 			Response response = new Response();
 			response.setID(this.responseID);
 			response.setVersion(VersionConstants.saml20);
@@ -178,13 +207,118 @@ public class SOAPv11HandlerTest
 			statusCode.setValue(this.statusCodeValue);
 			status.setStatusCode(statusCode);
 			response.setStatus(status);
+
+			NameIDType issuer = new NameIDType();
+			issuer.setFormat(NameIDFormatConstants.entity);
+			issuer.setValue("id");
+			
+			AttributeType attribute = new AttributeType();
+			attribute.setName("asdf");
+			attribute.setNameFormat(NameIDFormatConstants.unspecified);
+			attribute.setFriendlyName("asdf");
+			attribute.getAttributeValues().add("Asdf");
+			
+			AttributeStatement statement = new AttributeStatement();
+			statement.getEncryptedAttributesAndAttributes().add(attribute);
+			
+			Assertion assertion = new Assertion();
+			assertion.setVersion(VersionConstants.saml20);
+			assertion.setID("asdfasdfadsfasdfasdf");
+			assertion.setIssueInstant(this.generateXMLCalendar(0));
+			assertion.setIssuer(issuer);
+			assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements().add(statement);
+			response.getEncryptedAssertionsAndAssertions().add(assertion);
+
 			Element element = this.responseMarshaller.marshallSignedElement(response);
 			document = this.handler.wrapDocument(element);
 		}
+		this.logger.debug(new String(document, "UTF-16"));
 		
-		this.handler = new SOAPv11Handler();
+		Element element = this.handler.unwrapDocument(document);
+		
+		//Element inner = (Element)element.getElementsByTagName("Assertion").item(0);
+		//inner = (Element)inner.getElementsByTagName("AttributeStatement").item(0);
+		//inner = (Element)inner.getElementsByTagName("Attribute").item(0);
+		//inner = (Element)inner.getElementsByTagName("AttributeValue").item(0);
+		
+		Response response = this.responseUnmarshaller.unMarshallSigned(element);
+		
+		assertEquals(this.responseID, response.getID());
+		assertEquals(this.statusMessage, response.getStatus().getStatusMessage());
+		assertEquals(this.statusCodeValue, response.getStatus().getStatusCode().getValue());
+	}
+	
+	/*
+	 * Test case:
+	 * <Envelope><Body><ns1:Element xsi:type="ns2:ExtensionElement" xmlns:xsi="..." xmlns:ns1="..." xmlns:ns2="..." /></Body></Envelope>
+	 * 
+	 * Where ns2:ExtensionElement inherits from ns1:Element
+	 */
+	@Test
+	public void testUnwrapDocument2() throws Exception
+	{
 
-		Response response = this.responseUnmarshaller.unMarshallSigned(this.handler.unwrapDocument(document));
+		byte[] document;
+		{		
+			Response response = new Response();
+			response.setID(this.responseID);
+			response.setVersion(VersionConstants.saml20);
+			response.setIssueInstant(this.generateXMLCalendar(0));
+			response.setSignature(new Signature());
+			Status status = new Status();
+			status.setStatusMessage(this.statusMessage);
+			StatusCode statusCode = new StatusCode();
+			statusCode.setValue(this.statusCodeValue);
+			status.setStatusCode(statusCode);
+			response.setStatus(status);
+
+			NameIDType issuer = new NameIDType();
+			issuer.setFormat(NameIDFormatConstants.entity);
+			issuer.setValue("id");
+			
+			LXACMLAuthzDecisionStatement statement = new LXACMLAuthzDecisionStatement();
+
+			com.qut.middleware.saml2.schemas.esoe.lxacml.context.Response lxacmlResponse = new com.qut.middleware.saml2.schemas.esoe.lxacml.context.Response();
+			
+			Result result = new Result();
+			result.setDecision(DecisionType.PERMIT);
+			lxacmlResponse.setResult(result);
+			
+			com.qut.middleware.saml2.schemas.esoe.lxacml.context.Status lxacmlStatus = new com.qut.middleware.saml2.schemas.esoe.lxacml.context.Status();
+			lxacmlStatus.setStatusMessage("Policy decision processor permits access");
+			result.setStatus(lxacmlStatus);
+			
+			Obligations obligations = new Obligations();
+			result.setObligations(obligations);
+			Obligation obligation = new Obligation();
+			obligation.setFulfillOn(EffectType.PERMIT);
+			obligation.setObligationId(statusCodeValue);
+			obligations.getObligations().add(obligation);
+
+			statement.setResponse(lxacmlResponse);
+			
+			Assertion assertion = new Assertion();
+			assertion.setVersion(VersionConstants.saml20);
+			assertion.setID("asdfasdfadsfasdfasdf");
+			assertion.setIssueInstant(this.generateXMLCalendar(0));
+			assertion.setIssuer(issuer);
+			assertion.getAuthnStatementsAndAuthzDecisionStatementsAndAttributeStatements().add(statement);
+			response.getEncryptedAssertionsAndAssertions().add(assertion);
+			
+			Element element = this.responseMarshaller.marshallSignedElement(response);
+			document = this.handler.wrapDocument(element);
+		}
+		this.logger.debug(new String(document, "UTF-16"));
+		
+		Element element = this.handler.unwrapDocument(document);
+		
+		//Element inner = (Element)element.getElementsByTagName("Assertion").item(0);
+		//inner = (Element)inner.getElementsByTagName("AttributeStatement").item(0);
+		//inner = (Element)inner.getElementsByTagName("Attribute").item(0);
+		//inner = (Element)inner.getElementsByTagName("AttributeValue").item(0);
+		
+		Response response = this.responseUnmarshaller.unMarshallSigned(element);
+		
 		assertEquals(this.responseID, response.getID());
 		assertEquals(this.statusMessage, response.getStatus().getStatusMessage());
 		assertEquals(this.statusCodeValue, response.getStatus().getStatusCode().getValue());

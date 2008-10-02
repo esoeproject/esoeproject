@@ -22,6 +22,7 @@ package com.qut.middleware.saml2.handler;
 import java.security.PublicKey;
 import java.util.Map;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import com.qut.middleware.saml2.exception.ReferenceValueException;
@@ -120,4 +121,6 @@ public interface Unmarshaller<T>
 	 * @throws UnmarshallerException if an error occurs unmarshalling the document.
 	 */
 	public T unMarshallMetadata( byte[] document, Map<String, KeyData> keyList, boolean signed ) throws SignatureValueException, ReferenceValueException, UnmarshallerException;
+	
+	public Document generateDocument(byte[] document, boolean validate) throws UnmarshallerException;
 }

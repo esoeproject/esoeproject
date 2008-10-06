@@ -772,7 +772,6 @@ public class ManagerDAOImpl extends SqlMapClientDaoSupport implements ManagerDAO
 		}		
 	}
 	
-	@Override
 	public void insertPublicKey(Integer DESC_IC, Date expiryDate, String keyPairName, String issuerDN, String serialNumber, byte[] publicKey) throws ManagerDAOException
 	{
 		Map<String, Object> parameters = new HashMap<String, Object>();

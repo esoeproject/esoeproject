@@ -54,7 +54,7 @@ public class ServiceEntIDFactoryBean implements FactoryBean
 	{
 		return Integer.class;
 	}
-	@Override
+
 	public boolean isSingleton()
 	{
 		return true;

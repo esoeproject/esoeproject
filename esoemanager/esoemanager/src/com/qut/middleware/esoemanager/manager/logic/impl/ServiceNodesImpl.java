@@ -90,7 +90,6 @@ public class ServiceNodesImpl implements ServiceNodes
 		}
 	}
 
-	@Override
 	public List<ServiceNodeConfiguration> retrieveNodeConfigurations(String serviceID)
 			throws RetrieveServiceNodeException
 	{

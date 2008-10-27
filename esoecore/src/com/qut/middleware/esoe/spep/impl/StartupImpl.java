@@ -24,8 +24,8 @@ import java.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
-import com.ibm.icu.text.CharsetDetector;
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor;
 import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor.result;
@@ -148,10 +148,7 @@ public class StartupImpl implements Startup
 		
 		try
 		{
-			byte[] requestDocument = data.getRequestDocument();
-			CharsetDetector detector = new CharsetDetector();
-			this.logger.trace(detector.getString(requestDocument, null));
-			
+			Element requestDocument = data.getRequestDocument();
 			ValidateInitializationRequest request = null;
 
 			try
@@ -285,10 +282,7 @@ public class StartupImpl implements Startup
 			
 			try
 			{
-				data.setResponseDocument(this.statusResponseTypeMarshaller.marshallSigned(validateInitializationResponse));
-				
-				CharsetDetector detector = new CharsetDetector();
-				this.logger.trace( detector.getString(data.getResponseDocument(), null) );
+				data.setResponseDocument(this.statusResponseTypeMarshaller.marshallSignedElement(validateInitializationResponse));
 			}
 			catch (MarshallerException e)
 			{

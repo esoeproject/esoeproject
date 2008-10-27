@@ -19,19 +19,21 @@
  */
 package com.qut.middleware.esoe.aa.bean.impl;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 
 public class AAProcessorDataImpl implements AAProcessorData
 {
-	private byte[] requestDocument;
+	private Element requestDocument;
 	private String issuerID;
 	private String subjectID;
-	private byte[] responseDocument;
+	private Element responseDocument;
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#getRequestDocument()
 	 */
-	public byte[] getRequestDocument()
+	public Element getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -39,7 +41,7 @@ public class AAProcessorDataImpl implements AAProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#setRequestDocument(org.opensaml.saml2.core.Request)
 	 */
-	public void setRequestDocument(byte[] requestDocument)
+	public void setRequestDocument(Element requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}
@@ -55,7 +57,7 @@ public class AAProcessorDataImpl implements AAProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#getResponseDocument()
 	 */
-	public byte[] getResponseDocument()
+	public Element getResponseDocument()
 	{
 		return this.responseDocument;
 	}
@@ -79,7 +81,7 @@ public class AAProcessorDataImpl implements AAProcessorData
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.aa.bean.AAProcessorData#setResponseDocument(org.opensaml.saml2.core.Response)
 	 */
-	public void setResponseDocument(byte[] responseDocument)
+	public void setResponseDocument(Element responseDocument)
 	{
 		this.responseDocument = responseDocument;
 	}

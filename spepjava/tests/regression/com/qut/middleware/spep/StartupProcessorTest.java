@@ -37,12 +37,14 @@ import java.util.Vector;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -130,7 +132,7 @@ public class StartupProcessorTest
 			
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 		
-		String[] validateInitializationSchemas = new String[]{ConfigurationConstants.esoeProtocol};
+		String[] validateInitializationSchemas = new String[]{SchemaConstants.esoeProtocol};
 		this.validateInitializationPackages = ValidateInitializationResponse.class.getPackage().getName();
 		this.validateInitializationResponseMarshaller = new MarshallerImpl<ValidateInitializationResponse>(this.validateInitializationPackages, validateInitializationSchemas, this.keyStoreResolver);
 	}
@@ -155,7 +157,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.success));
+		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.success));
 //		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
 		
 		startMock();
@@ -182,7 +184,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
+		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
 //		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
 		
 		startMock();
@@ -212,7 +214,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
+		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
 		
 		// change is here
 //		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
@@ -244,7 +246,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andReturn(buildResponse("_4736247324", "blah"));
+		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse("_4736247324", "blah"));
 		
 		// change is here
 //		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
@@ -276,7 +278,7 @@ public class StartupProcessorTest
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
-		expect(this.wsClient.spepStartup((byte[])notNull(), eq(this.spepStartupService))).andThrow(new WSClientException("Unable to send ws request."));
+		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andThrow(new WSClientException("Unable to send ws request."));
 		
 		// change is here
 //		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
@@ -294,7 +296,7 @@ public class StartupProcessorTest
 		
 		endMock();
 	}
-	private byte[] buildResponse(String samlID, String statusCodeValue) throws MarshallerException
+	private Element buildResponse(String samlID, String statusCodeValue) throws MarshallerException
 	{
 		String issuerValue = this.esoeIdentifier;
 		
@@ -317,7 +319,7 @@ public class StartupProcessorTest
 		// ordinarily this would be set to assertion consumer service location by the ESOE but for mocked testing it'll do
 		response.setDestination(this.spepStartupService);
 		
-		return this.validateInitializationResponseMarshaller.marshallSigned(response);
+		return this.validateInitializationResponseMarshaller.marshallSignedElement(response);
 	}
 
 	

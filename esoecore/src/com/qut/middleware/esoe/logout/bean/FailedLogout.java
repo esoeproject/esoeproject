@@ -21,6 +21,8 @@ package com.qut.middleware.esoe.logout.bean;
 
 import java.util.Date;
 
+import org.w3c.dom.Element;
+
 /** Carries information about failed logout attempts to logout monitor process. */
 public interface FailedLogout
 {
@@ -32,7 +34,7 @@ public interface FailedLogout
 	/**
 	 * @return The original request document that was issued
 	 */
-	public byte[] getRequestDocument();
+	public Element getRequestDocument();
 
 	/**
 	 * Sets the endPoint
@@ -44,7 +46,7 @@ public interface FailedLogout
 	 * 
 	 * @param requestDocument the Request Document.
 	 */
-	public void setRequestDocument(byte[] requestDocument);
+	public void setRequestDocument(Element requestDocument);
 	
 	
 	/** Set the timestamp when the failure occured

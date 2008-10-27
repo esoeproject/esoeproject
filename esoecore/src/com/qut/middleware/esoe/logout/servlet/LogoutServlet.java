@@ -316,7 +316,7 @@ public class LogoutServlet extends HttpServlet
 	 */
 	private void generateErrorResponse(HttpServletResponse response, String message)
 	{
-		this.logger.debug(MessageFormat.format(Messages.getString("LogoutServlet.16"), HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message)); //$NON-NLS-1$
+		this.logger.warn(MessageFormat.format(Messages.getString("LogoutServlet.16"), HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message)); //$NON-NLS-1$
 
 		try
 		{

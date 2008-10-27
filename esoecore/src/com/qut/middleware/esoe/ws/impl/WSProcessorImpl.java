@@ -19,21 +19,14 @@
  */
 package com.qut.middleware.esoe.ws.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.util.List;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.apache.axis2.AxisFault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
 import com.qut.middleware.esoe.aa.AttributeAuthorityProcessor;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.bean.impl.AAProcessorDataImpl;
@@ -52,6 +45,9 @@ import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureNoSuchSPEPException;
 import com.qut.middleware.esoe.spep.exception.SPEPCacheUpdateException;
 import com.qut.middleware.esoe.ws.WSProcessor;
+import com.qut.middleware.esoe.ws.exception.WSProcessorException;
+import com.qut.middleware.saml2.exception.SOAPException;
+import com.qut.middleware.saml2.handler.SOAPHandler;
 
 public class WSProcessorImpl implements WSProcessor
 {
@@ -60,18 +56,9 @@ public class WSProcessorImpl implements WSProcessor
 	private AuthorizationProcessor authorizationProcessor;
 	private DelegatedAuthenticationProcessor delegAuthnProcessor;
 
-	private static XMLInputFactory xmlInputFactory;
-	private static XMLOutputFactory xmlOutputFactory;
-
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(WSProcessorImpl.class.getName());
-	
-	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
-	static
-	{
-		xmlInputFactory = XMLInputFactory.newInstance();
-		xmlOutputFactory = XMLOutputFactory.newInstance();
-	}
+	private List<SOAPHandler> soapHandlers;
 
 	/**
 	 * Constructor
@@ -85,7 +72,7 @@ public class WSProcessorImpl implements WSProcessor
 	 */
 	public WSProcessorImpl(AttributeAuthorityProcessor attributeAuthorityProcessor,
 			AuthorizationProcessor authorizationProcessor, SPEPProcessor spepProcessor,
-			DelegatedAuthenticationProcessor delegAuthnProcessor)
+			DelegatedAuthenticationProcessor delegAuthnProcessor, List<SOAPHandler> soapHandlers)
 	{
 		if (attributeAuthorityProcessor == null)
 		{
@@ -107,11 +94,17 @@ public class WSProcessorImpl implements WSProcessor
 			this.logger.error(Messages.getString("WSProcessorImpl.42")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.43")); //$NON-NLS-1$
 		}
+		if (soapHandlers == null || soapHandlers.size() == 0)
+		{
+			this.logger.error("No SOAP handlers provided. Cannot create the web service processor without any SOAP handlers.");
+			throw new IllegalArgumentException("No SOAP handlers provided. Cannot create the web service processor without any SOAP handlers.");
+		}
 
 		this.attributeAuthorityProcessor = attributeAuthorityProcessor;
 		this.spepProcessor = spepProcessor;
 		this.authorizationProcessor = authorizationProcessor;
 		this.delegAuthnProcessor = delegAuthnProcessor;
+		this.soapHandlers = soapHandlers;
 	}
 
 	/*
@@ -119,24 +112,29 @@ public class WSProcessorImpl implements WSProcessor
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSProcessor#attributeAuthority(org.apache.axiom.om.OMElement)
 	 */
-	public OMElement attributeAuthority(OMElement attributeQuery) throws AxisFault
+	public byte[] attributeAuthority(byte[] attributeQuery, String contentType) throws WSProcessorException
 	{
 		AAProcessorData data = new AAProcessorDataImpl();
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.3")); //$NON-NLS-1$
+
+		SOAPHandler handler = this.getHandler(contentType);
+		this.logger.debug("Got SOAP handler of class {} for content type {}", handler.getClass(), contentType);
 		try
 		{
-			data.setRequestDocument(readRequest(attributeQuery));
+			Element request = readRequest(attributeQuery, handler);
+			
+			data.setRequestDocument(request);
 			this.attributeAuthorityProcessor.execute(data);
 
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.4")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.5")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + Messages.getString("WSProcessorImpl.0")); //$NON-NLS-1$ //$NON-NLS-2$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + Messages.getString("WSProcessorImpl.0")); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		catch (InvalidPrincipalException e)
 		{
@@ -145,11 +143,11 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.7")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.8")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage(), e); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage(), e); //$NON-NLS-1$
 		}
 		catch (InvalidRequestException e)
 		{
@@ -158,11 +156,11 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.10")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.11")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage(), e); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage(), e); //$NON-NLS-1$
 		}
 	}
 
@@ -171,26 +169,27 @@ public class WSProcessorImpl implements WSProcessor
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSProcessor#policyDecisionPoint(org.apache.axiom.om.OMElement)
 	 */
-	public OMElement policyDecisionPoint(OMElement decisionRequest) throws AxisFault
+	public byte[] policyDecisionPoint(byte[] decisionRequest, String contentType) throws WSProcessorException
 	{
 		AuthorizationProcessorData data = new AuthorizationProcessorDataImpl();
-		String decisionRequestString;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.12")); //$NON-NLS-1$
+		SOAPHandler handler = this.getHandler(contentType);
+		this.logger.debug("Got SOAP handler of class {} for content type {}", handler.getClass(), contentType);
 		try
 		{
-
-			data.setRequestDocument(readRequest(decisionRequest));
+			Element request = readRequest(decisionRequest, handler);
+			data.setRequestDocument(request);
 			this.authorizationProcessor.execute(data);
 
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.13")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.14")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.1")); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.1")); //$NON-NLS-1$
 		}
 		catch (com.qut.middleware.esoe.authz.exception.InvalidRequestException e)
 		{
@@ -199,11 +198,11 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.16")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.17")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
 		}
 	
 	}
@@ -213,26 +212,29 @@ public class WSProcessorImpl implements WSProcessor
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSProcessor#spepStartup(org.apache.axiom.om.OMElement)
 	 */
-	public OMElement spepStartup(OMElement spepStartup) throws AxisFault
+	public byte[] spepStartup(byte[] spepStartup, String contentType) throws WSProcessorException
 	{
 
 		SPEPProcessorData data = new SPEPProcessorDataImpl();
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.18")); //$NON-NLS-1$
+		SOAPHandler handler = this.getHandler(contentType);
+		this.logger.debug("Got SOAP handler of class {} for content type {}", handler.getClass(), contentType);
 		try
 		{
-			data.setRequestDocument(readRequest(spepStartup));
+			Element request = readRequest(spepStartup, handler);
+			data.setRequestDocument(request);
 
 			this.spepProcessor.getStartup().registerSPEPStartup(data);
 
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.19")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.20")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.2")); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.2")); //$NON-NLS-1$
 		}
 		catch (com.qut.middleware.esoe.spep.exception.InvalidRequestException e)
 		{
@@ -241,11 +243,11 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.22")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.23")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
 		}
 		catch (DatabaseFailureNoSuchSPEPException e)
 		{
@@ -254,11 +256,11 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.25")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.26")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
 		}
 		catch (SPEPCacheUpdateException e)
 		{
@@ -267,10 +269,10 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.28")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
 		}
 		catch (DatabaseFailureException e)
 		{
@@ -280,11 +282,11 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.30")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument());
+				return generateResponse(data.getResponseDocument(), handler);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.31")); //$NON-NLS-1$
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
 		}
 	}
 
@@ -293,88 +295,102 @@ public class WSProcessorImpl implements WSProcessor
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSProcessor#registerPrincipal(org.apache.axiom.om.OMElement)
 	 */
-	public OMElement registerPrincipal(OMElement registerPrincipal) throws AxisFault
+	public byte[] registerPrincipal(byte[] registerPrincipal, String contentType) throws WSProcessorException
 	{
+		SOAPHandler handler = this.getHandler(contentType);
+		this.logger.debug("Got SOAP handler of class {} for content type {}", handler.getClass(), contentType);
+
 		DelegatedAuthenticationData data = new DelegatedAuthenticationDataImpl();
-		byte[] decisionRequestString;
+		Element delegAuthnRequest;
 
 		this.logger.debug(Messages.getString("WSProcessorImpl.47")); //$NON-NLS-1$
 
-		decisionRequestString = readRequest(registerPrincipal);
-		this.logger.debug(Messages.getString("WSProcessorImpl.48") + decisionRequestString); //$NON-NLS-1$
+		delegAuthnRequest = readRequest(registerPrincipal, handler);
+		this.logger.debug(Messages.getString("WSProcessorImpl.48") + delegAuthnRequest); //$NON-NLS-1$
 
-		data.setRequestDocument(decisionRequestString);
+		data.setRequestDocument(delegAuthnRequest);
 		this.delegAuthnProcessor.execute(data);
 
 		if (data.getResponseDocument() != null)
 		{
 			this.logger.debug(Messages.getString("WSProcessorImpl.49")); //$NON-NLS-1$
-			return generateResponse(data.getResponseDocument());
+			return generateResponse(data.getResponseDocument(), handler);
 		}
 
 		this.logger.warn(Messages.getString("WSProcessorImpl.50")); //$NON-NLS-1$
-		throw new AxisFault(Messages.getString("WSProcessorImpl.51")); //$NON-NLS-1$
+		throw new WSProcessorException(Messages.getString("WSProcessorImpl.51")); //$NON-NLS-1$
+	}
+	
+	private SOAPHandler getHandler(String contentType) throws WSProcessorException
+	{
+		for (SOAPHandler handler : this.soapHandlers)
+		{
+			if (handler.canHandle(contentType))
+				return handler;
+		}
+		
+		throw new WSProcessorException("No registered SOAPHandler available to handle Content-Type: " + contentType);
+	}
+	
+	private String getEncoding(SOAPHandler handler, byte[] document)
+	{
+		CharsetDetector detector = new CharsetDetector();
+		detector.setText(document);
+		CharsetMatch match = detector.detect();
+		
+		if (match != null)
+		{
+			return match.getName();
+		}
+		else
+		{
+			return handler.getDefaultEncoding();
+		}
 	}
 
 	/**
 	 * Reads Axis2 web requests and gets the raw Soap body as a String
 	 * 
-	 * @param requestDocument
-	 *            Axis 2 Axiom representation of the request
-	 * @return String representation of the request document
+	 * @param requestDocument Raw SOAP document containing the request.
+	 * @return DOM Element representing the request document.
 	 */
-	private byte[] readRequest(OMElement requestDocument) throws AxisFault
+	private Element readRequest(byte[] requestDocument, SOAPHandler handler) throws WSProcessorException
 	{
-		ByteArrayOutputStream request;
-		XMLStreamWriter xmlWriter;
-
-		this.logger.debug(Messages.getString("WSProcessorImpl.32")); //$NON-NLS-1$
 		try
 		{
-			request = new ByteArrayOutputStream();
-			xmlWriter = WSProcessorImpl.xmlOutputFactory.createXMLStreamWriter(request);
-			requestDocument.serialize(xmlWriter);
-
-			return request.toByteArray();
+			CharsetDetector detector = new CharsetDetector();
+			this.logger.trace(detector.getString(requestDocument, null));
+			
+			return handler.unwrapDocument(requestDocument);
 		}
-		catch (XMLStreamException e)
+		catch (SOAPException e)
 		{
-			this.logger.warn(Messages.getString("WSProcessorImpl.33")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			this.logger.debug("SOAP Exception while trying to unwrap request document.", e);
+			throw new WSProcessorException("SOAP Exception while trying to unwrap request document.");
 		}
 	}
 
 	/**
 	 * Generates an Axis 2 response object
 	 * 
-	 * @param responseDocument
-	 *            String representation of the SAML document to respond with
-	 * @return
+	 * @param responseDocument DOM Element representing the SAML document to respond with.
+	 * @return Raw SOAP document containing the response.
 	 */
-	private OMElement generateResponse(byte[] responseDocument) throws AxisFault
+	private byte[] generateResponse(Element responseDocument, SOAPHandler handler) throws WSProcessorException
 	{
-		XMLStreamReader xmlreader;
-		StAXOMBuilder builder;
-		OMElement response;
-		ByteArrayInputStream responseStream;
-
-		this.logger.debug(Messages.getString("WSProcessorImpl.34")); //$NON-NLS-1$
 		try
 		{
-
-			responseStream = new ByteArrayInputStream(responseDocument);
-			xmlreader = WSProcessorImpl.xmlInputFactory.createXMLStreamReader(responseStream);
-			builder = new StAXOMBuilder(xmlreader);
-			response = builder.getDocumentElement();
-
-			return response;
+			byte[] document = handler.wrapDocument(responseDocument);
+			
+			CharsetDetector detector = new CharsetDetector();
+			this.logger.trace(detector.getString(document, null));
+			
+			return document;
 		}
-		catch (XMLStreamException e)
+		catch (SOAPException e)
 		{
-			this.logger.warn(Messages.getString("WSProcessorImpl.35")); //$NON-NLS-1$
-			this.logger.debug(e.getLocalizedMessage(), e);
-			throw new AxisFault(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
+			this.logger.debug("SOAP Exception while trying to wrap response document.", e);
+			throw new WSProcessorException("SOAP Exception while trying to wrap response document.");
 		}
 	}
 }

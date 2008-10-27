@@ -20,10 +20,10 @@
  */
 package com.qut.middleware.esoe.authz.bean;
 
-import com.qut.middleware.esoe.bean.SAMLProcessorData;
+import com.qut.middleware.esoe.ws.bean.WSProcessorData;
 
 /** */
-public interface AuthorizationProcessorData extends SAMLProcessorData
+public interface AuthorizationProcessorData extends WSProcessorData
 {
 
 	/**
@@ -59,38 +59,4 @@ public interface AuthorizationProcessorData extends SAMLProcessorData
 	 */
 	public String getSubjectID();
 	
-
-	/**
-	 * Set the SAML 2.0 compliant request document associated with this authorization data.
-	 * 
-	 * @param request A valid, SAML 2.0 compliant xml request containing request data.
-	 */
-	public void setRequestDocument(byte[] request);
-	
-	
-	/**
-	 * Get the SAML 2.0 compliant response document associated with this authorization data.
-	 * 
-	 * @param response A valid, SAML 2.0 compliant xml response containing response data.
-	 */
-	public void setResponseDocument(byte[] response);
-	
-	
-	/**
-	 * Get the SAML 2.0 compliant response document associated with this authorization data.
-	 * 
-	 * @return The SAML 2.0 response document as set by setResponseDocument, else null if not exists.
-	 */
-	public byte[] getResponseDocument();
-	
-	
-	
-	/**
-	 * Set the SAML 2.0 compliant request document associated with this authorization data.
-	 * 
-	 * @return The SAML 2.0 request document as set by setRequestDocument, else null if not exists.
-	 *        
-	 */
-	public byte[] getRequestDocument();
-
 }

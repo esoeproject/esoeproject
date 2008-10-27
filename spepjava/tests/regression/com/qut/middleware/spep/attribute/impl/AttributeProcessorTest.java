@@ -20,12 +20,15 @@
 package com.qut.middleware.spep.attribute.impl;
 
 import static com.qut.middleware.test.regression.Capture.capture;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyInt;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.notNull;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -49,6 +53,7 @@ import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
 import com.qut.middleware.saml2.NameIDFormatConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.handler.Marshaller;
@@ -163,7 +168,7 @@ public class AttributeProcessorTest
 		
 		this.attributeProcessor = new AttributeProcessorImpl(this.metadata, this.wsClient, this.identifierGenerator, this.samlValidator, keyStoreResolver, esoeID, spepIdentifier, false, false);
 		
-		this.schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion};
+		this.schemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.samlAssertion};
 		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, keyStoreResolver);
 	}
 	
@@ -186,9 +191,9 @@ public class AttributeProcessorTest
 	{
 		Response response = buildResponse();
 		
-		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
+		Element responseDocument = this.responseMarshaller.marshallSignedElement(response);
 		
-		Capture<byte[]> captureRequest = new Capture<byte[]>();
+		Capture<Element> captureRequest = new Capture<Element>();
 		
 		expect(this.wsClient.attributeAuthority(capture(captureRequest),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
@@ -211,7 +216,7 @@ public class AttributeProcessorTest
 		
 		assertTrue(captureRequest.getCaptured().size() == 1);
 		
-		Unmarshaller<AttributeQuery> attributeQueryUnmarshaller = new UnmarshallerImpl<AttributeQuery>(AttributeQuery.class.getPackage().getName(), new String[]{ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol});
+		Unmarshaller<AttributeQuery> attributeQueryUnmarshaller = new UnmarshallerImpl<AttributeQuery>(AttributeQuery.class.getPackage().getName(), new String[]{SchemaConstants.samlAssertion, SchemaConstants.samlProtocol});
 		AttributeQuery query = attributeQueryUnmarshaller.unMarshallUnSigned(captureRequest.getCaptured().get(0));
 		this.internalSAMLValidator.getRequestValidator().validate(query);
 		
@@ -229,9 +234,9 @@ public class AttributeProcessorTest
 		Response response = buildResponse();
 		response.setInResponseTo("non-existent-session");
 		
-		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
+		Element responseDocument = this.responseMarshaller.marshallSignedElement(response);
 		
-		expect(this.wsClient.attributeAuthority((byte[])notNull(),(String)notNull())).andReturn(responseDocument);
+		expect(this.wsClient.attributeAuthority((Element)notNull(),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
 		expect(this.esoeRole.getAttributeServiceEndpoint((String)notNull())).andReturn("").anyTimes();
@@ -264,9 +269,9 @@ public class AttributeProcessorTest
 		Response response = buildResponse();
 		response.getEncryptedAssertionsAndAssertions().clear();
 		
-		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
+		Element responseDocument = this.responseMarshaller.marshallSignedElement(response);
 		
-		expect(this.wsClient.attributeAuthority((byte[])notNull(),(String)notNull())).andReturn(responseDocument);
+		expect(this.wsClient.attributeAuthority((Element)notNull(),(String)notNull())).andReturn(responseDocument);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(this.samlID1).once();
 		expect(this.metadata.resolveKey(this.keyName)).andReturn(this.publicKey).anyTimes();
 		expect(this.esoeRole.getAttributeServiceEndpoint((String)notNull())).andReturn("").anyTimes();

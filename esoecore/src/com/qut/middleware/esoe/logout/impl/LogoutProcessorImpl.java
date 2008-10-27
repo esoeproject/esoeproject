@@ -36,6 +36,7 @@ import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.Terminate;
 import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 
 /** Performs the logic to Logout sessions. */
 
@@ -77,74 +78,58 @@ public class LogoutProcessorImpl implements LogoutProcessor
 		Principal principal = null;
 		List<SSOLogoutState> logoutStates = new Vector<SSOLogoutState>();
 		
-		try
-		{			
-			principal = this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID());	
-			
-			if( data.getSessionID() == null || !data.getSessionID().equals(principal.getSessionID()) )
-			{
-				throw new InvalidSessionIdentifierException(Messages.getString("LogoutProcessor.9")); //$NON-NLS-1$
-			}
+		principal = this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID());	
 		
-			this.logger.debug(Messages.getString("LogoutProcessor.25")); //$NON-NLS-1$
-			
-			// obtain active entities (SPEPS logged into) for user, iterate through and send logout request to each SPEP
-			List<String> activeDescriptors = principal.getActiveDescriptors();
-			if(activeDescriptors != null)
-			{
-				Iterator<String> entitiesIterator = activeDescriptors.iterator();
-				while(entitiesIterator.hasNext())
-				{
-					String entity = entitiesIterator.next();
-					
-					// resolve all enpoints for the given entity and send logout request
-					List<String> endPoints = new Vector<String>();
-					endPoints = this.logoutMechanism.getEndPoints(entity);
-												
-					Iterator<String> endpointIter = endPoints.iterator();
-					while (endpointIter.hasNext())
-					{
-						String endPoint = endpointIter.next();
-						
-						List<String> indicies = null;
-						try
-						{
-							indicies = principal.getDescriptorSessionIdentifiers(entity);
-						}
-						catch(InvalidDescriptorIdentifierException e)
-						{
-							this.logger.warn(Messages.getString("LogoutProcessor.10")); //$NON-NLS-1$
-						}
-						
-						// store the state of the logout request for reporting if required
-						SSOLogoutState logoutState = new SSOLogoutStateImpl();
-						logoutState.setSPEPURL(entity);
-					
-						LogoutMechanism.result result =this.logoutMechanism.performSingleLogout(principal.getSAMLAuthnIdentifier(), indicies, endPoint, true);
-					
-						if(result == LogoutMechanism.result.LogoutSuccessful)
-						{
-							logoutState.setLogoutState(true);
-							logoutState.setLogoutStateDescription(Messages.getString("LogoutProcessor.11")); //$NON-NLS-1$
-						}
-						else
-						{							
-							logoutState.setLogoutState(false);
-							logoutState.setLogoutStateDescription(Messages.getString("LogoutProcessor.12"));										
-						}
-					
-						logoutStates.add(logoutState);
-					}
-				}
-			}		
-			else
-				this.logger.debug(Messages.getString("LogoutProcessor.26")); //$NON-NLS-1$
-		}
-		catch (com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException e)
+		if(principal == null ||  data.getSessionID() == null || !data.getSessionID().equals(principal.getSessionID()) )
 		{
-			this.logger.debug(e.getLocalizedMessage(), e);
-			throw new InvalidSessionIdentifierException(Messages.getString("LogoutProcessor.13")); //$NON-NLS-1$
+			throw new InvalidSessionIdentifierException(Messages.getString("LogoutProcessor.9")); //$NON-NLS-1$
 		}
+
+		this.logger.debug(Messages.getString("LogoutProcessor.25")); //$NON-NLS-1$
+		
+		// obtain active entities (SPEPS logged into) for user, iterate through and send logout request to each SPEP
+		List<String> activeDescriptors = principal.getActiveEntityList();
+		if(activeDescriptors != null)
+		{
+			Iterator<String> entitiesIterator = activeDescriptors.iterator();
+			while(entitiesIterator.hasNext())
+			{
+				String entity = entitiesIterator.next();
+				
+				// resolve all enpoints for the given entity and send logout request
+				List<String> endPoints = new Vector<String>();
+				endPoints = this.logoutMechanism.getEndPoints(entity);
+											
+				Iterator<String> endpointIter = endPoints.iterator();
+				while (endpointIter.hasNext())
+				{
+					String endPoint = endpointIter.next();
+					
+					List<String> indicies  = principal.getActiveEntitySessionIndices(entity);
+											
+					// store the state of the logout request for reporting if required
+					SSOLogoutState logoutState = new SSOLogoutStateImpl();
+					logoutState.setSPEPURL(entity);
+				
+					LogoutMechanism.result result =this.logoutMechanism.performSingleLogout(principal.getSAMLAuthnIdentifier(), indicies, endPoint, true);
+				
+					if(result == LogoutMechanism.result.LogoutSuccessful)
+					{
+						logoutState.setLogoutState(true);
+						logoutState.setLogoutStateDescription(Messages.getString("LogoutProcessor.11")); //$NON-NLS-1$
+					}
+					else
+					{							
+						logoutState.setLogoutState(false);
+						logoutState.setLogoutStateDescription(Messages.getString("LogoutProcessor.12"));										
+					}
+				
+					logoutStates.add(logoutState);
+				}
+			}
+		}		
+		else
+			this.logger.debug(Messages.getString("LogoutProcessor.26")); //$NON-NLS-1$
 		
 		// set the state of logout attempts for all user active SSO entities
 		data.setLogoutStates(logoutStates);
@@ -158,10 +143,10 @@ public class LogoutProcessorImpl implements LogoutProcessor
 		{
 			terminate.terminateSession(data.getSessionID());
 		}
-		// this should never happen as we validated the sessionID above
-		catch(com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException e)
+		catch (SessionCacheUpdateException e) 
 		{
-			this.logger.error(Messages.getString("LogoutProcessor.16") + data.getSessionID()); //$NON-NLS-1$
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		return result.LogoutSuccessful;

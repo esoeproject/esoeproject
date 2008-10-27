@@ -1,26 +1,8 @@
-/*
- * Copyright 2006, Queensland University of Technology Licensed under the Apache License, Version
- * 2.0 (the "License"); you may not use this file except in compliance with the License. You may
- * obtain a copy of the License at
- * 
- * http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- * 
- * Author: Shaun Mangelsdorf 
- * Creation Date: 02/10/2006
- * 
- * Purpose: Implements the Create interface
- */
-
 package com.qut.middleware.esoe.sessions.impl;
 
-import java.text.MessageFormat;
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.sessions.Create;
-import com.qut.middleware.esoe.sessions.Messages;
-import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.IdentityData;
 import com.qut.middleware.esoe.sessions.bean.SessionConfigData;
@@ -39,214 +19,228 @@ import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
 import com.qut.middleware.esoe.sessions.exception.HandlerRegistrationException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sessions.identity.IdentityResolver;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.schemas.assertion.AttributeType;
 import com.qut.middleware.saml2.schemas.esoe.sessions.DataType;
 
-/**
- * Implements the Create interface.
- */
 public class CreateImpl implements Create
 {
-	private SessionCache cache;
-	private SessionConfigData data;
-	private IdentityResolver resolver;
+	private SessionCache sessionCache;
+	private SessionConfigData sessionConfigData;
+	private IdentityResolver identityResolver;
 	private IdentifierGenerator identifierGenerator;
-	private int sessionLength;
+	private long sessionLengthMillis;
 
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(CreateImpl.class.getName());
 	private Logger authnLogger = LoggerFactory.getLogger(ConfigurationConstants.authnLogger);
 
 	/**
-	 * Constructor
-	 * 
-	 * @param cache
-	 *            The session cache to use.
-	 * @param data
-	 *            The session data from the configuration.
-	 * @param resolver
-	 *            The identity resolver object to use.
+	 * @param sessionCache
+	 *            The session cache to use as a data store.
+	 * @param sessionConfigData
+	 *            The session config data to use when retrieving attributes.
+	 * @param identityResolver
+	 *            The identity resolver to use when creating a local session.
+	 * @param identifierGenerator
+	 *            The identifier generator to use.
 	 * @param sessionLength
-	 *            The time until which the principal session on remote SPEP can be considered active
+	 *            The length of a new session in seconds.
 	 */
-	public CreateImpl(SessionCache cache, SessionConfigData data, IdentityResolver resolver,
-			IdentifierGenerator identifierGenerator, int sessionLength)
+	public CreateImpl(SessionCache sessionCache, SessionConfigData sessionConfigData, IdentityResolver identityResolver, IdentifierGenerator identifierGenerator, int sessionLength)
 	{
-		if (cache == null)
+		if (sessionCache == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("CreateImpl.SessionCacheNull")); //$NON-NLS-1$
+			throw new IllegalArgumentException("Session cache cannot be null");
 		}
-		if (data == null)
+		if (sessionConfigData == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("CreateImpl.SessionDataNull")); //$NON-NLS-1$
+			throw new IllegalArgumentException("Session config data cannot be null");
 		}
-		if (resolver == null)
+		if (identityResolver == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("CreateImpl.IdentityResolverNull")); //$NON-NLS-1$
+			throw new IllegalArgumentException("Identity resolver cannot be null");
 		}
 		if (identifierGenerator == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("CreateImpl.7")); //$NON-NLS-1$
+			throw new IllegalArgumentException("Identifier generator cannot be null");
+		}
+		if (sessionLength < 0)
+		{
+			throw new IllegalArgumentException("Session length must be a positive integer");
 		}
 
-		this.cache = cache;
-		this.data = data;
-		this.resolver = resolver;
+		this.sessionCache = sessionCache;
+		this.sessionConfigData = sessionConfigData;
+		this.identityResolver = identityResolver;
 		this.identifierGenerator = identifierGenerator;
-		this.sessionLength = sessionLength;
-
-		this.logger.info(Messages.getString("CreateImpl.0")); //$NON-NLS-1$
+		this.sessionLengthMillis = ((long) sessionLength) * 1000L;
+		
+		this.logger.info("CreateImpl created with session length {} milliseconds", this.sessionLengthMillis);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Create#createLocalSession(java.lang.String, java.lang.String, java.lang.String, java.util.List)
-	 */
-	public Create.result createLocalSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass,
-			List<AuthnIdentityAttribute> authnIdentityAttributes) throws DataSourceException, DuplicateSessionException
+	public void createLocalSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass, List<AuthnIdentityAttribute> authnIdentityAttributes) throws SessionCacheUpdateException
 	{
-		this.logger.debug(MessageFormat.format(
-				Messages.getString("CreateImpl.1"), sessionID, principalAuthnIdentifier, authenticationContextClass)); //$NON-NLS-1$
+		if(principalAuthnIdentifier == null || authenticationContextClass == null || authnIdentityAttributes == null)
+			throw new IllegalArgumentException("One or more null parameters recievedby createLocalSession.");
+			
+		this.logger.debug("Going to resolve attributes for new session {} with principal authn identifier {}. {} authnIdentityAttributes passed in.", new Object[] { sessionID, principalAuthnIdentifier, authnIdentityAttributes.size() });
 
-		String SAMLAuthnID;
-
-		// Resolve attributes and set up the IdentityData object
+		// Set up the IdentityData attribute which is used to resolve the user's attributes.
 		IdentityData identityData = new IdentityDataImpl();
 		identityData.setPrincipalAuthnIdentifier(principalAuthnIdentifier);
 		identityData.setSessionID(sessionID);
-		identityData.setIdentity(this.data.getIdentity());
+		identityData.setIdentity(this.sessionConfigData.getIdentity());
 
 		try
 		{
-			this.logger.debug(MessageFormat.format(Messages.getString("CreateImpl.2"), sessionID)); //$NON-NLS-1$
-			this.resolver.execute(identityData);
+			this.logger.debug("Calling identity resolver to resolve attributes for new session {}", sessionID);
+			this.identityResolver.execute(identityData);
+
+			this.logger.info("Successfully resolved attributes for new session {}", sessionID);
 		}
-		catch (HandlerRegistrationException ex)
+		catch (HandlerRegistrationException e)
 		{
-			throw new DataSourceException(ex);
+			this.logger.debug("Handler registration exception occurred while trying to resolve attributes for session {}. Exception follows", new Object[] { sessionID }, e);
+			this.logger.error("Handler registration exception occurred while trying to resolve attributes for session {}. Exception message was: {}", new Object[] { sessionID, e.getMessage() });
+			throw new SessionCacheUpdateException("Handler registration exception occurred while trying to resolve attributes for session " + sessionID);
+		}
+		catch (DataSourceException e)
+		{
+			this.logger.debug("Data source exception occurred while trying to resolve attributes for session {}. Exception follows", new Object[] { sessionID }, e);
+			this.logger.error("Data source exception occurred while trying to resolve attributes for session {}. Exception message was: {}", new Object[] { sessionID, e.getMessage() });
+			throw new SessionCacheUpdateException("Data source exception occurred while trying to resolve attributes for session " + sessionID);
+		}
+		catch (DuplicateSessionException e)
+		{
+			this.logger.debug("Duplicate session exception occurred while trying to resolve attributes for session {}. Exception follows", new Object[] { sessionID }, e);
+			this.logger.error("Duplicate session exception occurred while trying to resolve attributes for session {}. Exception message was: {}", new Object[] { sessionID, e.getMessage() });
+			throw new SessionCacheUpdateException("Duplicate session exception occurred while trying to resolve attributes for session " + sessionID);
 		}
 
 		identityData.setCurrentHandler(null);
 
-		this.logger.info(MessageFormat.format(Messages.getString("CreateImpl.3"), sessionID)); //$NON-NLS-1$
+		String samlAuthnID = this.identifierGenerator.generateSAMLAuthnID();
+		this.logger.info("Created SAML ID {} for new ESOE session ID {} with principal authn identifier {} and authentication context {}", new Object[] { samlAuthnID, sessionID, principalAuthnIdentifier, authenticationContextClass });
 
-		// Create the principal
-		Principal principal = new PrincipalImpl(identityData, this.sessionLength);
-		principal.setSessionID(identityData.getSessionID());
-		principal.setPrincipalAuthnIdentifier(identityData.getPrincipalAuthnIdentifier());
+		// Create the principal object
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.setSessionID(sessionID);
+		principal.setPrincipalAuthnIdentifier(principalAuthnIdentifier);
 
-		principal.setAuthnTimestamp(System.currentTimeMillis());
+		long time = System.currentTimeMillis();
+		principal.setAuthnTimestamp(time);
+		principal.setSessionNotOnOrAfter(time + this.sessionLengthMillis);
 		principal.setAuthenticationContextClass(authenticationContextClass);
-
-		SAMLAuthnID = this.identifierGenerator.generateSAMLAuthnID();
-		principal.setSAMLAuthnIdentifier(SAMLAuthnID);
-		this.authnLogger.info(Messages.getString("CreateImpl.8") + principal.getPrincipalAuthnIdentifier() + Messages.getString("CreateImpl.9") + SAMLAuthnID); //$NON-NLS-1$ //$NON-NLS-2$
-
+		principal.setSAMLAuthnIdentifier(samlAuthnID);
+		
+		// Set resolved identity data for principal
+		this.logger.debug("Adding {} resolved attributes to Principal ..",  identityData.getAttributes().size());
+		
+		Map<String,IdentityAttribute> attributes =  identityData.getAttributes();
+		for(String attribute : attributes.keySet())
+		{
+			principal.putAttribute(attribute, attributes.get(attribute));
+		}
+		
 		/*
 		 * Principal is created and identity information setup from backend stores, add dynamically specified data from
-		 * the authn handler to allow authz decisions to be made on authn type, provides for n-level authn and
-		 * higher level security domains
+		 * the authn handler to allow authz decisions to be made on authn type, provides for n-level authn and higher
+		 * level security domains
 		 */
 		if (authnIdentityAttributes != null)
 		{
+			this.logger.debug("Session {} established. Adding {} authn identity attributes to attribute map.", new Object[] { sessionID, authnIdentityAttributes.size() });
+
 			for (AuthnIdentityAttribute attrib : authnIdentityAttributes)
 			{
-				/* Insert new identity information into principal */
-				if (!principal.getAttributes().containsKey(attrib.getName()))
+				this.logger.debug("Adding authn processor attribute to session {}.. attribute name {} .. going to process values", new Object[] { sessionID, attrib.getName() });
+				
+				// Create a new attribute object to hold the values.
+				IdentityAttribute idAttrib = new IdentityAttributeImpl();
+				idAttrib.setType(DataType.STRING.name());
+				// Add the new values.
+				for (String value : attrib.getValues())
 				{
-					List<Object> attributes;
-					IdentityAttribute idAttrib = new IdentityAttributeImpl();
-					idAttrib.setType(DataType.STRING.name());
-					attributes = Collections.synchronizedList(idAttrib.getValues());
-					for (String value : attrib.getValues())
-					{
-						attributes.add(value);
-					}
-
-					principal.getAttributes().put(attrib.getName(), idAttrib);
+					this.logger.debug("Adding authn processor attribute to session {}.. attribute name {} value {}", new Object[] { sessionID, attrib.getName(), value });
+					idAttrib.getValues().add(value);
 				}
-				else
+
+				// Insert existing values for this attribute, if any.
+				if (principal.getAttributes().containsKey(attrib.getName()))
 				{
-					/* Append values to identity information if they don't already exist */
+					this.logger.warn("Attribute {} from authn processor conflicts with same attribute from identity resolver. Session with ID {} will have merged values from both sources.", new Object[] { attrib.getName(), sessionID });
 					IdentityAttribute attribute = principal.getAttributes().get(attrib.getName());
+					// Only string type attributes
 					if (attribute.getType().equals(DataType.STRING.name()))
 					{
 						for (String value : attrib.getValues())
 						{
+							// Only add the existing value if it's not the same as one of the new ones.
 							if (!attribute.getValues().contains(value))
+							{
+								this.logger.debug("Adding existing attribute values to authn attribute for session {}.. attribute name {} existing value {}", new Object[] { sessionID, attrib.getName(), value });
 								attribute.getValues().add(value);
+							}
 						}
 					}
 					else
-						this.logger.error(Messages.getString("CreateImpl.6")); //$NON-NLS-1$
+					{
+						this.logger.error("Attribute {} from authn processor could not be merged with existing attribute as it was not a String type. Overriding the existing value(s) for this attribute.", new Object[] { attrib.getName() });
+					}
 				}
+
+				// Having populated the identity attribute object, just have to update the principal object.
+				principal.putAttribute(attrib.getName(), idAttrib);
 			}
 		}
 
-		// Add the session to the local cache
-		this.cache.addSession(principal);
+		this.logger.debug("About to insert session {} into the session cache.", sessionID);
 
-		if (this.cache.getSession(sessionID) == null)
-		{
-			this.logger.error(MessageFormat.format(Messages.getString("CreateImpl.4"), sessionID)); //$NON-NLS-1$
-			throw new DataSourceException(Messages.getString("CreateImpl.NewSessionNull")); //$NON-NLS-1$
-		}
+		this.sessionCache.addSession(principal);
 
-		// Ensure principal is accessible via SAMLID or SessionID
-		this.cache.updateSessionSAMLID(principal);
+		Date sessionNotOnOrAfterDate = new Date(principal.getSessionNotOnOrAfter());
+		String sessionNotOnOrAfterString = sessionNotOnOrAfterDate.toString();
 
-		this.logger.debug(MessageFormat.format(Messages.getString("CreateImpl.5"), sessionID)); //$NON-NLS-1$
-
-		return Create.result.SessionCreated;
+		this.authnLogger.info("Authenticated new session ID {} with SAML ID {}, principal authn identifier {}, authentication context class {}, authentication timestamp {}, session not on or after {} ({})", new Object[] { sessionID, samlAuthnID, principalAuthnIdentifier, authenticationContextClass, principal.getAuthnTimestamp(), principal.getSessionNotOnOrAfter(), sessionNotOnOrAfterString });
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Create#createDelegatedSession(java.lang.String, java.lang.String,
-	 *      java.lang.String, java.util.List)
-	 */
-	public result createDelegatedSession(String sessionID, String principalAuthnIdentifier,	String authenticationContextClass, List<AttributeType> principalAttributes) throws DataSourceException, DuplicateSessionException
+	public void createDelegatedSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass, List<AttributeType> principalAttributes) throws SessionCacheUpdateException
 	{
-		/* Directly create the principal object from incoming request,
-		 * not there is no need to populate IdentityData directly
+		/*
+		 * Directly create the principal object from incoming request, not there is no need to populate IdentityData
+		 * directly
 		 */
-		Principal principal = new PrincipalImpl(this.sessionLength);
+		PrincipalImpl principal = new PrincipalImpl();
 		principal.setSessionID(sessionID);
 		principal.setPrincipalAuthnIdentifier(principalAuthnIdentifier);
-		
-		principal.setAuthnTimestamp(System.currentTimeMillis());
+
+		long time = System.currentTimeMillis();
+		principal.setAuthnTimestamp(time);
+		principal.setSessionNotOnOrAfter(time + this.sessionLengthMillis);
 		principal.setAuthenticationContextClass(authenticationContextClass);
 
-		String SAMLAuthnID = this.identifierGenerator.generateSAMLAuthnID();
-		principal.setSAMLAuthnIdentifier(SAMLAuthnID);
-		this.authnLogger.info("SSO identifier established for REMOTE principal " + principal.getPrincipalAuthnIdentifier() + Messages.getString("CreateImpl.9") + SAMLAuthnID); //$NON-NLS-2$
-		
-		for(AttributeType attrib : principalAttributes)
+		String samlAuthnID = this.identifierGenerator.generateSAMLAuthnID();
+		principal.setSAMLAuthnIdentifier(samlAuthnID);
+		this.logger.info("Created SAML ID {} for new delegated ESOE session ID {} with principal authn identifier {} and authentication context {}", new Object[] { samlAuthnID, sessionID, principalAuthnIdentifier, authenticationContextClass });
+
+		for (AttributeType attrib : principalAttributes)
 		{
-			/* The casting will take care of itself here */
+			// The casting will take care of itself here
 			IdentityAttribute localAttrib = new IdentityAttributeImpl();
-			for(Object value : attrib.getAttributeValues())
+			for (Object value : attrib.getAttributeValues())
 				localAttrib.addValue(value);
-			
+
 			principal.putAttribute(attrib.getName(), localAttrib);
 		}
 
-		// Add the session to the local cache
-		this.cache.addSession(principal);
+		this.sessionCache.addSession(principal);
 
-		if (this.cache.getSession(sessionID) == null)
-		{
-			this.logger.error(MessageFormat.format(Messages.getString("CreateImpl.4"), sessionID)); //$NON-NLS-1$
-			throw new DataSourceException(Messages.getString("CreateImpl.NewSessionNull")); //$NON-NLS-1$
-		}
+		Date sessionNotOnOrAfterDate = new Date(principal.getSessionNotOnOrAfter());
+		String sessionNotOnOrAfterString = sessionNotOnOrAfterDate.toString();
 
-		// Ensure principal is accessible via SAMLID or SessionID
-		this.cache.updateSessionSAMLID(principal);
-
-		this.logger.debug(MessageFormat.format(Messages.getString("CreateImpl.5"), sessionID)); //$NON-NLS-1$
-
-		return Create.result.SessionCreated;
+		this.authnLogger.info("Authenticated new REMOTE session ID {} with SAML ID {}, principal authn identifier {}, authentication context class {}, authentication timestamp {}, session not on or after {} ({})", new Object[] { sessionID, samlAuthnID, principalAuthnIdentifier, authenticationContextClass, principal.getAuthnTimestamp(), principal.getSessionNotOnOrAfter(), sessionNotOnOrAfterString });
 	}
 }

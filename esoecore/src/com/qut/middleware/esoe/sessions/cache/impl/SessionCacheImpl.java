@@ -20,6 +20,7 @@
 package com.qut.middleware.esoe.sessions.cache.impl;
 
 import java.text.MessageFormat;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +43,7 @@ import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
 import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.util.CalendarUtils;
 
 /** 
@@ -84,8 +86,12 @@ public class SessionCacheImpl implements SessionCache
 	 * 
 	 * @see com.qut.middleware.esoe.sessions.cache.SessionCache#addSession(com.qut.middleware.esoe.sessions.Principal)
 	 */
-	public void addSession(Principal data) throws DuplicateSessionException
+	public void addSession(Principal data) throws SessionCacheUpdateException
 	{
+		// TODO check that these requirements are reasonable
+		if(data == null || data.getSessionID() == null || data.getSAMLAuthnIdentifier() == null)
+			throw new IllegalArgumentException("Supplied principal was null or contains null required fields. Unable to add to session cache.");
+			
 		// Make sure session ID and principal name are set correctly.
 		String sessionID = data.getSessionID();
 		String principalName = data.getPrincipalAuthnIdentifier();
@@ -107,43 +113,18 @@ public class SessionCacheImpl implements SessionCache
 		if (principal != null)
 		{
 			this.logger.error(Messages.getString("SessionCacheImpl.7")); //$NON-NLS-1$
-			throw new DuplicateSessionException();
+			throw new SessionCacheUpdateException(MessageFormat.format("Attempt to add a session that already exist: {0}.", sessionID) );
 		}
-
+		
+		// add session keyed by session ID
 		this.sessionMap.put(sessionID, data);
 		
+		// now add the samlID keyed session
+		this.sessionMap.put(data.getSAMLAuthnIdentifier(), data);
+		
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.cache.SessionCache#updateSessionSAMLID(com.qut.middleware.esoe.sessions.Principal)
-	 */
-	public void updateSessionSAMLID(Principal data) throws DuplicateSessionException
-	{
-		// Make sure the SAML ID is set correctly.
-		String samlID = data.getSAMLAuthnIdentifier();
-		if (samlID == null || samlID.length() == 0)
-		{
-			this.logger.error(Messages.getString("SessionCacheImpl.2")); //$NON-NLS-1$
-			throw new IllegalArgumentException(Messages.getString("SessionCacheImpl.2")); //$NON-NLS-1$
-		}
-
-		// Make sure we don't already have a principal with that SAML ID
-		Principal principal = getSessionBySAMLID(samlID);
-		if (principal != null)
-		{
-			this.logger.error(Messages.getString("SessionCacheImpl.9")); //$NON-NLS-1$
-			throw new DuplicateSessionException();
-		}
-
-		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.10"), data.getPrincipalAuthnIdentifier(), data.getSAMLAuthnIdentifier())); //$NON-NLS-1$
-		
-		data.setLastAccessed(System.currentTimeMillis());
-		
-		this.sessionMap.put(samlID, data);
-	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -185,10 +166,10 @@ public class SessionCacheImpl implements SessionCache
 	 * 
 	 * @see com.qut.middleware.esoe.sessions.cache.SessionCache#removeSession(java.lang.String)
 	 */
-	public boolean removeSession(String sessionID)
+	public void removeSession(String sessionID)
 	{
 		if(sessionID == null)
-			return false;
+			return ;
 				
 		this.logger.debug(MessageFormat.format(Messages.getString("SessionCacheImpl.11"), sessionID)); //$NON-NLS-1$
 				
@@ -197,7 +178,6 @@ public class SessionCacheImpl implements SessionCache
 		if (p != null && p.getSAMLAuthnIdentifier() != null)
 			this.sessionMap.remove(p.getSAMLAuthnIdentifier());
 	
-		return (p != null);
 	}
 
 
@@ -279,8 +259,7 @@ public class SessionCacheImpl implements SessionCache
 						long now = System.currentTimeMillis();
 						long idle = (now - entry.getValue().getLastAccessed());
 						
-						XMLGregorianCalendar xmlCalendar = entry.getValue().getSessionNotOnOrAfter();
-						GregorianCalendar notOnOrAfterCal = xmlCalendar.toGregorianCalendar();
+						long notOnOrAfter = entry.getValue().getSessionNotOnOrAfter();
 		
 						boolean logoutSuccess = false;
 					
@@ -295,9 +274,9 @@ public class SessionCacheImpl implements SessionCache
 						this.logger.trace(MessageFormat.format("Processing session {0} with principal ID {1}", entry.getKey(), principalSessionID) );
 						
 						// Remove any sessions that have been idle too long
-						this.logger.trace(MessageFormat.format("Comparing Session notOnOrAfter time of {0} against current time of {1}.",  notOnOrAfterCal.getTime(), thisCal.getTime()) ); //$NON-NLS-1$
+						this.logger.trace(MessageFormat.format("Comparing Session notOnOrAfter time of {0} against current time of {1}.",  new Date(notOnOrAfter), thisCal.getTime()) ); //$NON-NLS-1$
 					
-						if (thisCal.after(notOnOrAfterCal))
+						if (thisCal.getTimeInMillis() > notOnOrAfter)
 						{			
 							this.logger.debug(MessageFormat.format("Session ID {0} has passed the maximum valid time. ", entry.getKey()) ); //$NON-NLS-1$
 							
@@ -316,7 +295,7 @@ public class SessionCacheImpl implements SessionCache
 						
 								// The session may have been previously logged out of any active sessions, but not removed from the
 								// cache. If this is the case and still no active sessions, remove it.
-								if(entry.getValue().getActiveDescriptors().size() == 0)
+								if(entry.getValue().getActiveEntityList().size() == 0)
 								{
 									this.logger.debug(MessageFormat.format("Idle Session {0} has no active descriptors. Removing from cache. ", entry.getKey()) );
 									
@@ -376,18 +355,18 @@ public class SessionCacheImpl implements SessionCache
 		return (this.sessionMap.size()/2);
 	}
 	
-	public void addDescriptor(Principal principal, String entityID) throws InvalidSessionIdentifierException
-	{
-		principal.addActiveDescriptor(entityID);
-	}
 	
-	public void addDescriptorSessionIdentifier(Principal principal, String entityID, String descriptorSessionID) throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException
+	@Override
+	public void addEntitySessionIndex(Principal principal, String entityID, 		String sessionIndex) throws SessionCacheUpdateException 
 	{
-		principal.addDescriptorSessionIdentifier(entityID, descriptorSessionID);
+		// TODO Auto-generated method stub
+		
 	}
-	
-	public void updatePrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes) throws InvalidSessionIdentifierException
-	{
-		// noop, not required for this implementation
+
+	@Override
+	public void updatePrincipalAttributes(Principal principal)
+			throws SessionCacheUpdateException {
+		// TODO Auto-generated method stub
+		
 	}
 }

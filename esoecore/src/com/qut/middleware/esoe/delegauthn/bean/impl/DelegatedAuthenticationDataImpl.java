@@ -19,31 +19,33 @@
 
 package com.qut.middleware.esoe.delegauthn.bean.impl;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.esoe.delegauthn.bean.DelegatedAuthenticationData;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 
 public class DelegatedAuthenticationDataImpl implements DelegatedAuthenticationData
 {
-	private byte[] requestDocument;
-	private byte[] responseDocument;
+	private Element requestDocument;
+	private Element responseDocument;
 	private RegisterPrincipalRequest registerPrincipalRequest;
 	
-	public byte[] getRequestDocument()
+	public Element getRequestDocument()
 	{
 		return this.requestDocument;
 	}
 
-	public byte[] getResponseDocument()
+	public Element getResponseDocument()
 	{
 		return this.responseDocument;
 	}
 
-	public void setRequestDocument(byte[] requestDocument)
+	public void setRequestDocument(Element requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}
 
-	public void setResponseDocument(byte[] responseDocument)
+	public void setResponseDocument(Element responseDocument)
 	{
 		this.responseDocument = responseDocument;
 	}

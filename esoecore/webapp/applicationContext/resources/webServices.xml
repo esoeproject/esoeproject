@@ -30,9 +30,20 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="1" ref="authorizationProcessor" />
 		<constructor-arg index="2" ref="spepProcessor" />
 		<constructor-arg index="3" ref="delegatedAuthenticationProcessor" />
+		<constructor-arg index="4">
+			<list>
+				<ref bean="soapv12Handler"/>
+				<ref bean="soapv11Handler"/>
+			</list>
+		</constructor-arg>
 	</bean>
+	
+	<bean name="soapv11Handler" class="com.qut.middleware.saml2.handler.impl.SOAPv11Handler"/>
+	<bean name="soapv12Handler" class="com.qut.middleware.saml2.handler.impl.SOAPv12Handler"/>
 
 	<!-- ESOE web services client connectivity -->
-	<bean name="wsClient" class="com.qut.middleware.esoe.ws.impl.WSClientImpl" />
+	<bean name="wsClient" class="com.qut.middleware.esoe.ws.impl.WSClientImpl">
+		<constructor-arg index="0" ref="soapv11Handler" />
+	</bean>
 
 </beans>

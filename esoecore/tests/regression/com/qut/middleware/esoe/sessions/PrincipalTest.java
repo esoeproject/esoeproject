@@ -64,96 +64,41 @@ public class PrincipalTest
 		String session33 = "zxncvmnvlkrjntogia";
 		String entity4 = "97235871293874987";
 
-		Principal principal = new PrincipalImpl(new IdentityDataImpl(), 360);
-		principal.addActiveDescriptor(entity1);
-		try
-		{
-			principal.addDescriptorSessionIdentifier(entity1, session11);
-			principal.addDescriptorSessionIdentifier(entity1, session12);
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity identifier although entity was added already.");
-		}
-		principal.addActiveDescriptor(entity2);
-		try
-		{
-			principal.addDescriptorSessionIdentifier(entity2, session21);
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity identifier although entity was added already.");
-		}
-		try
-		{
-			principal.addActiveDescriptor(entity3);
-			principal.addDescriptorSessionIdentifier(entity3, session31);
-			principal.addDescriptorSessionIdentifier(entity3, session32);
-			principal.addDescriptorSessionIdentifier(entity3, session33);
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity identifier although entity was added already.");
-		}
+		Principal principal = new PrincipalImpl();
+		principal.addEntitySessionIndex(entity1, session11);
+		principal.addEntitySessionIndex(entity1, session11);
+		principal.addEntitySessionIndex(entity1, session12);
+	
+		principal.addEntitySessionIndex(entity2, session21);
+		principal.addEntitySessionIndex(entity3, session31);
+		principal.addEntitySessionIndex(entity3, session32);
+		principal.addEntitySessionIndex(entity3, session33);
 
 		List<String> comparator = new Vector<String>(0, 1);
 		comparator.add(session11);
 		comparator.add(session12);
 
-		try
-		{
-			assertTrue("Got back unexpected session values for entity1", comparator.containsAll(principal
-					.getDescriptorSessionIdentifiers(entity1)));
-			assertTrue("Didn't get back all session values for entity1", principal.getDescriptorSessionIdentifiers(entity1)
-					.containsAll(comparator));
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity identifier although entity was added already.");
-		}
+		assertTrue("Got back unexpected session values for entity1", comparator.containsAll(principal.getActiveEntitySessionIndices(entity1)));
+		assertTrue("Didn't get back all session values for entity1", principal.getActiveEntitySessionIndices(entity1)
+				.containsAll(comparator));
 
 		comparator = new Vector<String>(0, 1);
 		comparator.add(session21);
 
-		try
-		{
-			assertTrue("Got back unexpected session values for entity2", comparator.containsAll(principal
-					.getDescriptorSessionIdentifiers(entity2)));
-			assertTrue("Didn't get back all session values for entity2", principal.getDescriptorSessionIdentifiers(entity2)
-					.containsAll(comparator));
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity identifier although entity was added already.");
-		}
+		assertTrue("Got back unexpected session values for entity2", comparator.containsAll(principal.getActiveEntitySessionIndices(entity2)));
+		assertTrue("Didn't get back all session values for entity2", principal.getActiveEntitySessionIndices(entity2)
+				.containsAll(comparator));
 
 		comparator = new Vector<String>(0, 1);
 		comparator.add(session31);
 		comparator.add(session32);
 		comparator.add(session33);
 
-		try
-		{
-			assertTrue("Got back unexpected session values for entity3", comparator.containsAll(principal
-					.getDescriptorSessionIdentifiers(entity3)));
-			assertTrue("Didn't get back all session values for entity3", principal.getDescriptorSessionIdentifiers(entity3)
-					.containsAll(comparator));
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity identifier although entity was added already.");
-		}
+		assertTrue("Got back unexpected session values for entity3", comparator.containsAll(principal.getActiveEntitySessionIndices(entity3)));
+		assertTrue("Didn't get back all session values for entity3", principal.getActiveEntitySessionIndices(entity3)
+				.containsAll(comparator));
 
-		boolean caught = false;
-		try
-		{
-			principal.getDescriptorSessionIdentifiers(entity4);
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			caught = true;
-		}
-		assertTrue("Got session list back for entity that was never added.", caught);
+		assertTrue("Got session list back for entity that was never added.", principal.getActiveEntitySessionIndices(entity4) == null);
 	}
 
 	/**
@@ -163,7 +108,7 @@ public class PrincipalTest
 	@Test
 	public final void testPutAttribute()
 	{
-		Principal principal = new PrincipalImpl(new IdentityDataImpl(), 360);
+		Principal principal = new PrincipalImpl();
 		IdentityAttribute attribute = new IdentityAttributeImpl();
 
 		principal.putAttribute("roar", attribute);
@@ -181,25 +126,23 @@ public class PrincipalTest
 	@Test
 	public void testCoverage()
 	{
-		Principal principal = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl principal = new PrincipalImpl();
 		
 		principal.setAuthenticationContextClass("MyAuthnContext");		
 		assertEquals("MyAuthnContext", principal.getAuthenticationContextClass());
 		
-		Date now = new Date();
-		long time = now.getTime();
+		long time = System.currentTimeMillis();
+						
+		principal.setSessionNotOnOrAfter(time);
+		assertTrue(principal.getSessionNotOnOrAfter() == time);
 		
-		principal.setAuthnTimestamp(time);
-		assertEquals(time, principal.getAuthnTimestamp());
-				
-		// should be the same as authn timestamp if the object has not been accessed
-		TimeZone utc = new SimpleTimeZone(0, ConfigurationConstants.timeZone); 
-		GregorianCalendar cal = new GregorianCalendar(utc);
-		XMLGregorianCalendar xmlCal = new XMLGregorianCalendarImpl(cal);
+		principal.setAuthenticationContextClass("TEst context");
+		assertTrue(principal.getAuthenticationContextClass().equals("TEst context"));
 		
-		// not a hell of a lot we can do here, other than check it's greater than now
-		// the actual value set should be the time the principal was created + the allowed 
-		// time skew
-		assertTrue(principal.getSessionNotOnOrAfter().toGregorianCalendar().after(xmlCal.toGregorianCalendar()));
+		principal.setLastAccessed(time);
+		assertTrue(principal.getLastAccessed() == time);
+		
+		principal.setPrincipalAuthnIdentifier("my principal ID");
+		assertTrue(principal.getPrincipalAuthnIdentifier().endsWith("my principal ID"));
 	}
 }

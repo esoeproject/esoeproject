@@ -27,11 +27,13 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
@@ -173,7 +175,7 @@ public class StartupProcessorImpl implements StartupProcessor
 		this.ipAddressList = new Vector<String>();
 		this.ipAddressList.addAll(ipAddressList);
 		
-		String[] validateInitializationSchemas = new String[]{ConfigurationConstants.esoeProtocol};
+		String[] validateInitializationSchemas = new String[]{SchemaConstants.esoeProtocol};
 		
 		if (!disableSPEPStartup)
 		{
@@ -234,14 +236,14 @@ public class StartupProcessorImpl implements StartupProcessor
 			{
 				String samlID = this.identifierGenerator.generateSAMLID();
 				
-				byte[] requestDocument = buildRequest(samlID);
+				Element requestDocument = buildRequest(samlID);
 				
 				TrustedESOERole trustedESOERole = this.metadata.getEntityRoleData(this.trustedESOEIdentifier, TrustedESOERole.class);
 				String endpoint = trustedESOERole.getSPEPStartupServiceEndpoint(IMPLEMENTED_BINDING);
 				
 				this.logger.debug(MessageFormat.format(Messages.getString("StartupProcessorImpl.3"), endpoint) ); //$NON-NLS-1$
 				
-				byte[] responseDocument = this.wsClient.spepStartup(requestDocument, endpoint);
+				Element responseDocument = this.wsClient.spepStartup(requestDocument, endpoint);
 				
 				this.logger.debug(Messages.getString("StartupProcessorImpl.4")); //$NON-NLS-1$
 
@@ -306,7 +308,7 @@ public class StartupProcessorImpl implements StartupProcessor
 	/* Builds a string representation of ValidateInitializationRequest using the given SAMLID.
 	 * 
 	 */
-	private byte[] buildRequest(String samlID) throws MarshallerException
+	private Element buildRequest(String samlID) throws MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.spepIdentifier);
@@ -328,13 +330,13 @@ public class StartupProcessorImpl implements StartupProcessor
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("StartupProcessorImpl.12"), samlID)); //$NON-NLS-1$
 		
-		return this.validateInitializationRequestMarshaller.marshallSigned(validateInitializationRequest);
+		return this.validateInitializationRequestMarshaller.marshallSignedElement(validateInitializationRequest);
 	}
 	
 	/* Process the string representation of the given ValidateInitliazationResponse object.
 	 * 
 	 */
-	private void processResponse(byte[] responseDocument, String expectedSAMLID) throws SignatureValueException, ReferenceValueException, UnmarshallerException, SPEPInitializationException
+	private void processResponse(Element responseDocument, String expectedSAMLID) throws SignatureValueException, ReferenceValueException, UnmarshallerException, SPEPInitializationException
 	{
 		ValidateInitializationResponse validateInitializationResponse = this.validateInitializationResponseUnmarshaller.unMarshallSigned(responseDocument);
 

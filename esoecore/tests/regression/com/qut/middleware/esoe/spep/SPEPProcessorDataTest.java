@@ -4,6 +4,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 
 import com.qut.middleware.esoe.spep.bean.SPEPProcessorData;
 import com.qut.middleware.esoe.spep.bean.impl.SPEPProcessorDataImpl;
@@ -44,17 +48,47 @@ public class SPEPProcessorDataTest {
 	@Test
 	public void testGetRequestDocument()
 	{
-		this.data.setRequestDocument(this.requestDoc);
+		this.data.setRequestDocument(this.getDodgyElement("Request"));
 		
-		assertEquals(this.requestDoc, this.data.getRequestDocument());
+		assertEquals("Request", this.data.getRequestDocument().getNodeName());
 	}
 
 	@Test
 	public void testGetResponseDocument()
 	{
-		this.data.setResponseDocument(this.responseDoc);
+		this.data.setResponseDocument(this.getDodgyElement("Response"));
 		
-		assertEquals(this.responseDoc, this.data.getResponseDocument());
+		assertEquals("Response", this.data.getResponseDocument().getNodeName());
 	}
 		
+	private Element getDodgyElement(String nodename)
+	{
+
+		DOMImplementation dom = null;
+		try 
+		{
+			dom = DOMImplementationRegistry.newInstance().getDOMImplementation("XML 1.0");
+		}
+		catch (Exception e)
+		{
+			fail("Failed to instantiate DomImplementation.");
+			//e.printStackTrace();
+		} 
+		
+		Element elem = null;
+		Document doc = null;
+		
+		try
+		{
+			doc =  dom.createDocument("http://www.w3.org/2001/XMLSchema", "xs:string", null);
+			elem = doc.createElement(nodename);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("Error occured created Document or Element");
+		}
+		
+		return elem;
+	}
 }

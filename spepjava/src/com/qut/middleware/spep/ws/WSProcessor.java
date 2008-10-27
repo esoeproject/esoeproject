@@ -20,8 +20,7 @@
  */
 package com.qut.middleware.spep.ws;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axis2.AxisFault;
+import com.qut.middleware.spep.ws.exception.WSProcessorException;
 
 /** Provides an interface for the web service processor, which defines endpoints
  * 		that will be served as SOAP based web services.*/
@@ -33,7 +32,7 @@ public interface WSProcessor
 	 * @return The AuthzCacheClearResponse document.
 	 * @throws AxisFault if the web service client cannot send the request.
 	 */
-	public OMElement authzCacheClear(OMElement request) throws AxisFault;
+	public byte[] authzCacheClear(byte[] request, String contentType) throws WSProcessorException;
 	
 	/** Performs a single logout operation.
 	 * 
@@ -41,5 +40,5 @@ public interface WSProcessor
 	 * @return The LogoutResponse document
 	 * @throws AxisFault if the web service client cannot send the request.
 	 */
-	public OMElement singleLogout(OMElement request) throws AxisFault;
+	public byte[] singleLogout(byte[] request, String contentType) throws WSProcessorException;
 }

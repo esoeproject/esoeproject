@@ -1,4 +1,4 @@
-/* Copyright 2006, Queensland University of Technology
+/* Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -16,142 +16,102 @@
  * 
  * Purpose: Interface for the local session cache. Stores information about authenticated principals.
  */
+
 package com.qut.middleware.esoe.sessions.cache;
 
-import java.util.List;
 
-import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
 import com.qut.middleware.esoe.sessions.Principal;
-import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
-import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
-import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 
-/** 
- * Interface for the local session cache. Stores information about authenticated principals. 
+/**
+ * Session cache interface for the underlying data store for all session data.
+ * 
+ * All methods on this interface should only be called from within the sessions processor logic. Calls from outside
+ * should go through the {@link Update}, {@link Create}, {@link Query} and {@link Terminate} interfaces.
  */
 public interface SessionCache
 {
 	/**
-	 * Adds the session data to the session cache.
+	 * Adds a session to the session cache. This method will throw an exception if the session ID or SAML ID of the
+	 * Principal already exists.
 	 * 
-	 * @param data
-	 *            Principal to add.
-	 * @throws DuplicateSessionException
+	 * @param principal
+	 *            The principal to add to the session cache.
+	 * @throws SessionCacheUpdateException
+	 *             If the add operation failed for some reason.
 	 */
-	public void addSession(Principal data) throws DuplicateSessionException;
+	public void addSession(Principal principal) throws SessionCacheUpdateException;
 
 	/**
-	 * Updates the session data when a SAML ID is added to the session data. The implementing method
-	 * MUST update the principals lastUsed timestamp ehwn a call is made.
-	 * 
-	 * @param data
-	 *            Principal to update.
-	 * @throws DuplicateSessionException
-	 */
-	public void updateSessionSAMLID(Principal data) throws DuplicateSessionException;
-
-	/**
-	 * Removes the specified sesson from the session cache, and returns the value that was removed.
+	 * Retrieves a session from the session cache using its ESOE session identifier (i.e. cookie value)
 	 * 
 	 * @param sessionID
-	 *            Session ID of principal to remove.
-	 * @return Principal object that was removed.
-	 */
-	public boolean removeSession(String sessionID);
-
-	/**
-	 * Retrieves the specified session from the session cache. The implementing method
-	 * MUST update the principals lastUsed timestamp ehwn a call is made.
-	 * 
-	 * @param sessionID
-	 *            Session ID of principal to retrieve
-	 * @return Principal object referenced by given session ID.
+	 *            The ESOE session identifier
+	 * @return The principal object for the corresponding session, else null if not exists.
 	 */
 	public Principal getSession(String sessionID);
-	
+
 	/**
-	 * Determines if a sessionID is currently validly held in the cache.
+	 * Retrieves a session from the session cache using its SAML Authn identifier (i.e. transient NameID)
+	 * 
+	 * @param samlID
+	 *            The SAML Authn identifier
+	 * @return The principal object for the corresponding session if exists, else null.
+	 */
+	public Principal getSessionBySAMLID(String samlID);
+
+	/**
+	 * Verifies that a session exists in the underlying data store and is valid.
 	 * 
 	 * @param sessionID
-	 *            Session ID of principal to retrieve
-	 * @return Principal object referenced by given session ID.
+	 *            The ESOE session identifier
+	 * @return Boolean value indicating session validity.
 	 */
 	public boolean validSession(String sessionID);
 
 	/**
-	 * Retrieves the session matching the given SAML ID from the session cache. The implementing method
-	 * MUST update the principals lastUsed timestamp ehwn a call is made.
+	 * Removes a session from the underlying data store. This method will throw an exception if the specified session ID
+	 * does not exist.
 	 * 
-	 * @param samlID
-	 *            SAML ID of principal to retrieve
-	 * @return Principal object referenced by given SAML ID.
+	 * @param sessionID
+	 *            The ESOE session identifier
+	 * @throws SessionCacheUpdateException
+	 *             If the remove operation failed for some reason.
 	 */
-	public Principal getSessionBySAMLID(String samlID);
-		
-	/** Clear any entries from the cache that are older than specified age. Implementing classes must set setLastCleaned()
-	 *  BEFORE any cache cleanup processing occurs. They must also lock the method to ensure that only ONE thread
-	 *  can ever cause this method to execute at any given time.
+	public void removeSession(String sessionID) throws SessionCacheUpdateException;
+
+	/**
+	 * Adds an entity ID / session index pair to the underlying data store for the given principal. The principal object
+	 * must be modified to include these values before this method is called, so no modification to the Principal is
+	 * necessary. This method will throw an exception if the specified principal does not exist in the data store.
 	 * 
-	 * @param age The age in seconds which an entry remains valid.
-	 * @return The number of entries removed from the cache.
+	 * @param principal
+	 *            The principal object to perform the update for.
+	 * @param entityID
+	 *            The entity ID corresponding to the session index.
+	 * @param sessionIndex
+	 *            The session index being added.
+	 * @throws SessionCacheUpdateException
+	 *             If the update failed for some reason.
 	 */
-	public int cleanCache(int age);
-		
-	/** Retrieve the long timestamp of when the session cache was last cleaned. 
+	public void addEntitySessionIndex(Principal principal, String entityID, String sessionIndex) throws SessionCacheUpdateException;
+
+	/**
+	 * Updates the principal attributes in the underlying data store. To maintain consistency this method must be called
+	 * after any update to the principal attributes. This method will throw an exception if the specified principal does
+	 * not exist in the data store.
 	 * 
-	 * @return timestamp of the last cache cleanup.
+	 * @param principal
+	 *            The principal object to perform the update for.
+	 * @throws SessionCacheUpdateException
+	 *             If the update failed for some reason.
 	 */
-	public long getLastCleaned();
+	public void updatePrincipalAttributes(Principal principal) throws SessionCacheUpdateException;
 	
-	/** Set the long timestamp of when the session cache was last cleaned. 
-	 * 
-	 */
-	public void setLastCleaned(long lastCleaned);
 	
-	/** Returns the number of active Principal sessions contained in the cache. Must return the actual representation
-	 * of user sessions, regardless of underlying implementation of session cache.
-	 * 
-	 * @return number of principal sessions.
-	 */
 	public int getSize();
 	
-	/**
-	 * Signals to the session cache that the entity ID has been added to the principal, and 
-	 * therefore should be updated in any underlying data source/sink.
-	 * 
-	 * For an in-memory cache, this will be a no-op because the principal object will be updated
-	 * before this method is called.
-	 * @param sessionID
-	 * @param entityID
-	 * @throws InvalidSessionIdentifierException
-	 */
-	public void addDescriptor(Principal principal, String entityID) throws InvalidSessionIdentifierException;
+	public long getLastCleaned();
 	
-	/**
-	 * Signals to the session cache that an entity session identifier has been associated with
-	 * an existing principal session, and therefore should be updated in any underlying data source/sink.
-	 * 
-	 * For an in-memory cache, this will be a no-op because the principal object will be updated
-	 * before this method is called.
-	 * @param sessionID
-	 * @param entityID
-	 * @param descriptorSessionID
-	 * @throws InvalidSessionIdentifierException
-	 * @throws InvalidDescriptorIdentifierException
-	 */
-	public void addDescriptorSessionIdentifier(Principal principal, String entityID, String descriptorSessionID)
-		throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException;
-	
-	/**
-	 * Signals to the session cache that the attributes for a principal session have been modified,
-	 * and therefore should be updated in any underlying data source/sink.
-	 * 
-	 * For an in-memory cache, this will be a no-op because the principal object will be updated
-	 * before this method is called.
-	 * @param sessionID
-	 * @param authnIdentityAttributes
-	 * @throws InvalidSessionIdentifierException
-	 */
-	public void updatePrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes)
-		throws InvalidSessionIdentifierException;
+	public int cleanCache(int timeout);
 }

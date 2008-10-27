@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -174,7 +175,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
+			expect(webServiceClient.authzCacheClear((Element)notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
 		
 		}
 		catch(MarshallerException e)
@@ -215,7 +216,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(new String("<invalid />").getBytes()).anyTimes();
+			expect(webServiceClient.authzCacheClear((Element)notNull(),(String)notNull())).andReturn(createMock(Element.class)).anyTimes();
 		
 		}
 		catch(WSClientException e)
@@ -230,7 +231,7 @@ public class CacheUpdateFailureMonitorTest
 		// add a new failure with invalid request document, it should stay until it expires.
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();
 		failure.setEndPoint("new.invalid.com");
-		failure.setRequestDocument(new String("<hello />").getBytes());
+		failure.setRequestDocument(createMock(Element.class));
 		failure.setTimeStamp(new Date(System.currentTimeMillis()));
 
 		this.failures.add(failure);
@@ -294,7 +295,7 @@ public class CacheUpdateFailureMonitorTest
 		
 		try
 		{
-			expect(webServiceClient.authzCacheClear((byte[])notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
+			expect(webServiceClient.authzCacheClear((Element)notNull(),(String)notNull())).andReturn(this.generateClearCacheResponse(this.issuerIDRequest2, StatusCodeConstants.success)).anyTimes();
 		
 		}
 		catch(MarshallerException e)
@@ -317,9 +318,9 @@ public class CacheUpdateFailureMonitorTest
 	/* Generate a valid authzclear cache request xml document.
 	 * 
 	 */
-	private byte[] generateClearCacheRequest(String issuerID) throws MarshallerException
+	private Element generateClearCacheRequest(String issuerID) throws MarshallerException
 	{
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 					
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		NameIDType issuer = new NameIDType();
@@ -332,7 +333,7 @@ public class CacheUpdateFailureMonitorTest
 		request.setSignature(new Signature());
 		request.setVersion(VersionConstants.saml20);
 				
-		requestDocument = this.clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		requestDocument = this.clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 
 		return requestDocument;
 	}
@@ -341,10 +342,10 @@ public class CacheUpdateFailureMonitorTest
 	/* Generate a valid ClearCache Request XML string
 	 * 
 	 */
-	private byte[] generateClearCacheResponse(String inResponseTo, String statusCodeValue)
+	private Element generateClearCacheResponse(String inResponseTo, String statusCodeValue)
 	throws MarshallerException
 	{
-		byte[] responseDocument = null;
+		Element responseDocument = null;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 		
 		NameIDType issuer = new NameIDType();
@@ -365,7 +366,7 @@ public class CacheUpdateFailureMonitorTest
 		clearAuthzCacheResponse.setVersion(VersionConstants.saml20);
 		clearAuthzCacheResponse.setStatus(status);
 		
-		responseDocument = clearAuthzCacheResponseMarshaller.marshallSigned(clearAuthzCacheResponse);
+		responseDocument = clearAuthzCacheResponseMarshaller.marshallSignedElement(clearAuthzCacheResponse);
 		
 		return responseDocument;
 	}

@@ -19,44 +19,38 @@
  */
 package com.qut.middleware.esoe.ws.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.apache.axis2.AxisFault;
-import org.apache.axis2.addressing.EndpointReference;
-import org.apache.axis2.client.Options;
-import org.apache.axis2.client.ServiceClient;
-
+import com.ibm.icu.text.CharsetDetector;
 import com.qut.middleware.esoe.ws.WSClient;
 import com.qut.middleware.esoe.ws.exception.WSClientException;
+import com.qut.middleware.saml2.exception.SOAPException;
+import com.qut.middleware.saml2.handler.SOAPHandler;
 
 /** Implements web services client logic. */
 public class WSClientImpl implements WSClient
 {
-	private static XMLInputFactory xmlInputFactory;
-	private static XMLOutputFactory xmlOutputFactory;
+	private static final String CONTENT_TYPE = "Content-Type";
+	private static final int BUF_SIZE = 1024;
+	private SOAPHandler soapHandler;
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
-	static
-	{
-		xmlInputFactory = XMLInputFactory.newInstance();
-		xmlOutputFactory = XMLOutputFactory.newInstance();
-	}
-		
 	/**
 	 * Constructor
 	 */
-	public WSClientImpl()
+	public WSClientImpl(SOAPHandler soapHandler)
 	{
-
+		this.soapHandler = soapHandler;
 	}
 
 	/*
@@ -64,7 +58,7 @@ public class WSClientImpl implements WSClient
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSClient#authzCacheClear(java.lang.String, java.lang.String)
 	 */
-	public byte[] authzCacheClear(byte[] request, String endpoint) throws WSClientException
+	public Element authzCacheClear(Element request, String endpoint) throws WSClientException
 	{
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.0")); //$NON-NLS-1$
@@ -80,7 +74,7 @@ public class WSClientImpl implements WSClient
 	 * 
 	 * @see com.qut.middleware.esoe.ws.WSClient#singleLogout(java.lang.String, java.lang.String)
 	 */
-	public byte[] singleLogout(byte[] request, String endpoint) throws WSClientException
+	public Element singleLogout(Element request, String endpoint) throws WSClientException
 	{
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.2")); //$NON-NLS-1$
@@ -102,54 +96,69 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private byte[] invokeWSCall(byte[] request, String endpoint) throws WSClientException
+	private Element invokeWSCall(Element request, String endpoint) throws WSClientException
 	{
-		ByteArrayOutputStream response;
-		XMLStreamReader xmlreader;
-		StAXOMBuilder builder;
-		OMElement requestElement, resultElement;
-		ServiceClient serviceClient;
-		Options options;
-		EndpointReference targetEPR;
-
+		byte[] requestBytes;
 		try
 		{
-			targetEPR = new EndpointReference(endpoint);
-			xmlreader = WSClientImpl.xmlInputFactory.createXMLStreamReader(new ByteArrayInputStream(request));
-			builder = new StAXOMBuilder(xmlreader);
-			requestElement = builder.getDocumentElement();
+			requestBytes = this.soapHandler.wrapDocument(request);
+		}
+		catch (SOAPException e)
+		{
+			this.logger.debug("SOAP exception occurred while trying to wrap the request document.", e);
+			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
+		}
+		
+		CharsetDetector detector = new CharsetDetector();
+		this.logger.trace(detector.getString(requestBytes, null));
 
-			serviceClient = new ServiceClient();
-			options = new Options();
-			serviceClient.setOptions(options);
-			options.setTo(targetEPR);
-			options.setProperty(org.apache.axis2.Constants.Configuration.CHARACTER_SET_ENCODING, "UTF-16");
-
-			resultElement = serviceClient.sendReceive(requestElement);
-
-			response = new ByteArrayOutputStream();
-			if (resultElement != null)
+		ByteArrayOutputStream responseStream;
+		try
+		{
+			URL url = new URL(endpoint);
+			URLConnection connection = url.openConnection();
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
+			
+			this.setContentType(connection);
+			
+			OutputStream out = connection.getOutputStream();
+			out.write(requestBytes);
+			
+			InputStream in = connection.getInputStream();
+			responseStream = new ByteArrayOutputStream();
+			byte[] buf = new byte[BUF_SIZE];
+			int count;
+			while ((count = in.read(buf)) > 0)
 			{
-				resultElement.serialize(WSClientImpl.xmlOutputFactory.createXMLStreamWriter(response));
+				responseStream.write(buf, 0, count);
 			}
-			else
-			{
-				throw new WSClientException(com.qut.middleware.esoe.ws.impl.Messages.getString("WSClientImpl.4")); //$NON-NLS-1$
-			}
-
-			return response.toByteArray();
 		}
-		catch (AxisFault e)
+		catch (MalformedURLException e)
 		{
-			throw new WSClientException(e.getMessage(), e);
+			this.logger.debug("WS endpoint URL {} was malformed. Unable to perform query", new Object[]{endpoint}, e);
+			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
 		}
-		catch (XMLStreamException e)
+		catch (IOException e)
 		{
-			throw new WSClientException(e.getMessage(), e);
+			this.logger.debug("SOAP exception occurred while trying to wrap the request document.", e);
+			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
 		}
-		catch (FactoryConfigurationError e)
+		
+		try
 		{
-			throw new WSClientException(e.getMessage());
+			return this.soapHandler.unwrapDocument(responseStream.toByteArray());
 		}
+		catch (SOAPException e)
+		{
+			this.logger.debug("SOAP exception occurred while trying to unwrap the response document.", e);
+			throw new WSClientException("SOAP exception occurred while trying to unwrap the response document. Error was: " + e.getMessage());
+		}
+	}
+	
+	private void setContentType(URLConnection connection)
+	{
+		String encoding = this.soapHandler.getDefaultEncoding();
+		connection.setRequestProperty(CONTENT_TYPE, this.soapHandler.getContentType(encoding));
 	}
 }

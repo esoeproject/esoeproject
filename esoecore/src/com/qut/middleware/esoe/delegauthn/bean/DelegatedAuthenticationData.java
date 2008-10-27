@@ -18,10 +18,10 @@
  */
 package com.qut.middleware.esoe.delegauthn.bean;
 
-import com.qut.middleware.esoe.bean.SAMLProcessorData;
+import com.qut.middleware.esoe.ws.bean.WSProcessorData;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 
-public interface DelegatedAuthenticationData extends SAMLProcessorData
+public interface DelegatedAuthenticationData extends WSProcessorData
 {
 	/**
 	 * Getter for RegisterPrincipalRequest

@@ -4,6 +4,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
 import com.qut.middleware.esoe.aa.bean.impl.AAProcessorDataImpl;
@@ -23,11 +27,36 @@ public class AAProcessorDataTest {
 	@Test
 	public void testGetRequestDocument()
 	{
-		byte[] doc = new String("<test></test>").getBytes();
+		DOMImplementation dom = null;
+		try 
+		{
+			dom = DOMImplementationRegistry.newInstance().getDOMImplementation("XML 1.0");
+		}
+		catch (Exception e)
+		{
+			fail("Failed to instantiate DomImplementation.");
+			//e.printStackTrace();
+		} 
+		
+		Element elem = null;
+		Document doc = null;
+		try
+		{
+			doc =  dom.createDocument("http://www.w3.org/2001/XMLSchema", "xs:string", null);
+			elem = doc.createElement("TEST");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("Error occured created Document or Element");
+		}
+		
+		assertNotNull(elem);
+		
 		// covers get and set
-		this.data.setRequestDocument(doc);
+		this.data.setRequestDocument(elem);
 	
-		assertEquals(doc, this.data.getRequestDocument());
+		assertEquals(elem, this.data.getRequestDocument());
 	}
 	
 	@Test
@@ -53,11 +82,36 @@ public class AAProcessorDataTest {
 	@Test
 	public void testSetResponseDocument()
 	{
-		byte[] doc = new String("<test></test>").getBytes();
+		DOMImplementation dom = null;
+		try 
+		{
+			dom = DOMImplementationRegistry.newInstance().getDOMImplementation("XML 1.0");
+		}
+		catch (Exception e)
+		{
+			fail("Failed to instantiate DomImplementation.");
+			//e.printStackTrace();
+		} 
+		
+		Element elem = null;
+		Document doc = null;
+		try
+		{
+			doc =  dom.createDocument("http://www.w3.org/2001/XMLSchema", "xs:string", null);
+			elem = doc.createElement("TEST");
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("Error occured created Document or Element");
+		}
+		
+		assertNotNull(elem);
+		
 		// covers get and set
-		this.data.setResponseDocument(doc);
+		this.data.setResponseDocument(elem);
 	
-		assertEquals(doc, this.data.getResponseDocument());
+		assertEquals(elem, this.data.getResponseDocument());
 	
 	}
 

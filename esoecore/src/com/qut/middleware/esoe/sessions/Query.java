@@ -12,45 +12,44 @@
  * 
  * Author: Shaun Mangelsdorf Creation Date: 28/09/2006
  * 
- * Purpose: Interface to allow queries to be made against the active session cache.
+ * Purpose: Interface to allow queries to be made against the active session store
  */
 
 package com.qut.middleware.esoe.sessions;
-
-import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 
 /** */
 public interface Query
 {
 	/**
-	 * Queries the session cache for a session with the given session identifier.
+	 * Queries the session cache for a session with the given session identifier. A session that has expired will be
+	 * considered non-existent.
 	 * 
 	 * @param sessionID
 	 *            The session ID to query.
-	 * @return Principal object for session
-	 * @throws InvalidSessionIdentifierException
-	 *             if session is not found
+	 * @return Principal object for session, or null if the session was not found.
 	 */
-	public Principal queryAuthnSession(String sessionID) throws InvalidSessionIdentifierException;
-	
-	/**
-	 * Queries the session cache for a session with the given session identifier.
-	 * 
-	 * @param sessionID
-	 *            The session ID to query.
-	 * @throws InvalidSessionIdentifierException
-	 *             if session is not found
-	 */
-	public void validAuthnSession(String sessionID) throws InvalidSessionIdentifierException;
+	public Principal queryAuthnSession(String sessionID);
 
 	/**
-	 * Queries the session cache for a session with the given SAML identifier.
+	 * Queries the session cache for a session with the given session identifier. Checks for session validity including
+	 * expiry time and returns true if the session is valid.
+	 * 
+	 * @param sessionID
+	 *            The session ID to query.
+	 * @return Boolean value indicating whether the session is valid.
+	 */
+	public boolean validAuthnSession(String sessionID);
+
+	/**
+	 * Queries the session cache for the principal that belongs to the given SAML identifier. A session that has expired
+	 * will be considered non-existent.
 	 * 
 	 * @param samlID
 	 *            The SAML ID to query.
-	 * @return Principal object for session
-	 * @throws InvalidSessionIdentifierException
-	 *             if session is not found.
+	 * @param nameIDFormat
+	 *            The format of the SAML identifier being queried. This would generally be a value from
+	 *            {@link com.qut.midddleware.saml2.NameIDFormatConstants}
+	 * @return The principal session that corresponds to the given SAML ID
 	 */
-	public Principal querySAMLSession(String samlID) throws InvalidSessionIdentifierException;
+	public Principal querySAMLSession(String samlID);
 }

@@ -11,34 +11,26 @@
  * License for the specific language governing permissions and limitations under 
  * the License.
  * 
- * Author: Shaun Mangelsdorf / BRadley Beddoes
+ * Author: Shaun Mangelsdorf / Bradley Beddoes
  * Creation Date: 28/09/2006 / 05/03/2007
  * 
- * Purpose: Interface to allow sessions to be created in the local cache.
+ * Purpose: Interface to allow sessions to be created in the underlying data store.
  */
 package com.qut.middleware.esoe.sessions;
 
 import java.util.List;
 
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
-import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.schemas.assertion.AttributeType;
 
-/** Interface to allow sessions to be created in the local cache.
+/**
+ * Interface to allow sessions to be created in the local cache.
  * */
 public interface Create
 {
-
-	/** Results that this interface will return from its publicly facing methods */
-	public static enum result
-	{
-		/**
-		 * Return value indicating that the session has been created successfully.
-		 */
-		SessionCreated
-	};
-
+	
 	/**
 	 * This function creates a session and caches the data for the session with a unique session identifier and the user
 	 * identification string they used to authenticate to the system. This should be the same value which is used to
@@ -47,31 +39,34 @@ public interface Create
 	 * @param sessionID
 	 *            The session identifier.
 	 * @param principalAuthnIdentifier
-	 *            The name token used to identify the principal when they authenticated eg 'beddoes' or 'n12345' as usernames
+	 *            The name token used to identify the principal when they authenticated. e.g. their username.
 	 * @param authenticationContextClass
-	 *            An authentication context class value as specified in com.qut.middleware.saml2.AuthenticationContextConstants.
-	 * @param principalIdentifiers
-	 * @throws DataSourceException if there is an error communicating with the session datasource.
-	 * @throws DuplicateSessionException if the session alredy exists.
-	 * @return result.SessionCreated if the session was created successfully.
+	 *            An authentication context class value as specified in
+	 *            {@link com.qut.middleware.saml2.AuthenticationContextConstants}
+	 * @param authnIdentityAttributes
+	 *            The attributes derived from the authentication process which should be added to the session.
+	 * @throws SessionCacheUpdateException
+	 *             if there is an error communicating with the session datasource or the session cannot be created.
 	 */
-	public result createLocalSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass, List<AuthnIdentityAttribute> principalIdentifiers) throws DataSourceException, DuplicateSessionException;
-	
+	public void createLocalSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass, List<AuthnIdentityAttribute> principalIdentifiers) throws SessionCacheUpdateException;
+
 	/**
-	 * Allows the external authentication sources whom we have trusted to create a session from whatever protocol they natively understand and have it inserted into the ESOE
-	 * for use on SPEP protected applications.
+	 * Allows the external authentication sources whom we have trusted to create a session from whatever protocol they
+	 * natively understand and have it inserted into the ESOE for use on SPEP protected applications.
 	 * 
 	 * @param sessionID
 	 *            The session identifier.
 	 * @param principalAuthnIdentifier
-	 *            The name token used to identify the principal when they authenticated eg 'beddoes' or 'n12345' as usernames, could be UNKNOWN if no login name was released
+	 *            The name token used to identify the principal when they authenticated. e.g. their username, but could
+	 *            be UNKNOWN if no login name was released
 	 * @param authenticationContextClass
-	 *            An authentication context class value as specified in com.qut.middleware.saml2.AuthenticationContextConstants.
+	 *            An authentication context class value as specified in
+	 *            {@link com.qut.middleware.saml2.AuthenticationContextConstants}
 	 * @param principalAttributes
-	 * 			  List of attributes supplied by the principal at remote delegator for use in their authn session. These must be keyed to the same values as Friendly name for internally sourced Attributes
-	 * @throws DataSourceException if there is an error communicating with the session datasource.
-	 * @throws DuplicateSessionException if the session alredy exists.
-	 * @return result.SessionCreated if the session was created successfully.
+	 *            List of attributes supplied by the principal at remote delegator for use in their authn session. These
+	 *            must be keyed to the same values as Friendly name for internally sourced Attributes
+	 * @throws SessionCacheUpdateException
+	 *             if there is an error communicating with the session datasource or the session cannot be created.
 	 */
-	public result createDelegatedSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass, List<AttributeType>principalAttributes)throws DataSourceException, DuplicateSessionException;
+	public void createDelegatedSession(String sessionID, String principalAuthnIdentifier, String authenticationContextClass, List<AttributeType> principalAttributes) throws SessionCacheUpdateException;
 }

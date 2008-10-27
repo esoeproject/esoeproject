@@ -30,6 +30,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -43,6 +44,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -65,7 +67,6 @@ import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
-import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.context.Request;
 import com.qut.middleware.saml2.schemas.esoe.protocol.ClearAuthzCacheRequest;
@@ -89,7 +90,6 @@ public class SPEPProcessorTest
 	private SAMLResponseValidator respVal;
 
 	private IdentifierGenerator idGenerator;
-	private IdentifierCache identifierCache;
 
 	private final String SAMLID = "_12345-12345-123";
 	private final String DESC1 = "_098098-098098";
@@ -97,6 +97,7 @@ public class SPEPProcessorTest
 	private final String esoeKeyAlias = "esoeprimary";
 	private final String esoeIdentifier = "_esoeid1234";
 	public Map<Integer,String> endpoints;
+	private String sessionIndex1 = "abc123";
 
 	/**
 	 * @throws java.lang.Exception
@@ -126,6 +127,9 @@ public class SPEPProcessorTest
 
 		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias,
 				esoeKeyPassword);
+		
+		expect(metadata.resolveKey((String)notNull())).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
+		expect(metadata.resolveKey((String)notNull(), (BigInteger)notNull())).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 
 		String[] clearAuthzCacheSchemas = new String[] { SchemaConstants.esoeProtocol,
 				SchemaConstants.samlAssertion, SchemaConstants.samlProtocol };
@@ -190,12 +194,13 @@ public class SPEPProcessorTest
 	@Test
 	public void testSPEPProcessor1() throws Exception
 	{
-		Principal principal = new PrincipalImpl(null, 360);
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.setSessionNotOnOrAfter(System.currentTimeMillis() + 360000L);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
-		principal.addActiveDescriptor(this.DESC1);
+		principal.addEntitySessionIndex(this.DESC1, this.sessionIndex1 );
 
 		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver, this.esoeIdentifier);
 
 		
 		// test that the startup object is as expected
@@ -206,8 +211,8 @@ public class SPEPProcessorTest
 		expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
 		this.respVal.validate((StatusResponseType) notNull());
 		this.respVal.validate((StatusResponseType) notNull());
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse());
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse());
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse());
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse());
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 
 		setUpMock();
@@ -222,13 +227,14 @@ public class SPEPProcessorTest
 	@Test
 	public void testSPEPProcessor1a() throws Exception
 	{
-		Principal principal = new PrincipalImpl(null, 360);
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.setSessionNotOnOrAfter(System.currentTimeMillis() + 360000L);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
-		principal.addActiveDescriptor(this.DESC1);
-		principal.addActiveDescriptor(this.DESC2);
+		principal.addEntitySessionIndex(this.DESC1, this.sessionIndex1 );
+		principal.addEntitySessionIndex(this.DESC2, this.sessionIndex1 );
 
 		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver, this.esoeIdentifier);
 
 //		expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
 //		expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
@@ -239,8 +245,8 @@ public class SPEPProcessorTest
 		this.respVal.validate((StatusResponseType) notNull());
 		this.respVal.validate((StatusResponseType) notNull());
 		this.respVal.validate((StatusResponseType) notNull());
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse()).times(2);
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse()).times(2);
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(0)))).andReturn(generateResponse()).times(2);
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(1)))).andReturn(generateResponse()).times(2);
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 
 		setUpMock();
@@ -254,13 +260,14 @@ public class SPEPProcessorTest
 	@Test
 	public void testSPEPProcessor2() throws Exception
 	{
-		Principal principal = new PrincipalImpl(null, 360);
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.setSessionNotOnOrAfter(System.currentTimeMillis() + 360000L);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
-		principal.addActiveDescriptor(this.DESC1);
-		principal.addActiveDescriptor(this.DESC2);
+		principal.addEntitySessionIndex(this.DESC1, this.sessionIndex1 );
+		principal.addEntitySessionIndex(this.DESC2, this.sessionIndex1 );
 
 		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver, this.esoeIdentifier);
 
 //		expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
 //		expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
@@ -271,8 +278,8 @@ public class SPEPProcessorTest
 		this.respVal.validate((StatusResponseType) notNull());
 		this.respVal.validate((StatusResponseType) notNull());
 		this.respVal.validate((StatusResponseType) notNull());
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).times(2);
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).times(2);
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
 		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
@@ -290,14 +297,15 @@ public class SPEPProcessorTest
 	@Test
 	public void testSPEPProcessor3() throws Exception
 	{
-		Principal principal = new PrincipalImpl(null, 360);
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.setSessionNotOnOrAfter(System.currentTimeMillis() + 360000L);
 		principal.setSAMLAuthnIdentifier(this.SAMLID);
-		principal.addActiveDescriptor(this.DESC1);
-		principal.addActiveDescriptor(this.DESC2);
-		principal.addActiveDescriptor("_iaminvalid-123");
+		principal.addEntitySessionIndex(this.DESC1, this.sessionIndex1 );
+		principal.addEntitySessionIndex(this.DESC2, this.sessionIndex1 );
+		principal.addEntitySessionIndex("_iaminvalid-123", this.sessionIndex1 );
 
 		SPEPProcessor spepProcessor = new SPEPProcessorImpl(this.metadata, this.startup, this.failureRep,
-				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver);
+				this.webServiceClient, this.idGenerator, this.samlValidator, this.keyStoreResolver, this.esoeIdentifier);
 //
 //		expect(this.metadata.resolveCacheClearService(this.DESC1)).andReturn(this.endpoints);
 //		expect(this.metadata.resolveCacheClearService(this.DESC2)).andReturn(this.endpoints);
@@ -307,8 +315,8 @@ public class SPEPProcessorTest
 		expect(this.idGenerator.generateSAMLID()).andReturn("_456-456").anyTimes();
 		this.respVal.validate((StatusResponseType) notNull());
 		expectLastCall().atLeastOnce();
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).atLeastOnce();
-		expect(this.webServiceClient.authzCacheClear((byte[]) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).atLeastOnce();
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(0)))).andReturn(generateInvalidResponse()).atLeastOnce();
+		expect(this.webServiceClient.authzCacheClear((Element) notNull(), eq(this.endpoints.get(1)))).andReturn(generateInvalidResponse()).atLeastOnce();
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
 		this.failureRep.add((FailedAuthzCacheUpdate)notNull());
 		expectLastCall().atLeastOnce();
@@ -318,7 +326,7 @@ public class SPEPProcessorTest
 		tearDownMock();
 	}	
 	
-	private byte[] generateResponse() throws MarshallerException
+	private Element generateResponse() throws MarshallerException
 	{
 		ClearAuthzCacheResponse response = new ClearAuthzCacheResponse();
 		StatusCode code = new StatusCode();
@@ -336,10 +344,10 @@ public class SPEPProcessorTest
 		response.setID("_restest1234");
 		response.setVersion(VersionConstants.saml20);
 
-		return this.clearAuthzCacheResponseMarshaller.marshallSigned(response);
+		return this.clearAuthzCacheResponseMarshaller.marshallSignedElement(response);
 	}
 	
-	private byte[] generateInvalidResponse() throws MarshallerException
+	private Element generateInvalidResponse() throws MarshallerException
 	{
 		ClearAuthzCacheResponse response = new ClearAuthzCacheResponse();
 		StatusCode code = new StatusCode();
@@ -357,7 +365,7 @@ public class SPEPProcessorTest
 		response.setID("_restest1234");
 		response.setVersion(VersionConstants.saml20);
 
-		return this.clearAuthzCacheResponseMarshaller.marshallSigned(response);
+		return this.clearAuthzCacheResponseMarshaller.marshallSignedElement(response);
 	}
 
 }

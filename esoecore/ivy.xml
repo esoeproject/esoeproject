@@ -25,11 +25,9 @@
 	<dependencies>		
 		<dependency org="org.springframework" name="org.springframework.spring-library" rev="2.5.4.A" conf="compile,runtime"/>
 		<dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile,runtime"/>
-		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" conf="compile,runtime"/>
 		<dependency org="org.apache.ibatis" name="com.springsource.com.ibatis" rev="2.3.0.677" conf="compile,runtime"/>
 		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.lang" rev="2.4.0" conf="compile,runtime"/>
 		<dependency org="com.ibm.icu" name="com.springsource.com.ibm.icu" rev="3.8.1" conf="compile,runtime"/>
-		<dependency org="apache" name="axis2" rev="1.1.1A" conf="compile,runtime"/>
 				
 		<dependency org="esoeproject" name="esoecrypto" rev="${esoe.version}" conf="compile,runtime" />
 		<dependency org="esoeproject" name="saml2lib-j" rev="${esoe.version}" conf="compile,runtime" />

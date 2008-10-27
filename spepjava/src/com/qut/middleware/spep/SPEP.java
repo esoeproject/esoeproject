@@ -31,6 +31,7 @@ import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
 import com.qut.middleware.spep.sessions.SessionCache;
+import com.qut.middleware.spep.ws.WSProcessor;
 
 /** Interface for filters and other implementations of the SPEP to use this library.*/
 public interface SPEP
@@ -56,6 +57,11 @@ public interface SPEP
 	 * @return The policy enforcement processor.
 	 */
 	public PolicyEnforcementProcessor getPolicyEnforcementProcessor();
+	
+	/**
+	 * @return The web services processor.
+	 */
+	public WSProcessor getWSProcessor();
 	
 	/** The name of the authentication token used by the system.
 	 * 

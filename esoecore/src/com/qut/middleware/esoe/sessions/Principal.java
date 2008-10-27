@@ -1,4 +1,4 @@
-/* Copyright 2006, Queensland University of Technology
+/* Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -12,169 +12,71 @@
  * the License.
  * 
  * Author: Shaun Mangelsdorf
- * Creation Date: 28/09/2006
+ * Creation Date: 07/10/2008
  * 
- * Purpose: Contains information about an authenticated principal.
+ * Purpose: 
  */
+
 package com.qut.middleware.esoe.sessions;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
-import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
 
-/** Contains information about an authenticated principal. */
-
-public interface Principal
+/**
+ * Interface for the principal object.
+ * 
+ * All modification to this object should be done from within the sessions processor logic. Modifications by other code
+ * should go through the {@link Update}, {@link Create}, {@link Query} and {@link Terminate} interfaces.
+ */
+public interface Principal extends Serializable
 {
-	
-	/**
-	 * Accessor for SAML authentication context class.
-	 * 
-	 * @return String indicating SAML AuthnContextClassRef of how principal was authenticated
-	 */
+	/*  Immutable session data */
+
+	/** Gets SAML Authentication Context Class */
 	public String getAuthenticationContextClass();
-	
-	/**
-	 * Mutator for SAML authentication context class.
-	 * 
-	 * @param authenticationContextClass
-	 *            Value to set.
-	 */
-	public void setAuthenticationContextClass(String authenticationContextClass);
-	
-	/**
-	 * Mutator for list of active entities. An active descriptor is an SPEP for which the user has
-	 * been authenticated.
-	 * 
-	 * @param entityID Descriptor to add to list.
-	 */
-	public void addActiveDescriptor(String entityID);
 
-	/**
-	 * Adds a session identifier to the list of identifiers associated with an SPEP.
-	 * 
-	 * @param descriptorID
-	 *            The descriptor identifier.
-	 * @param descriptorSessionID
-	 *            The session identifier to be added.
-	 * @throws InvalidDescriptorIdentifierException
-	 */
-	public void addDescriptorSessionIdentifier(String descriptorID, String descriptorSessionID)
-			throws InvalidDescriptorIdentifierException;
+	/** Gets authentication timestamp */
+	public long getAuthnTimestamp();
 
-	/**
-	 * Accessor for list of active entities. An active descriptor is an SPEP for which the user has
-	 * been authenticated.
-	 * 
-	 * @return List of Strings - active entities.
-	 */
-	public List<String> getActiveDescriptors();
+	/** Gets ESOE session identifier (i.e. cookie value) */
+	public String getSessionID();
 
-	/**
-	 * Accessor to attribute map. Attributes of the authenticated principal.
-	 * 
-	 * @return Map of Strings to IdentityAttibutes.
-	 */
-	public Map<String, IdentityAttribute> getAttributes();
-
-	/**
-	 * Accessor to retrieve list of session identifiers associated with an SPEP.
-	 * 
-	 * @param descriptorID The descriptor identifier. 
-	 * @return The list of associated session identifiers.
-	 * @throws InvalidDescriptorIdentifierException If the descriptor is not registered with the ESOE.
-	 */
-	public List<String> getDescriptorSessionIdentifiers(String descriptorID) throws InvalidDescriptorIdentifierException;
-
-	/**
-	 * Accessor to principal name. 
-	 * 
-	 * @return String principal name
-	 */
-	public String getPrincipalAuthnIdentifier();
-
-	/**
-	 * Accessor to SAML Authentication Identifier.
-	 * 
-	 * @return String type identifier.
-	 */
+	/** Gets the transient Authn identifier for this session */
 	public String getSAMLAuthnIdentifier();
 
-	/**
-	 * Accessor to session identifier.
-	 * 
-	 * @return String principal's session identifier.
-	 */
-	public String getSessionID();
-	
-	/** Accessor to Authentication Timestamp.
-	 * 
-	 * @return long authentication timestamp.
-	 */
-	public long getAuthnTimestamp();
-	
-	/**
-	 * Accessor for Session not on or after value
-	 * 
-	 * @return XMLGregrianCalendar time that sessions for principal should stop be honoured by SPEP
-	 */
-	public XMLGregorianCalendar getSessionNotOnOrAfter();
+	/** Gets the principal authentication identifier */
+	public String getPrincipalAuthnIdentifier();
 
-	/**
-	 * Mutator for attribute map.
-	 * 
-	 * @param key attribute name.
-	 * @param value attribute value.
-	 */
+	/** Gets the NotOnOrAfter timestamp for this session */
+	public long getSessionNotOnOrAfter();
+
+	/*  Mutable session data */
+
+	/** Gets the principal attribute map */
+	public Map<String, IdentityAttribute> getAttributes();
+
+	/** Adds an attribute name/value pair to the principal attribute map, overwriting any existing value(s) */
 	public void putAttribute(String key, IdentityAttribute value);
 
-	/**
-	 * Mutator for principalAuthnIdentifier. 
-	 * 
-	 * @param principalAuthnIdentifier
-	 *            Principal name to set.
-	 */
-	public void setPrincipalAuthnIdentifier(String principalAuthnIdentifier);
-
-	/**
-	 * Mutator for SAML Authentication Identifier.
-	 * 
-	 * @param samlAuthnIdentifier
-	 *            Value to set.
-	 */
-	public void setSAMLAuthnIdentifier(String samlAuthnIdentifier);
-
-	/**
-	 * Mutator for session identifier.
-	 * 
-	 * @param sessionID session ID to set for pincipal.
-	 */
-	public void setSessionID(String sessionID);
-	
-	/**
-	 * Mutator for authentication timestamp.
-	 * 
-	 * @param authnTimestamp timestamp to set.
-	 */
-	public void setAuthnTimestamp(long authnTimestamp);
-	
-	
-	/**
-	 * Accessor for last accessed timestamp.
-	 * 
-	 * @return lastUpdated timestamp.
-	 */
+	/** Gets the last accessed timestamp for this session */
 	public long getLastAccessed();
-	
-	
-	/**
-	 * Mutator for last accessed timestamp.
-	 * 
-	 * @param lastAccessedTimestamp timestamp to set.
+
+	/** Sets the last accessed timestamp for this session */
+	public void setLastAccessed(long timeMillis);
+
+	/** Adds the entity ID and session index to this session. */
+	public void addEntitySessionIndex(String entityID, String sessionIndex);
+
+	/** Gets the list of active entity IDs for this session. 
+	 *  @return A List of active entity strings if exists, else null.
 	 */
-	public void setLastAccessed(long lastAccessedTimestamp);
+	public List<String> getActiveEntityList();
+
+	/** Gets the list of session indices for this session, for the given entity ID 
+	 * @return A List of active entity strings if exists, else null.
+	 * */
+	public List<String> getActiveEntitySessionIndices(String entityID);
 }

@@ -30,10 +30,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.NameIDFormatConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLAssertionException;
@@ -83,7 +85,7 @@ import com.qut.middleware.spep.util.CalendarUtils;
 /** */
 public class AuthnProcessorImpl implements AuthnProcessor
 {
-	private String[] authnSchemas = new String[] { ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion };
+	private String[] authnSchemas = new String[] { SchemaConstants.samlProtocol, SchemaConstants.samlAssertion };
 	private Marshaller<AuthnRequest> authnRequestMarshaller;
 	private Unmarshaller<Response> responseUnmarshaller;
 	private MetadataProcessor metadata;
@@ -200,7 +202,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		this.assertionConsumerServiceIndex = Integer.valueOf(assertionConsumerServiceIndex);
 		this.authnRequestMarshaller = new MarshallerImpl<AuthnRequest>(this.MAR_PKGNAMES2, this.authnSchemas, keyStoreResolver);
 		this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES2, this.authnSchemas, this.metadata);
-		this.logoutSchemas = new String[] { ConfigurationConstants.samlProtocol };
+		this.logoutSchemas = new String[] { SchemaConstants.samlProtocol };
 		this.logoutRequestUnmarshaller = new UnmarshallerImpl<LogoutRequest>(this.UNMAR_PKGNAMES, this.logoutSchemas, this.metadata);
 		this.logoutResponseMarshaller = new MarshallerImpl<LogoutResponse>(this.MAR_PKGNAMES, this.logoutSchemas, keyStoreResolver);
 		this.identifierGenerator = identifierGenerator;
@@ -610,7 +612,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 * 
 	 * @see com.qut.middleware.spep.authn.AuthnProcessor#logoutPrincipal(com.qut.middleware.spep.authn.AuthnProcessorData)
 	 */
-	public void logoutPrincipal(AuthnProcessorData data) throws LogoutException
+	public Element logoutPrincipal(Element requestDocument) throws LogoutException
 	{
 		this.logger.debug(Messages.getString("AuthnProcessorImpl.23")); //$NON-NLS-1$
 		LogoutRequest logoutRequest;
@@ -619,7 +621,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 		try
 		{
-			logoutRequest = this.logoutRequestUnmarshaller.unMarshallSigned(data.getRequestDocument());
+			logoutRequest = this.logoutRequestUnmarshaller.unMarshallSigned(requestDocument);
 			samlID = logoutRequest.getID();
 		}
 		catch (SignatureValueException e)
@@ -629,14 +631,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			message = Messages.getString("AuthnProcessorImpl.24"); //$NON-NLS-1$
 			try
 			{
-				data.setResponseDocument(generateLogoutResponse(StatusCodeConstants.requester, message, samlID));
+				return generateLogoutResponse(StatusCodeConstants.requester, message, samlID);
 			}
 			catch (MarshallerException e1)
 			{
 				this.logger.error(Messages.getString("AuthnProcessorImpl.78") + e.getMessage()); //$NON-NLS-1$
+				throw new LogoutException(message, e);
 			}
-
-			throw new LogoutException(message, e);
 		}
 		catch (ReferenceValueException e)
 		{
@@ -645,13 +646,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			message = Messages.getString("AuthnProcessorImpl.26"); //$NON-NLS-1$
 			try
 			{
-				data.setResponseDocument(generateLogoutResponse(StatusCodeConstants.requester, message, samlID));
+				return generateLogoutResponse(StatusCodeConstants.requester, message, samlID);
 			}
 			catch (MarshallerException e1)
 			{
 				this.logger.error(Messages.getString("AuthnProcessorImpl.79") + e.getMessage()); //$NON-NLS-1$
+				throw new LogoutException(message, e);
 			}
-			throw new LogoutException(message, e);
 		}
 		catch (UnmarshallerException e)
 
@@ -661,14 +662,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			message = Messages.getString("AuthnProcessorImpl.28"); //$NON-NLS-1$
 			try
 			{
-				data.setResponseDocument(generateLogoutResponse(StatusCodeConstants.requester, message, samlID));
+				return generateLogoutResponse(StatusCodeConstants.requester, message, samlID);
 			}
 			catch (MarshallerException e1)
 			{
 				this.logger.error("Unable to marshall LogoutResponse - " + e.getMessage()); //$NON-NLS-1$
+				throw new LogoutException(message, e);
 			}
-
-			throw new LogoutException(message, e);
 		}
 
 		this.logger.debug(MessageFormat.format(Messages.getString("AuthnProcessorImpl.30"), samlID)); //$NON-NLS-1$
@@ -710,13 +710,11 @@ public class AuthnProcessorImpl implements AuthnProcessor
 					this.logger.debug(MessageFormat.format(Messages.getString("AuthnProcessorImpl.31"), principalSession.getEsoeSessionID())); //$NON-NLS-1$
 					this.sessionCache.terminatePrincipalSession(principalSession);
 				}
-				data.setResponseDocument(generateLogoutResponse(StatusCodeConstants.success, Messages.getString("AuthnProcessorImpl.83"), samlID)); //$NON-NLS-1$
-				return;
+				return generateLogoutResponse(StatusCodeConstants.success, Messages.getString("AuthnProcessorImpl.83"), samlID);
 			}
 
 			this.logger.debug(Messages.getString("AuthnProcessorImpl.84")); //$NON-NLS-1$
-			data.setResponseDocument(generateLogoutResponse(StatusCodeConstants.unknownPrincipal, Messages.getString("AuthnProcessorImpl.85"), samlID)); //$NON-NLS-1$
-			throw new LogoutException(Messages.getString("AuthnProcessorImpl.86")); //$NON-NLS-1$
+			return generateLogoutResponse(StatusCodeConstants.unknownPrincipal, Messages.getString("AuthnProcessorImpl.85"), samlID);
 		}
 		catch (MarshallerException e)
 		{
@@ -729,11 +727,11 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 * Generate the Logout Response to be sent back to the ESOE.
 	 * 
 	 */
-	private byte[] generateLogoutResponse(String statusCodeValue, String statusMessage, String inResponseTo) throws MarshallerException
+	private Element generateLogoutResponse(String statusCodeValue, String statusMessage, String inResponseTo) throws MarshallerException
 	{
 		this.logger.debug(MessageFormat.format(Messages.getString("AuthnProcessorImpl.42"), statusCodeValue, statusMessage)); //$NON-NLS-1$
 
-		byte[] responseDocument = null;
+		Element responseDocument = null;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.spepIdentifier);
@@ -753,7 +751,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		response.setStatus(status);
 		response.setVersion(VersionConstants.saml20);
 
-		responseDocument = this.logoutResponseMarshaller.marshallSigned(new LogoutResponse(response));
+		responseDocument = this.logoutResponseMarshaller.marshallSignedElement(new LogoutResponse(response));
 
 		return responseDocument;
 	}

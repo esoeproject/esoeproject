@@ -55,11 +55,14 @@ import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.exception.ReferenceValueException;
+import com.qut.middleware.saml2.exception.SOAPException;
 import com.qut.middleware.saml2.exception.SignatureValueException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
+import com.qut.middleware.saml2.handler.SOAPHandler;
 import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
+import com.qut.middleware.saml2.handler.impl.SOAPv12Handler;
 import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -220,8 +223,16 @@ public class AttributeAuthorityProcessorImplTest
 			fail("Marshaller error: " + e.getMessage() + "\n" + e.getCause().getMessage());
 		}
 		
-		data.setRequestDocument(request);
-		
+		SOAPHandler handler = new SOAPv12Handler();
+		try
+		{
+			data.setRequestDocument(handler.unwrapDocument(request));
+		} 
+		catch (SOAPException e1)
+		{
+			fail("Unable to unwrap request document.");
+			e1.printStackTrace();
+		}		
 		
 		try
 		{

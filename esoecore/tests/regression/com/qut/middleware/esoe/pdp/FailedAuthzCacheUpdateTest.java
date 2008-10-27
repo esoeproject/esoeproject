@@ -21,11 +21,16 @@ package com.qut.middleware.esoe.pdp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 
 import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
 import com.qut.middleware.esoe.authz.cache.bean.impl.FailedAuthzCacheUpdateImpl;
@@ -39,7 +44,7 @@ public class FailedAuthzCacheUpdateTest
 {
 
 	private FailedAuthzCacheUpdate testFailedUpdate;
-	private byte[] testRequest;
+	private String testRequest;
 	private Date testTimestamp;
 	private String testEndpoint;
 	
@@ -51,7 +56,7 @@ public class FailedAuthzCacheUpdateTest
 	@Before
 	public void setUp() throws Exception
 	{
-		this.testRequest = new String("<yo></yo>").getBytes();
+		this.testRequest = new String("RequestNode");
 		this.testTimestamp = new Date(System.currentTimeMillis());
 		this.testEndpoint = ENDPOINT;
 		
@@ -78,7 +83,7 @@ public class FailedAuthzCacheUpdateTest
 	{
 		this.testSetRequestDocument();
 		
-		assertEquals("Request comparison", this.testRequest, this.testFailedUpdate.getRequestDocument()); //$NON-NLS-1$
+		assertEquals("Request comparison", this.testRequest, this.testFailedUpdate.getRequestDocument().getNodeName()); //$NON-NLS-1$
 	}
 	
 
@@ -112,9 +117,9 @@ public class FailedAuthzCacheUpdateTest
 	@Test
 	public final void testSetRequestDocument()
 	{
-		this.testFailedUpdate.setRequestDocument(this.testRequest);
+		this.testFailedUpdate.setRequestDocument(this.getDodgyElement(this.testRequest));
 		
-		byte[] test = this.testFailedUpdate.getRequestDocument();
+		String test = this.testFailedUpdate.getRequestDocument().getNodeName();
 		
 		assertTrue(test != null && test.equals(this.testRequest) );
 	}
@@ -130,4 +135,34 @@ public class FailedAuthzCacheUpdateTest
 		assertEquals("Incorrect timestamp recieved", this.testTimestamp, this.testFailedUpdate.getTimeStamp());
 	}
 
+	private Element getDodgyElement(String nodename)
+	{
+
+		DOMImplementation dom = null;
+		try 
+		{
+			dom = DOMImplementationRegistry.newInstance().getDOMImplementation("XML 1.0");
+		}
+		catch (Exception e)
+		{
+			fail("Failed to instantiate DomImplementation.");
+			//e.printStackTrace();
+		} 
+		
+		Element elem = null;
+		Document doc = null;
+		
+		try
+		{
+			doc =  dom.createDocument("http://www.w3.org/2001/XMLSchema", "xs:string", null);
+			elem = doc.createElement(nodename);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			fail("Error occured created Document or Element");
+		}
+		
+		return elem;
+	}
 }

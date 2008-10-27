@@ -1,4 +1,4 @@
-/* Copyright 2006, Queensland University of Technology
+/* Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -12,95 +12,105 @@
  * the License.
  * 
  * Author: Shaun Mangelsdorf
- * Creation Date: 09/10/2006
+ * Creation Date: 08/10/2008
  * 
- * Purpose: Implements the Query interface.
+ * Purpose: 
  */
-package com.qut.middleware.esoe.sessions.impl;
 
-import java.text.MessageFormat;
+package com.qut.middleware.esoe.sessions.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Query;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
-import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 
-/** Implements the Query interface. */
 public class QueryImpl implements Query
 {
-	private SessionCache cache;
+	private SessionCache sessionCache;
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	/* Local logging instance */
-	private Logger logger = LoggerFactory.getLogger(QueryImpl.class.getName());
-
-	/**
-	 * Constructor
-	 * 
-	 * @param cache
-	 *            The session cache to use.
-	 */
-	public QueryImpl(SessionCache cache)
+	public QueryImpl(SessionCache sessionCache)
 	{
-		if (cache == null)
+		if (sessionCache == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("QueryImpl.SessionCacheNull")); //$NON-NLS-1$
+			throw new IllegalArgumentException("Session cache cannot be null.");
 		}
 		
-		this.cache = cache;
+		this.sessionCache = sessionCache;
 		
-		this.logger.info(Messages.getString("QueryImpl.0")); //$NON-NLS-1$
+		this.logger.info("Created QueryImpl");
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Query#queryAuthnSession(java.lang.String)
-	 */
-	public Principal queryAuthnSession(String sessionID) throws InvalidSessionIdentifierException
+	
+	public Principal queryAuthnSession(String sessionID)
 	{
-		Principal principal = this.cache.getSession(sessionID);
-		if (principal == null)
+		// Grab session and perform some checks before it's returned.
+		Principal principal = this.sessionCache.getSession(sessionID);
+				
+		// Validate locally. Keep the logic in the same place.
+		if (!this.validateSession(principal))
 		{
-			this.logger.debug(MessageFormat.format(Messages.getString("QueryImpl.1"), sessionID)); //$NON-NLS-1$
-			throw new InvalidSessionIdentifierException();
+			this.logger.warn("Query for session by session ID {} returned an invalid session.", sessionID);
+			return null;
 		}
-
-		this.logger.debug(MessageFormat.format(Messages.getString("QueryImpl.2"), sessionID, principal.getPrincipalAuthnIdentifier())); //$NON-NLS-1$
+		
+		this.logger.debug("Query for session by session ID {} returned a valid principal.", sessionID);
 		return principal;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Query#querySAMLSession(java.lang.String)
-	 */
-	public Principal querySAMLSession(String samlID) throws InvalidSessionIdentifierException
+	public Principal querySAMLSession(String samlID)
 	{
-		Principal principal = this.cache.getSessionBySAMLID(samlID);
-		if (principal == null)
+		// Grab the session and perform some checks before it's returned.
+		Principal principal = this.sessionCache.getSessionBySAMLID(samlID);
+			
+		// Validate locally. Keep the logic in the same place.
+		if (!this.validateSession(principal))
 		{
-			this.logger.debug(MessageFormat.format(Messages.getString("QueryImpl.3"), samlID)); //$NON-NLS-1$
-			throw new InvalidSessionIdentifierException();
+			this.logger.error("Query for session by SAML ID {} returned an invalid session.", samlID);
+			return null;
 		}
-
-		this.logger.debug(MessageFormat.format(Messages.getString("QueryImpl.4"), samlID, principal.getPrincipalAuthnIdentifier())); //$NON-NLS-1$
+		
+		this.logger.debug("Query for session by SAML ID {} returned a valid principal.", samlID);
 		return principal;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Query#validAuthnSession(java.lang.String)
-	 */
-	public void validAuthnSession(String sessionID) throws InvalidSessionIdentifierException
+	public boolean validAuthnSession(String sessionID)
 	{
-		if(! this.cache.validSession(sessionID) )
+		// No need to retrieve the entire session object here. Validation is done by the session cache.
+		if (this.sessionCache.validSession(sessionID))
 		{
-			this.logger.error(Messages.getString("QueryImpl.5") + sessionID); //$NON-NLS-1$
-			throw new InvalidSessionIdentifierException();
+			// Seems kind of dumb checking for a boolean value then returning that value, but we need to do it this way to do logging.
+			this.logger.info("Successfully verified session ID {} as a valid session", sessionID);
+			return true;
+		}
+		else
+		{
+			this.logger.info("Couldn't verify session ID {} as a valid session", sessionID);
+			return false;
 		}
 	}
-
+	
+	private boolean validateSession(Principal session)
+	{
+		boolean valid = true;
+		
+		// Just perform some simple checks to make sure the principal session is valid before accepting it.
+		if (session == null)
+		{
+			this.logger.debug("Null Principal passed to validate. Returning false.");
+			valid =  false;
+		}
+		else
+		{
+			if (session.getSessionNotOnOrAfter() < System.currentTimeMillis())
+			{
+				this.logger.debug("Principal session has exceeded notOnOrAfter time frame.");
+				valid =  false;
+			}
+		}
+		// TODO Make this more rigorous.
+		return  valid; 
+	}
 }

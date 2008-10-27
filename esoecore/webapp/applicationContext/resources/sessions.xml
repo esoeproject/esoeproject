@@ -60,14 +60,20 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		</bean>
 			
 		<!-- Processor responsible for all session activity in the ESOE -->
-		<bean id="sessionsProcessor" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="sessionsProcessor" />
+		<bean id="sessionsProcessor" class="com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl">
+			<constructor-arg ref="create"/>
+			<constructor-arg ref="query"/>
+			<constructor-arg ref="terminate"/>
+			<constructor-arg ref="update"/>
 		</bean>
 		
 		<!--  Sessions monitor. Removes expired data from caches -->
-		<bean id="sessionsMonitorThread" destroy-method="shutdown" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="sessionsMonitorThread" />
-		</bean>
+		<bean id="sessionsMonitorThread" class="com.qut.middleware.esoe.sessions.impl.SessionsMonitor"
+		destroy-method="shutdown">
+			<constructor-arg index="0" ref="identifierCache"/>
+			<constructor-arg index="1" ref="sessionCache"/>
+			<constructor-arg index="2" value="${sessions.cleanupInterval}"/>
+			<constructor-arg index="3" value="${sessions.timeoutInterval}"/>
+		</bean>		
+		
 </beans>

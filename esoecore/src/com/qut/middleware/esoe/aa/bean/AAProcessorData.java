@@ -19,10 +19,10 @@
  */
 package com.qut.middleware.esoe.aa.bean;
 
-import com.qut.middleware.esoe.bean.SAMLProcessorData;
+import com.qut.middleware.esoe.ws.bean.WSProcessorData;
 
 /** */
-public interface AAProcessorData extends SAMLProcessorData
+public interface AAProcessorData extends WSProcessorData
 {
 	/** Accessor for issuer ID. A issuer ID is used to identify SPEP configuration.
 	 * 

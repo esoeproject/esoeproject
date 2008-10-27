@@ -21,8 +21,9 @@ package com.qut.middleware.esoe.authz.cache.bean.impl;
 
 import java.util.Date;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate;
-import com.qut.middleware.esoe.logout.bean.FailedLogout;
 
 /** */
 public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
@@ -30,7 +31,7 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 
 	private String endPoint;
 	
-	private byte[] request;
+	private Element request;
 	
 	private Date timeAttempted;
 
@@ -46,7 +47,7 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 	/* 
 	 * @see com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate#getRequestDocument()
 	 */
-	public byte[] getRequestDocument()
+	public Element getRequestDocument()
 	{
 		return this.request;
 	}
@@ -70,7 +71,7 @@ public class FailedAuthzCacheUpdateImpl implements FailedAuthzCacheUpdate
 	/* 
 	 * @see com.qut.middleware.esoe.authz.cache.bean.FailedAuthzCacheUpdate#setRequestDocument(com.qut.middleware.esoe.xml.lxacml.protocol.LXACMLAuthzDecisionQueryType)
 	 */
-	public void setRequestDocument(byte[] request)
+	public void setRequestDocument(Element request)
 	{
 		this.request = request;
 	}

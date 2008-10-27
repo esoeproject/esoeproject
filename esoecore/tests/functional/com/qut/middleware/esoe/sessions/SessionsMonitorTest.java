@@ -13,6 +13,7 @@ import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sessions.impl.PrincipalImpl;
 import com.qut.middleware.esoe.sessions.impl.SessionsMonitor;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
@@ -39,8 +40,8 @@ public class SessionsMonitorTest
 		replay(this.logoutThreadPool);
 		
 		this.sessioncache = new SessionCacheImpl(this.logoutThreadPool);
-		this.interval = 2;
-		this.timeout = 5;
+		this.interval = 3;
+		this.timeout = 8;
 
 		this.monitor = new SessionsMonitor(idcache, sessioncache, interval, timeout);		
 	}
@@ -57,21 +58,22 @@ public class SessionsMonitorTest
 		assertTrue(this.monitor.isAlive());
 		
 		// Add a few principals to test behaviour
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier("testuser-1");
 		data.setSessionID("somerandomsessionID1");
+		data.setSAMLAuthnIdentifier("dhithere");
+		data.setSessionNotOnOrAfter(System.currentTimeMillis() + 100000);
 		
-		Principal data2 = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data2 = new PrincipalImpl();
 		data2.setPrincipalAuthnIdentifier("testuser-2");
 		data2.setSessionID("somerandomsessionID2");
+		data2.setSAMLAuthnIdentifier("hithere");
+		data2.setSessionNotOnOrAfter(System.currentTimeMillis() + 100000);
 		
 		try
 		{
 			this.sessioncache.addSession(data);
 			this.sessioncache.addSession(data2);
-			
-			// sleep while it polls
-			Thread.sleep(4000);
 			
 			// gettting session data will refresh it's last accessed timestamp, so this one should not be removed.
 			this.sessioncache.getSession("somerandomsessionID2");
@@ -86,7 +88,7 @@ public class SessionsMonitorTest
 			assertEquals(data2, this.sessioncache.getSession("somerandomsessionID2"));
 	
 		}
-		catch(DuplicateSessionException e)
+		catch(SessionCacheUpdateException e)
 		{
 			e.printStackTrace();
 		}

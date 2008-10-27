@@ -57,6 +57,7 @@ import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
 import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sessions.identity.IdentityResolver;
 import com.qut.middleware.esoe.sessions.identity.impl.IdentityResolverImpl;
 import com.qut.middleware.esoe.sessions.identity.pipeline.Handler;
@@ -201,49 +202,32 @@ public class SessionsProcessorTest
 		assertSame("Create was expected to return the same object.", this.create, this.processor.getCreate());
 
 		// Just in case...
-		this.sessionCache.removeSession(sessionID);
+		try {
+			this.sessionCache.removeSession(sessionID);
+		} catch (SessionCacheUpdateException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			fail("Failed to remove session");
+		}
 
 		/*
 		 * Test case: Creating a session normally.
 		 */
 		try
 		{
-			this.create.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, null);
+			this.create.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, new Vector<AuthnIdentityAttribute>());
 			
-			// test validity function. Check for bot a valid and invalid session
-			try
-			{
-				this.query.validAuthnSession(sessionID);
-			}
-			catch(InvalidSessionIdentifierException e)
-			{
-				// not good
-				fail("Session was not created as expected, or query.validAuthSession() is at fault.");
-			}
+			assertTrue(this.query.validAuthnSession(sessionID));
 			
-			try
-			{
-				this.query.validAuthnSession("some random id");
-			}
-			catch(InvalidSessionIdentifierException e)
-			{
-				// we expect one of these
-				return;
-			}
-			
-			fail("Did not recieve expected invalid session exception");
+			assertTrue(!this.query.validAuthnSession("some random id"));
+						
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
 			fail("Session already exists in empty cache.");
 			return;
 		}
-		catch (DataSourceException ex)
-		{
-			fail("Exception thrown accessing null data source?");
-			return;
-		}
-
+	
 		Principal principal = this.sessionCache.getSession(sessionID);
 
 		assertEquals("Session ID mismatch.", sessionID, principal.getSessionID());
@@ -265,16 +249,11 @@ public class SessionsProcessorTest
 
 		try
 		{
-			this.create.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, null);
+			this.create.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, new Vector<AuthnIdentityAttribute>());
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
 			fail("Session already exists in empty cache.");
-			return;
-		}
-		catch (DataSourceException ex)
-		{
-			fail("Exception thrown accessing null data source?");
 			return;
 		}
 
@@ -283,19 +262,14 @@ public class SessionsProcessorTest
 		 */
 		try
 		{
-			this.create.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, null);
+			this.create.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, new Vector<AuthnIdentityAttribute>());
+	
+			fail("Expected exception not thrown");
 		}
-		catch (DuplicateSessionException ex)
-		{
-			caught = true;
-		}
-		catch (DataSourceException ex)
-		{
-			fail("Exception thrown accessing null data source?");
+		catch (SessionCacheUpdateException ex)
+		{			
 			return;
 		}
-
-		assertTrue("Duplicate session did not trigger error condition", caught);
 	}
 
 	/**
@@ -313,17 +287,11 @@ public class SessionsProcessorTest
 		 */
 		try
 		{
-			this.create.createLocalSession("", principalName, AuthenticationContextConstants.unspecified, null);
+			this.create.createLocalSession("", principalName, AuthenticationContextConstants.unspecified, new Vector<AuthnIdentityAttribute>());
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session when session should have been rejected.");
-			return;
-		}
-		catch (DataSourceException ex)
-		{
-			fail("Exception thrown accessing null data source?");
-			return;
+			fail("Session already exists in empty cache.");
 		}
 		catch (IllegalArgumentException ex)
 		{
@@ -349,17 +317,11 @@ public class SessionsProcessorTest
 		 */
 		try
 		{
-			this.create.createLocalSession(sessionID, "", AuthenticationContextConstants.unspecified, null);
+			this.create.createLocalSession(sessionID, "", AuthenticationContextConstants.unspecified, new Vector<AuthnIdentityAttribute>());
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session when session should have been rejected.");
-			return;
-		}
-		catch (DataSourceException ex)
-		{
-			fail("Exception thrown accessing null data source?");
-			return;
+			fail("Session already exists in empty cache.");
 		}
 		catch (IllegalArgumentException ex)
 		{
@@ -387,19 +349,14 @@ public class SessionsProcessorTest
 		 */
 		try
 		{
-			brokenCreate.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, null);
-		}
-		catch (DuplicateSessionException ex)
-		{
-			fail("Duplicate session when session should have been rejected.");
-			return;
-		}
-		catch (DataSourceException ex)
-		{
-			caught = true;
-		}
+			brokenCreate.createLocalSession(sessionID, principalName, AuthenticationContextConstants.unspecified, new Vector());
 
-		assertTrue("No handler did not trigger error condition.", caught);
+			fail("Expected exception not thrown.");
+		}
+		catch (SessionCacheUpdateException ex)
+		{
+			// this should be thrown because handler is screwed
+		}
 	}
 	
 	/**
@@ -454,41 +411,25 @@ public class SessionsProcessorTest
 		String principal = "kajshtoiuqweh";
 		assertSame("Query was expected to return the same object.", this.query, this.processor.getQuery());
 
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principal);
 		data.setSAMLAuthnIdentifier(samlID);
 		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-
+		data.setSessionNotOnOrAfter(System.currentTimeMillis() + 300000);
+		
 		try
 		{
+			// Just in case...
+			this.sessionCache.removeSession(sessionID);
+
 			this.sessionCache.addSession(data);
-			this.sessionCache.updateSessionSAMLID(data);
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session in empty session cache.");
-			return;
+			fail("Session already exists in empty cache.");
 		}
 
-		Principal result = null;
-		boolean found = true;
-
-		/*
-		 * Test case: Querying a session normally.
-		 */
-		try
-		{
-			result = this.query.queryAuthnSession(sessionID);
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			found = false;
-		}
-
-		assertTrue("Query did not return session", found);
+		Principal result =  this.query.queryAuthnSession(sessionID);
 
 		assertSame("Query did not return the same session", data, result);
 
@@ -509,41 +450,25 @@ public class SessionsProcessorTest
 		String principal = "kajshtoiuqweh";
 		assertSame("Query was expected to return the same object.", this.query, this.processor.getQuery());
 
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principal);
 		data.setSAMLAuthnIdentifier(samlID);
 		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-
+		data.setSessionNotOnOrAfter(System.currentTimeMillis() + 300000);
+		
 		try
 		{
+			// Just in case...
+			this.sessionCache.removeSession(sessionID);
+
 			this.sessionCache.addSession(data);
-			this.sessionCache.updateSessionSAMLID(data);
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session in empty session cache.");
-			return;
+			fail("Session already exists in empty cache.");
 		}
-
-		Principal result = null;
-		boolean found = true;
-
-		/*
-		 * Test case: Querying a session by its SAML identifier
-		 */
-		try
-		{
-			result = this.query.querySAMLSession(samlID);
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			found = false;
-		}
-
-		assertTrue("Query did not return session", found);
+		
+		Principal result =  this.query.querySAMLSession(samlID);
 
 		assertSame("Query did not return the same session", data, result);
 
@@ -562,22 +487,8 @@ public class SessionsProcessorTest
 		String sessionID = "98327598243687569876197619287";
 		assertSame("Query was expected to return the same object.", this.query, this.processor.getQuery());
 
-		Principal result = null;
-		boolean found = true;
+		Principal result =  this.query.queryAuthnSession(sessionID);
 
-		/*
-		 * Test case: Querying a session that does not exist
-		 */
-		try
-		{
-			result = this.query.queryAuthnSession(sessionID);
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			found = false;
-		}
-
-		assertFalse("Found object that shouldn't exist", found);
 		assertNull("Object returned when no object should exist.", result);
 	}
 
@@ -590,22 +501,8 @@ public class SessionsProcessorTest
 		String samlID = "u984698y109458y098qy058y12029";
 		assertSame("Query was expected to return the same object.", this.query, this.processor.getQuery());
 
-		Principal result = null;
-		boolean found = true;
+		Principal result =  this.query.querySAMLSession(samlID);
 
-		/*
-		 * Test case: Querying a SAML ID that does not exist
-		 */
-		try
-		{
-			result = this.query.querySAMLSession(samlID);
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			found = false;
-		}
-
-		assertFalse("Found object from SAML ID that shouldn't exist", found);
 		assertNull("Object returned by SAML ID when no object should exist.", result);
 	}
 
@@ -619,24 +516,24 @@ public class SessionsProcessorTest
 		String principal = "jasldjfhakj";
 		assertSame("Terminate was expected to return the same object.", this.terminate, this.processor.getTerminate());
 
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principal);
 		data.setSessionID(sessionID1);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID1);
-
+		data.setSAMLAuthnIdentifier("blee");
+		
 		/*
 		 * Test case: Removing a session normally
 		 */
 		try
 		{
+			// Just in case...
+			this.sessionCache.removeSession(sessionID1);
+
 			this.sessionCache.addSession(data);
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session in empty session cache.");
-			return;
+			fail("Session already exists in empty cache.");
 		}
 
 		if (this.sessionCache.getSession(sessionID1) == null)
@@ -652,9 +549,9 @@ public class SessionsProcessorTest
 		{
 			this.terminate.terminateSession(sessionID1);
 		}
-		catch (InvalidSessionIdentifierException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			error = true;
+			fail("Session already exists in empty cache.");
 		}
 
 		assertFalse("Invalid session identifier trying to terminate session", error);
@@ -680,12 +577,10 @@ public class SessionsProcessorTest
 		{
 			this.terminate.terminateSession(sessionID2);
 		}
-		catch (InvalidSessionIdentifierException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			error = true;
+			fail("Session already exists in empty cache.");
 		}
-
-		assertTrue("Successfully terminated session that doesn't exist?", error);
 	}
 
 	/**
@@ -699,21 +594,20 @@ public class SessionsProcessorTest
 		String principalName = "kajshtoiuqweh";
 		assertSame("Update was expected to return the same object.", this.update, this.processor.getUpdate());
 
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principalName);
 		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-
+		data.setSAMLAuthnIdentifier("");		
 		try
 		{
+			// Just in case...
+			this.sessionCache.removeSession(sessionID);
+
 			this.sessionCache.addSession(data);
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session in empty session cache.");
-			return;
+			fail("Session already exists in empty cache.");
 		}
 
 		/*
@@ -725,48 +619,7 @@ public class SessionsProcessorTest
 
 	}
 
-	/**
-	 * Test method for {@link com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl#getUpdate()}.
-	 */
-	@Test
-	public final void testUpdate2()
-	{
-		String sessionID = "98327598243687569876197619287";
-		String samlID = "u984698y109458y098qy058y12029";
-		String principalName = "kajshtoiuqweh";
-		assertSame("Update was expected to return the same object.", this.update, this.processor.getUpdate());
-
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
-		data.setPrincipalAuthnIdentifier(principalName);
-		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-
-		try
-		{
-			this.sessionCache.addSession(data);
-			this.update.updateSAMLAuthnIdentifier(sessionID, samlID);
-		}
-		catch (DuplicateSessionException ex)
-		{
-			fail("Duplicate session in empty session cache.");
-			return;
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			fail("Invalid session when session was already added.");
-		}
-
-		/*
-		 * Test case: Get object after updating SAML ID.
-		 */
-
-		Principal principal = this.sessionCache.getSessionBySAMLID(samlID);
-
-		assertSame("Got wrong object from cache.", data, principal);
-	}
-
+	
 	/**
 	 * Test method for {@link com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl#getUpdate()}.
 	 */
@@ -776,93 +629,36 @@ public class SessionsProcessorTest
 		String sessionID = "98327598243687569876197619287";
 		String principalName = "kajshtoiuqweh";
 		String entityID = "ajshkjfhaksjhdfkjhsadkjfh";
+		String index = "80085";
+		
 		assertSame("Update was expected to return the same object.", this.update, this.processor.getUpdate());
 
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principalName);
 		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-
+		data.setSAMLAuthnIdentifier("");		
+	
 		try
 		{
+			
+			// Just in case...
+			this.sessionCache.removeSession(sessionID);
+
 			this.sessionCache.addSession(data);
-			this.update.updateDescriptorList(sessionID, entityID);
+			this.update.addEntitySessionIndex(data, entityID, index);
 		}
-		catch (DuplicateSessionException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Duplicate session in empty session cache.");
-			return;
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			fail("Invalid session when session was already added.");
+			fail("Error accessing session cache.");
 		}
 
 		/*
 		 * Test case: Check entity ID was added successfully.
 		 */
 
-		assertTrue("Entity ID was not added.", data.getActiveDescriptors().contains(entityID));
+		assertTrue("Entity ID was not added.", data.getActiveEntityList().contains(entityID));
 	}
 
-	/**
-	 * Test method for {@link com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl#getUpdate()}.
-	 */
-	@Test
-	public final void testUpdate4()
-	{
-		String sessionID = "98327598243687569876197619287";
-		String principalName = "kajshtoiuqweh";
-		String entityID = "ajshkjfhaksjhdfkjhsadkjfh";
-		String entitySessionID = "5981798fu9q8we9ruq98n398un21985u5q8uw985uj9a85u28130u5019";
-		assertSame("Update was expected to return the same object.", this.update, this.processor.getUpdate());
-
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
-		data.setPrincipalAuthnIdentifier(principalName);
-		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-
-		try
-		{
-			this.sessionCache.addSession(data);
-			data.setSAMLAuthnIdentifier(entityID);
-			this.sessionCache.updateSessionSAMLID(data);
-
-			data.addActiveDescriptor(entityID);
-
-			this.update.updateDescriptorSessionIdentifierList(sessionID, entityID, entitySessionID);
-		}
-		catch (DuplicateSessionException ex)
-		{
-			fail("Duplicate session in empty session cache.");
-		}
-		catch (InvalidSessionIdentifierException ex)
-		{
-			fail("Invalid session when session was already added.");
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Invalid entity when entity was already added.");
-		}
-
-		/*
-		 * Test case: Check entity ID was added successfully.
-		 */
-
-		try
-		{
-			assertTrue("Entity Session ID was not added.", data.getDescriptorSessionIdentifiers(entityID).contains(
-					entitySessionID));
-		}
-		catch (InvalidDescriptorIdentifierException ex)
-		{
-			fail("Couldn't retrieve entity when entity was already added.");
-		}
-	}
 	
 	/** Test updating of attributes that don't currently exis in principal.
 	 * 
@@ -875,13 +671,11 @@ public class SessionsProcessorTest
 		String principalName = "kajshtoiuqweh";
 		assertSame("Update was expected to return the same object.", this.update, this.processor.getUpdate());
 
-		Principal data = new PrincipalImpl(new IdentityDataImpl(), 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principalName);
 		data.setSessionID(sessionID);
-
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
-		
+		data.setSAMLAuthnIdentifier("");		
+	
 		List<AuthnIdentityAttribute> authnIdentityAttributes = new Vector<AuthnIdentityAttribute>();
 		AuthnIdentityAttribute attr = new AuthnIdentityAttributeImpl();
 		List<String> values = new Vector<String>();
@@ -892,18 +686,17 @@ public class SessionsProcessorTest
 		
 		try
 		{
+			// Just in case...
+			this.sessionCache.removeSession(sessionID);
+			
 			this.sessionCache.addSession(data);
 			
 			// will update attributes that dont currently exist
-			this.update.updatePrincipalAttributes(sessionID, authnIdentityAttributes);
+			this.update.addPrincipalAttributes(data, authnIdentityAttributes);
 		}
-		catch (InvalidSessionIdentifierException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Invalid session when session was already added.");
-		}
-		catch(DuplicateSessionException e)
-		{
-			fail("Session already exists");
+			fail("Error accessing session cache.");
 		}
 	
 		/*
@@ -944,12 +737,12 @@ public class SessionsProcessorTest
 		idAttr.getValues().add("first#test.com");		
 		idData.getAttributes().put("email", idAttr);
 		
-		Principal data = new PrincipalImpl(idData, 360);
+		PrincipalImpl data = new PrincipalImpl();
 		data.setPrincipalAuthnIdentifier(principalName);
 		data.setSessionID(sessionID);
+		data.setSAMLAuthnIdentifier("");		
 
-		// Just in case...
-		this.sessionCache.removeSession(sessionID);
+
 		
 		// update the data by adding another email attribute
 		List<AuthnIdentityAttribute> authnIdentityAttributes = new Vector<AuthnIdentityAttribute>();
@@ -962,18 +755,17 @@ public class SessionsProcessorTest
 		
 		try
 		{
+			// Just in case...
+			this.sessionCache.removeSession(sessionID);
+		
 			this.sessionCache.addSession(data);
 			
 			// will update attributes that currently exist, adding new email to list
-			this.update.updatePrincipalAttributes(sessionID, authnIdentityAttributes);
+			this.update.addPrincipalAttributes(data, authnIdentityAttributes);
 		}
-		catch (InvalidSessionIdentifierException ex)
+		catch (SessionCacheUpdateException ex)
 		{
-			fail("Invalid session when session was already added.");
-		}
-		catch(DuplicateSessionException e)
-		{
-			fail("Session already exists");
+			fail("Error accessing session cache.");
 		}
 	
 		/*

@@ -55,7 +55,7 @@
 	<servlet>
 		<servlet-name>esoeWS</servlet-name>
 		<servlet-class>
-			org.apache.axis2.transport.http.AxisServlet
+			com.qut.middleware.esoe.ws.servlet.WSServlet
 		</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>

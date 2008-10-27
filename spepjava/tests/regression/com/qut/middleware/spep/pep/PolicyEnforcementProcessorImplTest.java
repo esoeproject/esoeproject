@@ -20,12 +20,19 @@
 package com.qut.middleware.spep.pep;
 
 import static com.qut.middleware.test.regression.Capture.capture;
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.not;
+import static org.easymock.EasyMock.notNull;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -47,6 +54,7 @@ import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -136,9 +144,9 @@ public class PolicyEnforcementProcessorImplTest
 			LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" + //$NON-NLS-1$
 			Response.class.getPackage().getName();
 
-		String[] schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.lxacml,
-			ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget,
-			ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion};
+		String[] schemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.lxacml,
+			SchemaConstants.lxacmlSAMLProtocol, SchemaConstants.lxacmlGroupTarget,
+			SchemaConstants.lxacmlSAMLAssertion, SchemaConstants.samlAssertion};
 
 		responseMarshaller = new MarshallerImpl<Response>(authzQueryPackages,  schemas, keyStoreResolver);
 		
@@ -146,14 +154,14 @@ public class PolicyEnforcementProcessorImplTest
 			StatusResponseType.class.getPackage().getName() + ":" +
 			RequestAbstractType.class.getPackage().getName();
 		
-		String[] cacheClearSchemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.esoeProtocol};
+		String[] cacheClearSchemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.samlAssertion, SchemaConstants.esoeProtocol};
 		
 		clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(cacheClearPackages, cacheClearSchemas, keyStoreResolver);
 		clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(cacheClearPackages, cacheClearSchemas, keyStoreResolver);
 		
 		groupTargetPackages = GroupTarget.class.getPackage().getName();
 		
-		String[] groupTargetSchemas = new String[]{ConfigurationConstants.lxacmlGroupTarget};
+		String[] groupTargetSchemas = new String[]{SchemaConstants.lxacmlGroupTarget};
 		
 		groupTargetElementMarshaller = new MarshallerImpl<GroupTarget>(groupTargetPackages, groupTargetSchemas);
 	}
@@ -324,7 +332,7 @@ public class PolicyEnforcementProcessorImplTest
 		obligation1.getAttributeAssignments().add(attributeAssignment);
 		obligations.getObligations().add(obligation1);
 		
-		byte[] responseDocument = generateResponse(decision.permit, obligations);
+		Element responseDocument = generateResponse(decision.permit, obligations);
 		
 		Capture<String> captureRequest = new Capture<String>();
 		Capture<List<String>> captureAuthzTargets = new Capture<List<String>>();
@@ -334,7 +342,7 @@ public class PolicyEnforcementProcessorImplTest
 		this.sessionGroupCache.updateCache(eq(this.principalSession), eq(groupTargetID), capture(captureAuthzTargets), (eq((String)null)), not(eq(decision.notcached)));
 		expectLastCall().anyTimes();
 		expect(this.principalSession.getEsoeSessionID()).andReturn(samlID).anyTimes();
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
 		startMock();
 		
@@ -377,7 +385,7 @@ public class PolicyEnforcementProcessorImplTest
 		obligation1.getAttributeAssignments().add(attributeAssignment);
 		obligations.getObligations().add(obligation1);
 		
-		byte[] responseDocument = generateResponse(decision.deny, obligations);
+		Element responseDocument = generateResponse(decision.deny, obligations);
 		
 		Capture<String> captureRequest = new Capture<String>();
 		Capture<List<String>> captureAuthzTargets = new Capture<List<String>>();
@@ -387,7 +395,7 @@ public class PolicyEnforcementProcessorImplTest
 		this.sessionGroupCache.updateCache(eq(this.principalSession), eq(groupTargetID), capture(captureAuthzTargets), (eq((String)null)), not(eq(decision.notcached)));
 		expectLastCall().anyTimes();
 		expect(this.principalSession.getEsoeSessionID()).andReturn(samlID).anyTimes();
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
 		this.sessionCache.terminatePrincipalSession(this.principalSession);
 		expectLastCall().anyTimes();
@@ -448,7 +456,7 @@ public class PolicyEnforcementProcessorImplTest
 		obligation1.getAttributeAssignments().add(attributeAssignment);
 		obligations.getObligations().add(obligation1);
 		
-		byte[] responseDocument = generateResponse(decision.permit, obligations);
+		Element responseDocument = generateResponse(decision.permit, obligations);
 		
 		Capture<String> captureRequest = new Capture<String>();
 		Capture<List<String>> captureAuthzTargets = new Capture<List<String>>();
@@ -460,7 +468,7 @@ public class PolicyEnforcementProcessorImplTest
 		this.sessionGroupCache.updateCache(eq(this.principalSession), eq(groupTargetID2), capture(captureAuthzTargets), (eq((String)null)), not(eq(decision.notcached)));
 		expectLastCall().anyTimes();
 		expect(this.principalSession.getEsoeSessionID()).andReturn(samlID).anyTimes();
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
 		startMock();
 		
@@ -489,7 +497,7 @@ public class PolicyEnforcementProcessorImplTest
 		request.setSignature(new Signature());
 		request.setVersion(VersionConstants.saml20);
 		
-		byte[] requestDocument = clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		Element requestDocument = clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 		
 		Capture<Map<String,List<String>>> mapCapture = new Capture<Map<String,List<String>>>();
 		this.sessionGroupCache.clearCache( capture( mapCapture ) );
@@ -498,7 +506,7 @@ public class PolicyEnforcementProcessorImplTest
 
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(requestDocument);
+		Element responseDocument = this.processor.authzCacheClear(requestDocument);
 		
 		endMock();
 		
@@ -542,7 +550,7 @@ public class PolicyEnforcementProcessorImplTest
 		request.setExtensions(extensions);
 		extensions.getAnies().add(groupTargetElement1);
 		
-		byte[] requestDocument = clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		Element requestDocument = clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 		
 		Capture<Map<String,List<String>>> captureGroupTargetMap = new Capture<Map<String,List<String>>>();
 		
@@ -552,7 +560,7 @@ public class PolicyEnforcementProcessorImplTest
 
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(requestDocument);
+		Element responseDocument = this.processor.authzCacheClear(requestDocument);
 		
 		endMock();
 		
@@ -611,7 +619,7 @@ public class PolicyEnforcementProcessorImplTest
 		extensions.getAnies().add(groupTargetElement1);
 		extensions.getAnies().add(groupTargetElement2);
 		
-		byte[] requestDocument = clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		Element requestDocument = clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 		
 		Capture<Map<String,List<String>>> captureGroupTargetMap = new Capture<Map<String,List<String>>>();
 		
@@ -621,7 +629,7 @@ public class PolicyEnforcementProcessorImplTest
 
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(requestDocument);
+		Element responseDocument = this.processor.authzCacheClear(requestDocument);
 		
 		endMock();
 		
@@ -661,14 +669,14 @@ public class PolicyEnforcementProcessorImplTest
 		request.setSignature(new Signature());
 		request.setVersion(VersionConstants.saml20);
 		
-		byte[] requestDocument = clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		Element requestDocument = clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 
 		expect(sessionCache.getPrincipalSessionByEsoeSessionID("10234-123")).andReturn(principalSession);
 		sessionGroupCache.clearPrincipalSession(principalSession);
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(requestDocument);
+		Element responseDocument = this.processor.authzCacheClear(requestDocument);
 		
 		endMock();
 		
@@ -678,7 +686,7 @@ public class PolicyEnforcementProcessorImplTest
 		assertEquals(requestID, response.getInResponseTo());
 	}
 
-	protected byte[] generateResponse(decision desiredDecision, Obligations obligations) throws SignatureValueException, ReferenceValueException, UnmarshallerException, MarshallerException
+	protected Element generateResponse(decision desiredDecision, Obligations obligations) throws SignatureValueException, ReferenceValueException, UnmarshallerException, MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.esoeIdentifier);
@@ -763,7 +771,7 @@ public class PolicyEnforcementProcessorImplTest
 			response.getEncryptedAssertionsAndAssertions().add(assertion);
 		}
 				
-		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
+		Element responseDocument = this.responseMarshaller.marshallSignedElement(response);
 		
 		return responseDocument;
 	}

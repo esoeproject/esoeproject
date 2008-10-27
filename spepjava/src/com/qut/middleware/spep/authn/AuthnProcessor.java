@@ -20,6 +20,8 @@
  */
 package com.qut.middleware.spep.authn;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.spep.exception.AuthenticationException;
 import com.qut.middleware.spep.exception.LogoutException;
 import com.qut.middleware.spep.sessions.PrincipalSession;
@@ -68,5 +70,5 @@ public interface AuthnProcessor
 	 * @param data The authn data
 	 * @throws LogoutException
 	 */
-	public void logoutPrincipal(AuthnProcessorData data) throws LogoutException;
+	public Element logoutPrincipal(Element requestDocument) throws LogoutException;
 }

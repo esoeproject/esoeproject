@@ -22,6 +22,8 @@ package com.qut.middleware.esoe.logout.bean.impl;
 
 import java.util.Date;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.esoe.logout.bean.FailedLogout;
 
 /** Implementation of bean that carries information about failed logout attempts to SPEP's to logout monitor process. */
@@ -29,7 +31,7 @@ public class FailedLogoutImpl implements FailedLogout
 {
 
 	private String endPoint;
-	private byte[] requestDocument;
+	private Element requestDocument;
 	private Date timeStamp;
 	private String authnId;
 	
@@ -48,7 +50,7 @@ public class FailedLogoutImpl implements FailedLogout
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.FailedLogout#getRequestDocument()
 	 */
-	public byte[] getRequestDocument()
+	public Element getRequestDocument()
 	{
 		return this.requestDocument;
 	}
@@ -68,7 +70,7 @@ public class FailedLogoutImpl implements FailedLogout
 	 * 
 	 * @see com.qut.middleware.esoe.sso.bean.FailedLogout#setRequestDocument(java.lang.String)
 	 */
-	public void setRequestDocument(byte[] requestDocument)
+	public void setRequestDocument(Element requestDocument)
 	{
 		this.requestDocument = requestDocument;
 	}

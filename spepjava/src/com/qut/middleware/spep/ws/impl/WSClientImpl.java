@@ -19,25 +19,22 @@
  */
 package com.qut.middleware.spep.ws.impl;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.MessageFormat;
 
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.apache.axis2.AxisFault;
-import org.apache.axis2.addressing.EndpointReference;
-import org.apache.axis2.client.Options;
-import org.apache.axis2.client.ServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
+import com.ibm.icu.text.CharsetDetector;
+import com.qut.middleware.saml2.exception.SOAPException;
+import com.qut.middleware.saml2.handler.SOAPHandler;
 import com.qut.middleware.spep.ws.Messages;
 import com.qut.middleware.spep.ws.WSClient;
 import com.qut.middleware.spep.ws.exception.WSClientException;
@@ -45,32 +42,23 @@ import com.qut.middleware.spep.ws.exception.WSClientException;
 /** */
 public class WSClientImpl implements WSClient
 {
-	private static XMLInputFactory xmlInputFactory;
-	private static XMLOutputFactory xmlOutputFactory;
-
-	/* Local logging instance */
-	private Logger logger = LoggerFactory.getLogger(WSClientImpl.class.getName());
+	private static final String CONTENT_TYPE = "Content-Type";
+	private static final int BUF_SIZE = 1024;
+	private SOAPHandler soapHandler;
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
-	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
-	static
-	{
-		xmlInputFactory = XMLInputFactory.newInstance();
-		xmlOutputFactory = XMLOutputFactory.newInstance();
-	}
-
 	/**
 	 * Constructor
-	 * @param reportingProcessor 
 	 */
-	public WSClientImpl()
-	{	
-		this.logger.info(Messages.getString("WSClientImpl.7")); //$NON-NLS-1$
+	public WSClientImpl(SOAPHandler soapHandler)
+	{
+		this.soapHandler = soapHandler;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSClient#attributeAuthority(java.lang.String, java.lang.String)
 	 */
-	public byte[] attributeAuthority(byte[] attributeQuery, String endpoint) throws WSClientException
+	public Element attributeAuthority(Element attributeQuery, String endpoint) throws WSClientException
 	{
 		if (endpoint == null || endpoint.length() <= 0)
 		{
@@ -78,7 +66,7 @@ public class WSClientImpl implements WSClient
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.1")); //$NON-NLS-1$
 		}
 		
-		if (attributeQuery == null || attributeQuery.length <= 0)
+		if (attributeQuery == null)
 		{
 			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.9"), endpoint)); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.0")); //$NON-NLS-1$
@@ -92,7 +80,7 @@ public class WSClientImpl implements WSClient
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSClient#policyDecisionPoint(java.lang.String, java.lang.String)
 	 */
-	public byte[] policyDecisionPoint(byte[] decisionRequest, String endpoint) throws WSClientException
+	public Element policyDecisionPoint(Element decisionRequest, String endpoint) throws WSClientException
 	{
 		if (endpoint == null || endpoint.length() <= 0)
 		{
@@ -100,7 +88,7 @@ public class WSClientImpl implements WSClient
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.3")); //$NON-NLS-1$
 		}
 		
-		if (decisionRequest == null || decisionRequest.length <= 0)
+		if (decisionRequest == null)
 		{
 			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.12"), endpoint)); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.2")); //$NON-NLS-1$
@@ -114,7 +102,7 @@ public class WSClientImpl implements WSClient
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSClient#spepStartup(java.lang.String, java.lang.String)
 	 */
-	public byte[] spepStartup(byte[] spepStartup, String endpoint) throws WSClientException
+	public Element spepStartup(Element spepStartup, String endpoint) throws WSClientException
 	{
 		if (endpoint == null || endpoint.length() <= 0)
 		{
@@ -122,7 +110,7 @@ public class WSClientImpl implements WSClient
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.5")); //$NON-NLS-1$
 		}
 		
-		if (spepStartup == null || spepStartup.length <= 0)
+		if (spepStartup == null)
 		{
 			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.15"), endpoint)); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.4")); //$NON-NLS-1$
@@ -133,7 +121,8 @@ public class WSClientImpl implements WSClient
 		return invokeWSCall(spepStartup, endpoint);
 	}
 	
-	/**
+
+	/*
 	 * Responsible for actual logic in converting incoming string to Axis format and translating Axis response format to
 	 * string
 	 * 
@@ -144,66 +133,72 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private byte[] invokeWSCall(byte[] request, String endpoint) throws WSClientException
+	private Element invokeWSCall(Element request, String endpoint) throws WSClientException
 	{
-		ByteArrayInputStream reader;
-		ByteArrayOutputStream writer;
-		XMLStreamReader xmlreader;
-		StAXOMBuilder builder;
-		OMElement requestElement, resultElement;
-		ServiceClient serviceClient;
-		Options options;
-		EndpointReference targetEPR;
-
+		byte[] requestBytes;
 		try
 		{
-			targetEPR = new EndpointReference(endpoint);
-			reader = new ByteArrayInputStream(request);
-			xmlreader = WSClientImpl.xmlInputFactory.createXMLStreamReader(reader);
-			builder = new StAXOMBuilder(xmlreader);
-			requestElement = builder.getDocumentElement();
+			requestBytes = this.soapHandler.wrapDocument(request);
+		}
+		catch (SOAPException e)
+		{
+			this.logger.debug("SOAP exception occurred while trying to wrap the request document.", e);
+			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
+		}
+		
+		CharsetDetector detector = new CharsetDetector();
+		this.logger.trace(detector.getString(requestBytes, null));
 
-			serviceClient = new ServiceClient();
-			options = new Options();
-			options.setTo(targetEPR);
-			options.setProperty(org.apache.axis2.Constants.Configuration.CHARACTER_SET_ENCODING, "UTF-16");
-			serviceClient.setOptions(options);
+		ByteArrayOutputStream responseStream;
+		try
+		{
+			URL url = new URL(endpoint);
+			URLConnection connection = url.openConnection();
+			connection.setDoInput(true);
+			connection.setDoOutput(true);
 			
-			this.logger.debug(Messages.getString("WSClientImpl.17")); //$NON-NLS-1$
-
-			resultElement = serviceClient.sendReceive(requestElement);
-
-			writer = new ByteArrayOutputStream();
-			if (resultElement != null)
+			this.setContentType(connection);
+			
+			OutputStream out = connection.getOutputStream();
+			out.write(requestBytes);
+			
+			InputStream in = connection.getInputStream();
+			responseStream = new ByteArrayOutputStream();
+			byte[] buf = new byte[BUF_SIZE];
+			int count;
+			while ((count = in.read(buf)) > 0)
 			{
-				resultElement.serialize(WSClientImpl.xmlOutputFactory.createXMLStreamWriter(writer));
+				responseStream.write(buf, 0, count);
 			}
-			else
-			{
-				this.logger.error(Messages.getString("WSClientImpl.18")); //$NON-NLS-1$
-				throw new WSClientException(Messages.getString("WSClientImpl.6")); //$NON-NLS-1$
-			}
+		}
+		catch (MalformedURLException e)
+		{
+			this.logger.debug("WS endpoint URL {} was malformed. Unable to perform query", new Object[]{endpoint}, e);
+			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
+		}
+		catch (IOException e)
+		{
+			this.logger.debug("SOAP exception occurred while trying to wrap the request document.", e);
+			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
+		}
+		
+		try
+		{
+			byte[] responseDocument = responseStream.toByteArray();
+			this.logger.trace(detector.getString(responseDocument, null));
 
-			this.logger.debug(MessageFormat.format(Messages.getString("WSClientImpl.19"), endpoint)); //$NON-NLS-1$
-			return writer.toByteArray();
+			return this.soapHandler.unwrapDocument(responseDocument);
 		}
-		catch (AxisFault e)
+		catch (SOAPException e)
 		{
-			this.logger.error("AxisFault occured while invoking WS call - trace level has full output");
-			this.logger.trace(MessageFormat.format(Messages.getString("WSClientImpl.20"), e.getMessage())); //$NON-NLS-1$
-			throw new WSClientException(e.getMessage(), e);
+			this.logger.debug("SOAP exception occurred while trying to unwrap the response document.", e);
+			throw new WSClientException("SOAP exception occurred while trying to unwrap the response document. Error was: " + e.getMessage());
 		}
-		catch (XMLStreamException e)
-		{
-			this.logger.error("XML Stream exception occured while invoking WS call");
-			this.logger.trace(MessageFormat.format(Messages.getString("WSClientImpl.21"), e.getMessage())); //$NON-NLS-1$
-			throw new WSClientException(e.getMessage(), e);
-		}
-		catch (FactoryConfigurationError e)
-		{
-			e.getException().printStackTrace();
-			this.logger.error(MessageFormat.format(Messages.getString("WSClientImpl.22"), e.getMessage())); //$NON-NLS-1$
-			throw new WSClientException(e.getMessage());
-		}
+	}
+	
+	private void setContentType(URLConnection connection)
+	{
+		String encoding = this.soapHandler.getDefaultEncoding();
+		connection.setRequestProperty(CONTENT_TYPE, this.soapHandler.getContentType(encoding));
 	}
 }

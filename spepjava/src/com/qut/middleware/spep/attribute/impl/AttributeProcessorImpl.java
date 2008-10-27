@@ -30,14 +30,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.metadata.bean.saml.AttributeAuthorityRole;
-import com.qut.middleware.metadata.bean.saml.IdentityProviderRole;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.exception.MetadataStateException;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
@@ -60,9 +61,7 @@ import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmation;
 import com.qut.middleware.saml2.schemas.assertion.SubjectConfirmationDataType;
 import com.qut.middleware.saml2.schemas.protocol.AttributeQuery;
 import com.qut.middleware.saml2.schemas.protocol.Response;
-import com.qut.middleware.saml2.schemas.spep.attributes.AttributeConfig;
 import com.qut.middleware.saml2.validator.SAMLValidator;
-import com.qut.middleware.spep.ConfigurationConstants;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
 import com.qut.middleware.spep.attribute.Messages;
 import com.qut.middleware.spep.exception.AttributeProcessingException;
@@ -78,7 +77,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 	protected MetadataProcessor metadata;
 	protected WSClient wsClient;
 	protected IdentifierGenerator identifierGenerator;
-	private String[] schemas = new String[] { ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
+	private String[] schemas = new String[] { SchemaConstants.samlAssertion, SchemaConstants.samlProtocol };
 	private Marshaller<AttributeQuery> attributeQueryMarshaller;
 	private Unmarshaller<Response> responseUnmarshaller;
 	private SAMLValidator samlValidator;
@@ -193,7 +192,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		// Build the attribute query
 		String samlID = this.identifierGenerator.generateSAMLID();
 		this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.28"), samlID)); //$NON-NLS-1$
-		byte[] requestDocument = this.buildAttributeQuery(principalSession, samlID);
+		Element requestDocument = this.buildAttributeQuery(principalSession, samlID);
 
 		if (requestDocument == null)
 		{
@@ -202,7 +201,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		}
 
 		// Web service call. May take a long time to return.
-		byte[] responseDocument = null;
+		Element responseDocument = null;
 		try
 		{
 			this.logger.debug(MessageFormat.format(Messages.getString("AttributeProcessorImpl.29"), samlID)); //$NON-NLS-1$
@@ -246,8 +245,6 @@ public class AttributeProcessorImpl implements AttributeProcessor
 			throw new AttributeProcessingException("Failed to resolve trusted ESOE from metadata - state was invalid.", e);
 		}
 
-		this.logger.trace(Messages.getString("AttributeProcessorImpl.0") + new String(responseDocument)); //$NON-NLS-1$
-
 		// Unmarshal the response
 		List<AttributeStatement> attributeStatements = this.getAttributeStatements(responseDocument, samlID);
 
@@ -289,7 +286,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 	 * the given SAML ID.
 	 * 
 	 */
-	private byte[] buildAttributeQuery(PrincipalSession principalSession, String samlID)
+	private Element buildAttributeQuery(PrincipalSession principalSession, String samlID)
 	{
 		Subject subject = new Subject();
 		NameIDType subjectNameID = new NameIDType();
@@ -308,10 +305,10 @@ public class AttributeProcessorImpl implements AttributeProcessor
 		attributeQuery.setSubject(subject);
 		attributeQuery.setIssuer(issuer);
 
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		try
 		{
-			requestDocument = this.attributeQueryMarshaller.marshallSigned(attributeQuery);
+			requestDocument = this.attributeQueryMarshaller.marshallSignedElement(attributeQuery);
 		}
 		catch (MarshallerException e)
 		{
@@ -325,7 +322,7 @@ public class AttributeProcessorImpl implements AttributeProcessor
 	 * Extract a list of AttributeStatements from the given string representaion of a SAML Response.
 	 * 
 	 */
-	private List<AttributeStatement> getAttributeStatements(byte[] responseDocument, String expectedSAMLID)
+	private List<AttributeStatement> getAttributeStatements(Element responseDocument, String expectedSAMLID)
 	{
 		// Unmarshal the response.
 		Response response;

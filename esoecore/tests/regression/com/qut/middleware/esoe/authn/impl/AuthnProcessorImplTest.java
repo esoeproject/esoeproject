@@ -153,14 +153,7 @@ public class AuthnProcessorImplTest
 		expect(this.handler.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.UserAgent);
 		expect(this.handler.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		setUpMock();
 
 		this.registeredHandlers.add(this.handler);
@@ -184,14 +177,7 @@ public class AuthnProcessorImplTest
 		expect(this.handler.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Failure);
 		expect(this.handler.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		setUpMock();
 
 		this.registeredHandlers.add(this.handler);
@@ -215,14 +201,7 @@ public class AuthnProcessorImplTest
 		expect(this.handler.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Invalid);
 		expect(this.handler.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		setUpMock();
 
 		this.registeredHandlers.add(this.handler);
@@ -247,14 +226,7 @@ public class AuthnProcessorImplTest
 				new SessionCreationException("TEST exception from testExecute1f()"));
 		expect(this.handler.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		setUpMock();
 
 		registeredHandlers.add(handler);
@@ -278,14 +250,7 @@ public class AuthnProcessorImplTest
 		expect(this.handler.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.NoAction);
 		expect(this.handler.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		setUpMock();
 
 		registeredHandlers.add(handler);
@@ -306,25 +271,11 @@ public class AuthnProcessorImplTest
 		expect(this.handler.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Successful);
 		expect(this.handler.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("InvalidSessionIdentifierException should not occur in this test");
-		}
+		expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
+		spepProcessor.clearPrincipalSPEPCaches(principal);
 
 		setUpMock();
 
@@ -351,26 +302,12 @@ public class AuthnProcessorImplTest
 		expect(handlerPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.SuccessfulNonPrincipal);
 		expect(handlerPassive.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		expect(handlerNonPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Successful);
 		expect(handlerNonPassive.getHandlerName()).andReturn("TestName2").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("InvalidSessionIdentifierException should not occur in this test");
-		}
+		expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
+		spepProcessor.clearPrincipalSPEPCaches(principal);
 		
 		setUpMock();
 
@@ -397,26 +334,12 @@ public class AuthnProcessorImplTest
 		expect(handlerPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.SuccessfulNonPrincipal);
 		expect(handlerPassive.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		expect(handlerNonPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Successful);
 		expect(handlerNonPassive.getHandlerName()).andReturn("TestName2").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("InvalidSessionIdentifierException should not occur in this test");
-		}
+		expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
+		spepProcessor.clearPrincipalSPEPCaches(principal);
 		setUpMock();
 
 		registeredHandlers.add(handlerNonPassive);
@@ -441,28 +364,14 @@ public class AuthnProcessorImplTest
 		expect(handlerPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.SuccessfulNonPrincipal)
 				.anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		expect(handlerPassive.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(handlerNonPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Successful)
 				.anyTimes();
 		expect(handlerNonPassive.getHandlerName()).andReturn("TestName2").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("InvalidSessionIdentifierException should not occur in this test");
-		}
+		expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
+		spepProcessor.clearPrincipalSPEPCaches(principal);
 		setUpMock();
 
 		registeredHandlers.add(handlerPassive);
@@ -491,28 +400,14 @@ public class AuthnProcessorImplTest
 		expect(handlerPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.SuccessfulNonPrincipal)
 				.anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		expect(handlerPassive.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(handlerNonPassive.execute((AuthnProcessorData) notNull())).andReturn(Handler.result.Successful)
 				.anyTimes();
 		expect(handlerNonPassive.getHandlerName()).andReturn("TestName2").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
-			spepProcessor.clearPrincipalSPEPCaches(principal);
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("InvalidSessionIdentifierException should not occur in this test");
-		}
+		expect(query.queryAuthnSession((String)notNull())).andReturn(principal);
+		spepProcessor.clearPrincipalSPEPCaches(principal);
 		setUpMock();
 
 		registeredHandlers.add(handlerPassive);
@@ -543,14 +438,7 @@ public class AuthnProcessorImplTest
 				.anyTimes();
 		expect(handlerNonPassive.getHandlerName()).andReturn("TestName").anyTimes();
 		expect(sessionsProcessor.getQuery()).andReturn(query);
-		try
-		{
-			query.validAuthnSession((String)notNull());
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("Should not get InvalidSessionIdentifierException in this test");
-		}
+		expect(query.validAuthnSession((String)notNull())).andReturn(true);
 		setUpMock();
 
 		registeredHandlers.add(handlerPassive);

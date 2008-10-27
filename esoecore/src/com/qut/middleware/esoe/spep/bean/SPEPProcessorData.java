@@ -18,10 +18,10 @@
  */
 package com.qut.middleware.esoe.spep.bean;
 
-import com.qut.middleware.esoe.bean.SAMLProcessorData;
+import com.qut.middleware.esoe.ws.bean.WSProcessorData;
 
 /** Interface for the bean that contains data regarding a startup request. */
-public interface SPEPProcessorData extends SAMLProcessorData
+public interface SPEPProcessorData extends WSProcessorData
 {
 	/**
 	 * Accessor for request issuer ID. The issuer ID uniquely identifies an SPEP.

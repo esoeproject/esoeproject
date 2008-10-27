@@ -1,5 +1,6 @@
 package com.qut.middleware.esoe.sso.impl;
 
+import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.*;
 
 import java.util.Date;
@@ -7,6 +8,7 @@ import java.util.Date;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.esoe.logout.bean.FailedLogout;
 import com.qut.middleware.esoe.logout.bean.impl.FailedLogoutImpl;
@@ -16,7 +18,7 @@ public class FailedLogoutTest
 
 	private FailedLogout failure = new FailedLogoutImpl();
 	private String endpoint = "http://something.com";
-	private byte[] document = new String("<doc>Hi there</doc>").getBytes();
+	private Element document = createMock(Element.class);
 	private Date time = new Date();
 	private String authnId = "678gg6et9f634";
 	

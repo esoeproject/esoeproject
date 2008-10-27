@@ -19,6 +19,8 @@
  */
 package com.qut.middleware.esoe.ws;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.esoe.ws.exception.WSClientException;
 
 /** Defines all operations the ESOE may invoke over remote WS links. */
@@ -34,7 +36,7 @@ public interface WSClient
 	 * 
 	 * @throws WSClientException if the client cannot send the request.
 	 */
-	public byte[] authzCacheClear(byte[] request, String endpoint) throws WSClientException;
+	public Element authzCacheClear(Element request, String endpoint) throws WSClientException;
 	
 	/** Send an SingleLogoutRequest Request to the specified endpoint.
 	 * 
@@ -45,5 +47,5 @@ public interface WSClient
 	 * 
 	 * @throws WSClientException if the client cannot send the request.
 	 */
-	public byte[] singleLogout(byte[] request, String endpoint) throws WSClientException;
+	public Element singleLogout(Element request, String endpoint) throws WSClientException;
 }

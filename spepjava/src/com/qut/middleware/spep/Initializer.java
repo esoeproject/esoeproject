@@ -60,6 +60,9 @@ import com.qut.middleware.metadata.source.MetadataSource;
 import com.qut.middleware.metadata.source.saml.impl.SAMLURLMetadataSource;
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
+import com.qut.middleware.saml2.handler.SOAPHandler;
+import com.qut.middleware.saml2.handler.impl.SOAPv11Handler;
+import com.qut.middleware.saml2.handler.impl.SOAPv12Handler;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.saml2.identifier.impl.IdentifierCacheImpl;
@@ -79,6 +82,7 @@ import com.qut.middleware.spep.pep.impl.SessionGroupCacheImpl;
 import com.qut.middleware.spep.sessions.impl.SessionCacheImpl;
 import com.qut.middleware.spep.ws.WSClient;
 import com.qut.middleware.spep.ws.impl.WSClientImpl;
+import com.qut.middleware.spep.ws.impl.WSProcessorImpl;
 
 /** Responsible for initializing the SPEP. */
 public class Initializer
@@ -378,8 +382,15 @@ public class Initializer
 			
 			spep.setMetadataUpdateThread(new MetadataUpdateThread(metadataProcessor, metadataInterval));
 
+			SOAPHandler soapv11Handler = new SOAPv11Handler();
+			SOAPHandler soapv12Handler = new SOAPv12Handler();
+			
+			List<SOAPHandler> soapHandlers = new ArrayList<SOAPHandler>();
+			soapHandlers.add(soapv11Handler);
+			soapHandlers.add(soapv12Handler);
+			
 			// Web services client instance
-			WSClient wsClient = new WSClientImpl();
+			WSClient wsClient = new WSClientImpl(soapv12Handler);
 			
 			// Create the identifier cache and generator.
 			IdentifierCache identifierCache = new IdentifierCacheImpl();
@@ -478,6 +489,8 @@ public class Initializer
 			
 			// Fire off a background thread to communicate to the ESOE about starting up.
 			spep.getStartupProcessor().beginSPEPStartup();
+			
+			spep.setWSProcessor(new WSProcessorImpl(spep.getPolicyEnforcementProcessor(), spep.getAuthnProcessor(), soapHandlers));
 			
 			return spep;
 		}

@@ -14,69 +14,43 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: 28/09/2006
  * 
- * Purpose: Interface to allow session data to be updated in the local cache.
+ * Purpose: Interface to allow session data to be updated in the underlying data store.
  */
 package com.qut.middleware.esoe.sessions;
 
 import java.util.List;
 
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
-import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
-import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
-import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 
 /** */
 public interface Update
 {
 	/**
-	 * This method takes a session identifier and SAML identifier and stores the value in the associated principal.
+	 * Adds a entity ID / session index pair to a principal session. The principal object passed in will be updated as
+	 * well as any underlying data stores and/or caches.
 	 * 
-	 * @param sessionID
-	 *             The principal's session identifier.
-	 * @param samlID
-	 *            The SAML identifier to store
-	 * @throws DuplicateSessionException
-	 * @throws InvalidSessionIdentifierException
+	 * @param principal
+	 *            The principal object.
+	 * @param entityID
+	 *            The entity identifier
+	 * @param sessionIndex
+	 *            The session index to store
 	 */
-	public void updateSAMLAuthnIdentifier(String sessionID, String samlID) throws DuplicateSessionException,
-			InvalidSessionIdentifierException;
+	public void addEntitySessionIndex(Principal principal, String entityID, String sessionIndex) throws SessionCacheUpdateException;
 
 	/**
-	 * This method takes a session identifier and descriptor identifier and stores the value in the associated principal.
+	 * This method allows authentication handlers to have future interaction with a principals identity information to
+	 * add extra details generally when the principals authentication state changes in some way, for example higher
+	 * levels of credentials proven.
+	 * 
+	 * Adds the given list of attribtues to the principal session. The principal object passed in will be updated as
+	 * well as any underlying data stores and/or caches.
 	 * 
 	 * @param sessionID
 	 *            The principal's session identifier.
-	 * @param entityID
-	 *            The SPEP identifier to store.
-	 * @throws InvalidSessionIdentifierException
-	 */
-	public void updateDescriptorList(String sessionID, String entityID) throws InvalidSessionIdentifierException;
-
-	/**
-	 * This method takes a session identifier, descriptor identifier and SAML session index and stores the value in the
-	 * associated principal.
-	 * 
-	 * @param sessionID
-	 *             The principal's session identifier.
-	 * @param entityID
-	 *            The descriptor identifier
-	 * @param descriptorSessionID
-	 *            The session index to store
-	 * @throws InvalidSessionIdentifierException
-	 * @throws InvalidDescriptorIdentifierException
-	 */
-	public void updateDescriptorSessionIdentifierList(String sessionID, String entityID, String descriptorSessionID)
-			throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException;
-	
-	/**
-	 * This method allows authentication handlers to have future interaction with a principals identity information to add extra details
-	 * generally when the principals authentication state changes in some way, for example higher levels of credentials proven.
-	 * @param sessionID
-	 * 				 The principal's session identifier.
 	 * @param authnIdentityAttributes
-	 * 				Identity attributes that should be added to the principals session
-	 * @throws InvalidSessionIdentifierException
+	 *            Identity attributes that should be added to the principals session
 	 */
-	public void updatePrincipalAttributes(String sessionID, List<AuthnIdentityAttribute> authnIdentityAttributes) 
-			throws InvalidSessionIdentifierException;
+	public void addPrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes) throws SessionCacheUpdateException;
 }

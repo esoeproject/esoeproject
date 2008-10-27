@@ -28,9 +28,9 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
-import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.MonitorThread;
 import com.qut.middleware.esoe.logout.LogoutMechanism;
 import com.qut.middleware.esoe.logout.bean.FailedLogout;
@@ -209,9 +209,8 @@ public class FailedLogoutMonitor extends Thread implements MonitorThread
 	 * @param endPoint The endpoint to send the logout request to.
 	 * @return The result of the operation. Either LogoutSuccessfull or FailedLogout
 	 */
-	private LogoutMechanism.result sendLogoutRequest(byte[] logoutRequest, String endpoint, boolean storeFailedLogout)
+	private LogoutMechanism.result sendLogoutRequest(Element logoutRequest, String endpoint, boolean storeFailedLogout)
 	{
-		LogoutMechanism.result result = null;
 		LogoutRequest request = null;
 		
 		this.logger.trace(Messages.getString("FailedLogoutMonitor.13")); //$NON-NLS-1$

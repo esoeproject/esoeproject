@@ -26,7 +26,7 @@
 		</tar>
 	</target>
 		
-	<target name="war" depends="jar, aar" description="Assembles SPEP war">
+	<target name="war" depends="jar" description="Assembles SPEP war">
 		<war destfile="${output}/${output.war}" webxml="${war.descriptor}">
 			<classes dir="${webapp.classes}">
 				<include name="**/*" />
@@ -39,21 +39,10 @@
 				<include name="**/*.xml" />
 				<exclude name="spep-*.xml" />
 			</webinf>
-			<webinf dir="${webservice.deploy}">
-				<include name="**/*" />
-			</webinf>
 			<metainf dir="${webapp.metainf}">
 				<include name="**/*.xml" />
 			</metainf>
 		</war>
-	</target>
-
-	<target name="aar" depends="setup">
-		<jar destfile="${webservice.deploy.services}/${output.aar}">
-			<metainf dir="${webservice.metainf}">
-				<include name="**/*.xml" />
-			</metainf>
-		</jar>
 	</target>
 
 	<target name="jar" depends="build,esoe-build.jar" description="Assembles SPEP jar">		
@@ -80,10 +69,6 @@
 				<propertyref prefix="${spep.property-prefix}" />
 			</propertyset>
 		</echoproperties>
-	</target>
-	
-	<target name="setup" depends="esoe-env.setup">
-		<mkdir dir="${webservice.deploy.services}" />
 	</target>
 
 </project>

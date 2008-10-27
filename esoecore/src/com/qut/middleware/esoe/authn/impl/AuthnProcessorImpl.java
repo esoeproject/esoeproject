@@ -30,8 +30,10 @@ import com.qut.middleware.esoe.authn.exception.AuthnFailureException;
 import com.qut.middleware.esoe.authn.exception.HandlerRegistrationException;
 import com.qut.middleware.esoe.authn.exception.SessionCreationException;
 import com.qut.middleware.esoe.authn.pipeline.Handler;
+import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
 
 public class AuthnProcessorImpl implements AuthnProcessor
@@ -92,18 +94,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		/* Determine if a sessionID is set and if so if its valid in our system */
 		if(data.getSessionID() != null && data.getSessionID().length() > 0)
 		{
-			try
-			{
-				this.sessionsProcessor.getQuery().validAuthnSession(data.getSessionID());
-			}
-			catch (InvalidSessionIdentifierException e)
-			{
-				// Not major error. This could happen if session expires but browser submits old data,
-				// reset session ID and continue with processing
-				this.logger.error(Messages.getString("AuthnProcessorImpl.19")); //$NON-NLS-1$
-				this.logger.trace(e.getLocalizedMessage(), e);
-				data.setSessionID(null);
-			}
+			this.sessionsProcessor.getQuery().validAuthnSession(data.getSessionID());
 		}
 
 		/* Even with iterators no sync required here as don't reasonably expect the structure of the underlying list to be modified */
@@ -165,19 +156,9 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 		this.logger.debug(Messages.getString("AuthnProcessorImpl.13") + data.getSessionID()); //$NON-NLS-1$
 		
-		/* If the principal is traversing authn for a second time in their session
-		 * generally for privilledge level escalation this will ensure any authorization
-		 * results are cleared at any SPEP they have visited, if they are new it simply returns
-		 */
-		try
-		{
-			this.spepProcessor.clearPrincipalSPEPCaches(this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID()));
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			this.logger.error(Messages.getString("AuthnProcessorImpl.18") + data.getSessionID()); //$NON-NLS-1$
-			return AuthnProcessor.result.Failure;
-		}
+		Principal principal = this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID());
+		if(principal != null)
+			this.spepProcessor.clearPrincipalSPEPCaches(principal);
 
 		return AuthnProcessor.result.Completed;
 	}
@@ -206,9 +187,9 @@ public class AuthnProcessorImpl implements AuthnProcessor
 					this.sessionsProcessor.getTerminate().terminateSession(data.getSessionID());
 				}
 			}
-			catch (InvalidSessionIdentifierException e)
-			{
-				this.logger.warn("Attempted to purge invalid principal session after failure or invalid state advised by handler but sessions processor indicates it was never valid anyway, continuing");
+			catch (SessionCacheUpdateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 	}
 }

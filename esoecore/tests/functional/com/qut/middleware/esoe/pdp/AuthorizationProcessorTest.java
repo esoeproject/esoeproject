@@ -12,7 +12,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -27,6 +26,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -105,7 +106,6 @@ public class AuthorizationProcessorTest
 	private IdentifierCache identifierCache;
 	private IdentifierGenerator identifierGenerator;
 	private PublicKey pubKey;
-	private PrivateKey privKey;
 	KeystoreResolver keyStoreResolver;
 
 	@Before
@@ -148,7 +148,6 @@ public class AuthorizationProcessorTest
 
 		this.keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, esoeKeyAlias, esoeKeyPassword);
 
-		this.privKey = this.keyStoreResolver.getLocalPrivateKey();
 		this.pubKey = this.keyStoreResolver.getLocalPublicKey();
 
 		expect(this.metadata.resolveKey("esoeprimary")).andReturn(this.pubKey).anyTimes();
@@ -163,9 +162,6 @@ public class AuthorizationProcessorTest
 	
 		String[] schemas = new String[] { SchemaConstants.lxacmlSAMLAssertion, SchemaConstants.lxacmlSAMLProtocol };
 		this.responseUnmarshaller = new UnmarshallerImpl<Response>(Response.class.getPackage().getName() + ":" + LXACMLAuthzDecisionStatement.class.getPackage().getName(), schemas, metadata);
-
-		String keyName = keyStoreResolver.getLocalKeyAlias();
-		this.privKey = keyStoreResolver.getLocalPrivateKey();
 
 		this.requestMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(LXACMLAuthzDecisionQuery.class.getPackage().getName(), schemas, keyStoreResolver);
 
@@ -207,10 +203,8 @@ public class AuthorizationProcessorTest
 
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
-		
-		System.out.println("************** " + new String(responseXml, "UTF-16"));
 
 		// unmarshall and ensure the result is PERMIT as expected
 		Result result = this.getResult(responseXml);
@@ -325,7 +319,7 @@ public class AuthorizationProcessorTest
 	{
 		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
 		AuthorizationProcessor.result requestResult;
-		byte[] responseXml;
+		Element responseXml;
 		Result result;
 
 		expect(this.principal.getPrincipalAuthnIdentifier()).andReturn(authnIdentifier).anyTimes();
@@ -444,7 +438,6 @@ public class AuthorizationProcessorTest
 		// check the returned response string
 		responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
-		System.out.println(new String(responseXml, "Utf-16"));
 		// unmarshall and ensure the result is PERMIT as expected
 		result = this.getResult(responseXml);
 		assertNotNull("Failed to unmarshall returned response. ", result);
@@ -500,7 +493,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -580,7 +573,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -655,7 +648,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -704,7 +697,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -753,7 +746,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -788,10 +781,9 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 
-		System.out.println(new String(responseXml, "UTF-16") );	
 		// unmarshall and ensure the result is as expected
 		Result result = this.getResult(responseXml);
 		assertNotNull("Failed to unmarshall returned response. ", result);
@@ -827,7 +819,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is PERMIT as expected
@@ -859,14 +851,16 @@ public class AuthorizationProcessorTest
 			expect(this.cache.getSize()).andReturn(this.database.size()).anyTimes();
 			setupMock();
 
-			byte[] bodgyRequest = createRequestXml("/test/staff.txt", "urn:test:spep:id:3");
-			bodgyRequest[20] = '#';
+			Element bodgyRequest = createRequestXml("/test/staff.txt", "urn:test:spep:id:3");
+			Attr attr = bodgyRequest.getOwnerDocument().createAttribute("asdf");
+			attr.setValue("ghjkl");
+			bodgyRequest.appendChild(attr);
 
 			authData.setRequestDocument(bodgyRequest);
 			requestResult = this.authProcessor.execute(authData);
 			assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 			// check the returned response string
-			byte[] responseXml = authData.getResponseDocument();
+			Element responseXml = authData.getResponseDocument();
 			assertNotNull(responseXml);
 			// //System.out.println(responseXml);
 			// unmarshall and ensure the result is as expected
@@ -877,7 +871,7 @@ public class AuthorizationProcessorTest
 		catch (InvalidRequestException e)
 		{
 			// we want to ensure that the auth response is still set to deny, with an authnfailed status
-			byte[] responseXml = authData.getResponseDocument();
+			Element responseXml = authData.getResponseDocument();
 			assertNotNull(responseXml);
 			// //System.out.println(responseXml);
 			// unmarshall and ensure the result is as expected
@@ -887,10 +881,6 @@ public class AuthorizationProcessorTest
 
 			return;
 
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			throw e;
 		}
 
 		fail("No Invalid exception thrown. ");
@@ -939,7 +929,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -1030,7 +1020,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -1137,7 +1127,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -1234,7 +1224,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected
@@ -1253,8 +1243,6 @@ public class AuthorizationProcessorTest
 	public final void testValidateAuthzRequest7d() throws InvalidRequestException, InvalidSessionIdentifierException, Exception
 	{
 		AuthorizationProcessorData authData = new AuthorizationProcessorDataImpl();
-
-		AuthorizationProcessor.result requestResult;
 		
 		IdentityAttribute userAttr = new IdentityAttributeImpl();
 		userAttr.addValue("beddoes");
@@ -1272,7 +1260,7 @@ public class AuthorizationProcessorTest
 		// TEST CASE 1 - (rule complexity:3-136) Permit beddoes access to crontab if passing the switch -e as an action
 		// This one should eval to permit.
 		authData.setRequestDocument(null);
-		requestResult = this.authProcessor.execute(authData);
+		this.authProcessor.execute(authData);
 	
 	}
 	
@@ -1353,14 +1341,14 @@ public class AuthorizationProcessorTest
 	 * Creates an xml string for an authz request to be sent to the authz processor.
 	 * 
 	 */
-	private byte[] createRequestXml(String requestedResource, String descriptorID)
+	private Element createRequestXml(String requestedResource, String descriptorID)
 	{
 		return createRequestXml(requestedResource, null, descriptorID);
 	}
 
-	private byte[] createRequestXml(String requestedResource, String undertakenAction, String descriptorID)
+	private Element createRequestXml(String requestedResource, String undertakenAction, String descriptorID)
 	{
-		byte[] requestXml = null;
+		Element requestXml = null;
 		
 		Action action = new Action();;
 
@@ -1418,7 +1406,7 @@ public class AuthorizationProcessorTest
 		try
 		{
 			// Supplied private/public key will be in RSA format
-			requestXml = this.requestMarshaller.marshallSigned(authRequest);
+			requestXml = this.requestMarshaller.marshallSignedElement(authRequest);
 		}
 		catch (Exception e)
 		{
@@ -1427,15 +1415,6 @@ public class AuthorizationProcessorTest
 
 			fail("Failed to marshal auth request");
 		}
-
-		try
-		{
-			System.out.println(new String(requestXml, "UTF-16"));
-		}
-		catch(Exception e)
-		{
-			//
-		}
 		
 		return requestXml;
 	}
@@ -1443,7 +1422,7 @@ public class AuthorizationProcessorTest
 	/*
 	 * Unmarshall the returned assertion and extract the Result object for validation.
 	 */
-	private Result getResult(byte[] authzResponseXmlAssertionString)
+	private Result getResult(Element authzResponseXmlAssertionString)
 	{
 		Result result = null;
 
@@ -1493,7 +1472,7 @@ public class AuthorizationProcessorTest
 		requestResult = this.authProcessor.execute(authData);
 		assertEquals("Unexpected return value. ", AuthorizationProcessor.result.Successful, requestResult);
 		// check the returned response string
-		byte[] responseXml = authData.getResponseDocument();
+		Element responseXml = authData.getResponseDocument();
 		assertNotNull(responseXml);
 		// //System.out.println(responseXml);
 		// unmarshall and ensure the result is as expected

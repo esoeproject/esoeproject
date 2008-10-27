@@ -22,6 +22,8 @@ package com.qut.middleware.spep.pep;
 
 import java.text.MessageFormat;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.saml2.exception.MarshallerException;
 import com.qut.middleware.saml2.schemas.esoe.lxacml.EffectType;
 
@@ -92,5 +94,5 @@ public interface PolicyEnforcementProcessor
 	 * @return The response document.
 	 * @throws MarshallerException 
 	 */
-	public byte[] authzCacheClear(byte[] requestDocument) throws MarshallerException;
+	public Element authzCacheClear(Element requestDocument) throws MarshallerException;
 }

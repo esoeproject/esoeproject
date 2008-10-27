@@ -47,6 +47,7 @@ import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
@@ -386,64 +387,53 @@ public abstract class SSOProcessorBase implements SSOProcessor
 					}
 				}
 
-				/* Determine if we have an identifier for this principal to use when communicating with remote SPEP's */
-				if (principal.getSAMLAuthnIdentifier() == null || principal.getSAMLAuthnIdentifier().length() <= 0)
-				{
-					createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, Messages.getString("SSOProcessor.62"), data.getRequestCharsetName()); //$NON-NLS-1$
-					this.sessionsProcessor.getTerminate().terminateSession(data.getSessionID());
-					throw new InvalidSessionIdentifierException(Messages.getString("SSOProcessor.63")); //$NON-NLS-1$
+				try 
+				{			
+					/* Determine if we have an identifier for this principal to use when communicating with remote SPEP's */
+					if (principal.getSAMLAuthnIdentifier() == null || principal.getSAMLAuthnIdentifier().length() <= 0)
+					{
+						createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.authnFailed, Messages.getString("SSOProcessor.62"), data.getRequestCharsetName()); //$NON-NLS-1$
+						this.sessionsProcessor.getTerminate().terminateSession(data.getSessionID());
+						throw new InvalidSessionIdentifierException(Messages.getString("SSOProcessor.63")); //$NON-NLS-1$
+					}
+	
+					/* Generate SAML session index */
+					sessionIndex = this.identifierGenerator.generateSAMLSessionID();
+				
+					/* Determine if the principal has previously had a record of communicating to this SPEP in this session */
+					if (principal.getActiveEntityList() != null && !principal.getActiveEntityList().contains(data.getIssuerID()))
+					{					
+						this.authnLogger.info(MessageFormat.format("Adding new entity session index {0} for entity {1} - Principal {2}.", sessionIndex, data.getIssuerID(), principal.getPrincipalAuthnIdentifier()) );
+						this.logger.debug(MessageFormat.format("Adding new entity session index {0} for entity {1} - Principal {2}.", sessionIndex, data.getIssuerID(), principal.getPrincipalAuthnIdentifier()) );
+						
+						this.sessionsProcessor.getUpdate().addEntitySessionIndex(principal, data.getIssuerID(), sessionIndex);
+					}
+					
+					/* Update our principal to get any changes */
+					principal = this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID());
+	
+					createSucessfulAuthnResponse(data, principal, sessionIndex, data.getRequestCharsetName());
+	
+					/* Set the value of the common domain cookie */
+					byte[] b64EncodedCDC = Base64.encodeBase64(this.esoeIdentifier.getBytes());
+					String uriEncodedCDC = URLEncoder.encode(new String(b64EncodedCDC), this.UTF8);
+					data.setCommonCookieValue(uriEncodedCDC);
+	
+					return SSOProcessor.result.SSOGenerationSuccessful;
+				
 				}
-
-				/* Determine if the principal has previously had a record of communicating to this SPEP in this session */
-				if (principal.getActiveDescriptors() != null && !principal.getActiveDescriptors().contains(data.getIssuerID()))
+				catch (SessionCacheUpdateException e)
 				{
-					this.authnLogger.info(Messages.getString("SSOProcessor.45") + principal.getPrincipalAuthnIdentifier() + " at SPEP " + data.getIssuerID() + Messages.getString("SSOProcessor.46") + data.getResponseEndpoint()); //$NON-NLS-1$ //$NON-NLS-2$
-					this.sessionsProcessor.getUpdate().updateDescriptorList(data.getSessionID(), data.getIssuerID());
+					this.logger.error("Failed to generate SSO session for {}. Session cache update failure.", principal.getPrincipalAuthnIdentifier());
+					return SSOProcessor.result.SSOGenerationFailed;
 				}
-
-				/* Generate SAML session index */
-				sessionIndex = this.identifierGenerator.generateSAMLSessionID();
-				this.logger.debug("DescriptorID  " + data.getIssuerID() + " -- " + sessionIndex + " === " + principal);
-
-				this.authnLogger.info(Messages.getString("SSOProcessor.47") + sessionIndex + Messages.getString("SSOProcessor.48") + data.getIssuerID() + Messages.getString("SSOProcessor.49") + principal.getPrincipalAuthnIdentifier()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				this.sessionsProcessor.getUpdate().updateDescriptorSessionIdentifierList(data.getSessionID(), data.getIssuerID(), sessionIndex);
-
-				/* Update our principal to get any changes */
-				principal = this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID());
-
-				createSucessfulAuthnResponse(data, principal, sessionIndex, data.getRequestCharsetName());
-
-				/* Set the value of the common domain cookie */
-				byte[] b64EncodedCDC = Base64.encodeBase64(this.esoeIdentifier.getBytes());
-				String uriEncodedCDC = URLEncoder.encode(new String(b64EncodedCDC), this.UTF8);
-				data.setCommonCookieValue(uriEncodedCDC);
-
-				return SSOProcessor.result.SSOGenerationSuccessful;
+			
 			}
 			catch (InvalidSAMLRequestException isre)
 			{
 				this.logger.warn(Messages.getString("SSOProcessor.5") + VersionConstants.saml20 + Messages.getString(Messages.getString("SSOProcessor.50"))); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-				
 				createFailedAuthnResponse(data, StatusCodeConstants.requester, StatusCodeConstants.authnFailed, Messages.getString("SSOProcessor.21"), data.getRequestCharsetName()); //$NON-NLS-1$
 				throw new InvalidRequestException(Messages.getString("SSOProcessor.5") + VersionConstants.saml20 + Messages.getString("SSOProcessor.6"), isre); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			catch (com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException isie)
-			{
-				this.logger.warn(Messages.getString("SSOProcessor.7")); //$NON-NLS-1$
-				if (data.getAuthnRequest().getNameIDPolicy().isAllowCreate().booleanValue())
-				{
-					this.logger.warn(Messages.getString("SSOProcessor.61")); //$NON-NLS-1$
-					return SSOProcessor.result.ForceAuthn;
-				}
-
-				createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.unknownPrincipal, Messages.getString("SSOProcessor.22"), data.getRequestCharsetName()); //$NON-NLS-1$
-
-				throw new InvalidSessionIdentifierException(Messages.getString("SSOProcessor.7"), isie); //$NON-NLS-1$
-			}
-			catch (InvalidDescriptorIdentifierException ieie)
-			{
-				this.logger.warn(Messages.getString("SSOProcessor.10")); //$NON-NLS-1$
-				createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.unknownPrincipal, Messages.getString("SSOProcessor.24"), data.getRequestCharsetName()); //$NON-NLS-1$
-				throw new InvalidRequestException(Messages.getString("SSOProcessor.10"), ieie); //$NON-NLS-1$
 			}
 			catch (UnsupportedEncodingException e)
 			{
@@ -652,10 +642,9 @@ public abstract class SSOProcessorBase implements SSOProcessor
 		Calendar thisCalendar = new GregorianCalendar(utc);
 		long currentTime = thisCalendar.getTimeInMillis();
 
-		GregorianCalendar principalExpiry = principal.getSessionNotOnOrAfter().toGregorianCalendar();
-		long expiryTime = principalExpiry.getTimeInMillis();
-
-		this.logger.debug(Messages.getString("SSOProcessor.65") + principal.getSAMLAuthnIdentifier() + Messages.getString("SSOProcessor.66") + principal.getSessionNotOnOrAfter()); //$NON-NLS-1$ //$NON-NLS-2$
+		long expiryTime = principal.getSessionNotOnOrAfter();
+		
+		this.logger.debug(Messages.getString("SSOProcessor.65") + principal.getPrincipalAuthnIdentifier()+ Messages.getString("SSOProcessor.66") + principal.getSessionNotOnOrAfter()); //$NON-NLS-1$ //$NON-NLS-2$
 
 		/* If the principal session has already expired don't use it further */
 		if (expiryTime < currentTime)

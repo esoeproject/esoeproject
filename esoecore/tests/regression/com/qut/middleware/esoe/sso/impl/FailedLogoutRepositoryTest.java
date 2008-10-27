@@ -1,12 +1,14 @@
 package com.qut.middleware.esoe.sso.impl;
 
 import static org.junit.Assert.*;
+import static org.easymock.EasyMock.*;
 
 import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.esoe.logout.bean.FailedLogout;
 import com.qut.middleware.esoe.logout.bean.FailedLogoutRepository;
@@ -32,19 +34,19 @@ public class FailedLogoutRepositoryTest {
 		
 		failure1 = new FailedLogoutImpl();
 		failure1.setEndPoint("url.one");
-		failure1.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure1.setRequestDocument(createMock(Element.class));
 		failure1.setTimeStamp(new Date());
 		failure1.setAuthnId("743289423");
 		
 		failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("url.three");
-		failure2.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure2.setRequestDocument(createMock(Element.class));
 		failure2.setTimeStamp(new Date(System.currentTimeMillis() - 3287483));
 		failure2.setAuthnId("7894y2r7r");
 		
 		failure3 = new FailedLogoutImpl();
 		failure3.setEndPoint("url.two");
-		failure3.setRequestDocument(new String("<doc1></doc1>").getBytes());
+		failure3.setRequestDocument(createMock(Element.class));
 		failure3.setTimeStamp(new Date(System.currentTimeMillis() + 43654));
 		failure3.setAuthnId("8r4");
 	}
@@ -97,13 +99,13 @@ public class FailedLogoutRepositoryTest {
 		
 		FailedLogout failure = new FailedLogoutImpl();
 		failure.setEndPoint("www.test.1");
-		failure.setRequestDocument(new String("<xml>test</xml>").getBytes());
+		failure.setRequestDocument(createMock(Element.class));
 		failure.setTimeStamp(date);		
 		failure.setAuthnId("12345");		
 		
 		FailedLogout failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("www.test.2");
-		failure2.setRequestDocument(new String("<xml>test</xml>").getBytes());
+		failure2.setRequestDocument(createMock(Element.class));
 		failure2.setTimeStamp(date);	
 		failure2.setAuthnId("123");
 		
@@ -128,13 +130,13 @@ public class FailedLogoutRepositoryTest {
 		
 		FailedLogout failure = new FailedLogoutImpl();
 		failure.setEndPoint("www.test.1");
-		failure.setRequestDocument(new String("<xml>test</xml>").getBytes());
+		failure.setRequestDocument(createMock(Element.class));
 		failure.setTimeStamp(date);		
 		failure.setAuthnId("1234");
 		
 		FailedLogout failure2 = new FailedLogoutImpl();
 		failure2.setEndPoint("www.test.2");
-		failure2.setRequestDocument(new String("<xml>test</xml>").getBytes());
+		failure2.setRequestDocument(createMock(Element.class));
 		failure2.setTimeStamp(date);	
 		failure2.setAuthnId("123");
 		

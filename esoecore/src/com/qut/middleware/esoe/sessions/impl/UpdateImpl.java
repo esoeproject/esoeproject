@@ -1,180 +1,106 @@
-/* Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
- * the License.
- * 
- * Author: Shaun Mangelsdorf
- * Creation Date: 06/10/2006
- * 
- * Purpose: Implements the Update interface.
- */
 package com.qut.middleware.esoe.sessions.impl;
 
-import java.text.MessageFormat;
-import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.authn.bean.AuthnIdentityAttribute;
-import com.qut.middleware.esoe.sessions.Messages;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.Update;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
 import com.qut.middleware.esoe.sessions.bean.impl.IdentityAttributeImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
-import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
 import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.schemas.esoe.sessions.DataType;
 
-/** */
 public class UpdateImpl implements Update
 {
-	private SessionCache cache;
+	private SessionCache sessionCache;
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	/* Local logging instance */
-	private Logger logger = LoggerFactory.getLogger(UpdateImpl.class.getName());
-	private Logger authnLogger = LoggerFactory.getLogger(ConfigurationConstants.authnLogger);
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param cache
-	 *            The session cache to be used.
-	 */
-	public UpdateImpl(SessionCache cache)
+	public UpdateImpl(SessionCache sessionCache)
 	{
-		if (cache == null)
+		if (sessionCache == null)
 		{
-			throw new IllegalArgumentException(Messages.getString("UpdateImpl.SessionCacheNull")); //$NON-NLS-1$
+			throw new IllegalArgumentException("Session cache cannot be null");
 		}
-		this.cache = cache;
 
-		this.logger.info(Messages.getString("UpdateImpl.0")); //$NON-NLS-1$
+		this.sessionCache = sessionCache;
+
+		this.logger.info("Created UpdateImpl");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Update#updateEntityList(java.lang.String, java.lang.String)
-	 */
-	public void updateDescriptorList(String sessionID, String entityID) throws InvalidSessionIdentifierException
+	public void addEntitySessionIndex(Principal principal, String entityID, String sessionIndex) throws SessionCacheUpdateException
 	{
-		Principal principal = this.getPrincipal(sessionID);
+		// Update the principal and then push the changes to the underlying data store.
 
-		this.cache.addDescriptor(principal, entityID);
+		principal.addEntitySessionIndex(entityID, sessionIndex);
 
-		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.1"), entityID, sessionID)); //$NON-NLS-1$
+		this.sessionCache.addEntitySessionIndex(principal, entityID, sessionIndex);
+
+		this.logger.info("Added entity ID {} session index {} to principal with session ID {} SAML ID {}", new Object[] { entityID, sessionIndex, principal.getSessionID(), principal.getSAMLAuthnIdentifier() });
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Update#updateEntitySessionIdentifierList(java.lang.String,
-	 *      java.lang.String, java.lang.String)
-	 */
-	public void updateDescriptorSessionIdentifierList(String sessionID, String entityID, String descriptorSessionID)
-			throws InvalidSessionIdentifierException, InvalidDescriptorIdentifierException
+	public void addPrincipalAttributes(Principal principal, List<AuthnIdentityAttribute> authnIdentityAttributes) throws SessionCacheUpdateException
 	{
-		Principal principal = this.getPrincipal(sessionID);
+		// This is the same logic that is used to insert authn identity attributes into a new session in CreateImpl,
+		// just with a session cache operation added below..
+		// .. so if you change it, update this comment.
 
-		this.cache.addDescriptorSessionIdentifier(principal, entityID, descriptorSessionID);
-
-		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.2"), descriptorSessionID, entityID, sessionID)); //$NON-NLS-1$
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Update#updateSAMLAuthnIdentifier(java.lang.String, java.lang.String)
-	 */
-	public void updateSAMLAuthnIdentifier(String sessionID, String samlID) throws DuplicateSessionException, InvalidSessionIdentifierException
-	{
-		Principal principal = this.getPrincipal(sessionID);
-
-		principal.setSAMLAuthnIdentifier(samlID);
-
-		this.cache.updateSessionSAMLID(principal);
-
-		this.authnLogger.debug(MessageFormat.format(Messages.getString("UpdateImpl.3"), sessionID, samlID)); //$NON-NLS-1$
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Update#updatePrincipalAttributes(java.lang.String, java.util.List)
-	 */
-	public void updatePrincipalAttributes(String sessionID, List<AuthnIdentityAttribute> authnIdentityAttributes) throws InvalidSessionIdentifierException
-	{
-		Principal principal = this.getPrincipal(sessionID);
+		String sessionID = principal.getSessionID(); // For logging.
 
 		if (authnIdentityAttributes != null)
 		{
+			this.logger.debug("Adding {} authn identity attributes to attribute map for session with ID {}.", new Object[] { authnIdentityAttributes.size(), sessionID });
+
 			for (AuthnIdentityAttribute attrib : authnIdentityAttributes)
 			{
-				/* Insert new identity information into principal */
-				if (!principal.getAttributes().containsKey(attrib.getName()))
+				this.logger.debug("Adding authn processor attribute to session {}.. attribute name {} .. going to process values", new Object[] { sessionID, attrib.getName() });
+				
+				// Create a new attribute object to hold the values.
+				IdentityAttribute idAttrib = new IdentityAttributeImpl();
+				idAttrib.setType(DataType.STRING.name());
+				// Add the new values.
+				for (String value : attrib.getValues())
 				{
-					List<Object> attributes;
-					IdentityAttribute idAttrib = new IdentityAttributeImpl();
-					idAttrib.setType(DataType.STRING.name());
-					attributes = Collections.synchronizedList(idAttrib.getValues());
-					for (String value : attrib.getValues())
-					{
-						attributes.add(value);
-					}
-
-					principal.getAttributes().put(attrib.getName(), idAttrib);
+					this.logger.debug("Adding authn processor attribute to session {}.. attribute name {} value {}", new Object[] { sessionID, attrib.getName(), value });
+					idAttrib.getValues().add(value);
 				}
-				else
+
+				// Insert existing values for this attribute, if any.
+				if (principal.getAttributes().containsKey(attrib.getName()))
 				{
-					/* Append values to identity information if they don't already exist */
+					this.logger.warn("Attribute {} from authn processor conflicts with same attribute from identity resolver. Session with ID {} will have merged values from both sources.", new Object[] { attrib.getName(), sessionID });
 					IdentityAttribute attribute = principal.getAttributes().get(attrib.getName());
+					// Only string type attributes
 					if (attribute.getType().equals(DataType.STRING.name()))
 					{
 						for (String value : attrib.getValues())
 						{
+							// Only add the existing value if it's not the same as one of the new ones.
 							if (!attribute.getValues().contains(value))
+							{
+								this.logger.debug("Adding existing attribute values to authn attribute for session {}.. attribute name {} existing value {}", new Object[] { sessionID, attrib.getName(), value });
 								attribute.getValues().add(value);
+							}
 						}
 					}
 					else
-						this.logger.error(Messages.getString("UpdateImpl.6")); //$NON-NLS-1$
+					{
+						this.logger.error("Attribute {} from authn processor could not be merged with existing attribute as it was not a String type. Overriding the existing value(s) for this attribute.", new Object[] { attrib.getName() });
+					}
 				}
+
+				// Having populated the identity attribute object, just have to update the principal object.
+				principal.putAttribute(attrib.getName(), idAttrib);
 			}
 		}
+	
+
+		this.logger.info("Added {} authn identity attributes to attribute map for session with ID {}.", new Object[] { authnIdentityAttributes.size(), sessionID });
 	}
 
-	/**
-	 * @param sessionID
-	 *            Principals sessionID
-	 * @return Principal Object
-	 * @throws InvalidSessionIdentifierException
-	 */
-	private Principal getPrincipal(String sessionID) throws InvalidSessionIdentifierException
-	{
-		Principal principal;
-
-		// Get the principal object from the cache.
-		principal = this.cache.getSession(sessionID);
-		if (principal == null)
-		{
-			this.logger.warn(MessageFormat.format(Messages.getString("UpdateImpl.4"), sessionID)); //$NON-NLS-1$
-			throw new InvalidSessionIdentifierException();
-		}
-
-		this.logger.debug(MessageFormat.format(Messages.getString("UpdateImpl.5"), principal.getPrincipalAuthnIdentifier(), sessionID)); //$NON-NLS-1$
-		return principal;
-	}
 }

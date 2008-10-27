@@ -33,6 +33,7 @@ import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
 import com.qut.middleware.spep.sessions.SessionCache;
+import com.qut.middleware.spep.ws.WSProcessor;
 
 /** Implements the SPEP interface. */
 public class SPEPImpl implements SPEP
@@ -49,6 +50,7 @@ public class SPEPImpl implements SPEP
 	private SessionCache sessionCache;
 	private IdentifierCacheMonitor identifierCacheMonitor;
 	private MetadataUpdateThread metadataUpdateThread;
+	private WSProcessor wsProcessor;
 	private boolean started;
 	private StartupProcessor startupProcessor;
 	private boolean lazyInit;
@@ -232,6 +234,16 @@ public class SPEPImpl implements SPEP
 	public void setMetadataUpdateThread(MetadataUpdateThread metadataUpdateThread)
 	{
 		this.metadataUpdateThread = metadataUpdateThread;
+	}
+
+	public WSProcessor getWSProcessor()
+	{
+		return wsProcessor;
+	}
+
+	public void setWSProcessor(WSProcessor wsProcessor)
+	{
+		this.wsProcessor = wsProcessor;
 	}
 
 	/*

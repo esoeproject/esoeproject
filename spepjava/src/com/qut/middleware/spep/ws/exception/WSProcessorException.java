@@ -1,4 +1,4 @@
-/* Copyright 2006, Queensland University of Technology
+/* Copyright 2008, Queensland University of Technology
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
  * use this file except in compliance with the License. You may obtain a copy of 
  * the License at 
@@ -12,23 +12,33 @@
  * the License.
  * 
  * Author: Shaun Mangelsdorf
- * Creation Date: 28/09/2006
+ * Creation Date: 29/09/2008
  * 
- * Purpose: Interface to allow sessions to be terminated in the local cache.
+ * Purpose: 
  */
-package com.qut.middleware.esoe.sessions;
 
-import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
+package com.qut.middleware.spep.ws.exception;
 
-/** */
-public interface Terminate
+public class WSProcessorException extends Exception
 {
-	/**
-	 * Terminates a session within the ESOE.
-	 * 
-	 * @param sessionID
-	 *            The session identifier
-	 * @throws SessionCacheUpdateException If the session specified did not exist.
-	 */
-	public void terminateSession(String sessionID) throws SessionCacheUpdateException;
+	private static final long serialVersionUID = -5547387576149377905L;
+
+	public WSProcessorException()
+	{
+	}
+
+	public WSProcessorException(String arg0)
+	{
+		super(arg0);
+	}
+
+	public WSProcessorException(Throwable arg0)
+	{
+		super(arg0);
+	}
+
+	public WSProcessorException(String arg0, Throwable arg1)
+	{
+		super(arg0, arg1);
+	}
 }

@@ -19,8 +19,7 @@
  */
 package com.qut.middleware.esoe.ws;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axis2.AxisFault;
+import com.qut.middleware.esoe.ws.exception.WSProcessorException;
 
 public interface WSProcessor
 {
@@ -28,32 +27,32 @@ public interface WSProcessor
 	/**
 	 * Function which Axis invokes on the esoe service for the operation attributeAuthority
 	 * 
-	 * @param attributeQuery Axiom OMElement representation of the contents of Soap:Body
-	 * @return An Axiom OMElement representation of the response contents for Soap:Body
+	 * @param attributeQuery SOAP document containing envelope with attribute query
+	 * @return SOAP document containing some form of response
 	 */
-	public OMElement attributeAuthority(OMElement attributeQuery) throws AxisFault;
+	public byte[] attributeAuthority(byte[] attributeQuery, String contentType) throws WSProcessorException;
 	
 	/**
 	 * Function which Axis invokes on the esoe service for the operation policyDecisionPoint
 	 * 
-	 * @param decisionRequest Axiom OMElement representation of the contents of Soap:Body
+	 * @param decisionRequest SOAP document containing envelope with policy query
 	 * @return An Axiom OMElement representation of the response contents for Soap:Body
 	 */
-	public OMElement policyDecisionPoint(OMElement decisionRequest) throws AxisFault;
+	public byte[] policyDecisionPoint(byte[] decisionRequest, String contentType) throws WSProcessorException;
 	
 	/**
 	 * Function which Axis invokes on the esoe service for the operation spepStartup
 	 * 
-	 * @param spepStartup Axiom OMElement representation of the contents of Soap:Body
+	 * @param spepStartup SOAP document containing envelope with SPEP startup query
 	 * @return An Axiom OMElement representation of the response contents for Soap:Body
 	 */
-	public OMElement spepStartup(OMElement spepStartup) throws AxisFault;
+	public byte[] spepStartup(byte[] spepStartup, String contentType) throws WSProcessorException;
 	
 	/**
 	 * Function which Axis invokes on the esoe service for the operation registerPrincipal
 	 * 
-	 * @param spepStartup Axiom OMElement representation of the contents of Soap:Body
+	 * @param spepStartup SOAP document containing envelope with register principal query
 	 * @return An Axiom OMElement representation of the response contents for Soap:Body
 	 */
-	public OMElement registerPrincipal(OMElement registerPrincipal) throws AxisFault;
+	public byte[] registerPrincipal(byte[] registerPrincipal, String contentType) throws WSProcessorException;
 }

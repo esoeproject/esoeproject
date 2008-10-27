@@ -31,8 +31,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Calendar;
@@ -49,6 +47,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -56,6 +55,7 @@ import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
 import com.qut.middleware.saml2.ConsentIdentifierConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
@@ -105,7 +105,7 @@ import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl
 @SuppressWarnings({"nls","boxing"})
 public class AuthnProcessorTest
 {
-	private String[] schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion};
+	private String[] schemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.samlAssertion};
 	private AuthnProcessor authnProcessor;
 	private String keyName;
 	private PrivateKey key;
@@ -149,7 +149,7 @@ public class AuthnProcessorTest
 		
 		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, keyStoreResolver);
 		
-		this.logoutSchemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.samlAssertion};
+		this.logoutSchemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.samlAssertion};
 		this.logoutPackages = LogoutRequest.class.getPackage().getName();
 		this.logoutRequestMarshaller = new MarshallerImpl<LogoutRequest>(this.logoutPackages, this.logoutSchemas, keyStoreResolver);
 		this.logoutResponseUnmarshaller = new UnmarshallerImpl<JAXBElement<StatusResponseType>>(StatusResponseType.class.getPackage().getName(), this.logoutSchemas, keyStoreResolver);
@@ -600,8 +600,6 @@ public class AuthnProcessorTest
 	@Test
 	public void testLogoutPrincipal1a() throws Exception
 	{
-		AuthnProcessorData data = new AuthnProcessorDataImpl();
-
 		String ESOESessionID = "_12345-12345";
 		
 		/* Setup our ESOE provided SessionIndex's and Local sessionID's which are stored in users client */
@@ -636,7 +634,7 @@ public class AuthnProcessorTest
 		sessionIndices.add(sessionIndex3);
 		sessionIndices.add(sessionIndex4);
 		
-		data.setRequestDocument(generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID));
+		Element requestDocument = generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID);
 		
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(ESOESessionID)).andReturn(principalSession);
 		
@@ -647,9 +645,9 @@ public class AuthnProcessorTest
 
 		startMock();
 		
-		this.authnProcessor.logoutPrincipal(data);
+		Element responseDocument = this.authnProcessor.logoutPrincipal(requestDocument);
 		
-		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(responseDocument);
 		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
 		
 		endMock();
@@ -663,8 +661,6 @@ public class AuthnProcessorTest
 	@Test
 	public void testLogoutPrincipal1b() throws Exception
 	{
-		AuthnProcessorData data = new AuthnProcessorDataImpl();
-
 		String ESOESessionID = "_12345-12345";
 		
 		/* Setup our ESOE provided SessionIndex's and Local sessionID's which are stored in users client */
@@ -697,7 +693,7 @@ public class AuthnProcessorTest
 		sessionIndices.add(sessionIndex1);
 		sessionIndices.add(sessionIndex2);
 		
-		data.setRequestDocument(generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID));
+		Element requestDocument = generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID);
 		
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(ESOESessionID)).andReturn(principalSession);
 		
@@ -706,9 +702,9 @@ public class AuthnProcessorTest
 
 		startMock();
 		
-		this.authnProcessor.logoutPrincipal(data);
+		Element responseDocument = this.authnProcessor.logoutPrincipal(requestDocument);
 		
-		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(responseDocument);
 		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
 		
 		endMock();
@@ -722,8 +718,6 @@ public class AuthnProcessorTest
 	@Test
 	public void testLogoutPrincipal1c() throws Exception
 	{
-		AuthnProcessorData data = new AuthnProcessorDataImpl();
-
 		String ESOESessionID = "_12345-12345";
 		
 		/* Setup our ESOE provided SessionIndex's and Local sessionID's which are stored in users client */
@@ -754,7 +748,7 @@ public class AuthnProcessorTest
 
 		List<String> sessionIndices = new Vector<String>();
 		
-		data.setRequestDocument(generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID));
+		Element requestDocument = generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID);
 		
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(ESOESessionID)).andReturn(principalSession);
 		
@@ -762,9 +756,9 @@ public class AuthnProcessorTest
 
 		startMock();
 		
-		this.authnProcessor.logoutPrincipal(data);
+		Element responseDocument = this.authnProcessor.logoutPrincipal(requestDocument);
 		
-		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(responseDocument);
 		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.success));
 		
 		
@@ -779,8 +773,6 @@ public class AuthnProcessorTest
 	@Test
 	public void testLogoutPrincipal2() throws Exception
 	{
-		AuthnProcessorData data = new AuthnProcessorDataImpl();
-
 		String ESOESessionID = "_12345-12345";
 		
 		/* Setup our ESOE provided SessionIndex's and Local sessionID's which are stored in users client */
@@ -798,21 +790,22 @@ public class AuthnProcessorTest
 		sessionIndices.add(sessionIndex1);
 		sessionIndices.add(sessionIndex2);
 		
-		data.setRequestDocument(generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID));
+		Element requestDocument = generateLogoutRequest(this.samlID, sessionIndices, ESOESessionID);
 		
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(ESOESessionID)).andReturn(null);
 		startMock();
 		
+		Element responseDocument = null;
 		try
 		{
-			this.authnProcessor.logoutPrincipal(data);
+			responseDocument = this.authnProcessor.logoutPrincipal(requestDocument);
 		}
 		catch (LogoutException e)
 		{
 			// We actually expect this
 		}
 		
-		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+		JAXBElement<StatusResponseType> response = this.logoutResponseUnmarshaller.unMarshallSigned(responseDocument);
 		assertTrue("Ensures the response document is generated in a success state", response.getValue().getStatus().getStatusCode().getValue().equals(StatusCodeConstants.unknownPrincipal));
 				
 		endMock();
@@ -887,7 +880,7 @@ public class AuthnProcessorTest
 	
 	
 	
-	private byte[] generateLogoutRequest(String generatedSAMLID, List<String> sessionIndices, String nameID) throws MarshallerException
+	private Element generateLogoutRequest(String generatedSAMLID, List<String> sessionIndices, String nameID) throws MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.spepIdentifier);
@@ -909,7 +902,7 @@ public class AuthnProcessorTest
 		
 		logoutRequest.getSessionIndices().addAll(sessionIndices);
 		
-		return this.logoutRequestMarshaller.marshallSigned(logoutRequest);
+		return this.logoutRequestMarshaller.marshallSignedElement(logoutRequest);
 	}
 	
 	

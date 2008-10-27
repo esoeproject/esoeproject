@@ -20,13 +20,12 @@
  */
 package com.qut.middleware.esoe.authz.cache.impl;
 
-import java.io.UnsupportedEncodingException;
-import java.security.PrivateKey;
 import java.text.MessageFormat;
 import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.MonitorThread;
@@ -65,8 +64,6 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 	private int maxFailureAge;
 	private final WSClient wsClient;
 	private MetadataProcessor metadata;
-	private PrivateKey key;
-	private String keyName;
 		
 	private Unmarshaller<ClearAuthzCacheResponse> clearAuthzCacheResponseUnmarshaller;
 	private Marshaller<ClearAuthzCacheRequest> clearAuthzCacheRequestMarshaller;
@@ -123,8 +120,6 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 		this.updateFailures = failureRep;
 		this.retryInterval = retryInterval * 1000;
 		this.maxFailureAge = maxFailureAge * 1000;
-		this.key = keyStoreResolver.getLocalPrivateKey();
-		this.keyName = keyStoreResolver.getLocalKeyAlias();
 		this.identifierGenerator = identifierGenerator;
 		
 		String[] schemas = new String[] { SchemaConstants.esoeProtocol, SchemaConstants.samlProtocol };
@@ -184,9 +179,9 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 	 * 
 	 * @return the result of the attempted send.
 	 */
-	private result sendCacheUpdate(byte[] authzClearCacheRequest, String endPoint)
+	private result sendCacheUpdate(Element authzClearCacheRequest, String endPoint)
 	{
-		byte[] responseDocument;
+		Element responseDocument;
 
 		try
 		{
@@ -273,7 +268,7 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 				// we have to regenerate the original request with updated timestamps and sigs before sending
 				// because the allowed time skew will more than likely have expired.
 				
-				byte[] newDocument = this.regenerateDocument(failure.getRequestDocument());
+				Element newDocument = this.regenerateDocument(failure.getRequestDocument());
 				
 				if(newDocument != null)
 				{
@@ -316,11 +311,11 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 	 * SAML ID's and signatures. If an error occurs during the process, null is returned.
 	 * 
 	 */
-	private byte[] regenerateDocument(byte[] oldDocument)
+	private Element regenerateDocument(Element oldDocument)
 	{
 		this.logger.debug( Messages.getString("CacheUpdateFailureMonitor.8")); //$NON-NLS-1$
 		
-		byte[] newDoc = null;
+		Element newDoc = null;
 		ClearAuthzCacheRequest request = null;
 		
 		// unmarshall the original failure request for modification
@@ -355,22 +350,13 @@ public class CacheUpdateFailureMonitor extends Thread implements MonitorThread
 				request.setID(this.identifierGenerator.generateSAMLID());
 				
 				// re marshall mofified document
-				newDoc = this.clearAuthzCacheRequestMarshaller.marshallSigned(request);		
+				newDoc = this.clearAuthzCacheRequestMarshaller.marshallSignedElement(request);		
 			}
 			catch(MarshallerException e)
 			{
 				this.logger.error(Messages.getString("CacheUpdateFailureMonitor.12")); //$NON-NLS-1$
 				this.logger.trace(e.getLocalizedMessage(), e);
 			}
-		}
-		
-		try
-		{
-			this.logger.trace("Regenerated new LogoutRequest: \n" + new String(newDoc,  "UTF-16") );
-		}
-		catch(UnsupportedEncodingException e)
-		{
-			e.printStackTrace();
 		}
 		
 		return newDoc;

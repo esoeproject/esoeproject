@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
+import com.ibm.icu.util.Calendar;
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.sessions.Principal;
@@ -153,7 +154,8 @@ public class SSOProcessorImpl extends SSOProcessorBase
 		authnStatement.setAuthnInstant(CalendarUtils.generateXMLCalendar(0));
 		authnStatement.setSessionIndex(sessionIndex);
 		/* Add our allowed time skew to the current time */
-		authnStatement.setSessionNotOnOrAfter(principal.getSessionNotOnOrAfter());
+		// TODO check that this is still accurate
+		authnStatement.setSessionNotOnOrAfter(CalendarUtils.generateXMLCalendar(principal.getSessionNotOnOrAfter()) );
 
 		authnStatement.setSubjectLocality(subjectLocality);
 		authnStatement.setAuthnContext(authnContext);
@@ -265,7 +267,7 @@ public class SSOProcessorImpl extends SSOProcessorBase
 		SubjectConfirmationDataType confirmationData = new SubjectConfirmationDataType();
 		confirmationData.setRecipient(data.getResponseEndpoint());
 		confirmationData.setInResponseTo(data.getAuthnRequest().getID());
-		confirmationData.setNotOnOrAfter(principal.getSessionNotOnOrAfter());
+		confirmationData.setNotOnOrAfter(CalendarUtils.generateXMLCalendar(principal.getSessionNotOnOrAfter()) );
 		confirmation.setSubjectConfirmationData(confirmationData);
 		subject.getSubjectConfirmationNonID().add(confirmation);
 

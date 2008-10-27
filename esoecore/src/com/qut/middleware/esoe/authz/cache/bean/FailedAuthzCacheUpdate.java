@@ -22,6 +22,8 @@ package com.qut.middleware.esoe.authz.cache.bean;
 
 import java.util.Date;
 
+import org.w3c.dom.Element;
+
 /** */
 public interface FailedAuthzCacheUpdate 
 {
@@ -32,7 +34,7 @@ public interface FailedAuthzCacheUpdate
 	 * 
 	 * @param request A string representing a valid, opensaml 2.0 compliant request.
 	 */
-	public void setRequestDocument(byte[] request);
+	public void setRequestDocument(Element request);
 	
 
 	/**
@@ -42,7 +44,7 @@ public interface FailedAuthzCacheUpdate
 	 * @return The opensaml 2.0 request document as set by setRequestDocument, else null if not exists.
 	 *        
 	 */
-	public byte[] getRequestDocument();	
+	public Element getRequestDocument();	
 	
 
 	/** Set the string representation of the end point URL that the update was attempted against. 

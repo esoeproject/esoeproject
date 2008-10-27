@@ -20,11 +20,7 @@
 
 package com.qut.middleware.esoe.sso.impl;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -62,6 +58,7 @@ import com.qut.middleware.esoe.sessions.Query;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.Update;
 import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
@@ -407,27 +404,27 @@ public class AuthenticationAuthorityProcessorFuncTest
 		expect(metadata.getEntityRoleData(this.issuer, SPEPRole.class)).andReturn(spepRole).anyTimes();
 
 		expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
-		expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
+	//	expect(principal.getActiveEntityList()).andReturn(entities).atLeastOnce();
 
 		/* User originally authenticated basically within the same request timeframe */
 		expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();
 		expect(principal.getAuthenticationContextClass()).andReturn(AuthenticationContextConstants.passwordProtectedTransport).atLeastOnce();
 		expect(principal.getPrincipalAuthnIdentifier()).andReturn("beddoes").atLeastOnce();
 
-		principal.addDescriptorSessionIdentifier((String) notNull(), (String) notNull());
+		//principal.addEntitySessionIndex((String) notNull(), (String) notNull());
 
 		TimeZone utc = new SimpleTimeZone(0, ConfigurationConstants.timeZone);
 		GregorianCalendar cal = new GregorianCalendar(utc);
 		// add skew offset that will keep notonorafter within allowable session range
 		cal.add(Calendar.SECOND, 1000);
-		expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal)).atLeastOnce();
+		expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal).toGregorianCalendar().getTimeInMillis() + 2000000).atLeastOnce();
 
 		expect(sessionsProcessor.getUpdate()).andReturn(update).anyTimes();
-		expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid");
-		update.updateDescriptorList("1234567890", this.issuer);
-		update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
+		expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid").anyTimes();
+	
+		update.addEntitySessionIndex((Principal)notNull(), "1234567890", this.issuer);
 
-		expect(request.getServerName()).andReturn("http://esoe-unittest.code");
+		expect(request.getServerName()).andReturn("http://esoe-unittest.code").anyTimes();
 		expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 		expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
 
@@ -481,7 +478,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		expect(metadata.getEntityRoleData(this.issuer, SPEPRole.class)).andReturn(spepRole).anyTimes();
 
 		expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
-		expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
+		expect(principal.getActiveEntityList()).andReturn(entities).atLeastOnce();
 
 		/* User originally authenticated a long time in the past */
 		expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis()).atLeastOnce();
@@ -490,15 +487,13 @@ public class AuthenticationAuthorityProcessorFuncTest
 
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.add(Calendar.SECOND, 100);
-		expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal)).atLeastOnce();
+		expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal).toGregorianCalendar().getTimeInMillis()).atLeastOnce();
 
-		principal.addDescriptorSessionIdentifier((String) notNull(), (String) notNull());
+		principal.addEntitySessionIndex((String) notNull(), (String) notNull());
 
 		expect(sessionsProcessor.getUpdate()).andReturn(update).anyTimes();
 		expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid");
-		update.updateDescriptorList("1234567890", this.issuer);
-		update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
-
+		
 		expect(request.getServerName()).andReturn("http://esoe-unittest.code");
 		expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567-samlid").once();
 		expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234568-samlid").anyTimes();
@@ -550,7 +545,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		expect(metadata.getEntityRoleData(this.issuer, SPEPRole.class)).andReturn(spepRole).anyTimes();
 
 		expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
-		expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
+		expect(principal.getActiveEntityList()).andReturn(entities).atLeastOnce();
 
 		/* User originally authenticated basically within the same request timeframe */
 		expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();
@@ -560,15 +555,13 @@ public class AuthenticationAuthorityProcessorFuncTest
 		expect(principal.getPrincipalAuthnIdentifier()).andReturn("beddoes").atLeastOnce();
 
 		GregorianCalendar cal = new GregorianCalendar();
-		expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal)).atLeastOnce();
+		expect(principal.getSessionNotOnOrAfter()).andReturn(new XMLGregorianCalendarImpl(cal).toGregorianCalendar().getTimeInMillis()).atLeastOnce();
 
-		principal.addDescriptorSessionIdentifier((String) notNull(), (String) notNull());
+		principal.addEntitySessionIndex((String) notNull(), (String) notNull());
 
 		expect(sessionsProcessor.getUpdate()).andReturn(update).anyTimes();
 		expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid");
-		update.updateDescriptorList("1234567890", this.issuer);
-		update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
-
+		
 		expect(request.getServerName()).andReturn("http://esoe-unittest.code");
 		expect(identifierGenerator.generateSAMLID()).andReturn("_1234567-1234567").once();
 		expect(identifierGenerator.generateSAMLID()).andReturn("_890123-890123").once();
@@ -649,15 +642,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 
 		expect(metadata.resolveKey(this.spepKeyAlias)).andReturn(pk).atLeastOnce();
 		expect(sessionsProcessor.getQuery()).andReturn(query).atLeastOnce();
-		try
-		{
-			expect(query.queryAuthnSession("1234567890")).andThrow(new com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException());
-		}
-		catch (com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException e)
-		{
-			fail("Unexpected InvalidSessionIdentifierException: " + e.getMessage());
-		}
-
+		
+		expect(query.queryAuthnSession("1234567890")).andReturn(null);
+		
 		entityData = createMock(EntityData.class);
 		spepRole = createMock(SPEPRole.class);
 		expect(entityData.getRoleData(SPEPRole.class)).andReturn(spepRole).anyTimes();
@@ -668,7 +655,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		expect(metadata.getEntityRoleData(this.issuer, SPEPRole.class)).andReturn(spepRole).anyTimes();
 
 		expect(principal.getSAMLAuthnIdentifier()).andReturn(authnIdentifier).atLeastOnce();
-		expect(principal.getActiveDescriptors()).andReturn(entities).atLeastOnce();
+		expect(principal.getActiveEntityList()).andReturn(entities).atLeastOnce();
 		;
 		/* User originally authenticated basically within the same request timeframe */
 		expect(principal.getAuthnTimestamp()).andReturn(System.currentTimeMillis() - 200).atLeastOnce();
@@ -680,10 +667,9 @@ public class AuthenticationAuthorityProcessorFuncTest
 		expect(identifierGenerator.generateSAMLSessionID()).andReturn("_1234567-1234567-samlsessionid");
 		try
 		{
-			update.updateDescriptorList("1234567890", this.issuer);
-			update.updateDescriptorSessionIdentifierList("1234567890", this.issuer, "_1234567-1234567-samlsessionid");
+			update.addEntitySessionIndex((Principal)notNull(), "1234567890", this.issuer);
 		}
-		catch (com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException e)
+		catch (SessionCacheUpdateException e)
 		{
 			fail("Unexpected InvalidSessionIdentifierException: " + e.getMessage());
 		}

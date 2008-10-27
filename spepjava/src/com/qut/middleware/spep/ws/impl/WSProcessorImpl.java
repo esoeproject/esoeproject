@@ -19,214 +19,173 @@
  */
 package com.qut.middleware.spep.ws.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.util.List;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.impl.builder.StAXOMBuilder;
-import org.apache.axis2.AxisFault;
-import org.apache.axis2.context.MessageContext;
-import org.apache.axis2.description.Parameter;
-import org.apache.axis2.transport.http.HTTPConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 
-import com.qut.middleware.spep.Initializer;
-import com.qut.middleware.spep.SPEP;
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
+import com.qut.middleware.saml2.exception.MarshallerException;
+import com.qut.middleware.saml2.exception.SOAPException;
+import com.qut.middleware.saml2.handler.SOAPHandler;
+import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessorData;
 import com.qut.middleware.spep.authn.impl.AuthnProcessorDataImpl;
-import com.qut.middleware.spep.exception.SPEPInitializationException;
-import com.qut.middleware.spep.ws.Messages;
+import com.qut.middleware.spep.exception.LogoutException;
+import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.ws.WSProcessor;
+import com.qut.middleware.spep.ws.exception.WSProcessorException;
 
 /** */
 public class WSProcessorImpl implements WSProcessor
 {
-	private  static XMLInputFactory xmlInputFactory;
-	private  static XMLOutputFactory xmlOutputFactory;
+	private PolicyEnforcementProcessor policyEnforcementProcessor;
+	private AuthnProcessor authnProcessor;
 	
-	/* Create singleton instances of xmlInputFactory and xmlOutputFactory */
-	static
-	{
-		xmlInputFactory = XMLInputFactory.newInstance();
-		xmlOutputFactory = XMLOutputFactory.newInstance();
-	}
-
+	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(WSProcessorImpl.class.getName());
+	private List<SOAPHandler> soapHandlers;
 
 	/**
 	 * Default constructor
 	 */
-	public WSProcessorImpl()
+	public WSProcessorImpl(PolicyEnforcementProcessor policyEnforcementProcessor, AuthnProcessor authnProcessor, List<SOAPHandler> soapHandlers)
 	{
+		this.policyEnforcementProcessor = policyEnforcementProcessor;
+		this.authnProcessor = authnProcessor;
+		this.soapHandlers = soapHandlers;
 		
+		this.logger.debug("Initialized WSProcessorImpl.");
 	}
 
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSProcessor#authzCacheClear(org.apache.axiom.om.OMElement)
 	 */
-	public OMElement authzCacheClear(OMElement request) throws AxisFault
+	public byte[] authzCacheClear(byte[] authzCacheClear, String contentType) throws WSProcessorException
 	{
-		MessageContext.getCurrentMessageContext().getAxisService();
-		byte[] requestDocument = null, responseDocument = null;
 		try
 		{
-			requestDocument = readRequest(request);
-			this.logger.debug(Messages.getString("WSProcessorImpl.6") + requestDocument); //$NON-NLS-1$
-
-			SPEP spep = initSPEP();
-			responseDocument = spep.getPolicyEnforcementProcessor().authzCacheClear(requestDocument);
-
-			if (responseDocument != null)
-			{
-				this.logger.debug(Messages.getString("WSProcessorImpl.7") + responseDocument); //$NON-NLS-1$
-				return generateResponse(responseDocument);
-			}
-
-			throw new AxisFault(Messages.getString("WSProcessorImpl.0")); //$NON-NLS-1$
+			SOAPHandler handler = this.getHandler(contentType);
 			
-		}
-		catch (Exception e)
-		{
-			if (responseDocument != null)
+			Element request = readRequest(authzCacheClear, handler);
+			
+			Element response = this.policyEnforcementProcessor.authzCacheClear(request);
+			if (response != null)
 			{
-				this.logger.debug(Messages.getString("WSProcessorImpl.7") + responseDocument); //$NON-NLS-1$
-				return generateResponse(responseDocument);
+				this.logger.debug("Authz cache clear processed. Responding to ESOE with response document");
+				return generateResponse(response, handler);
 			}
 
-			throw new AxisFault(e.getMessage());
+			this.logger.warn("Authz cache clear resulted in null response document.");
+			throw new WSProcessorException("Authz cache clear resulted in null response document.");
+		}
+		catch (MarshallerException e)
+		{
+			this.logger.error("Marshaller exception occurred while processing authz cache clear request. Message was: " + e.getMessage());
+			throw new WSProcessorException("Marshaller exception occurred while processing authz cache clear request. Fail.");
 		}
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.spep.ws.WSProcessor#singleLogout(org.apache.axiom.om.OMElement)
 	 */
-	public OMElement singleLogout(OMElement request) throws AxisFault
+	public byte[] singleLogout(byte[] logoutRequest, String contentType) throws WSProcessorException
 	{
-		byte[] requestDocument = null, responseDocument = null;
-		AuthnProcessorData data = new AuthnProcessorDataImpl();
 		try
 		{
-			requestDocument = readRequest(request);
-			this.logger.debug(Messages.getString("WSProcessorImpl.8") + requestDocument); //$NON-NLS-1$
-
-			SPEP spep = initSPEP();
-			data.setRequestDocument(requestDocument);
-			spep.getAuthnProcessor().logoutPrincipal(data);
+			SOAPHandler handler = this.getHandler(contentType);
 			
-			responseDocument = data.getResponseDocument();
-
-			if (responseDocument != null)
+			Element request = readRequest(logoutRequest, handler);
+			
+			Element response = this.authnProcessor.logoutPrincipal(request);
+			if (response != null)
 			{
-				this.logger.debug(Messages.getString("WSProcessorImpl.9") + requestDocument); //$NON-NLS-1$
-				return generateResponse(responseDocument);
+				this.logger.debug("Authz cache clear processed. Responding to ESOE with response document");
+				return generateResponse(response, handler);
 			}
 
-			throw new AxisFault(Messages.getString("WSProcessorImpl.1")); //$NON-NLS-1$
-			
+			this.logger.warn("Authz cache clear resulted in null response document.");
+			throw new WSProcessorException("Authz cache clear resulted in null response document.");
 		}
-		catch (Exception e)
+		catch (LogoutException e)
 		{
-			responseDocument = data.getResponseDocument();
-			
-			if (responseDocument != null)
-			{
-				this.logger.debug(Messages.getString("WSProcessorImpl.7") + responseDocument); //$NON-NLS-1$
-				return generateResponse(responseDocument);
-			}
-
-			throw new AxisFault(e.getMessage());
+			this.logger.error("Exception occurred while processing logout request. Message was: " + e.getMessage());
+			throw new WSProcessorException("Exception occurred while processing logout request.");
 		}
 	}
 	
-	private SPEP initSPEP() throws SPEPInitializationException
+	private SOAPHandler getHandler(String contentType) throws WSProcessorException
 	{
-		MessageContext messageContext = MessageContext.getCurrentMessageContext();
-		if (messageContext == null)
+		for (SOAPHandler handler : this.soapHandlers)
 		{
-			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.2")); //$NON-NLS-1$
+			if (handler.canHandle(contentType))
+				return handler;
 		}
 		
-		Parameter servletConfigParameter = messageContext.getAxisService().getParameter(HTTPConstants.HTTP_SERVLETCONFIG);
-		if (servletConfigParameter == null)
-		{
-			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.3")); //$NON-NLS-1$
-		}
+		throw new WSProcessorException("No registered SOAPHandler available to handle Content-Type: " + contentType);
+	}
+	
+	private String getEncoding(SOAPHandler handler, byte[] document)
+	{
+		CharsetDetector detector = new CharsetDetector();
+		detector.setText(document);
+		CharsetMatch match = detector.detect();
 		
-		Object servletConfigObject = servletConfigParameter.getValue();
-		if (servletConfigObject == null || !(servletConfigObject instanceof ServletConfig))
+		if (match != null)
 		{
-			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.4")); //$NON-NLS-1$
+			return match.getName();
 		}
-		
-		ServletContext servletContext = ((ServletConfig)servletConfigObject).getServletContext();
-		if (servletContext == null)
+		else
 		{
-			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.5")); //$NON-NLS-1$
+			return handler.getDefaultEncoding();
 		}
-		
-		return Initializer.init(servletContext);
 	}
 
 	/**
-	 * Reads Axis2 web requests and gets the raw Soap body as a byte[]
+	 * Reads Axis2 web requests and gets the raw Soap body as a String
 	 * 
-	 * @param requestDocument Axis 2 Axiom representation of the request
-	 * @return String representation of the request document
+	 * @param requestDocument Raw SOAP document containing the request.
+	 * @return DOM Element representing the request document.
 	 */
-	private byte[] readRequest(OMElement requestDocument) throws AxisFault
+	private Element readRequest(byte[] requestDocument, SOAPHandler handler) throws WSProcessorException
 	{
-		ByteArrayOutputStream writer;
-		XMLStreamWriter xmlWriter;
-
 		try
 		{
-			writer = new ByteArrayOutputStream();
-			xmlWriter = WSProcessorImpl.xmlOutputFactory.createXMLStreamWriter(writer);
-			requestDocument.serialize(xmlWriter);
-
-			return writer.toByteArray();
+			CharsetDetector detector = new CharsetDetector();
+			this.logger.trace(detector.getString(requestDocument, null));
+			
+			return handler.unwrapDocument(requestDocument);
 		}
-		catch (XMLStreamException e)
+		catch (SOAPException e)
 		{
-			throw new AxisFault(e.getMessage());
+			this.logger.debug("SOAP Exception while trying to unwrap request document.", e);
+			throw new WSProcessorException("SOAP Exception while trying to unwrap request document.");
 		}
 	}
 
 	/**
 	 * Generates an Axis 2 response object
 	 * 
-	 * @param responseDocument
-	 *            String representation of the SAML document to respond with
-	 * @return The Axis2 representation of the document
+	 * @param responseDocument DOM Element representing the SAML document to respond with.
+	 * @return Raw SOAP document containing the response.
 	 */
-	private OMElement generateResponse(byte[] responseDocument) throws AxisFault
+	private byte[] generateResponse(Element responseDocument, SOAPHandler handler) throws WSProcessorException
 	{
-		XMLStreamReader xmlreader;
-		StAXOMBuilder builder;
-		OMElement response;
-		ByteArrayInputStream reader;
-
 		try
 		{
-			reader = new ByteArrayInputStream(responseDocument);
-			xmlreader = WSProcessorImpl.xmlInputFactory.createXMLStreamReader(reader);
-			builder = new StAXOMBuilder(xmlreader);
-			response = builder.getDocumentElement();
-
-			return response;
+			byte[] document = handler.wrapDocument(responseDocument);
+			
+			CharsetDetector detector = new CharsetDetector();
+			this.logger.trace(detector.getString(document, null));
+			
+			return document;
 		}
-		catch (XMLStreamException e)
+		catch (SOAPException e)
 		{
-			throw new AxisFault(e.getMessage());
+			this.logger.debug("SOAP Exception while trying to wrap response document.", e);
+			throw new WSProcessorException("SOAP Exception while trying to wrap response document.");
 		}
 	}
 }

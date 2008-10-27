@@ -38,6 +38,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
 import com.qut.middleware.esoe.authz.cache.PolicyCacheProcessor;
@@ -153,10 +154,10 @@ public class StartupTest
 		request.setSignature(new Signature());
 		request.setNodeId("nodeID:74834");
 		
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		try
 		{
-			requestDocument = this.requestMarshaller.marshallSigned(request);
+			requestDocument = this.requestMarshaller.marshallSignedElement(request);
 		}
 		catch (MarshallerException e)
 		{

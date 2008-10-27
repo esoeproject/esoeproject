@@ -18,6 +18,7 @@ import java.util.Vector;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -34,9 +35,12 @@ import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
+import com.qut.middleware.saml2.exception.SOAPException;
 import com.qut.middleware.saml2.handler.Marshaller;
+import com.qut.middleware.saml2.handler.SOAPHandler;
 import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
+import com.qut.middleware.saml2.handler.impl.SOAPv12Handler;
 import com.qut.middleware.saml2.handler.impl.UnmarshallerImpl;
 import com.qut.middleware.saml2.identifier.IdentifierCache;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -119,7 +123,7 @@ public class DelegatedAuthenticationProcessorTest
 			
 		try
 		{
-			expect(this.create.createDelegatedSession((String)notNull(), (String)notNull(), (String)notNull(), (List)notNull())).andReturn(Create.result.SessionCreated).once();
+			this.create.createDelegatedSession( (String)notNull(), (String)notNull(), (String)notNull(), (List)notNull() ) ;
 		}
 		catch(Exception e)
 		{
@@ -148,7 +152,7 @@ public class DelegatedAuthenticationProcessorTest
 			
 		try
 		{
-			expect(this.create.createDelegatedSession((String)notNull(), (String)notNull(), (String)notNull(), (List)notNull())).andReturn(Create.result.SessionCreated).once();
+			this.create.createDelegatedSession( (String)notNull(), (String)notNull(), (String)notNull(), (List)notNull() );
 		}
 		catch(Exception e)
 		{
@@ -196,7 +200,7 @@ public class DelegatedAuthenticationProcessorTest
 			
 		try
 		{
-			expect(this.create.createDelegatedSession((String)notNull(), (String)notNull(), (String)notNull(), (List)notNull())).andThrow(new DuplicateSessionException());
+			this.create.createDelegatedSession((String)notNull(), (String)notNull(), (String)notNull(), (List)notNull());
 		}
 		catch(Exception e)
 		{
@@ -244,7 +248,9 @@ public class DelegatedAuthenticationProcessorTest
 			
 		try
 		{
-			expect(this.create.createDelegatedSession((String)notNull(), (String)notNull(), (String)notNull(), (List)notNull())).andThrow(new DataSourceException());
+			this.create.createDelegatedSession((String)notNull(), (String)notNull(), (String)notNull(), (List)notNull());
+			// TODO FIX 
+			throw new DataSourceException();
 		}
 		catch(Exception e)
 		{
@@ -304,8 +310,8 @@ public class DelegatedAuthenticationProcessorTest
 	public void testExecute7()
 	{
 		DelegatedAuthenticationData processorData = new DelegatedAuthenticationDataImpl();
-		byte[] doc = this.generateRegisterPrincipalRequest();
-		doc [5] = '~';
+		Element doc = this.generateRegisterPrincipalRequest();
+		doc.getLastChild().setNodeValue("Blahdjshfjdsfhdjfh");
 		processorData.setRequestDocument(doc);
 		
 		this.processor.execute(processorData);
@@ -395,8 +401,9 @@ public class DelegatedAuthenticationProcessorTest
 	/** Creates a valid RegisterPrincipalRequest XML string.
 	 * 
 	 */
-	private byte[] generateRegisterPrincipalRequest()
+	private Element generateRegisterPrincipalRequest()
 	{
+		Element element = null;
 		List<AttributeType> attributes = new Vector<AttributeType>();
 		AttributeType attr1 = new AttributeType();
 		attr1.setName("email");
@@ -425,6 +432,17 @@ public class DelegatedAuthenticationProcessorTest
 		try
 		{
 			document = this.requestMarshaller.marshallSigned(request);
+			
+			SOAPHandler handler = new SOAPv12Handler();
+			try
+			{
+				element = handler.unwrapDocument(document);
+			} 
+			catch (SOAPException e1)
+			{
+				fail("Unable to unwrap request document: " + e1.getMessage());
+				e1.printStackTrace();
+			}		
 		}
 		catch (MarshallerException e)
 		{
@@ -432,7 +450,7 @@ public class DelegatedAuthenticationProcessorTest
 			fail("Error occured marshalling RegisterPrincipalRequest");
 		}
 		
-		return document;
+		return element;
 	}
 	
 }

@@ -16,292 +16,166 @@
  * 
  * Purpose: Implements the Principal interface.
  */
+
 package com.qut.middleware.esoe.sessions.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.bean.IdentityAttribute;
-import com.qut.middleware.esoe.sessions.bean.IdentityData;
-import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
-import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
-import com.qut.middleware.esoe.util.CalendarUtils;
 
-/** */
 public class PrincipalImpl implements Principal
 {
-	private String sessionID;
-	private List<String> entities;
-	private Map<String, List<String>> entitySessionIdentifiers;
-	private IdentityData identityData;
-	private String principalAuthnIdentifier;
-	private String samlAuthnIdentifier;
+	private static final long serialVersionUID = 6552811894747586130L;
+	
+	private List<String> activeEntities;
+	private Map<String, List<String>> entitySessionIndexMap;
+	private Map<String, IdentityAttribute> attributeMap;
 	private String authenticationContextClass;
+	private long authenticationTimestamp;
 	private long lastAccessed;
-	private long authnTimestamp;
-	private XMLGregorianCalendar sessionNotOnOrAfter;
-	// Required for shared object distribution. ANY methods called from a shared object MUST be locked.
-	private ReentrantReadWriteLock sharedLock;
+	private String principalAuthnIdentifier;
+	private long sessionNotOnOrAfter;
+	private String sessionID;
+	private String samlAuthnIdentifier;
+	
+	public PrincipalImpl()
+	{
+		this.activeEntities = new ArrayList<String>();
+		this.entitySessionIndexMap = new ConcurrentHashMap<String, List<String>>();
+		this.attributeMap = new ConcurrentHashMap<String, IdentityAttribute>();
 		
-	/**
-	 * Constructor.
-	 * 
-	 * @param identityData
-	 *            The identity data for this principal.
-	 * @param sessionLength
-	 * 			  The time in seconds that principal sessions are active on remote SPEP for.
-	 */
-	public PrincipalImpl(IdentityData identityData, int sessionLength)
-	{
-		this.entities = new Vector<String>(0, 1);
-		this.entitySessionIdentifiers = new ConcurrentHashMap<String, List<String>>();
-		this.identityData = identityData;
-		this.lastAccessed = System.currentTimeMillis();
-		this.sessionNotOnOrAfter = CalendarUtils.generateXMLCalendar(sessionLength);
-		this.sharedLock = new ReentrantReadWriteLock();
-	}
-	
-	/**
-	 * Constructor.
-	 * 
-	 * @param sessionLength
-	 * 			  The time in seconds that principal sessions are active on remote SPEP for.
-	 */
-	public PrincipalImpl(int sessionLength)
-	{
-		this.entities = new Vector<String>(0, 1);
-		this.entitySessionIdentifiers = new ConcurrentHashMap<String, List<String>>();
-		this.lastAccessed = System.currentTimeMillis();
-		this.sessionNotOnOrAfter = CalendarUtils.generateXMLCalendar(sessionLength);
-		this.identityData = new IdentityDataImpl();
-		this.sharedLock = new ReentrantReadWriteLock();
-	}
-	
-	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#addActiveEntity(java.lang.String)
-	 */
-	public void addActiveDescriptor(String entityID)
-	{
-		this.entities.add(entityID);
-		this.entitySessionIdentifiers.put(entityID, new Vector<String>(0, 1));
+		this.authenticationContextClass = null;
+		this.authenticationTimestamp = 0;
+		this.lastAccessed = 0;
+		this.principalAuthnIdentifier = null;
+		this.sessionNotOnOrAfter = 0;
+		this.sessionID = null;
+		this.samlAuthnIdentifier = null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#addEntitySessionIdentifier(java.lang.String, java.lang.String)
-	 */
-	public void addDescriptorSessionIdentifier(String descriptorID, String descriptorSessionID)
-			throws InvalidDescriptorIdentifierException
+	public void addEntitySessionIndex(String entityID, String sessionIndex)
 	{
-		List<String> entitySessions = getDescriptorSessionIdentifiers(descriptorID);
-		if (entitySessions == null)
+		List<String> sessionIndexList;
+		
+		// Get the existing session indices for the given entity ID, ...
+		if (this.entitySessionIndexMap.containsKey(entityID))
 		{
-			throw new InvalidDescriptorIdentifierException();
+			sessionIndexList = this.entitySessionIndexMap.get(entityID);
 		}
-
-		entitySessions.add(descriptorSessionID);
+		// ... or a new empty list there is no entry.
+		else
+		{
+			sessionIndexList = new ArrayList<String>();
+		}
+		
+		// Add the session index and update the map.
+		sessionIndexList.add(sessionIndex);
+		this.entitySessionIndexMap.put(entityID, sessionIndexList);
+		
+		// also add the active entity to list if it doen't exist
+		if(!this.activeEntities.contains(entityID))
+			this.activeEntities.add(entityID);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#getActiveEntities()
-	 */
-	public List<String> getActiveDescriptors()
+	public List<String> getActiveEntityList()
 	{
-		return this.entities;
+		// We're returning by reference, so make it read-only
+		return Collections.unmodifiableList(this.activeEntities);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#getAttributes()
-	 */
+	public List<String> getActiveEntitySessionIndices(String entityID)
+	{
+		List<String> sessionIndexList = this.entitySessionIndexMap.get(entityID);
+		if (sessionIndexList == null) return null;
+		
+		// We're returning by reference, so make it read-only
+		return Collections.unmodifiableList(sessionIndexList);
+	}
+
 	public Map<String, IdentityAttribute> getAttributes()
 	{
-		return this.identityData.getAttributes();
+		// Returning by reference, so read-only.
+		return Collections.unmodifiableMap(this.attributeMap);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#getAuthenticationContextClass()
-	 */
 	public String getAuthenticationContextClass()
 	{
 		return this.authenticationContextClass;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#getAuthnTimestamp()
-	 */
-	public long getAuthnTimestamp()
-	{
-		return this.authnTimestamp;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#getEntitySessionIdentifiers(java.lang.String)
-	 */
-	public List<String> getDescriptorSessionIdentifiers(String descriptorID) throws InvalidDescriptorIdentifierException
-	{
-		List<String> entitySessions = this.entitySessionIdentifiers.get(descriptorID);
-		if (entitySessions == null)
-		{
-			throw new InvalidDescriptorIdentifierException();
-		}
-
-		return entitySessions;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#getPrincipal()
-	 */
-	public String getPrincipalAuthnIdentifier()
-	{
-		this.sharedLock.readLock().lock();
-		
-		try
-		{
-			return this.principalAuthnIdentifier;
-		}
-		finally
-		{
-			this.sharedLock.readLock().unlock();
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#getSAMLAuthnIdentifier()
-	 */
-	public String getSAMLAuthnIdentifier()
-	{
-		return this.samlAuthnIdentifier;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#getSessionID()
-	 */
-	public String getSessionID()
-	{
-		return this.sessionID;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#putAttribute(java.lang.String,
-	 *      com.qut.middleware.esoe.sessions.bean.IdentityAttribute)
-	 */
-	public void putAttribute(String key, IdentityAttribute value)
-	{
-		this.identityData.getAttributes().put(key, value);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#setAuthenticationContextClass(java.lang.String)
-	 */
+	
 	public void setAuthenticationContextClass(String authenticationContextClass)
 	{
 		this.authenticationContextClass = authenticationContextClass;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#setAuthnTimestamp(long)
-	 */
-	public void setAuthnTimestamp(long authnTimestamp)
+	public long getAuthnTimestamp()
 	{
-		this.authnTimestamp = authnTimestamp;
+		return this.authenticationTimestamp;
+	}
+	
+	public void setAuthnTimestamp(long authenticationTimestamp)
+	{
+		this.authenticationTimestamp = authenticationTimestamp;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#setPrincipal(java.lang.String)
-	 */
+	public long getLastAccessed()
+	{
+		return this.lastAccessed;
+	}
+
+	public void setLastAccessed(long timeMillis)
+	{
+		this.lastAccessed = timeMillis;
+	}
+
+	public String getPrincipalAuthnIdentifier()
+	{
+		return this.principalAuthnIdentifier;
+	}
+	
 	public void setPrincipalAuthnIdentifier(String principalAuthnIdentifier)
 	{
 		this.principalAuthnIdentifier = principalAuthnIdentifier;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#setSAMLAuthnIdentifier(java.lang.String)
-	 */
-	public void setSAMLAuthnIdentifier(String samlAuthnIdentifier)
+	public String getSessionID()
 	{
-		this.samlAuthnIdentifier = samlAuthnIdentifier;
+		return this.sessionID;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.qut.middleware.esoe.sessions.Principal#setSessionID(java.lang.String)
-	 */
+	
 	public void setSessionID(String sessionID)
 	{
 		this.sessionID = sessionID;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#getLastAccessed()
-	 */
-	public long getLastAccessed()
-	{
-		this.sharedLock.readLock().lock();
-		
-		try
-		{
-			return this.lastAccessed;
-		}
-		finally
-		{
-			this.sharedLock.readLock().unlock();
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#setLastAccessed(long)
-	 */
-	public void setLastAccessed(long lastAccessedTimestamp)
-	{
-		this.sharedLock.writeLock().lock();
-		
-		try
-		{
-			this.lastAccessed = lastAccessedTimestamp;
-		}
-		finally
-		{
-			this.sharedLock.writeLock().unlock();
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.qut.middleware.esoe.sessions.Principal#getSessionNotOnOrAfter()
-	 */
-	public XMLGregorianCalendar getSessionNotOnOrAfter()
+	public long getSessionNotOnOrAfter()
 	{
 		return this.sessionNotOnOrAfter;
 	}
 	
+	public void setSessionNotOnOrAfter(long sessionNotOnOrAfter)
+	{
+		this.sessionNotOnOrAfter = sessionNotOnOrAfter;
+	}
+
+	public String getSAMLAuthnIdentifier()
+	{
+		return this.samlAuthnIdentifier;
+	}
 	
-	
+	public void setSAMLAuthnIdentifier(String samlAuthnIdentifier)
+	{
+		this.samlAuthnIdentifier = samlAuthnIdentifier;
+	}
+
+	public void putAttribute(String key, IdentityAttribute value)
+	{
+		this.attributeMap.put(key, value);
+	}
+
 }

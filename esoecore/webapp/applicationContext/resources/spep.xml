@@ -31,5 +31,6 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="4" ref="identifierGenerator" />
 		<constructor-arg index="5" ref="samlValidator" />
 		<constructor-arg index="6" ref="esoeKeyStoreResolver" />
+		<constructor-arg index="7" value="${spep.esoeIdentifier}" />
 	</bean>
 </beans>

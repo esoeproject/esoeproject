@@ -35,6 +35,7 @@ import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.util.CalendarUtils;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.ConsentIdentifierConstants;
@@ -165,17 +166,19 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 				}
 			}
 			
-			Create.result res = this.sessionsProcessor.getCreate().createDelegatedSession(sessionID, request.getPrincipalAuthnIdentifier(), AuthenticationContextConstants.unspecified, attributes);
-			
-			if(res == Create.result.SessionCreated)
+			try
 			{
+				this.sessionsProcessor.getCreate().createDelegatedSession(sessionID, request.getPrincipalAuthnIdentifier(), AuthenticationContextConstants.unspecified, attributes);
+			
 				createSuccessfulRegisterPrincipalResponse(processorData, sessionID);
 				return result.Successful;
 			}
-			
-			createFailedRegisterPrincipalResponse(processorData);
-			
-			return result.Failure;
+			catch(SessionCacheUpdateException e)
+			{
+				createFailedRegisterPrincipalResponse(processorData);
+				
+				return result.Failure;
+			}		
 		}
 		catch (SignatureValueException e)
 		{
@@ -193,16 +196,6 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 			return result.Failure;
 		}
 		catch (InvalidSAMLRequestException e)
-		{
-			createFailedRegisterPrincipalResponse(processorData);
-			return result.Failure;
-		}
-		catch (DataSourceException e)
-		{
-			createFailedRegisterPrincipalResponse(processorData);
-			return result.Failure;
-		}
-		catch (DuplicateSessionException e)
 		{
 			createFailedRegisterPrincipalResponse(processorData);
 			return result.Failure;
@@ -321,7 +314,7 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 	{
 		try
 		{
-			processorData.setResponseDocument(this.marshaller.marshallSigned(response));
+			processorData.setResponseDocument(this.marshaller.marshallSignedElement(response));
 			this.logger.trace(Messages.getString("AuthenticationAuthorityProcessor.56") + processorData.getResponseDocument()); //$NON-NLS-1$
 		}
 		catch (MarshallerException me)

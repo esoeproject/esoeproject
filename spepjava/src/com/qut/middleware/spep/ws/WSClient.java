@@ -19,6 +19,8 @@
  */
 package com.qut.middleware.spep.ws;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.spep.ws.exception.WSClientException;
 
 /** Provides an interface for web service calls to be made.*/
@@ -31,7 +33,7 @@ public interface WSClient
 	 * @return The response to the query.
 	 * @throws WSClientException if the Web service client cannot establish the connection.
 	 */
-	public byte[] attributeAuthority(byte[] attributeQuery, String endpoint) throws WSClientException;
+	public Element attributeAuthority(Element attributeQuery, String endpoint) throws WSClientException;
 	
 	/** Performs a web service policy decision query to determine whether access to a resource
 	 * should be allowed, and returns the response. 
@@ -41,7 +43,7 @@ public interface WSClient
 	 * @return The response to the query
 	 * @throws WSClientException if the Web service client cannot establish the connection
 	 */
-	public byte[] policyDecisionPoint(byte[] decisionRequest, String endpoint) throws WSClientException;
+	public Element policyDecisionPoint(Element decisionRequest, String endpoint) throws WSClientException;
 	
 	/** Performs a web service spep startup request and returns the response.
 	 * 
@@ -50,5 +52,5 @@ public interface WSClient
 	 * @return The response to the request.
 	 * @throws WSClientException if the Web service client cannot establish the connection
 	 */
-	public byte[] spepStartup(byte[] spepStartup, String endpoint) throws WSClientException;
+	public Element spepStartup(Element spepStartup, String endpoint) throws WSClientException;
 }

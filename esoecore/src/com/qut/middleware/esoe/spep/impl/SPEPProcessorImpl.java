@@ -19,13 +19,13 @@
  */
 package com.qut.middleware.esoe.spep.impl;
 
-import java.security.PrivateKey;
 import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.authz.cache.AuthzCacheUpdateFailureRepository;
@@ -69,8 +69,6 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	private MetadataProcessor metadata;
 	private Startup startup;
 	private AuthzCacheUpdateFailureRepository failureRep;
-	private PrivateKey key;
-	private String keyName;
 	private IdentifierGenerator identifierGenerator;
 	private WSClient wsClient;
 	private SAMLValidator samlValidator;
@@ -100,7 +98,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 */
 	public SPEPProcessorImpl(MetadataProcessor metadata, Startup startup, AuthzCacheUpdateFailureRepository failureRep,
 			WSClient wsClient, IdentifierGenerator identifierGenerator, SAMLValidator samlValidator,
-			KeystoreResolver keyStoreResolver) throws MarshallerException, UnmarshallerException
+			KeystoreResolver keyStoreResolver, String esoeIdentifier) throws MarshallerException, UnmarshallerException
 	{
 		if (metadata == null)
 		{
@@ -130,6 +128,10 @@ public class SPEPProcessorImpl implements SPEPProcessor
 		{
 			throw new IllegalArgumentException(Messages.getString("SPEPProcessorImpl.8")); //$NON-NLS-1$
 		}
+		if (esoeIdentifier == null)
+		{
+			throw new IllegalArgumentException("ESOE identifier cannot be null");
+		}
 
 		this.metadata = metadata;
 		this.startup = startup;
@@ -137,8 +139,6 @@ public class SPEPProcessorImpl implements SPEPProcessor
 		this.wsClient = wsClient;
 		this.identifierGenerator = identifierGenerator;
 		this.samlValidator = samlValidator;
-		this.key = keyStoreResolver.getLocalPrivateKey();
-		this.keyName = keyStoreResolver.getLocalKeyAlias();
 		this.esoeIdentifier = esoeIdentifier;
 
 		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.MAR_PKGNAMES,
@@ -151,8 +151,8 @@ public class SPEPProcessorImpl implements SPEPProcessor
 
 	public void clearPrincipalSPEPCaches(Principal principal)
 	{
-		List<String> activeDescriptors = principal.getActiveDescriptors();
-		byte[] authzClearCacheRequest = null;
+		List<String> activeDescriptors = principal.getActiveEntityList();
+		Element authzClearCacheRequest = null;
 		boolean updateResult = false;
 
 		if (activeDescriptors != null && activeDescriptors.size() > 0)
@@ -212,10 +212,10 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * 
 	 * 
 	 */
-	private byte[] generateClearCacheRequest(String samlAuthnIdentifier, String endpoint, String reason)
+	private Element generateClearCacheRequest(String samlAuthnIdentifier, String endpoint, String reason)
 			throws MarshallerException
 	{
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		Subject subject = new Subject();
 		NameIDType subjectID = new NameIDType();
@@ -241,7 +241,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 		request.setSignature(new Signature());
 
 		// marshall the clear cache request
-		requestDocument = this.clearAuthzCacheRequestMarshaller.marshallSigned(request);
+		requestDocument = this.clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 
 		return requestDocument;
 	}
@@ -253,9 +253,9 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * 
 	 * @return The result of the operation. Either Success or Failure.
 	 */
-	private boolean sendCacheUpdateRequest(byte[] authzClearCacheRequest, String endPoint)
+	private boolean sendCacheUpdateRequest(Element authzClearCacheRequest, String endPoint)
 	{
-		byte[] responseDocument;
+		Element responseDocument;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		try
@@ -332,7 +332,7 @@ public class SPEPProcessorImpl implements SPEPProcessor
 	 * @param request The request that failed to deliver. @param endPoint The end point the the request failed to
 	 * deliver to.
 	 */
-	private synchronized void recordFailure(byte[] request, String endPoint)
+	private synchronized void recordFailure(Element request, String endPoint)
 	{
 		// create an UpdateFailure object
 		FailedAuthzCacheUpdate failure = new FailedAuthzCacheUpdateImpl();

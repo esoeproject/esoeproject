@@ -30,6 +30,8 @@ public interface SSOProcessor
 	{
 		/** Indicates that the SSO Generation was successful */
 		SSOGenerationSuccessful, 
+		/** SSO generation failed */
+		SSOGenerationFailed,
 		/** Force authorization using a passive handler */
 		ForcePassiveAuthn,
 		/** Force authorization using a non-passive handler */

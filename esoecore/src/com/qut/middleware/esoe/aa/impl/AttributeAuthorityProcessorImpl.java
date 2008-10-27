@@ -20,7 +20,6 @@
  */
 package com.qut.middleware.esoe.aa.impl;
 
-import java.security.PrivateKey;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map.Entry;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
 import com.qut.middleware.crypto.KeystoreResolver;
-import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.aa.AttributeAuthorityProcessor;
 import com.qut.middleware.esoe.aa.Messages;
 import com.qut.middleware.esoe.aa.bean.AAProcessorData;
@@ -74,9 +72,6 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProcessor
 {
 	private SessionsProcessor sessionsProcessor;
-	private PrivateKey key;
-	private String keyName;
-	//private MetadataProcessor metadata;
 	private SAMLValidator samlValidator;
 	private String requestError = StatusCodeConstants.requester;
 	private String authnError = StatusCodeConstants.authnFailed;
@@ -140,12 +135,9 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 			throw new IllegalArgumentException("ESOE identifier value cannot be null.");
 		}
 		
-		//this.metadata = metadata;
 		this.sessionsProcessor = sessionsProcessor;
 		this.samlValidator = samlValidator;
 		this.identifierGenerator = identifierGenerator;
-		this.key = keyStoreResolver.getLocalPrivateKey();
-		this.keyName = keyStoreResolver.getLocalKeyAlias();
 		this.allowedTimeSkew = allowedTimeSkew;
 		this.esoeIdentifier = esoeIdentifier;
 		
@@ -376,6 +368,7 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 				throw new InvalidRequestException(message);
 			}
 
+			// set subject
 			NameIDType nameID = subject.getNameID();
 			if (nameID == null)
 			{
@@ -384,25 +377,9 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 				this.logger.error(message);
 				throw new InvalidRequestException(message);
 			}
-
 			String subjectID = nameID.getValue();
-
 			processorData.setSubjectID(subjectID);
-
-			// Query the sessions processor to get the principal in question
-			Principal principal;
-			try
-			{
-				principal = this.sessionsProcessor.getQuery().querySAMLSession(subjectID);
-			}
-			catch (InvalidSessionIdentifierException e)
-			{
-				response = getErrorResponse(this.authnError);
-				String message = MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.7"), attributeQuery.getID()); //$NON-NLS-1$
-				this.logger.error(message);
-				throw new InvalidPrincipalException(message);
-			}
-
+			
 			NameIDType issuer = attributeQuery.getIssuer();
 			if (issuer == null)
 			{
@@ -410,10 +387,17 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 				this.logger.error(Messages.getString("AttributeAuthorityProcessorImpl.8")); //$NON-NLS-1$
 				throw new InvalidRequestException(Messages.getString("AttributeAuthorityProcessorImpl.8")); //$NON-NLS-1$
 			}
-
-			// Set the issuer ID
 			processorData.setIssuerID(issuer.getValue());
 
+			// Query the sessions processor to get the principal in question
+			Principal principal = this.sessionsProcessor.getQuery().querySAMLSession(subjectID);
+			if (principal == null)
+			{
+				response = getErrorResponse(this.requestError);
+				this.logger.warn("Recieved attribute query for non existent or expired Principal. Given SAML ID was {}", subjectID);
+				throw new InvalidPrincipalException(MessageFormat.format("Principal was not found while trying to process attribute query with ID {0}. Failed processing.", attributeQuery.getID()) ); //$NON-NLS-1$
+			}
+			
 			response = buildResponse(attributeQuery, principal);
 					
 			error = false;
@@ -422,7 +406,6 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 		finally
 		{
 			// Create a marshaller to marshal the statement back into XML
-			String responseDocument;
 			try
 			{
 				if (response == null)
@@ -430,7 +413,7 @@ public class AttributeAuthorityProcessorImpl implements AttributeAuthorityProces
 					response = getErrorResponse(this.requestError);
 				}
 				// Marshal and sign the response			
-				processorData.setResponseDocument(this.attributeStatementMarshaller.marshallSigned(response));
+				processorData.setResponseDocument(this.attributeStatementMarshaller.marshallSignedElement(response));
 				
 				this.logger.debug(MessageFormat.format(Messages.getString("AttributeAuthorityProcessorImpl.18"), response.getID())); //$NON-NLS-1$
 			}

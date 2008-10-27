@@ -19,14 +19,13 @@
  */
 package com.qut.middleware.esoe.aa;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.math.BigInteger;
 import java.net.URL;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -37,6 +36,7 @@ import java.util.Vector;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -62,6 +62,7 @@ import com.qut.middleware.esoe.sessions.bean.impl.SessionConfigDataImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sessions.identity.IdentityResolver;
 import com.qut.middleware.esoe.sessions.identity.impl.IdentityResolverImpl;
 import com.qut.middleware.esoe.sessions.identity.pipeline.Handler;
@@ -182,7 +183,7 @@ public class AttributeAuthorityProcessorTest
 		
 		this.metadata = createMock(MetadataProcessor.class);
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(publicKey).anyTimes();
-		
+		expect(this.metadata.resolveKey((String) notNull(), (BigInteger)notNull())).andReturn(publicKey).anyTimes();
 		replay(this.metadata);
 		
 		this.key = keyStoreResolver.getLocalPrivateKey();
@@ -214,19 +215,24 @@ public class AttributeAuthorityProcessorTest
 		mailValue.setType("String");
 		mailValue.getValues().add("beddoes@qut.edu.au");
 		
-		Principal principal = new PrincipalImpl(new IdentityDataImpl(), 360);
-		principal.getAttributes().put(usernameKey, usernameValue);
-		principal.getAttributes().put(mailKey, mailValue);
+		PrincipalImpl principal= new PrincipalImpl();
+		principal.putAttribute(usernameKey, usernameValue);
+		principal.putAttribute(mailKey, mailValue);
 		principal.setPrincipalAuthnIdentifier("beddoes");
 		principal.setSAMLAuthnIdentifier(samlID);
 		principal.setSessionID(sessionID);
+		principal.setSessionNotOnOrAfter(System.currentTimeMillis() + 1000000);
 		
 		try
 		{
 			this.sessionCache.addSession(principal);
-			this.sessionCache.updateSessionSAMLID(principal);
+			
+			if(this.sessionCache.getSessionBySAMLID(samlID) == null)
+				fail("Inserted Principal cannot be retrieved by SAML ID.");
+			else
+				System.out.println("Retrieved session ny saml ID : " + samlID);
 		}
-		catch (DuplicateSessionException e)
+		catch (SessionCacheUpdateException e)
 		{
 			fail("Duplicate session in empty session cache");
 		}
@@ -237,7 +243,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -273,7 +279,7 @@ public class AttributeAuthorityProcessorTest
 			Signature signature = new Signature();
 			attributeQuery.setSignature(signature);
 			
-			requestDocument = this.attributeQueryMarshaller.marshallSigned(attributeQuery); 
+			requestDocument = this.attributeQueryMarshaller.marshallSignedElement(attributeQuery); 
 		}
 		catch (MarshallerException e)
 		{
@@ -281,15 +287,13 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length == 0)
+		if(requestDocument == null)
 		{
 			fail("Request was empty");
 			return;
 		}
 		
 		data.setRequestDocument(requestDocument);
-		
-		System.out.println(new String(requestDocument, "UTF-16"));
 		
 		try
 		{
@@ -301,7 +305,7 @@ public class AttributeAuthorityProcessorTest
 		}
 		catch (InvalidRequestException e)
 		{
-			fail("Request was found to be invalid: " + e.getMessage() + e.getCause());
+			fail("Request was found to be invalid: " + e.getMessage());
 		}
 		
 		////System.out.println("* - " + data.getResponseDocument());
@@ -322,7 +326,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -356,7 +360,7 @@ public class AttributeAuthorityProcessorTest
 			Signature signature = new Signature();
 			attributeQuery.setSignature(signature);
 			
-			requestDocument = this.attributeQueryMarshaller.marshallSigned(attributeQuery); 
+			requestDocument = this.attributeQueryMarshaller.marshallSignedElement(attributeQuery); 
 		}
 		catch (MarshallerException e)
 		{
@@ -364,14 +368,14 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length == 0)
+		if(requestDocument == null)
 		{
 			fail("Request was empty");
 			return;
 		}
 		
 		data.setRequestDocument(requestDocument);
-		
+	
 		boolean caught = false;
 		
 		try
@@ -384,7 +388,7 @@ public class AttributeAuthorityProcessorTest
 		}
 		catch (InvalidRequestException e)
 		{
-			fail("Request was found to be invalid: " + e.getMessage() + e.getCause());
+			fail("Request was found to be invalid: " + e.getMessage());
 		}
 		
 		assertTrue("Invalid principal was still accepted", caught);
@@ -409,9 +413,9 @@ public class AttributeAuthorityProcessorTest
 		mailValue.setType("String");
 		mailValue.getValues().add("beddoes@qut.edu.au");
 		
-		Principal principal = new PrincipalImpl(new IdentityDataImpl(), 360);
-		principal.getAttributes().put(usernameKey, usernameValue);
-		principal.getAttributes().put(mailKey, mailValue);
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.putAttribute(usernameKey, usernameValue);
+		principal.putAttribute(mailKey, mailValue);
 		principal.setPrincipalAuthnIdentifier("beddoes");
 		principal.setSAMLAuthnIdentifier(samlID);
 		principal.setSessionID(sessionID);
@@ -419,9 +423,8 @@ public class AttributeAuthorityProcessorTest
 		try
 		{
 			this.sessionCache.addSession(principal);
-			this.sessionCache.updateSessionSAMLID(principal);
 		}
-		catch (DuplicateSessionException e)
+		catch (SessionCacheUpdateException e)
 		{
 			fail("Duplicate session in empty session cache");
 		}
@@ -432,7 +435,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -469,7 +472,7 @@ public class AttributeAuthorityProcessorTest
 			Signature signature = new Signature();
 			attributeQuery.setSignature(signature);
 			
-			requestDocument = this.attributeQueryMarshaller.marshallSigned(attributeQuery); 
+			requestDocument = this.attributeQueryMarshaller.marshallSignedElement(attributeQuery); 
 		}
 		catch (MarshallerException e)
 		{
@@ -477,7 +480,7 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length == 0)
+		if(requestDocument == null)
 		{
 			fail("Request was empty");
 			return;
@@ -523,19 +526,19 @@ public class AttributeAuthorityProcessorTest
 		mailValue.setType("String");
 		mailValue.getValues().add("beddoes@qut.edu.au");
 		
-		Principal principal = new PrincipalImpl(new IdentityDataImpl(), 360);
-		principal.getAttributes().put(usernameKey, usernameValue);
-		principal.getAttributes().put(mailKey, mailValue);
+		PrincipalImpl principal = new PrincipalImpl();
+		principal.putAttribute(usernameKey, usernameValue);
+		principal.putAttribute(mailKey, mailValue);
 		principal.setPrincipalAuthnIdentifier("beddoes");
 		principal.setSAMLAuthnIdentifier(samlID);
 		principal.setSessionID(sessionID);
+		principal.setSessionNotOnOrAfter(System.currentTimeMillis() + 1000000);
 		
 		try
 		{
 			this.sessionCache.addSession(principal);
-			this.sessionCache.updateSessionSAMLID(principal);
 		}
-		catch (DuplicateSessionException e)
+		catch (SessionCacheUpdateException e)
 		{
 			fail("Duplicate session in empty session cache");
 		}
@@ -546,7 +549,7 @@ public class AttributeAuthorityProcessorTest
 		String consent = "https://site.url/roar"; // AttributeQuery attribute
 		String issuer = this.identifierGenerator.generateSessionID(); // AttributeQuery / Issuer / NameID value
 
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		try
 		{
 			AttributeQuery attributeQuery = new AttributeQuery();
@@ -570,7 +573,7 @@ public class AttributeAuthorityProcessorTest
 			Signature signature = new Signature();
 			attributeQuery.setSignature(signature);
 			
-			requestDocument = this.attributeQueryMarshaller.marshallSigned(attributeQuery); 
+			requestDocument = this.attributeQueryMarshaller.marshallSignedElement(attributeQuery); 
 		}
 		catch (MarshallerException e)
 		{
@@ -578,7 +581,7 @@ public class AttributeAuthorityProcessorTest
 			fail("Marshaller exception occurred: " + e.getLocalizedMessage() + "\n" + e.getCause().getLocalizedMessage());
 		}
 		
-		if(requestDocument == null || requestDocument.length == 0)
+		if(requestDocument == null)
 		{
 			fail("Request was empty");
 			return;

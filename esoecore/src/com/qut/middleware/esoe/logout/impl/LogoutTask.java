@@ -51,7 +51,7 @@ public class LogoutTask implements Callable<List<SSOLogoutState>>
 	}
 	
 							
-	/* Log the given Principal out of any active sessions. NOTE: This method will clear the active descriptors list
+	/* Log the given Principal out of any active sessions. NOTE: This method does not clear the active descriptors list
 	 * for the given Principal once active sessions have been logged out.
 	 * 
 	 * @return A List of logout states for each SPEP that the principal has an active session on.
@@ -65,9 +65,11 @@ public class LogoutTask implements Callable<List<SSOLogoutState>>
 		this.logger.debug(MessageFormat.format("{0} Logging out active user sessions for {1}." ,this.getName(), principal.getPrincipalAuthnIdentifier()) );
 		
 		// obtain active entities (SPEPS logged into) for user, iterate through and send logout request to each SPEP
-		List<String> activeDescriptors = principal.getActiveDescriptors();
-		if(activeDescriptors != null)
+		List<String> activeDescriptors = principal.getActiveEntityList();
+		if(activeDescriptors != null && activeDescriptors.size() != 0)
 		{
+			this.logger.debug("Principal has {} active entity sessions.", activeDescriptors.size());
+			
 			Iterator<String> entitiesIterator = activeDescriptors.iterator();
 			while(entitiesIterator.hasNext())
 			{
@@ -84,22 +86,12 @@ public class LogoutTask implements Callable<List<SSOLogoutState>>
 					String endPoint = endpointIter.next();
 				
 					List<String> indicies = null;
-					try
-					{
-						indicies = principal.getDescriptorSessionIdentifiers(entity);
-					}
-					catch(InvalidDescriptorIdentifierException e)
-					{
-						this.logger.warn("Unable to retrieve session indicies from principal"); //$NON-NLS-1$
-					}
+					indicies = principal.getActiveEntitySessionIndices(entity);
 				
 					// call the logout code and add the result
 					logoutStates.add(this.performAndRecordLogout(endPoint , indicies, principal.getSAMLAuthnIdentifier()) );						
 				}
-			}
-			
-			// Reset active descriptors once they've been logged out
-			principal.getActiveDescriptors().clear();
+			}			
 		}		
 		else
 			this.logger.debug("User has no active SPEP sessions ?");

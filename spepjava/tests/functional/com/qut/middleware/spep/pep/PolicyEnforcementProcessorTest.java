@@ -28,7 +28,6 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -52,11 +51,10 @@ import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.ConfirmationMethodConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.MarshallerException;
-import com.qut.middleware.saml2.exception.ReferenceValueException;
-import com.qut.middleware.saml2.exception.SignatureValueException;
 import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
@@ -180,9 +178,9 @@ public class PolicyEnforcementProcessorTest
 			StatementAbstractType.class.getPackage().getName() + ":" + //$NON-NLS-1$
 			LXACMLAuthzDecisionStatement.class.getPackage().getName() + ":" + //$NON-NLS-1$
 			Response.class.getPackage().getName();
-		String[] schemas = new String[]{ConfigurationConstants.samlProtocol, ConfigurationConstants.lxacml,
-				ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.lxacmlGroupTarget,
-				ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.samlAssertion};
+		String[] schemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.lxacml,
+				SchemaConstants.lxacmlSAMLProtocol, SchemaConstants.lxacmlGroupTarget,
+				SchemaConstants.lxacmlSAMLAssertion, SchemaConstants.samlAssertion};
 		
 		this.responseMarshaller = new MarshallerImpl<Response>(this.marshallPackages, schemas, this.keyStoreResolver);
 
@@ -194,14 +192,14 @@ public class PolicyEnforcementProcessorTest
 		this.mocked.add(this.sessionCache);
 		expect(this.sessionCache.getPrincipalSession((String)notNull())).andReturn(this.principalSession).anyTimes();
 		
-		String[] groupTargetSchemas = new String[]{ConfigurationConstants.lxacmlGroupTarget};
+		String[] groupTargetSchemas = new String[]{SchemaConstants.lxacmlGroupTarget};
 		this.groupTargetMarshaller = new MarshallerImpl<GroupTarget>(GroupTarget.class.getPackage().getName(), groupTargetSchemas);
 		
 		this.clearAuthzCachePackages = ClearAuthzCacheRequest.class.getPackage().getName() + ":" +
 			StatusResponseType.class.getPackage().getName() + ":" +
 			RequestAbstractType.class.getPackage().getName();
 		
-		String[] clearAuthzCacheSchemas = new String[]{ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol};
+		String[] clearAuthzCacheSchemas = new String[]{SchemaConstants.esoeProtocol, SchemaConstants.samlAssertion, SchemaConstants.samlProtocol};
 		this.clearAuthzCacheRequestMarshaller = new MarshallerImpl<ClearAuthzCacheRequest>(this.clearAuthzCachePackages, clearAuthzCacheSchemas, this.keyStoreResolver);
 		this.clearAuthzCacheResponseUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheResponse>(this.clearAuthzCachePackages, clearAuthzCacheSchemas, this.keyStoreResolver);
 	}
@@ -290,14 +288,14 @@ public class PolicyEnforcementProcessorTest
 		obligation1.getAttributeAssignments().add(attributeAssignment);
 		obligations.getObligations().add(obligation1);
 		
-		byte[] responseDocument = generateResponse(decision.permit, obligations);
+		Element responseDocument = generateResponse(decision.permit, obligations);
 
 		//expect(this.principalSession.getSessionID()).andReturn(this.sessionID).anyTimes();
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(responseDocument).anyTimes();
 		
 		startMock();
 		
-		byte[] authzCacheClearResponseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element authzCacheClearResponseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(authzCacheClearResponseDocument);
 
 		// Need to run decision 4 first, as running 1 first would cause incorrect behaviour, since the LXACMLAuthzDecisionStatement indicates
@@ -346,11 +344,11 @@ public class PolicyEnforcementProcessorTest
 		decision decision4 = decision.error;
 		
 		
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(createMock(Element.class)).anyTimes();
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
@@ -401,11 +399,11 @@ public class PolicyEnforcementProcessorTest
 		decision decision4 = decision.error;
 		
 		
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(createMock(Element.class)).anyTimes();
 
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
@@ -457,7 +455,7 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
@@ -510,7 +508,7 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
@@ -564,7 +562,7 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
@@ -618,7 +616,7 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.permit);
@@ -670,11 +668,11 @@ public class PolicyEnforcementProcessorTest
 		String resource4 = "/admin/secure/icon.gif";
 		decision decision4 = decision.permit;
 		
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(createMock(Element.class)).anyTimes();
 
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
@@ -726,11 +724,11 @@ public class PolicyEnforcementProcessorTest
 		decision decision4 = decision.permit;
 		
 		
-		expect(this.wsClient.policyDecisionPoint((byte[])notNull(), (String)notNull())).andReturn(new String("<lol/>").getBytes()).anyTimes();
+		expect(this.wsClient.policyDecisionPoint((Element)notNull(), (String)notNull())).andReturn(createMock(Element.class)).anyTimes();
 
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget2, authzTargets2, null, decision.permit);
@@ -783,7 +781,7 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
@@ -837,7 +835,7 @@ public class PolicyEnforcementProcessorTest
 		
 		startMock();
 		
-		byte[] responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
+		Element responseDocument = this.processor.authzCacheClear(generateClearAuthzCacheRequest(groupTargetMap));
 		validateClearAuthzCacheResponse(responseDocument);
 
 		this.sessionGroupCache.updateCache(this.principalSession, groupTarget1, authzTargets1, null, decision.deny);
@@ -852,7 +850,7 @@ public class PolicyEnforcementProcessorTest
 		endMock();
 	}
 	
-	protected byte[] generateClearAuthzCacheRequest(Map<String,List<String>> groupTargetMap) throws MarshallerException
+	protected Element generateClearAuthzCacheRequest(Map<String,List<String>> groupTargetMap) throws MarshallerException
 	{
 		ClearAuthzCacheRequest request = new ClearAuthzCacheRequest();
 		NameIDType issuer = new NameIDType();
@@ -881,21 +879,19 @@ public class PolicyEnforcementProcessorTest
 		
 		extensions.getAnies().addAll(groupTargetList);
 		
-		byte[] requestXml = this.clearAuthzCacheRequestMarshaller.marshallSigned(request);
-		
-		System.out.println(requestXml);
+		Element requestXml = this.clearAuthzCacheRequestMarshaller.marshallSignedElement(request);
 		
 		return requestXml;
 	}
 	
-	protected void validateClearAuthzCacheResponse(byte[] responseDocument) throws UnmarshallerException
+	protected void validateClearAuthzCacheResponse(Element responseDocument) throws UnmarshallerException
 	{
 		ClearAuthzCacheResponse response = this.clearAuthzCacheResponseUnmarshaller.unMarshallUnSigned(responseDocument);
 		
 		assertEquals("Clear authz cache response was invalid", StatusCodeConstants.success, response.getStatus().getStatusCode().getValue());
 	}
 	
-	protected byte[] generateResponse(decision desiredDecision, Obligations obligations) throws MarshallerException
+	protected Element generateResponse(decision desiredDecision, Obligations obligations) throws MarshallerException
 	{
 		NameIDType issuer = new NameIDType();
 		issuer.setValue("issuer");
@@ -979,7 +975,7 @@ public class PolicyEnforcementProcessorTest
 			response.getEncryptedAssertionsAndAssertions().add(assertion);
 		}
 		
-		byte[] responseDocument = this.responseMarshaller.marshallSigned(response);
+		Element responseDocument = this.responseMarshaller.marshallSignedElement(response);
 		
 		return responseDocument;
 	}

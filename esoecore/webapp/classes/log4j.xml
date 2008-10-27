@@ -4,7 +4,7 @@
 	debug="true">
 
 	<appender name="esoe-core-logger"
-		class="org.apache.log4j.DailyRollingFileAppender">
+		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${esoe.data}/logging/esoe.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
@@ -14,7 +14,7 @@
 	</appender>
 
 	<appender name="esoe-authn-logger"
-		class="org.apache.log4j.DailyRollingFileAppender">
+		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${esoe.data}/logging/esoe-authn.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
@@ -24,7 +24,7 @@
 	</appender>
 
 	<appender name="esoe-authz-logger"
-		class="org.apache.log4j.DailyRollingFileAppender">
+		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${esoe.data}/logging/esoe-authz.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
@@ -34,7 +34,7 @@
 	</appender>
 	
 	<appender name="esoe-stats-logger"
-		class="org.apache.log4j.DailyRollingFileAppender">
+		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${esoe.data}/logging/esoe-stats.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
@@ -44,7 +44,7 @@
 	</appender>
 
 	<appender name="saml2-logger"
-		class="org.apache.log4j.DailyRollingFileAppender">
+		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${esoe.data}/logging/saml2.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
@@ -54,7 +54,7 @@
 	</appender>
 	
 	<appender name="metadata-logger"
-		class="org.apache.log4j.DailyRollingFileAppender">
+		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${esoe.data}/logging/metadata.log" />
 		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 

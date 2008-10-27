@@ -20,8 +20,6 @@
 
 package com.qut.middleware.esoe.authz.impl;
 
-import java.io.UnsupportedEncodingException;
-import java.security.PrivateKey;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +29,7 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.ConfigurationConstants;
@@ -223,6 +222,18 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 			authData.setSubjectID(requestEval.getSubjectID(authzRequest));
 
 			principal = this.sessionProcessor.getQuery().querySAMLSession(authData.getSubjectID());
+			
+			// Principal not found in cache, return authn error 
+			if(principal == null)
+			{
+				this.logger.warn("Invalid Principal request recieved. Falling through to default mode."); //$NON-NLS-1$
+				authResult = this.createResult(null, null, "Principal specified has not been previously identified."); //$NON-NLS-1$
+				authzResponse = ProtocolTools.generateAuthzDecisionStatement(authzRequest.getRequest(), authResult);
+				response = this.buildResponse(StatusCodeConstants.authnFailed, authzResponse, authData, null, null);
+
+				throw new InvalidRequestException(Messages.getString("AuthorizationProcessorImpl.14")); //$NON-NLS-1$			
+			}
+			
 			String requestedResource = requestEval.getResource(authzRequest);
 			String specifiedAction = requestEval.getAction(authzRequest);
 
@@ -240,15 +251,6 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 
 			// build success response with embedded authz return statement
 			response = this.buildResponse(StatusCodeConstants.success, authzResponse, authData, restrictedAudience, inResponseTo);
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			this.logger.warn(Messages.getString("AuthorizationProcessorImpl.85")); //$NON-NLS-1$
-			authResult = this.createResult(null, null, Messages.getString("AuthorizationProcessorImpl.14")); //$NON-NLS-1$
-			authzResponse = ProtocolTools.generateAuthzDecisionStatement(authzRequest.getRequest(), authResult);
-			response = this.buildResponse(StatusCodeConstants.authnFailed, authzResponse, authData, null, null);
-
-			throw new InvalidRequestException(Messages.getString("AuthorizationProcessorImpl.14")); //$NON-NLS-1$
 		}
 		catch (InvalidSAMLRequestException e)
 		{
@@ -301,19 +303,11 @@ public class AuthorizationProcessorImpl implements AuthorizationProcessor
 			// marshall all the response documents and set in auth data bean
 			try
 			{
-				byte[] responseDocument = this.marshaller.marshallSigned(response);
+				Element responseDocument = this.marshaller.marshallSignedElement(response);
 
 				this.logger.debug(Messages.getString("AuthorizationProcessorImpl.90")); //$NON-NLS-1$
 
-				try
-				{
-						String responseXml = new String(responseDocument, "UTF-16");
-						this.logger.trace(responseXml);
-				}
-				catch(UnsupportedEncodingException e)
-				{
-					e.printStackTrace();
-				}
+				this.logger.trace(responseDocument.toString());
 				
 				authData.setResponseDocument(responseDocument);
 			}

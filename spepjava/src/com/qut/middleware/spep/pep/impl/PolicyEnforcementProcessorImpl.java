@@ -37,6 +37,7 @@ import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.exception.MetadataStateException;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.saml2.BindingConstants;
+import com.qut.middleware.saml2.SchemaConstants;
 import com.qut.middleware.saml2.StatusCodeConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
@@ -180,8 +181,8 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		this.trustedESOEIdentifier = trustedESOEIdentifier;
 		this.disablePolicyEnforcement = disablePolicyEnforcement;
 
-		String[] authzDecisionSchemas = new String[] { ConfigurationConstants.lxacmlSAMLAssertion, ConfigurationConstants.lxacmlSAMLProtocol, ConfigurationConstants.samlProtocol };
-		String[] clearAuthzCacheSchemas = new String[] { ConfigurationConstants.esoeProtocol, ConfigurationConstants.samlAssertion, ConfigurationConstants.samlProtocol };
+		String[] authzDecisionSchemas = new String[] { SchemaConstants.lxacmlSAMLAssertion, SchemaConstants.lxacmlSAMLProtocol, SchemaConstants.samlProtocol };
+		String[] clearAuthzCacheSchemas = new String[] { SchemaConstants.esoeProtocol, SchemaConstants.samlAssertion, SchemaConstants.samlProtocol };
 		
 		// create marshallers/unmarshallers
 		this.clearAuthzCacheRequestUnmarshaller = new UnmarshallerImpl<ClearAuthzCacheRequest>(this.UNMAR_PKGNAMES2, clearAuthzCacheSchemas, this.metadata);
@@ -193,7 +194,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 			this.lxacmlAuthzDecisionQueryMarshaller = new MarshallerImpl<LXACMLAuthzDecisionQuery>(this.MAR_PKGNAMES, authzDecisionSchemas, keyStoreResolver);
 			this.responseUnmarshaller = new UnmarshallerImpl<Response>(this.UNMAR_PKGNAMES, authzDecisionSchemas, this.metadata);
 	
-			String[] groupTargetSchemas = new String[] { ConfigurationConstants.lxacmlGroupTarget };
+			String[] groupTargetSchemas = new String[] { SchemaConstants.lxacmlGroupTarget };
 			this.groupTargetUnmarshaller = new UnmarshallerImpl<GroupTarget>(this.UNMAR_PKGNAMES3, groupTargetSchemas);
 		}
 		
@@ -205,7 +206,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 * 
 	 * @see com.qut.middleware.spep.pep.PolicyEnforcementProcessor#authzCacheClear(java.lang.String)
 	 */
-	public byte[] authzCacheClear(byte[] requestDocument) throws MarshallerException
+	public Element authzCacheClear(Element requestDocument) throws MarshallerException
 	{
 		String id = null, statusCodeValue = null, statusMessage = null;
 		PrincipalSession principal;
@@ -326,9 +327,9 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 	 * Builds a ClearAuthzCacheResponse to be sent back to ESOE when a cacheClear request has been recieved.
 	 * 
 	 */
-	private byte[] buildResponse(String inResponseTo, String statusMessage, String statusCodeValue) throws MarshallerException
+	private Element buildResponse(String inResponseTo, String statusMessage, String statusCodeValue) throws MarshallerException
 	{
-		byte[] responseDocument = null;
+		Element responseDocument = null;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		NameIDType issuer = new NameIDType();
@@ -351,7 +352,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 
 		this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.10")); //$NON-NLS-1$
 
-		responseDocument = this.clearAuthzCacheResponseMarshaller.marshallSigned(clearAuthzCacheResponse);
+		responseDocument = this.clearAuthzCacheResponseMarshaller.marshallSignedElement(clearAuthzCacheResponse);
 
 		return responseDocument;
 	}
@@ -403,7 +404,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		// Need more information. Query the PDP.
 		if (policyDecision.equals(decision.notcached))
 		{
-			byte[] decisionRequest;
+			Element decisionRequest;
 			try
 			{
 				// Generate a query based on the session and resource being requested.
@@ -434,7 +435,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 				return decision.error;
 			}
 			
-			byte[] responseDocument;
+			Element responseDocument;
 			try
 			{
 				responseDocument = this.wsClient.policyDecisionPoint(decisionRequest, endpoint);
@@ -480,7 +481,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		return decision.error;
 	}
 
-	private decision processAuthzDecisionStatement(PrincipalSession principalSession, byte[] responseDocument, String resource, String action) throws SignatureValueException, ReferenceValueException, UnmarshallerException
+	private decision processAuthzDecisionStatement(PrincipalSession principalSession, Element responseDocument, String resource, String action) throws SignatureValueException, ReferenceValueException, UnmarshallerException
 	{
 		decision policyDecision = null;
 
@@ -649,10 +650,10 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		}
 	}
 
-	private byte[] generateAuthzDecisionQuery(PrincipalSession principalSession, String resourceString, String action) throws MarshallerException
+	private Element generateAuthzDecisionQuery(PrincipalSession principalSession, String resourceString, String action) throws MarshallerException
 	{
 		this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.30")); //$NON-NLS-1$
-		byte[] requestDocument = null;
+		Element requestDocument = null;
 		String esoeSessionIndex = principalSession.getEsoeSessionID();
 
 		// The resource being accessed by the client
@@ -700,7 +701,7 @@ public class PolicyEnforcementProcessorImpl implements PolicyEnforcementProcesso
 		lxacmlAuthzDecisionQuery.setSignature(new Signature());
 
 		this.logger.debug(Messages.getString("PolicyEnforcementProcessorImpl.31")); //$NON-NLS-1$
-		requestDocument = this.lxacmlAuthzDecisionQueryMarshaller.marshallSigned(lxacmlAuthzDecisionQuery);
+		requestDocument = this.lxacmlAuthzDecisionQueryMarshaller.marshallSignedElement(lxacmlAuthzDecisionQuery);
 
 		return requestDocument;
 	}

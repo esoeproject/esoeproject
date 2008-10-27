@@ -21,6 +21,8 @@
 
 package com.qut.middleware.esoe.authz.bean.impl;
 
+import org.w3c.dom.Element;
+
 import com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData;
 
 /** */
@@ -31,9 +33,9 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	
 	private String subjectID;
 	
-	private byte[] request;
+	private Element request;
 	
-	private byte[] response;
+	private Element response;
 	
 	/**
 	 * Default constructor. Sets all values to null.
@@ -58,7 +60,7 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData#getRequest()
 	 */
-	public byte[] getRequestDocument()
+	public Element getRequestDocument()
 	{
 		return this.request;
 	}
@@ -67,7 +69,7 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData#getResponse()
 	 */
-	public byte[] getResponseDocument()
+	public Element getResponseDocument()
 	{
 		return this.response;
 	}
@@ -94,7 +96,7 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData#setRequest(java.lang.String)
 	 */
-	public void setRequestDocument(byte[] request)
+	public void setRequestDocument(Element request)
 	{
 		this.request = request;
 	}
@@ -103,7 +105,7 @@ public class AuthorizationProcessorDataImpl implements AuthorizationProcessorDat
 	/* 
 	 * @see com.qut.middleware.esoe.authz.bean.AuthorizationProcessorData#setResponse(java.lang.String)
 	 */
-	public void setResponseDocument(byte[] response)
+	public void setResponseDocument(Element response)
 	{
 		this.response = response;
 	}

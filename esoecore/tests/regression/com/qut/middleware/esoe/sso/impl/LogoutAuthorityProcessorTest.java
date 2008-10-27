@@ -10,10 +10,8 @@ import static org.easymock.EasyMock.notNull;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -21,13 +19,15 @@ import java.util.Vector;
 
 import javax.xml.bind.JAXBElement;
 
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
-import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.logout.LogoutMechanism;
 import com.qut.middleware.esoe.logout.LogoutProcessor;
 import com.qut.middleware.esoe.logout.LogoutProcessor.result;
@@ -62,7 +62,7 @@ import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
-@SuppressWarnings( { "unqualified-field-access", "nls" })
+@SuppressWarnings( { "unqualified-field-access", "nls", "unchecked", "unused" })
 public class LogoutAuthorityProcessorTest
 {
 
@@ -84,6 +84,8 @@ public class LogoutAuthorityProcessorTest
 	List<String> testEntities;
 	List<String> testEndpoints;
 	private LogoutMechanism logout;
+	
+	List<SSOLogoutState> logoutStates = null;
 
 	/**
 	 * @throws java.lang.Exception
@@ -91,24 +93,16 @@ public class LogoutAuthorityProcessorTest
 	@Before
 	public void setUp() throws Exception
 	{
-		try
-		{
-			samlValidator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 120);
-			failedLogouts = new FailedLogoutRepositoryImpl();
-			data = createMock(LogoutProcessorData.class);
-			sessionsProcessor = createMock(SessionsProcessor.class);
-			principal = createMock(Principal.class);
-			metadata = createMock(MetadataProcessor.class);
-			terminator = createMock(Terminate.class);
-			sessionCache = createMock(SessionCache.class);
-			wsClient = createMock(WSClient.class);
-			query = createMock(Query.class);
-
-		}
-		catch (Exception e)
-		{
-			fail("Unexpected exception state thrown when creating parameters.");
-		}
+		samlValidator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 120);
+		failedLogouts = new FailedLogoutRepositoryImpl();
+		data = createMock(LogoutProcessorData.class);
+		sessionsProcessor = createMock(SessionsProcessor.class);
+		principal = createMock(Principal.class);
+		metadata = createMock(MetadataProcessor.class);
+		terminator = createMock(Terminate.class);
+		sessionCache = createMock(SessionCache.class);
+		wsClient = createMock(WSClient.class);
+		query = createMock(Query.class);
 
 		String entityID1 = "https://spep.test.1/";
 		String entityID2 = "https://spep.test.2/";
@@ -162,9 +156,9 @@ public class LogoutAuthorityProcessorTest
 		replay(entityData2); replay(spepRole2);
 
 		expect(principal.getSessionID()).andReturn(this.validSessionIdentifier).anyTimes();
-		expect(principal.getActiveDescriptors()).andReturn(testEntities).anyTimes();
+		expect(principal.getActiveEntityList()).andReturn(testEntities).anyTimes();
 		expect(principal.getSAMLAuthnIdentifier()).andReturn("testSamlID").anyTimes();
-		expect(principal.getDescriptorSessionIdentifiers((String) notNull())).andReturn(testIndicies).anyTimes();
+		expect(principal.getActiveEntitySessionIndices((String) notNull())).andReturn(testIndicies).anyTimes();
 		expect(principal.getPrincipalAuthnIdentifier()).andReturn("TestUser:1").anyTimes();
 		expect(sessionCache.getSession((String) notNull())).andReturn(principal).anyTimes();
 		expect(query.queryAuthnSession((String) notNull())).andReturn(principal).anyTimes();
@@ -172,10 +166,23 @@ public class LogoutAuthorityProcessorTest
 		expect(sessionsProcessor.getTerminate()).andReturn(terminator).anyTimes();
 		//expect(metadata.resolveSingleLogoutService((String) notNull())).andReturn(this.testEndpoints).anyTimes();
 		expect(metadata.resolveKey("esoeprimary")).andReturn(keyStoreResolver.getLocalPublicKey()).anyTimes();
-		expect(data.getSessionID()).andReturn(this.validSessionIdentifier).anyTimes();
+		
+		// Mock an accessor/mutator pair so they return the correct value
 		data.setLogoutStates((List<SSOLogoutState>)notNull());
-		expectLastCall().anyTimes();
-
+		expectLastCall().andAnswer(new IAnswer<Object>(){
+			public Object answer() throws Throwable
+			{
+				LogoutAuthorityProcessorTest.this.logoutStates = (List)EasyMock.getCurrentArguments()[0];
+				return null;
+			}
+		}).anyTimes();
+		expect(data.getLogoutStates()).andAnswer(new IAnswer<List<SSOLogoutState>>(){
+			public List<SSOLogoutState> answer() throws Throwable
+			{
+				return LogoutAuthorityProcessorTest.this.logoutStates;
+			}
+		}).anyTimes();
+		
 		this.logout = createMock(LogoutMechanism.class);
 		expect(logout.getEndPoints(entityID1)).andReturn(endpoints1);
 		expect(logout.performSingleLogout((String)notNull(), (List<String>)notNull(), eq(entityID1), anyBoolean())).andReturn(LogoutMechanism.result.LogoutSuccessful).anyTimes();
@@ -218,11 +225,12 @@ public class LogoutAuthorityProcessorTest
 	@Test
 	public void testExecute1() throws Exception
 	{	
-		byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
-		expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
+		Element responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
+		expect(wsClient.singleLogout((Element)notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
 		this.terminator.terminateSession((String)anyObject());
 		expectLastCall().anyTimes();
-			
+		expect(data.getSessionID()).andReturn(this.validSessionIdentifier).anyTimes();
+		
 		setupMock();
 		
 		result result = this.logoutAuthorityProcessor.execute(data);
@@ -244,9 +252,9 @@ public class LogoutAuthorityProcessorTest
 	@Test
 	public void testExecute2() throws Exception
 	{
-		byte[] responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
-		expect(wsClient.singleLogout((byte[])notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
-		data.setSessionID(this.validSessionIdentifier);
+		Element responseDoc = this.generateLogoutResponse(StatusCodeConstants.success, "Logged out successfully", "_logreq1234-1234");
+		expect(wsClient.singleLogout((Element)notNull(), (String)notNull())).andReturn(responseDoc).anyTimes();
+		expect(data.getSessionID()).andReturn(this.validSessionIdentifier).anyTimes();
 		this.terminator.terminateSession((String)anyObject());
 		expectLastCall().anyTimes();
 		
@@ -271,7 +279,7 @@ public class LogoutAuthorityProcessorTest
 	@Test(expected = InvalidSessionIdentifierException.class)
 	public void testExecute3() throws Exception
 	{		
-		data.setSessionID("invalid-blah");
+		expect(data.getSessionID()).andReturn("invalid-blah").anyTimes();
 		
 		setupMock();
 	
@@ -282,10 +290,10 @@ public class LogoutAuthorityProcessorTest
 
 	
 	
-	private byte[] generateLogoutResponse(String statusCodeValue, String statusMessage, String inResponseTo)
+	private Element generateLogoutResponse(String statusCodeValue, String statusMessage, String inResponseTo)
 			throws MarshallerException
 	{
-		byte[] responseDocument = null;
+		Element responseDocument = null;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue("_1234-spep");
@@ -307,7 +315,7 @@ public class LogoutAuthorityProcessorTest
 		
 		LogoutResponse logoutResponse = new LogoutResponse(response);
 
-		responseDocument = this.logoutResponseMarshaller.marshallSigned(logoutResponse);
+		responseDocument = this.logoutResponseMarshaller.marshallSignedElement(logoutResponse);
 
 		return responseDocument;
 	}

@@ -43,6 +43,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.crypto.impl.KeystoreResolverImpl;
@@ -143,7 +144,7 @@ public class PolicyCacheProcessorTest
 		this.idGenerator = new IdentifierGeneratorImpl(this.identifierCache);
 		
 		webServiceClient = createMock(WSClient.class);
-		expect(this.webServiceClient.authzCacheClear( (byte[])anyObject(),(String)notNull() ) ).andReturn(this.getTestAuthzResponse()).anyTimes();
+		expect(this.webServiceClient.authzCacheClear( (Element)anyObject(),(String)notNull() ) ).andReturn(this.getTestAuthzResponse()).anyTimes();
 		replay(this.webServiceClient);
 		
 		// Emulate 3 policies with 3 different ID's for a full update,
@@ -354,7 +355,7 @@ public class PolicyCacheProcessorTest
 		// should be the same size, but the policy should have been replaced with new
 		assertEquals(4, this.testCache.getSize() );
 		
-		byte[]policyXml = this.policyMarshaller.marshallUnSigned(this.testCache.getPolicies(this.validSpep).get(0));
+		byte[] policyXml = this.policyMarshaller.marshallUnSigned(this.testCache.getPolicies(this.validSpep).get(0));
 
 		assertTrue(this.testCache.getPolicies(this.validSpep).size() == 1);
 		
@@ -495,9 +496,9 @@ public class PolicyCacheProcessorTest
 	}
 	
 	
-	private byte[] getTestAuthzResponse()
+	private Element getTestAuthzResponse()
 	{
-		byte[] responseDocument = null;
+		Element responseDocument = null;
 		ClearAuthzCacheResponse clearAuthzCacheResponse = null;
 
 		NameIDType issuer = new NameIDType();
@@ -521,7 +522,7 @@ public class PolicyCacheProcessorTest
 		
 		try
 		{
-			responseDocument = this.clearAuthzCacheResponseMarshaller.marshallSigned(clearAuthzCacheResponse);
+			responseDocument = this.clearAuthzCacheResponseMarshaller.marshallSignedElement(clearAuthzCacheResponse);
 		}
 		catch(MarshallerException e)
 		{

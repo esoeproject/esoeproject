@@ -41,6 +41,8 @@ import com.qut.middleware.saml2.handler.SOAPHandler;
 public class WSClientImpl implements WSClient
 {
 	private static final String CONTENT_TYPE = "Content-Type";
+	// SOAP Action is specified for backward compatibility with Axis-based SPEP web services.
+	private static final String SOAP_ACTION = "SOAPAction";
 	private static final int BUF_SIZE = 1024;
 	private SOAPHandler soapHandler;
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -60,13 +62,15 @@ public class WSClientImpl implements WSClient
 	 */
 	public Element authzCacheClear(Element request, String endpoint) throws WSClientException
 	{
+		final String action = "authzCacheClear";
+
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.0")); //$NON-NLS-1$
 
 		if (endpoint == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.1")); //$NON-NLS-1$
 
-		return invokeWSCall(request, endpoint);
+		return invokeWSCall(request, endpoint, action);
 	}
 
 	/*
@@ -76,13 +80,15 @@ public class WSClientImpl implements WSClient
 	 */
 	public Element singleLogout(Element request, String endpoint) throws WSClientException
 	{
+		final String action = "singleLogout";
+		
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.2")); //$NON-NLS-1$
 
 		if (endpoint == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.3")); //$NON-NLS-1$
 
-		return invokeWSCall(request, endpoint);
+		return invokeWSCall(request, endpoint, action);
 	}
 
 	/*
@@ -96,7 +102,7 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private Element invokeWSCall(Element request, String endpoint) throws WSClientException
+	private Element invokeWSCall(Element request, String endpoint, String soapAction) throws WSClientException
 	{
 		byte[] requestBytes;
 		try
@@ -121,6 +127,7 @@ public class WSClientImpl implements WSClient
 			connection.setDoOutput(true);
 			
 			this.setContentType(connection);
+			connection.setRequestProperty(SOAP_ACTION, soapAction);
 			
 			OutputStream out = connection.getOutputStream();
 			out.write(requestBytes);

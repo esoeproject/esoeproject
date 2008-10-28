@@ -43,6 +43,8 @@ import com.qut.middleware.spep.ws.exception.WSClientException;
 public class WSClientImpl implements WSClient
 {
 	private static final String CONTENT_TYPE = "Content-Type";
+	// SOAP Action is specified for backward compatibility with Axis-based SPEP web services.
+	private static final String SOAP_ACTION = "SOAPAction";
 	private static final int BUF_SIZE = 1024;
 	private SOAPHandler soapHandler;
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -60,6 +62,8 @@ public class WSClientImpl implements WSClient
 	 */
 	public Element attributeAuthority(Element attributeQuery, String endpoint) throws WSClientException
 	{
+		final String action = "attributeAuthority";
+
 		if (endpoint == null || endpoint.length() <= 0)
 		{
 			this.logger.error(Messages.getString("WSClientImpl.8")); //$NON-NLS-1$
@@ -74,7 +78,7 @@ public class WSClientImpl implements WSClient
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("WSClientImpl.10"), endpoint)); //$NON-NLS-1$
 		
-		return invokeWSCall(attributeQuery, endpoint);
+		return invokeWSCall(attributeQuery, endpoint, action);
 	}
 
 	/* (non-Javadoc)
@@ -82,6 +86,8 @@ public class WSClientImpl implements WSClient
 	 */
 	public Element policyDecisionPoint(Element decisionRequest, String endpoint) throws WSClientException
 	{
+		final String action = "policyDecisionPoint";
+
 		if (endpoint == null || endpoint.length() <= 0)
 		{
 			this.logger.error(Messages.getString("WSClientImpl.11")); //$NON-NLS-1$
@@ -96,7 +102,7 @@ public class WSClientImpl implements WSClient
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("WSClientImpl.13"), endpoint)); //$NON-NLS-1$
 		
-		return invokeWSCall(decisionRequest, endpoint);
+		return invokeWSCall(decisionRequest, endpoint, action);
 	}
 
 	/* (non-Javadoc)
@@ -104,6 +110,8 @@ public class WSClientImpl implements WSClient
 	 */
 	public Element spepStartup(Element spepStartup, String endpoint) throws WSClientException
 	{
+		final String action = "spepStartup";
+
 		if (endpoint == null || endpoint.length() <= 0)
 		{
 			this.logger.error(Messages.getString("WSClientImpl.14")); //$NON-NLS-1$
@@ -118,7 +126,7 @@ public class WSClientImpl implements WSClient
 		
 		this.logger.debug(MessageFormat.format(Messages.getString("WSClientImpl.16"), endpoint)); //$NON-NLS-1$
 		
-		return invokeWSCall(spepStartup, endpoint);
+		return invokeWSCall(spepStartup, endpoint, action);
 	}
 	
 
@@ -133,7 +141,7 @@ public class WSClientImpl implements WSClient
 	 * @return The SAML response document from remote soap server
 	 * @throws WSClientException
 	 */
-	private Element invokeWSCall(Element request, String endpoint) throws WSClientException
+	private Element invokeWSCall(Element request, String endpoint, String soapAction) throws WSClientException
 	{
 		byte[] requestBytes;
 		try
@@ -158,6 +166,7 @@ public class WSClientImpl implements WSClient
 			connection.setDoOutput(true);
 			
 			this.setContentType(connection);
+			connection.setRequestProperty(SOAP_ACTION, soapAction);
 			
 			OutputStream out = connection.getOutputStream();
 			out.write(requestBytes);

@@ -21,10 +21,7 @@
  */
 package com.qut.middleware.esoe.authn.plugins.usernamepassword;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -52,6 +49,7 @@ import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 import com.qut.middleware.test.Capture;
@@ -418,22 +416,16 @@ public class UsernamePasswordHandlerTest
 				.anyTimes();
 		expect(data.getHttpRequest().getParameter(this.FORM_RESPONSE_IDENTIFIER)).andReturn(null).anyTimes();
 		expect(sessionsProcessor.getCreate()).andReturn(create).anyTimes();
+		
 		try
 		{
-			expect(
-					create.createLocalSession(data.getSessionID(), "beddoes",
-							AuthenticationContextConstants.passwordProtectedTransport, this.ident)).andReturn(
-					Create.result.SessionCreated);
+			create.createLocalSession(data.getSessionID(), "beddoes",  AuthenticationContextConstants.passwordProtectedTransport, this.ident);
 		}
-		catch (DuplicateSessionException dse)
+		catch (SessionCacheUpdateException e)
 		{
-			fail("DuplicateSourceException should never be generated in this test");
+			fail("Unable to create local session");
 		}
-		catch (DataSourceException dse)
-		{
-			fail("DataSourceException should never be generated in this test");
-		}
-
+		
 		setUpMock(data.getHttpRequest(), data.getHttpResponse());
 
 		setupHandler();
@@ -474,81 +466,18 @@ public class UsernamePasswordHandlerTest
 		expect(data.getHttpRequest().getParameter(this.FORM_USER_IDENTIFIER)).andReturn("beddoes").anyTimes();
 		expect(data.getHttpRequest().getParameter(this.FORM_PASSWORD_IDENTIFIER)).andReturn("itscandyyoulikeit")
 				.anyTimes();
-		expect(data.getHttpRequest().getParameter(this.FORM_RESPONSE_IDENTIFIER)).andReturn(null).anyTimes();
+		expect(data.getHttpRequest().getParameter(this.FORM_RESPONSE_IDENTIFIER)).andReturn("").anyTimes();
 		expect(sessionsProcessor.getCreate()).andReturn(create).anyTimes();
 		try
 		{
-			expect(
-					create.createLocalSession(data.getSessionID(), "beddoes",
-							AuthenticationContextConstants.passwordProtectedTransport, this.ident)).andThrow(
-					new DataSourceException()).atLeastOnce();
+			create.createLocalSession((String)anyObject(), (String)anyObject(),  (String)anyObject(), (List)anyObject());			
+			expectLastCall().andThrow(new SessionCacheUpdateException("Error adding session to cache dude"));
 		}
-		catch (DuplicateSessionException dse)
+		catch (SessionCacheUpdateException dse)
 		{
-			fail("DuplicateSourceException should never be generated in this test");
+			// we are expecting one of these, and expecting the handler to deal with it
 		}
-		catch (DataSourceException dse)
-		{
-			fail("DataSourceException should never be generated in this test");
-		}
-
-		setUpMock(data.getHttpRequest(), data.getHttpResponse());
-
-		setupHandler();
-
-		data.setSuccessfulAuthn(false);
-
-		try
-		{
-			result = handler.execute(data);
-			tearDownMock(data.getHttpRequest(), data.getHttpResponse());
-			assertEquals("Asserts this handler returns correctly when the exception is thrown", Handler.result.Invalid,
-					result);
-			assertTrue("Asserts the failURL is correctly populated when exceptions are thrown", data.getInvalidURL()
-					.matches(this.failURL + ".*"));
-		}
-		catch (SessionCreationException sce)
-		{
-			fail("SessionCreationException detected but this should not be evaluated");
-		}
-	}
-
-	/**
-	 * Test method for
-	 * {@link com.qut.middleware.esoe.authn.plugins.usernamepassword.pipeline.handlers.UsernamePasswordHandler#execute(com.qut.middleware.esoe.authn.bean.AuthnProcessorData)}.
-	 * Ensures that a DuplicateSessionException is correctly handled.
-	 */
-	@Test
-	public void testExecute6b()
-	{
-		Handler.result result;
-
-		/* All of our expections for required mockups */
-		expect(this.identifierGenerator.generateSessionID()).andReturn(data.getSessionID()).anyTimes();
-		expect(this.authenticator.authenticate("beddoes", "itscandyyoulikeit")).andReturn(
-				Authenticator.result.Successful).anyTimes();
-		expect(data.getHttpRequest().getMethod()).andReturn(this.METHOD_POST).anyTimes();
-		expect(data.getHttpRequest().getParameter(this.FORM_USER_IDENTIFIER)).andReturn("beddoes").anyTimes();
-		expect(data.getHttpRequest().getParameter(this.FORM_PASSWORD_IDENTIFIER)).andReturn("itscandyyoulikeit")
-				.anyTimes();
-		expect(data.getHttpRequest().getParameter(this.FORM_RESPONSE_IDENTIFIER)).andReturn(null).anyTimes();
-		expect(sessionsProcessor.getCreate()).andReturn(create).anyTimes();
-		try
-		{
-			expect(
-					create.createLocalSession(data.getSessionID(), "beddoes",
-							AuthenticationContextConstants.passwordProtectedTransport, this.ident)).andThrow(
-					new DuplicateSessionException()).atLeastOnce();
-		}
-		catch (DuplicateSessionException dse)
-		{
-			fail("DuplicateSourceException should never be generated in this test");
-		}
-		catch (DataSourceException dse)
-		{
-			fail("DataSourceException should never be generated in this test");
-		}
-
+		
 		setUpMock(data.getHttpRequest(), data.getHttpResponse());
 
 		setupHandler();

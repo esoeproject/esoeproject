@@ -1,13 +1,7 @@
 package com.qut.middleware.esoe.authn.plugins.usernamepassword;
 
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isNull;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -40,6 +34,7 @@ import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.spep.SPEPProcessor;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
@@ -190,25 +185,18 @@ public class AuthnTest
 
 		try
 		{
-			expect(create.createLocalSession(eq("12345"), eq(this.ldapUser), eq(AuthenticationContextConstants.passwordProtectedTransport), (List)isNull())).andReturn(Create.result.SessionCreated).anyTimes();
+			create.createLocalSession(eq("12345"), eq(this.ldapUser), eq(AuthenticationContextConstants.passwordProtectedTransport), (List)isNull());
+			expectLastCall();
 			expect(query.queryAuthnSession("12345")).andReturn(principal);
 			data.setRedirectTarget(redirectTarget);
 			spepProcessor.clearPrincipalSPEPCaches(principal);
 			query.validAuthnSession("12345");
 		}
-		catch (DuplicateSessionException dse)
+		catch (SessionCacheUpdateException e)
 		{
 			fail("DuplicateSourceException should never be generated in this test");
 		}
-		catch (DataSourceException dse)
-		{
-			fail("DataSourceException should never be generated in this test");
-		}
-		catch (InvalidSessionIdentifierException e)
-		{
-			fail("InvalidSessionIdentifierException should never be generated in this test");
-		}
-			
+					
 		expect(data.getSuccessfulAuthn()).andReturn(true);
 		setUpMock();
 		

@@ -12,10 +12,8 @@ import com.qut.middleware.esoe.authn.bean.AuthnProcessorData;
 import com.qut.middleware.esoe.authn.exception.SessionCreationException;
 import com.qut.middleware.esoe.authn.pipeline.Authenticator;
 import com.qut.middleware.esoe.authn.pipeline.Handler;
-import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
-import com.qut.middleware.esoe.sessions.exception.DataSourceException;
-import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 
@@ -128,8 +126,6 @@ public class UsernamePasswordHandler implements Handler
 	 */
 	public result execute(AuthnProcessorData data) throws SessionCreationException
 	{
-		Create.result result;
-
 		String principalName;
 		String password;
 
@@ -171,33 +167,19 @@ public class UsernamePasswordHandler implements Handler
 		try
 		{
 			// Create the session in the local session cache
-			result = this.sessionsProcessor.getCreate().createLocalSession(data.getSessionID(), principalName,
-					AuthenticationContextConstants.passwordProtectedTransport, this.identityAttributes);
+			this.sessionsProcessor.getCreate().createLocalSession(data.getSessionID(), principalName,
+			AuthenticationContextConstants.passwordProtectedTransport, this.identityAttributes);
+			
+			successfulAuthentication(data);
+			return Handler.result.Successful;
 		}
-		catch (DuplicateSessionException dse)
+		catch (SessionCacheUpdateException e)
 		{
-			this.logger.error(Messages.getString("UsernamePasswordHandler.16") + data.getSessionID() + Messages.getString("UsernamePasswordHandler.17") + principalName); //$NON-NLS-1$ //$NON-NLS-2$
+			this.logger.error("Error adding Principal {} to Session cache for session ID {}.", data.getPrincipalName(), data.getSessionID());
+			this.logger.debug(e.fillInStackTrace().toString());
+			
 			invalidAuthentication(data);
 			return Handler.result.Invalid;
-		}
-		catch (DataSourceException dse)
-		{
-			this.logger.error(Messages.getString("UsernamePasswordHandler.18")); //$NON-NLS-1$
-			invalidAuthentication(data);
-			return Handler.result.Invalid;
-		}
-
-		this.authnLogger.info(Messages.getString("UsernamePasswordHandler.19") + result); //$NON-NLS-1$
-		
-		// Interpret the return value from the sessions processor
-		switch (result)
-		{
-			case SessionCreated:
-				successfulAuthentication(data);
-				return Handler.result.Successful;
-			default:
-				invalidAuthentication(data);
-				return Handler.result.Invalid;
 		}
 	}
 

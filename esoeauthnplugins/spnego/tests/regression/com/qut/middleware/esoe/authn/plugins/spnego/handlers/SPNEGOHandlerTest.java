@@ -3,14 +3,8 @@
  */
 package com.qut.middleware.esoe.authn.plugins.spnego.handlers;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +26,7 @@ import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 
 @SuppressWarnings("nls")
@@ -165,8 +160,8 @@ public class SPNEGOHandlerTest
 			// setup session creation mocks
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andReturn(Create.result.SessionCreated).atLeastOnce();
+			this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject())	;
+			expectLastCall().once().andThrow(new SessionCacheUpdateException());
 		
 			replayMocks();
 						
@@ -182,6 +177,9 @@ public class SPNEGOHandlerTest
 	}
 
 	
+	
+	
+	
 	/** Test the execution of an SPNEGO handler when processing a browser request with an spnego token
 	 * that has NOT been sucesfully authenticated (ie: the token has expired or some such kerberos type error).
 	 * Returns no Action.
@@ -191,16 +189,15 @@ public class SPNEGOHandlerTest
 	@Test
 	public void testExecute1a() 
 	{
-		expect(this.identifierGenerator.generateSessionID()).andReturn(this.sessionID).anyTimes();
-		expect(this.request.getHeader("User-agent")).andReturn(this.userAgentID).anyTimes();
-		expect(this.request.getHeader("Authorization")).andReturn("Insert SPNEGO data here").anyTimes();
-		
-		expect(this.request.getCharacterEncoding()).andReturn("UTF-8").anyTimes();
+		expect(this.identifierGenerator.generateSessionID()).andReturn(this.sessionID);
+		expect(this.request.getHeader("User-agent")).andReturn(this.userAgentID);
+		expect(this.request.getHeader("Authorization")).andReturn("Insert SPNEGO data here");
+		expect(this.request.getRemoteAddr()).andReturn("0.0.1.1");
+		expect(this.request.getCharacterEncoding()).andReturn("UTF-8");
+		expect(this.request.getScheme()).andReturn("Negotiate");
+		expect(this.request.getRemoteAddr()).andReturn("1.1.1.1");
 		
 		this.authData.setHttpRequest(this.request);
-		
-		expect(this.authData.getHttpRequest().getScheme()).andReturn("Negotiate").anyTimes();
-		expect(this.authData.getHttpRequest().getRemoteAddr()).andReturn("1.1.1.1").anyTimes();
 		
 		// set a null return value from authenticator to indicate kerberos error
 		expect(this.authenticator.authenticate((String)notNull())).andReturn(null).anyTimes();
@@ -212,11 +209,11 @@ public class SPNEGOHandlerTest
 			// setup session creation mocks
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andReturn(Create.result.SessionCreated).atLeastOnce();
-		
+			this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject())	;
+			expectLastCall().once();
+
 			replayMocks();
-						
+							
 			result = this.handler.execute(this.authData);
 		}
 		catch(Exception e)
@@ -289,8 +286,8 @@ public class SPNEGOHandlerTest
 			// setup session creation mocks
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andReturn(Create.result.SessionCreated).atLeastOnce();
+			this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject())	;
+			expectLastCall().atLeastOnce();
 		
 			replayMocks();
 						
@@ -333,21 +330,19 @@ public class SPNEGOHandlerTest
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
 			// mock a failed session creation ** DataSourceException **
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andThrow(new DataSourceException()).once();
+			try 
+			{
+				this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject())	;
+				expectLastCall().andThrow(new SessionCacheUpdateException());
+			} 
+			catch (SessionCacheUpdateException e)
+			{
+				//fail("Unexpected exception thrown:" + e.getLocalizedMessage());
+			}
 		
 			replayMocks();
 						
 			result = this.handler.execute(this.authData);
-		}
-		catch(DataSourceException e)
-		{
-			// None of these exceptions should ever get here. They should be handled
-			// by the handler TODO find out why execeute throws SessionCreationException when it dont need to
-		}
-		catch (DuplicateSessionException dse)
-		{
-			//
 		}
 		catch(SessionCreationException e)
 		{
@@ -364,48 +359,39 @@ public class SPNEGOHandlerTest
 	 * 
 	 * Test method for {@link com.qut.middleware.esoe.authn.plugins.spnego.handler.SPNEGOHandler#execute(com.qut.middleware.esoe.authn.bean.AuthnProcessorData)}.
 	 */
-	@Test //(expected = SessionCreationException.class)
+	@Test
 	public void testExecute4() 
 	{
-		expect(this.identifierGenerator.generateSessionID()).andReturn(this.sessionID).anyTimes();
-		expect(this.authenticator.authenticate((String)notNull())).andReturn(this.principal).anyTimes();
-		expect(this.request.getHeader("User-agent")).andReturn(this.userAgentID).anyTimes();
-		expect(this.request.getHeader("Authorization")).andReturn("Insert SPNEGO data here").anyTimes();
-		expect(this.request.getRemoteAddr()).andReturn("0.0.1.1").anyTimes();
-		
-		expect(this.request.getCharacterEncoding()).andReturn("UTF-8").anyTimes();
+		expect(this.identifierGenerator.generateSessionID()).andReturn(this.sessionID);
+		expect(this.request.getHeader("User-agent")).andReturn(this.userAgentID);
+		expect(this.request.getHeader("Authorization")).andReturn("Insert SPNEGO data here");
+		expect(this.request.getRemoteAddr()).andReturn("0.0.1.1");
+		expect(this.request.getCharacterEncoding()).andReturn("UTF-8");
+		expect(this.request.getScheme()).andReturn("Negotiate");
+		expect(this.request.getRemoteAddr()).andReturn("1.1.1.1");
 		
 		this.authData.setHttpRequest(this.request);
 		
-		expect(this.authData.getHttpRequest().getScheme()).andReturn("Negotiate").anyTimes();
+		// set a null return value from authenticator to indicate kerberos error
+		expect(this.authenticator.authenticate((String)notNull())).andReturn(this.principal).anyTimes();
 		
 		Handler.result result = null;
 		try
-		{
-		
+		{		
 			// setup session creation mocks
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
-			// mock a failed session creation ** DuplicateSessionException **
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andThrow(new DuplicateSessionException()).once();
-		
+			this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject())	;
+			expectLastCall().andThrow(new SessionCacheUpdateException());
+
 			replayMocks();
-						
+							
 			result = this.handler.execute(this.authData);
 		}
-		catch(DataSourceException e)
+		catch(Exception e)
 		{
-			// None of these exceptions should ever get here. They should be handled
-			// by the handler TODO find out why execeute throws SessionCreationException when it dont need to
-		}
-		catch (DuplicateSessionException dse)
-		{
-			//
-		}
-		catch(SessionCreationException e)
-		{
-			//
+			e.printStackTrace();
+			fail("Unexpected exception occured.");
 		}
 		
 		assertEquals("Unexpected Authentication code returned. ", Handler.result.Invalid, result);
@@ -436,13 +422,12 @@ public class SPNEGOHandlerTest
 		
 		Handler.result result = null;
 		try
-		{
-		
+		{		
 			// setup session creation mocks
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andReturn(Create.result.SessionCreated).atLeastOnce();
+			this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) ;
+			expectLastCall().atLeastOnce();
 		
 			replayMocks();
 						
@@ -484,9 +469,9 @@ public class SPNEGOHandlerTest
 			// setup session creation mocks
 			expect(this.sessionsProcessor.getCreate()).andReturn(this.create).anyTimes();
 		
-			expect(this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) )
-			.andReturn(Create.result.SessionCreated).atLeastOnce();
-		
+			this.create.createLocalSession((String)notNull(), (String)notNull(), (String)notNull(), (List<AuthnIdentityAttribute>)anyObject()) ;
+			expectLastCall().atLeastOnce();
+			
 			replayMocks();
 						
 			result = this.handler.execute(this.authData);

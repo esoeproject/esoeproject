@@ -43,6 +43,7 @@ import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
 import com.qut.middleware.esoe.sessions.exception.DataSourceException;
 import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
+import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
 
@@ -146,9 +147,8 @@ public class SPNEGOHandler implements Handler
 		{
 			this.cidrNetworks.add(new CIDRSubnet(network));
 		}
-
-		this.logger
-				.info(Messages.getString("SPNEGOHandler.14") + this.getHandlerName() + Messages.getString("SPNEGOHandler.15") + spnegoUserAgentID + Messages.getString("SPNEGOHandler.16") + this.redirectTarget); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	
+		this.logger.info("Successfully created {} with params: spnegoUserAgentID - {}, redirectTarget - {}, {} Target Networks configured.", new Object[]{this.handlerName, this.userAgentID, this.redirectTarget, this.cidrNetworks.size()});
 	}
 
 	/*
@@ -256,41 +256,23 @@ public class SPNEGOHandler implements Handler
 					return Handler.result.NoAction;
 				}
 
-				// create the session for the authenticated principal
-				Create.result result;
-
+				
 				data.setSessionID(this.identifierGenerator.generateSessionID());
 				this.authnLogger.info("Successfully authenticated principal " + this.extractUid(authenticatedPrincipal) + " to underlying authentication mechanism identified by external ESOE ID of: " + data.getSessionID() + " using SPNEGO handler");
 				
 				try
 				{
-					// Create the session in the local session cache
-					result = this.sessionsProcessor.getCreate().createLocalSession(data.getSessionID(),
-							data.getPrincipalName(), AuthenticationContextConstants.passwordProtectedTransport, this.identityAttributes);
+					this.logger.debug("Attempting to call create local session for " + data.getSessionID());
+						// Create the session in the local session cache
+					 	this.sessionsProcessor.getCreate().createLocalSession(data.getSessionID(), data.getPrincipalName(), AuthenticationContextConstants.passwordProtectedTransport, this.identityAttributes);
 				}
-				catch (DuplicateSessionException dse)
+				catch (SessionCacheUpdateException e)
 				{
-					this.logger
-							.error("Duplicate Session detected: " + data.getSessionID() + Messages.getString("UsernamePasswordHandler.17") + data.getPrincipalName()); //$NON-NLS-1$ //$NON-NLS-2$
-					return Handler.result.Invalid;
-				}
-				catch (DataSourceException dse)
-				{
-					this.logger
-							.error("Session processor was unable to setup principal session correctly due to underlying data source problems."); //$NON-NLS-1$
-					return Handler.result.Invalid;
-				}
-
-				this.logger.debug("Result of establishing session with sessions processor was: " + result); //$NON-NLS-1$
-
-				// Interpret the return value from the sessions processor
-				switch (result)
-				{
-					case SessionCreated:
-						return Handler.result.Successful;
-					default:
+						this.logger.error("Session processor was unable to setup principal session correctly due to underlying data source problems."); //$NON-NLS-1$
 						return Handler.result.Invalid;
 				}
+				
+				return Handler.result.Successful;
 			}
 		}
 

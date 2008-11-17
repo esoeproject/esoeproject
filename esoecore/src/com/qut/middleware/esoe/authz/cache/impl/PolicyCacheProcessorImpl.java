@@ -310,6 +310,7 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 			}
 			catch (SQLException e)
 			{
+				this.logger.warn("Unable to query data store for updates. Policy updates will not occur until this is resolved. ");
 				this.logger.debug(e.getLocalizedMessage(), e);
 			}
 			catch (InterruptedException e)

@@ -36,7 +36,7 @@ import com.qut.middleware.saml2.identifier.IdentifierCache;
 public class SessionsMonitor extends Thread implements MonitorThread {
 
 		private int timeout;
-		private int interval;
+		private long interval;
 		private IdentifierCache idCache;
 		private SessionCache sessionCache;
 		
@@ -104,14 +104,14 @@ public class SessionsMonitor extends Thread implements MonitorThread {
 					int numRemoved = this.idCache.cleanCache(this.timeout);
 					this.logger.debug(MessageFormat.format(Messages.getString("SessionsMonitor.5") , numRemoved)); //$NON-NLS-1$
 					
-					int cleanedAgo = (int)(System.currentTimeMillis() - this.sessionCache.getLastCleaned()) ;
+					long cleanedAgo = System.currentTimeMillis() - this.sessionCache.getLastCleaned();
 						
 					// clean the session cache if it hasn't been cleaned within the interval range
 					if(cleanedAgo > this.interval)
 					{
 						this.logger.debug("Calling Sessions cache cleanup ...");
 						numRemoved = this.sessionCache.cleanCache(this.timeout);
-						this.logger.debug(MessageFormat.format(Messages.getString("SessionsMonitor.7"), numRemoved )); //$NON-NLS-1$ 
+						this.logger.info(MessageFormat.format(Messages.getString("SessionsMonitor.7"), numRemoved )); //$NON-NLS-1$ 
 					}
 					else
 						this.logger.info(MessageFormat.format("Session cache was last cleaned {0} seconds ago. Not calling cleanup.", (cleanedAgo/1000)) );
@@ -127,7 +127,6 @@ public class SessionsMonitor extends Thread implements MonitorThread {
 					// Any exceptions here is bad. For robustness only, but it's more than likely that the Thread will not continue
 					// to operate as intended if an exception is thrown, so find and eliminate it if possible. 
 					this.logger.debug("Ignoring caught Exception - " + e.fillInStackTrace());
-					// TODO change to trace level
 					this.logger.debug("Stack Trace: ", e);
 					e.printStackTrace();
 				}

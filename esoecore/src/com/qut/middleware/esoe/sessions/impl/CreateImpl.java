@@ -132,6 +132,7 @@ public class CreateImpl implements Create
 
 		long time = System.currentTimeMillis();
 		principal.setAuthnTimestamp(time);
+		principal.setLastAccessed(time);
 		principal.setSessionNotOnOrAfter(time + this.sessionLengthMillis);
 		principal.setAuthenticationContextClass(authenticationContextClass);
 		principal.setSAMLAuthnIdentifier(samlAuthnID);

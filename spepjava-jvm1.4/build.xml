@@ -9,6 +9,8 @@
 <project name="spepjava-jvm14" xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<property file="build.properties" />
+	
+	<import file="${esoebuild}/esoe.xml"/>
 
 	<description>
 		Builds the Service Provider Enforcement Point for JVM 1.4
@@ -21,24 +23,6 @@
 			<pathelement location="${ant.retrotranslator_transformer}" />
 		</classpath>
 	</taskdef>
-
-	<target name="dev-resolve">
-		<ivy:configure />
-		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
-	</target>
-
-	<target name="release-resolve">
-		<ivy:configure />
-		<ivy:resolve file="ivy.xml" conf="release" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.release}/[artifact].[ext]" conf="release" />
-		<ivy:report conf="release" graph="false" todir="${basedir}/${artifacts.release}" />
-
-		<ivy:resolve file="ivy.xml" conf="release-endorsed" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.release.endorsed}/[artifact].[ext]" conf="release-endorsed" />
-		<ivy:report conf="release-endorsed" graph="false" todir="${basedir}/${artifacts.release.endorsed}" />
-	</target>
 
 	<target name="release" depends="war" description="Builds a gzipped tar for release of the SPEP (generally utilised by ESOE Startup)">
 		<copy file="../spepjava/spep.config" todir="${output}/${output.tar}" />
@@ -56,13 +40,13 @@
 		</tar>
 	</target>
 	
-	<target name="war" depends="jar, release-resolve" description="Assembles SPEP war">
+	<target name="war" depends="jar, resolve:all" description="Assembles SPEP war">
 		<war destfile="${output}/${output.war}" webxml="${war.descriptor}">
 			
 			<lib file="${output}/${output.jaxb.jar}.jar"/>
 			<lib file="${output}/${output.spep.jar}.jar"/>
 			<lib file="${output}/${output.saml2.jar}.jar"/>
-			<lib dir="${artifacts.release}"/>
+			<lib dir="${artifacts.runtime}"/>
 			
 			<classes dir="../spepjava/${webapp.classes}">
 				<include name="**/*" />
@@ -71,16 +55,13 @@
 				<include name="**/*.xml" />
 				<exclude name="spep-*.xml" />
 			</webinf>
-			<webinf dir="../spepjava/${webservice.deploy}">
-				<include name="**/*" />
-			</webinf>
 			<metainf dir="../spepjava/${webapp.metainf}">
 				<include name="**/*.xml" />
 			</metainf>
 		</war>
 	</target>
 
-	<target name="jar" depends="dev-resolve, jar-jaxb, jar-spepjava" />
+	<target name="jar" depends="resolve:all, jar-jaxb, jar-spepjava" />
 
 	<target name="jar-jaxb" depends="translate-jaxb" description="Assembles JVM 1.4 compliant JAXB jar">
 		<jar destfile="${output}/${output.jaxb.jar}.jar">
@@ -115,6 +96,8 @@
 		</jar>
 	</target>
 
+
+
 	<target name="translate-jaxb" depends="translate-resolve">
 		<retrotranslator destdir="${build.jaxb}" verify="true">
 			<jarfileset dir="${artifacts.jaxb}" includes="**/*.jar" />
@@ -123,7 +106,10 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts.dev}">
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.provided}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
@@ -138,7 +124,10 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts.dev}">
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.provided}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
@@ -153,7 +142,10 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts.dev}">
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.provided}">
 					<include name="*.jar" />
 				</fileset>
 			</classpath>
@@ -164,9 +156,9 @@
 		<!-- This is undertaken manually as the ivy configuration required to extract just small portions
 			of our complex dependency graph is a lot more hideous-->
 
-		<copy file="../spepjava/lib/dev/jaxb-api.jar" todir="${artifacts.jaxb}" />
-		<copy file="../spepjava/lib/dev/jaxb-impl.jar" todir="${artifacts.jaxb}" />
-		<copy file="../spepjava/lib/dev/saml2lib-j.jar" todir="${artifacts.spepjava}" />
+		<copy file="../spepjava/lib/provided/jaxb-api.jar" todir="${artifacts.jaxb}" />
+		<copy file="../spepjava/lib/provided/jaxb-impl.jar" todir="${artifacts.jaxb}" />
+		<copy file="../spepjava/lib/compile/saml2lib-j.jar" todir="${artifacts.spepjava}" />
 		<copy file="../spepjava/dist/spep.jar" todir="${artifacts.spepjava}" />
 		<copy file="../spepjava/dist/spep-interfaces.jar" todir="${artifacts.spepjavainterfaces}" />
 

@@ -8,8 +8,10 @@
 
 <project name="spepjavafilter-jvm1.4" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-	<property file="build.properties" />
+	<import file="${esoebuild}/esoe.xml" />
 
+	<property file="build.properties" />
+		
 	<description>
 		Builds the Service Provider Enforcement Point Filter for JVM 1.4
 	</description>
@@ -22,25 +24,11 @@
 		</classpath>
 	</taskdef>
 
-	<target name="dev-resolve">
-		<ivy:configure />
-		<ivy:resolve file="ivy.xml" conf="dev" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.dev}/[artifact].[ext]" conf="dev" />
-		<ivy:report conf="dev" graph="false" todir="${basedir}/${artifacts.dev}" />
-	</target>
-	
-	<target name="release-resolve">
-		<ivy:configure />
-		<ivy:resolve file="ivy.xml" conf="release" />
-		<ivy:retrieve pattern="${basedir}/${artifacts.release}/[artifact].[ext]" conf="release" />
-		<ivy:report conf="release" graph="false" todir="${basedir}/${artifacts.release}" />
-	</target>
-
-	<target name="release" depends="release-resolve, jar" description="Builds a release tar ball for the filter">
+	<target name="release" depends="resolve:all, jar" description="Builds a release tar ball for the filter">
 		<tar destfile="${output}/${output.tar}.tar.gz" compression="gzip">
 			<tarfileset file="${output}/${output.jar}.jar" />
 			<tarfileset file="../spepjava-jvm1.4/${output}/spep-interfaces-jvm1.4.jar"/>
-			<tarfileset dir="${artifacts.release}" />
+			<tarfileset dir="${artifacts.runtime}" />
 		</tar>
 	</target>
 
@@ -52,7 +40,7 @@
 		</jar>
 	</target>
 
-	<target name="translate-spepfilter" depends="setup, dev-resolve">
+	<target name="translate-spepfilter" depends="setup, resolve:all">
 		<retrotranslator destdir="${output.build}" verify="true">
 			<jarfileset dir="../spepjavafilter/${output}" includes="**/*.jar" />
 			<classpath location="${java142.home}/jre/lib/rt.jar" />
@@ -60,7 +48,10 @@
 				<pathelement location="${ant.retrotranslator_concurrent}" />
 				<pathelement location="${ant.retrotranslator_runtime}" />
 				<pathelement location="${ant.retrotranslator_transformer}" />
-				<fileset dir="${artifacts.dev}">
+				<fileset dir="${artifacts.compile}">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${artifacts.provided}">
 					<include name="*.jar" />
 				</fileset>
 				<fileset dir="../spepjava-jvm1.4/${output}/">
@@ -68,27 +59,6 @@
 				</fileset>
 			</classpath>
 		</retrotranslator>
-	</target>
-
-	<target name="setup" depends="clean" description="Creates base directories">
-		<mkdir dir="${output.build}" />
-		<mkdir dir="${output}" />
-	</target>
-
-	<target name="clean" description="Removes base directories">
-		<delete dir="${output.build}" />
-		<delete dir="${output}" />
-	</target>
-
-	<target name="javadoc" description="Create Javadocs">
-		<mkdir dir="${output.javadoc}" />
-		<javadoc destdir="${output.javadoc}" sourcepath="${src}">
-			<classpath>
-				<fileset dir="${artifacts}">
-					<include name="**/*.jar" />
-				</fileset>
-			</classpath>
-		</javadoc>
 	</target>
 
 </project>

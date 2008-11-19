@@ -101,7 +101,7 @@ public class SOAPv11Handler implements SOAPHandler
 			Envelope envelope = new Envelope();
 			envelope.setBody(body);
 			
-			return this.envelopeMarshaller.marshallUnSigned(envelope);
+			return this.envelopeMarshaller.marshallUnSigned(envelope, encoding);
 		}
 		catch (MarshallerException e)
 		{

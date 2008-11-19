@@ -130,7 +130,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.4")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, attributeQuery);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.5")); //$NON-NLS-1$
@@ -143,7 +144,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.7")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, attributeQuery);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.8")); //$NON-NLS-1$
@@ -156,7 +158,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.10")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, attributeQuery);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.11")); //$NON-NLS-1$
@@ -185,7 +188,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.13")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, decisionRequest);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.14")); //$NON-NLS-1$
@@ -198,7 +202,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.16")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, decisionRequest);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.17")); //$NON-NLS-1$
@@ -230,7 +235,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.19")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, spepStartup);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.20")); //$NON-NLS-1$
@@ -243,7 +249,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.22")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, spepStartup);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.23")); //$NON-NLS-1$
@@ -256,7 +263,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.25")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, spepStartup);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.26")); //$NON-NLS-1$
@@ -269,7 +277,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.28")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, spepStartup);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			throw new WSProcessorException(Messages.getString("WSProcessorImpl.52") + e.getMessage()); //$NON-NLS-1$
@@ -282,7 +291,8 @@ public class WSProcessorImpl implements WSProcessor
 			if (data.getResponseDocument() != null)
 			{
 				this.logger.debug(Messages.getString("WSProcessorImpl.30")); //$NON-NLS-1$
-				return generateResponse(data.getResponseDocument(), handler);
+				String responseEncoding = this.getEncoding(handler, spepStartup);
+				return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 			}
 
 			this.logger.warn(Messages.getString("WSProcessorImpl.31")); //$NON-NLS-1$
@@ -314,7 +324,9 @@ public class WSProcessorImpl implements WSProcessor
 		if (data.getResponseDocument() != null)
 		{
 			this.logger.debug(Messages.getString("WSProcessorImpl.49")); //$NON-NLS-1$
-			return generateResponse(data.getResponseDocument(), handler);
+			
+			String responseEncoding = this.getEncoding(handler, registerPrincipal);
+			return generateResponse(data.getResponseDocument(), handler, responseEncoding);
 		}
 
 		this.logger.warn(Messages.getString("WSProcessorImpl.50")); //$NON-NLS-1$
@@ -376,11 +388,11 @@ public class WSProcessorImpl implements WSProcessor
 	 * @param responseDocument DOM Element representing the SAML document to respond with.
 	 * @return Raw SOAP document containing the response.
 	 */
-	private byte[] generateResponse(Element responseDocument, SOAPHandler handler) throws WSProcessorException
+	private byte[] generateResponse(Element responseDocument, SOAPHandler handler, String encoding) throws WSProcessorException
 	{
 		try
 		{
-			byte[] document = handler.wrapDocument(responseDocument);
+			byte[] document = handler.wrapDocument(responseDocument, encoding);
 			
 			CharsetDetector detector = new CharsetDetector();
 			this.logger.trace(detector.getString(document, null));

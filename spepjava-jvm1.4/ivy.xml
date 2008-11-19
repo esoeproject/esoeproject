@@ -28,10 +28,11 @@
 		<dependency org="com.ibm.icu" name="com.springsource.com.ibm.icu" rev="3.8.1" conf="compile,runtime"/>
         <dependency org="apache" name="xmlsec" rev="1.4.1A" conf="compile,runtime"/>
         <dependency org="sun" name="fastinfoset" rev="1.18A" conf="compile"/>
+        <dependency org="javax.activation" name="com.springsource.javax.activation" rev="1.1.1" conf="runtime" />
 		
-        <dependency org="esoeproject" name="esoecrypto" rev="${esoe.version}" conf="compile,runtime"/>	
-        <dependency org="esoeproject" name="saml2metadata" rev="${esoe.version}" conf="compile,runtime"/>
-        <dependency org="esoeproject" name="saml2lib-j" rev="${esoe.version}" conf="compile,runtime"/>
+        <dependency org="esoeproject" name="esoecrypto" rev="${esoe.version}" conf="compile"/>	
+        <dependency org="esoeproject" name="saml2metadata" rev="${esoe.version}" conf="compile"/>
+        <dependency org="esoeproject" name="saml2lib-j" rev="${esoe.version}" conf="compile"/>
         
         <dependency org="javax.servlet" name="com.springsource.javax.servlet" rev="2.5.0" conf="provided"/>
 		<dependency org="sun" name="jaxb" rev="2.0.5A" conf="provided"/>
@@ -40,7 +41,7 @@
 	    <dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="optional"/>
         
 		<!-- Development release JDK endorsed dependencies (excluded below) -->
-	    <dependency org="retrotranslator" name="retrotranslator" rev="1.2.2" conf="compile"/>
+	    <dependency org="retrotranslator" name="retrotranslator" rev="1.2.2" conf="compile,runtime"/>
 
         <exclude artifact=".*-sources" matcher="regexp" conf="runtime,optional,provided"/>	
 

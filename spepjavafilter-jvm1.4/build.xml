@@ -28,6 +28,7 @@
 		<tar destfile="${output}/${output.tar}.tar.gz" compression="gzip">
 			<tarfileset file="${output}/${output.jar}.jar" />
 			<tarfileset file="../spepjava-jvm1.4/${output}/spep-interfaces-jvm1.4.jar"/>
+			<tarfileset file="../spepjava-jvm1.4/${artifacts}/retrotranslator-runtime-*.jar"/>
 			<tarfileset dir="${artifacts.runtime}" />
 		</tar>
 	</target>

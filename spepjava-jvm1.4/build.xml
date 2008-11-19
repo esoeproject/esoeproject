@@ -159,6 +159,8 @@
 		<copy file="../spepjava/lib/provided/jaxb-api.jar" todir="${artifacts.jaxb}" />
 		<copy file="../spepjava/lib/provided/jaxb-impl.jar" todir="${artifacts.jaxb}" />
 		<copy file="../spepjava/lib/compile/saml2lib-j.jar" todir="${artifacts.spepjava}" />
+		<copy file="../spepjava/lib/compile/esoecrypto.jar" todir="${artifacts.spepjava}" />
+		<copy file="../spepjava/lib/compile/saml2metadata.jar" todir="${artifacts.spepjava}" />
 		<copy file="../spepjava/dist/spep.jar" todir="${artifacts.spepjava}" />
 		<copy file="../spepjava/dist/spep-interfaces.jar" todir="${artifacts.spepjavainterfaces}" />
 

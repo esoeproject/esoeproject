@@ -410,7 +410,11 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 		}
 		else
 		{
-			throw new SQLException(Messages.getString("PolicyCacheProcessorImpl.20")); //$NON-NLS-1$
+			// if we're doing a full rebuild and there's no policies, something is wrong
+			if(fullRebuild)
+				throw new SQLException(Messages.getString("PolicyCacheProcessorImpl.20")); //$NON-NLS-1$
+			else
+				this.logger.debug("Database change detected but no active policies were updated. Ignoring update.");
 		}
 
 		// call SPEP notification method
@@ -716,24 +720,23 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 	 */
 	private Map<String, List<Policy>> retrieveChangedPolicies() throws SQLException
 	{
-		Map<String, List<Policy>> policies = Collections.synchronizedMap(new HashMap<String, List<Policy>>());
+		Map<String, List<Policy>> localPolicyList = Collections.synchronizedMap(new HashMap<String, List<Policy>>());
 
 		PolicyCacheQueryData queryData = new PolicyCacheQueryData();
-
 		queryData.setSequenceId(new BigDecimal(this.globalCache.getBuildSequenceId()));
 
 		List<PolicyCacheData> result = this.sqlConfig.queryPolicyCache(queryData);
-
-		this.logger.debug(MessageFormat.format("Query retrieved {0} results.", result.size()));
-
+	
 		if (result != null)
 		{
+			this.logger.debug(MessageFormat.format("Query retrieved {0} results.", result.size()));
+
 			String entityID = null;
 
 			Iterator<PolicyCacheData> resultIter = result.iterator();
 			while (resultIter.hasNext())
 			{
-				List<Policy> datasourcePolicies = new Vector<Policy>();
+				List<Policy> currentPolicyList = new Vector<Policy>();
 
 				PolicyCacheData data = resultIter.next();
 				entityID = data.getEntityID();
@@ -753,14 +756,11 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 						e.printStackTrace();
 					}
 
-					// if our return map does not already contain a list for the currently processed entityID, retrieve
-					// it from cache
-					if (policies.get(entityID) == null)
-						datasourcePolicies = this.globalCache.getPolicies(entityID);
-					else
-						datasourcePolicies = policies.get(entityID);
-					
-					this.logger.debug(MessageFormat.format("Retrieved current policy list for {0}. {1} policies found.", entityID, datasourcePolicies.size()));
+					// if our local return map does not already contain a list for the currently processed entityID, retrieve it from the global cache so we can replace any required.
+					if ( (currentPolicyList = localPolicyList.get(entityID)) == null)
+						currentPolicyList = this.globalCache.getPolicies(entityID);
+										
+					this.logger.debug(MessageFormat.format("Current policy list for [0} contains {1} policies.", entityID, currentPolicyList.size()));
 
 					// check poll actions to see if replace or remove
 					char pollAction = (data.getPollAction().length() != 0 ? data.getPollAction().charAt(0)
@@ -770,28 +770,32 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 
 					if (pollAction == ConfigurationConstants.POLICY_STATE_UPDATE)
 					{
-						// if the policy already exists in the List, remove it first and replace it.
-						Policy policyToReplace = this.getMatchingPolicy(datasourcePolicies, data.getPolicyId());
+						// if the policy already exists in the List, remove it first and replace it, UNLESS it has been deactivated
+						Policy policyToReplace = this.getMatchingPolicy(currentPolicyList, data.getPolicyId());
 						if (policyToReplace != null)
 						{
-							boolean removeResult = datasourcePolicies.remove(policyToReplace);
+							boolean removeResult = currentPolicyList.remove(policyToReplace);
 							this.logger.info(MessageFormat.format("Result of removing Policy {0} from data source List is {1}.", policyToReplace, removeResult));
 						}
 							
-						// Add the replacement.
-						datasourcePolicies.add(replacement);
-
-						this.logger.debug("Updated Policy " + data.getPolicyId());
+						// Add the replacement if it's still active
+						if(data.getActiveStatus().equalsIgnoreCase("Y"))
+						{
+							this.logger.debug("Adding Policy to local Policy Map.");
+							currentPolicyList.add(replacement);
+						}
+						
+						this.logger.debug("Updated Policy {} ({}). " , data.getPolicyId(), (data.getActiveStatus().equalsIgnoreCase("Y") ? "Active" : "Inactive") );
 
 					}
 					else
 						if (pollAction == ConfigurationConstants.POLICY_STATE_DELETE)
 						{
 							// If we have a set of policies remove anything that is matching (purges old content)
-							Policy policyToReplace = this.getMatchingPolicy(datasourcePolicies, data.getPolicyId());
+							Policy policyToReplace = this.getMatchingPolicy(currentPolicyList, data.getPolicyId());
 							if (policyToReplace != null)
 							{
-								boolean removeResult = datasourcePolicies.remove(policyToReplace);
+								boolean removeResult = currentPolicyList.remove(policyToReplace);
 								this.logger.trace(MessageFormat.format("Return value from remove operation (Policy ID: {0}) from data source List = {1}.", policyToReplace.getPolicyId(), removeResult));
 							}
 						
@@ -801,9 +805,9 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 							if (pollAction == ConfigurationConstants.POLICY_STATE_ADD)
 							{
 								// if the policy does not already exist in the List, add it.
-								if (this.getMatchingPolicy(datasourcePolicies, replacement.getPolicyId()) == null)
+								if (this.getMatchingPolicy(currentPolicyList, replacement.getPolicyId()) == null)
 								{
-									datasourcePolicies.add(replacement);
+									currentPolicyList.add(replacement);
 									this.logger.debug("Added Policy " + data.getPolicyId());
 								}
 								else
@@ -828,12 +832,12 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 				}
 
 				// replace with updated policy list
-				this.logger.debug(MessageFormat.format("Retrieved Policies for {0} ({1} Policies).", entityID, datasourcePolicies.size()));
-				policies.put(entityID, datasourcePolicies);
+				this.logger.debug(MessageFormat.format("Retrieved Updated Policies for {0} ({1} active Policies).", entityID, currentPolicyList.size()));
+				localPolicyList.put(entityID, currentPolicyList);
 			}
 		}
 
-		return policies;
+		return localPolicyList;
 	}
 
 	/*

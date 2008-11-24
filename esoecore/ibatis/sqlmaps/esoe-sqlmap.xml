@@ -66,6 +66,7 @@
 		<result property="sequenceId" column="SEQID" jdbcType="NUMBER"/>	
 		<result property="pollAction" column="POLACTION" jdbcType="CHAR"/>
 		<result property="policyId" column="POLICYID" jdbcType="VARCHAR" />
+		<result property="activeStatus" column="ACTIVEFLAG" jdbcType="VARCHAR" />
 	</resultMap>
 	
 	<resultMap id="policyCacheResult" class="policyCacheData">
@@ -99,7 +100,7 @@
 	
 	<!--  Retrieve policies that have been updated and the operation to perform on those policies -->
 	<select id="updatedPoliciesCacheQuery" parameterMap="policyCacheQueryParam" resultMap="updatedPolicyCacheResult">						                 
-		SELECT ENTITY_DESCRIPTORS.ENTITYID, SERVICE_POLICIES.POLICYID, SERVICE_POLICIES.LXACMLPOLICY, SERVICE_POLICIES_STATE.SEQID, SERVICE_POLICIES_STATE.POLACTION
+		SELECT ENTITY_DESCRIPTORS.ENTITYID, SERVICE_POLICIES.POLICYID, SERVICE_POLICIES.LXACMLPOLICY, SERVICE_POLICIES_STATE.SEQID, SERVICE_POLICIES_STATE.POLACTION, SERVICE_POLICIES.ACTIVEFLAG
         FROM SERVICE_POLICIES
                 INNER JOIN SERVICE_POLICIES_STATE ON SERVICE_POLICIES.ENT_ID = SERVICE_POLICIES_STATE.ENT_ID AND SERVICE_POLICIES.POLICYID = SERVICE_POLICIES_STATE.POLICYID
                 INNER JOIN ENTITY_DESCRIPTORS ON SERVICE_POLICIES_STATE.ENT_ID = ENTITY_DESCRIPTORS.ENT_ID
@@ -107,7 +108,6 @@
         WHERE 
                   SERVICE_POLICIES_STATE.SEQID <![CDATA[ > ]]> ? 
                   AND ENTITY_DESCRIPTORS.ACTIVEFLAG = 'y'
-                  AND SERVICE_POLICIES.ACTIVEFLAG = 'y'
                   AND DESCRIPTORS.DESCRIPTORTYPEID = 2
 	</select>
 			

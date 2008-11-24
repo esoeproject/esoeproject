@@ -30,8 +30,10 @@ public class PolicyCacheData
 	private BigDecimal sequenceId = null;
 	private String pollAction;
 	private String policyId;
+	private String activeStatus;
 	
 	
+
 	/** Default constructor. Initializes all internal types to zero size objects.
 	 * 
 	 */
@@ -42,6 +44,7 @@ public class PolicyCacheData
 		this.sequenceId = new BigDecimal(0l);
 		this.policyId = "";
 		this.pollAction = "";
+		this.activeStatus = "";
 	}
 	
 	/** Get the date the cache data was last updated.
@@ -126,4 +129,13 @@ public class PolicyCacheData
 		this.policyId = policyId;
 	}
 
+	public String getActiveStatus()
+	{
+		return activeStatus;
+	}
+
+	public void setActiveStatus(String activeStatus)
+	{
+		this.activeStatus = activeStatus;
+	}
 }

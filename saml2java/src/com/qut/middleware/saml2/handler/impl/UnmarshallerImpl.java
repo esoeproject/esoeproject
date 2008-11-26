@@ -894,30 +894,8 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 
 			Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
 			jaxbObject = (T) unmarshaller.unmarshal(node);
-			Marshaller marshaller = jaxbContext.createMarshaller();
-			// TODO configurable encoding here?
-			marshaller.setProperty("jaxb.encoding", "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
-
-			/* Setup the configured prefix mapper to make our saml easy for human consumption */
-			try
-			{
-				marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapperImpl()); //$NON-NLS-1$
-			}
-			catch (PropertyException pe)
-			{
-				this.logger.error(Messages.getString("MarshallerImpl.43")); //$NON-NLS-1$
-				this.logger.debug(pe.getLocalizedMessage(), pe);
-				throw new UnmarshallerException(pe.getMessage(), pe, jaxbObject);
-			}
 			
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			StreamResult streamResult = new StreamResult(outputStream);
-			marshaller.marshal(jaxbObject, streamResult);
-
-			byte[] document = outputStream.toByteArray();
-			
-			Document doc = this.generateDocument(document);
-			this.validateSignature(doc, null, jaxbObject);
+			this.validateSignature(node.getOwnerDocument(), null, jaxbObject);
 			
 			return jaxbObject;
 		}

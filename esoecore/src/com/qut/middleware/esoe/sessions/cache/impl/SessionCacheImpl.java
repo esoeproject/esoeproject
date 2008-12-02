@@ -355,18 +355,12 @@ public class SessionCacheImpl implements SessionCache
 		return (this.sessionMap.size()/2);
 	}
 	
-	
-	@Override
-	public void addEntitySessionIndex(Principal principal, String entityID, 		String sessionIndex) throws SessionCacheUpdateException 
+	public void addEntitySessionIndex(Principal principal, String entityID, String sessionIndex) throws SessionCacheUpdateException 
 	{
-		// TODO Auto-generated method stub
-		
+		// This method intentionally left blank
 	}
 
-	@Override
-	public void updatePrincipalAttributes(Principal principal)
-			throws SessionCacheUpdateException {
-		// TODO Auto-generated method stub
-		
+	public void updatePrincipalAttributes(Principal principal) throws SessionCacheUpdateException {
+		// This method intentionally left blank
 	}
 }

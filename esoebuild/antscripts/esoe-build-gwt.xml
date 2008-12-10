@@ -54,11 +54,14 @@
 					</fileset>
 					<fileset dir="${artifacts.gwt}">
 						<include name="*.jar" />
+						<exclude name="gwt-servlet.jar"/>
+						<exclude name="gwt-user.jar"/>
 					</fileset>
 				</classpath>
 				<arg value="-out" />
 				<arg value="../out" />
 				<arg value="@{module}" />
+				<jvmarg value="-Xmx512m"/>
 			</java>
 		</sequential>
 	</macrodef>

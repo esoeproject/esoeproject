@@ -28,7 +28,8 @@
 		<copy todir="${output}/${output.tar}/sql">
 			<fileset dir="sql" />
 		</copy>
-
+		
+		<tar destfile="${output}/${output.tar}.tar.gz" basedir="${output}/${output.tar}" compression="gzip" />
 	</target>
 
 	<target name="jar" depends="build" description="Assembles project as a jar">

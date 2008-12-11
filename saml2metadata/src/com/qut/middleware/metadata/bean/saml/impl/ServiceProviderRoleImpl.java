@@ -38,20 +38,23 @@ public class ServiceProviderRoleImpl implements ServiceProviderRole
 	private IndexedEndpointCollection assertionConsumerServiceEndpoints;
 	private EndpointCollection singleLogoutServiceEndpoints;
 	private Map<Integer, AttributeConsumingService> attributeConsumingServiceMap;
+	private IndexedEndpointCollection artifactResolutionEndpoints;
 
-	public ServiceProviderRoleImpl(List<String> keyNames, List<String> nameIDFormatList, IndexedEndpointCollection assertionConsumerServiceEndpoints, EndpointCollection singleLogoutServiceEndpoints, Map<Integer,AttributeConsumingService> attributeConsumingServiceMap)
+	public ServiceProviderRoleImpl(List<String> keyNames, List<String> nameIDFormatList, IndexedEndpointCollection assertionConsumerServiceEndpoints, EndpointCollection singleLogoutServiceEndpoints, Map<Integer,AttributeConsumingService> attributeConsumingServiceMap, IndexedEndpointCollection artifactResolutionEndpoints)
 	{
 		if (keyNames == null) throw new IllegalArgumentException("Key names list cannot be null");
 		if (nameIDFormatList == null) throw new IllegalArgumentException("Name ID format cannot be null");
 		if (assertionConsumerServiceEndpoints == null) throw new IllegalArgumentException("Assertion consumer service endpoints collection cannot be null");
 		if (singleLogoutServiceEndpoints == null) throw new IllegalArgumentException("Single logout service endpoints collection cannot be null");
 		if (attributeConsumingServiceMap == null) throw new IllegalArgumentException("Attribute consuming service map cannot be null");
+		if (artifactResolutionEndpoints == null) throw new IllegalArgumentException("Artifact resolve endpoints collection cannot be null");
 
 		this.keyNames = keyNames;
 		this.nameIDFormatList = nameIDFormatList;
 		this.assertionConsumerServiceEndpoints = assertionConsumerServiceEndpoints;
 		this.singleLogoutServiceEndpoints = singleLogoutServiceEndpoints;
 		this.attributeConsumingServiceMap = attributeConsumingServiceMap;
+		this.artifactResolutionEndpoints = artifactResolutionEndpoints;
 	}
 	
 	public List<String> getKeyNames()
@@ -95,5 +98,15 @@ public class ServiceProviderRoleImpl implements ServiceProviderRole
 		values.addAll(this.attributeConsumingServiceMap.values());
 		
 		return values;
+	}
+	
+	public List<IndexedEndpoint> getArtifactResolutionEndpointList()
+	{
+		return this.artifactResolutionEndpoints.getEndpointList();
+	}
+	
+	public String getArtifactResolutionEndpoint(String binding, int index)
+	{
+		return this.artifactResolutionEndpoints.getEndpoint(binding, index);
 	}
 }

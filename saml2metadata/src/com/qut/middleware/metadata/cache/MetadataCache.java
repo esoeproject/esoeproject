@@ -62,4 +62,9 @@ public interface MetadataCache extends ExternalKeyResolver
 	 * @param expiryInterval New expiry interval in milliseconds.
 	 */
 	public void setDynamicEntityExpiryInterval(long expiryInterval);
+	
+	/**
+	 * @return A list of active entities aggregated from metadata sources.
+	 */
+	public List<String> getEntityList();
 }

@@ -32,8 +32,11 @@ import org.w3c.dom.Element;
 import com.qut.middleware.metadata.bean.impl.EntityDataImpl;
 import com.qut.middleware.metadata.bean.saml.IdentityProviderRole;
 import com.qut.middleware.metadata.bean.saml.endpoint.EndpointCollection;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpointCollection;
 import com.qut.middleware.metadata.bean.saml.endpoint.impl.EndpointCollectionImpl;
 import com.qut.middleware.metadata.bean.saml.endpoint.impl.EndpointImpl;
+import com.qut.middleware.metadata.bean.saml.endpoint.impl.IndexedEndpointCollectionImpl;
+import com.qut.middleware.metadata.bean.saml.endpoint.impl.IndexedEndpointImpl;
 import com.qut.middleware.metadata.bean.saml.impl.AttributeAuthorityRoleImpl;
 import com.qut.middleware.metadata.bean.saml.impl.ESOERoleImpl;
 import com.qut.middleware.metadata.bean.saml.impl.IdentityProviderRoleImpl;
@@ -49,6 +52,7 @@ import com.qut.middleware.saml2.schemas.metadata.EndpointType;
 import com.qut.middleware.saml2.schemas.metadata.EntityDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.Extensions;
 import com.qut.middleware.saml2.schemas.metadata.IDPSSODescriptor;
+import com.qut.middleware.saml2.schemas.metadata.IndexedEndpointType;
 import com.qut.middleware.saml2.schemas.metadata.KeyDescriptor;
 import com.qut.middleware.saml2.schemas.metadata.RoleDescriptorType;
 import com.qut.middleware.saml2.schemas.metadata.extensions.SPEPStartupService;
@@ -328,6 +332,22 @@ public class SAMLIdentityProviderProcessor implements SAMLEntityDescriptorProces
 		}
 
 		return endpointCollection;
+	}
+	
+	private IndexedEndpointCollection artifactResolutionServiceEndpointsFromDescriptor(IDPSSODescriptor idpSSODescriptor, Random random)
+	{
+		IndexedEndpointCollection indexedEndpoints = new IndexedEndpointCollectionImpl(random);
+		
+		for (IndexedEndpointType artifactResolutionService : idpSSODescriptor.getArtifactResolutionServices())
+		{
+			String location = artifactResolutionService.getLocation();
+			String binding = artifactResolutionService.getBinding();
+			int index = artifactResolutionService.getIndex();
+			
+			indexedEndpoints.getEndpointList().add(new IndexedEndpointImpl(binding, location, index));
+		}
+		
+		return indexedEndpoints;
 	}
 
 	private EndpointCollection spepStartupServiceEndpointsFromDescriptor(IDPSSODescriptor idpSSODescriptor, Random random) throws InvalidMetadataException

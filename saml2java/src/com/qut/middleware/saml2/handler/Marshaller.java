@@ -19,6 +19,7 @@
  */
 package com.qut.middleware.saml2.handler;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.qut.middleware.saml2.exception.MarshallerException;
@@ -119,4 +120,14 @@ public interface Marshaller<T>
 	 * @throws MarshallerException if an error occurs marshalling the document.
 	 */
 	public Element marshallSignedElement(T xmlObj, String encoding) throws MarshallerException;
+	
+	/**
+	 * Generates a document from the given DOM representation. 
+	 * 
+	 * @param doc The DOM representation of the document
+	 * @param encoding The encoding of the output document
+	 * @return A byte representation of the XML document, in the specified encoding
+	 * @throws MarshallerException if an error occurs marshalling the document.
+	 */
+	public byte[] generateOutput(Document doc, String encoding) throws MarshallerException;
 }

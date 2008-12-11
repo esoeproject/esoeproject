@@ -22,6 +22,7 @@ package com.qut.middleware.metadata.cache.impl;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -431,5 +432,20 @@ public class MetadataCacheImpl implements MetadataCache
 		}
 		this.logger.debug("Resolving key by issuer '{}', serial '{}' failed.", issuerDN, String.valueOf(serialNumber));
 		throw new KeyResolutionException("Key with name issuer '" + issuerDN + "', serial '" + String.valueOf(serialNumber) + "' could not be resolved by issuer/serial");
+	}
+	
+	public List<String> getEntityList()
+	{
+		this.lock.readLock().lock();
+		try
+		{
+			List<String> entityList = new ArrayList<String>();
+			entityList.addAll(this.entityMap.keySet());
+			return entityList;
+		}
+		finally
+		{
+			this.lock.readLock().unlock();
+		}
 	}
 }

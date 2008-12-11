@@ -25,15 +25,16 @@ import java.util.List;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.bean.saml.endpoint.Endpoint;
 import com.qut.middleware.metadata.bean.saml.endpoint.EndpointCollection;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpointCollection;
 
 public class TrustedESOERoleImpl extends ESOERoleImpl implements TrustedESOERole
 {
 	private EndpointCollection spepStartupServiceEndpoints;
 	private EndpointCollection lxacmlAuthzServiceEndpoints;
 
-	public TrustedESOERoleImpl(List<String> keyNames, List<String> nameIDFormat, EndpointCollection singleLogoutEndpoints, EndpointCollection singleSignOnEndpoints, EndpointCollection attributeServiceEndpoints, EndpointCollection spepStartupServiceEndpoints, EndpointCollection lxacmlAuthzServiceEndpoints)
+	public TrustedESOERoleImpl(List<String> keyNames, List<String> nameIDFormat, EndpointCollection singleLogoutEndpoints, EndpointCollection singleSignOnEndpoints, IndexedEndpointCollection artifactResolutionEndpoints, EndpointCollection attributeServiceEndpoints, EndpointCollection spepStartupServiceEndpoints, EndpointCollection lxacmlAuthzServiceEndpoints)
 	{
-		super(keyNames, nameIDFormat, singleLogoutEndpoints, singleSignOnEndpoints, attributeServiceEndpoints);
+		super(keyNames, nameIDFormat, singleLogoutEndpoints, singleSignOnEndpoints, artifactResolutionEndpoints, attributeServiceEndpoints);
 		
 		if (spepStartupServiceEndpoints == null) throw new IllegalArgumentException("SPEP startup endpoints collection cannot be null");
 		if (lxacmlAuthzServiceEndpoints == null) throw new IllegalArgumentException("LXACML AuthzService endpoints collection cannot be null");

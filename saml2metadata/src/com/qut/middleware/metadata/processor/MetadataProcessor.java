@@ -20,6 +20,8 @@
 
 package com.qut.middleware.metadata.processor;
 
+import java.util.List;
+
 import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.Role;
 import com.qut.middleware.metadata.exception.MetadataCacheUpdateException;
@@ -72,4 +74,6 @@ public interface MetadataProcessor extends ExternalKeyResolver
 	 * @throws MetadataCacheUpdateException 
 	 */
 	public EntityData updateFromDynamicSource(DynamicMetadataSource source, String entityID, byte[] document) throws MetadataCacheUpdateException;
+	
+	public List<String> getEntityList();
 }

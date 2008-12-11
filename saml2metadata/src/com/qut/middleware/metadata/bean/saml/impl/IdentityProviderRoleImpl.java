@@ -25,6 +25,9 @@ import java.util.List;
 import com.qut.middleware.metadata.bean.saml.IdentityProviderRole;
 import com.qut.middleware.metadata.bean.saml.endpoint.Endpoint;
 import com.qut.middleware.metadata.bean.saml.endpoint.EndpointCollection;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpoint;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpointCollection;
+import com.qut.middleware.metadata.bean.saml.endpoint.impl.IndexedEndpointCollectionImpl;
 
 public class IdentityProviderRoleImpl implements IdentityProviderRole
 {
@@ -32,18 +35,21 @@ public class IdentityProviderRoleImpl implements IdentityProviderRole
 	private List<String> nameIDFormat;
 	private EndpointCollection singleLogoutServiceEndpoints;
 	private EndpointCollection singleSignOnServiceEndpoints;
+	private IndexedEndpointCollection artifactResolutionEndpoints;
 	
-	public IdentityProviderRoleImpl(List<String> keyNames, List<String> nameIDFormatList, EndpointCollection singleLogoutServiceEndpoints, EndpointCollection singleSignOnServiceEndpoints)
+	public IdentityProviderRoleImpl(List<String> keyNames, List<String> nameIDFormatList, EndpointCollection singleLogoutServiceEndpoints, EndpointCollection singleSignOnServiceEndpoints, IndexedEndpointCollection artifactResolutionEndpoints)
 	{
 		if (keyNames == null) throw new IllegalArgumentException("Key names list cannot be null");
 		if (nameIDFormatList == null) throw new IllegalArgumentException("Name ID format cannot be null");
 		if (singleLogoutServiceEndpoints == null) throw new IllegalArgumentException("Single logout service endpoints collection cannot be null");
 		if (singleSignOnServiceEndpoints == null) throw new IllegalArgumentException("Single sign on endpoints collection cannot be null");
+		if (artifactResolutionEndpoints == null) throw new IllegalArgumentException("Artifact resolution service endpoints collection cannot be null");
 		
 		this.keyNames = keyNames;
 		this.nameIDFormat = nameIDFormatList;
 		this.singleLogoutServiceEndpoints = singleLogoutServiceEndpoints;
 		this.singleSignOnServiceEndpoints = singleSignOnServiceEndpoints;
+		this.artifactResolutionEndpoints = artifactResolutionEndpoints;
 	}
 	
 	public List<String> getKeyNames()
@@ -74,5 +80,15 @@ public class IdentityProviderRoleImpl implements IdentityProviderRole
 	public List<Endpoint> getSingleSignOnServiceList()
 	{
 		return this.singleSignOnServiceEndpoints.getEndpointList();
+	}
+	
+	public String getArtifactResolutionService(String binding, int index)
+	{
+		return this.artifactResolutionEndpoints.getEndpoint(binding, index);
+	}
+	
+	public List<IndexedEndpoint> getArtifactResolutionServiceList()
+	{
+		return this.artifactResolutionEndpoints.getEndpointList();
 	}
 }

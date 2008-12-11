@@ -505,27 +505,32 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 	 */
 	private byte[] sign(InputStream document, String encoding) throws MarshallerException
 	{
-		try
-		{
-			StreamResult streamResult;
-			Transformer trans;
-	
 			Document doc = this.signDocument(document, encoding);
 	
+			return generateOutput(doc, encoding);
+	}
+
+	public byte[] generateOutput(Document doc, String encoding) throws MarshallerException
+	{
+		try
+		{
+			if (encoding == null) encoding = this.defaultCharset;
+			
 			/* Create Transformer */
 			Properties properties = new Properties();
 			properties.setProperty(OutputKeys.ENCODING, encoding); //$NON-NLS-1$
 	
-			trans = this.transFac.newTransformer();
+			Transformer trans = this.transFac.newTransformer();
 			trans.setOutputProperties(properties);
 			
 			this.logger.debug(Messages.getString("MarshallerImpl.55")); //$NON-NLS-1$
 	
 			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			streamResult = new StreamResult(bytes);
+			StreamResult streamResult = new StreamResult(bytes);
 			trans.transform(new DOMSource(doc), streamResult);
 	
 			return bytes.toByteArray(); //$NON-NLS-1$
+	
 		}
 		catch (TransformerConfigurationException tce)
 		{

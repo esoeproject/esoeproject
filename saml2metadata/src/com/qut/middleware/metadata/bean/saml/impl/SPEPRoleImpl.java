@@ -33,9 +33,9 @@ public class SPEPRoleImpl extends ServiceProviderRoleImpl implements SPEPRole
 {
 	private IndexedEndpointCollection cacheClearServiceEndpoints;
 
-	public SPEPRoleImpl(List<String> keyNames, List<String> nameIDFormatList, IndexedEndpointCollection assertionConsumerServiceEndpoints, EndpointCollection singleLogoutServiceEndpoints, Map<Integer,AttributeConsumingService> attributeConsumingServiceMap, IndexedEndpointCollection cacheClearServiceEndpoints)
+	public SPEPRoleImpl(List<String> keyNames, List<String> nameIDFormatList, IndexedEndpointCollection assertionConsumerServiceEndpoints, EndpointCollection singleLogoutServiceEndpoints, Map<Integer,AttributeConsumingService> attributeConsumingServiceMap, IndexedEndpointCollection artifactResolutionEndpoints, IndexedEndpointCollection cacheClearServiceEndpoints)
 	{
-		super(keyNames, nameIDFormatList, assertionConsumerServiceEndpoints, singleLogoutServiceEndpoints, attributeConsumingServiceMap);
+		super(keyNames, nameIDFormatList, assertionConsumerServiceEndpoints, singleLogoutServiceEndpoints, attributeConsumingServiceMap, artifactResolutionEndpoints);
 		
 		if (cacheClearServiceEndpoints == null) throw new IllegalArgumentException("Cache clear service endpoints collection cannot be null");
 		

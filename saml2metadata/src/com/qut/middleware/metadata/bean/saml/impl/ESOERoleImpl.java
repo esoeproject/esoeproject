@@ -25,14 +25,15 @@ import java.util.List;
 import com.qut.middleware.metadata.bean.saml.ESOERole;
 import com.qut.middleware.metadata.bean.saml.endpoint.Endpoint;
 import com.qut.middleware.metadata.bean.saml.endpoint.EndpointCollection;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpointCollection;
 
 public class ESOERoleImpl extends IdentityProviderRoleImpl implements ESOERole
 {
 	private EndpointCollection attributeServiceEndpoints;
 
-	public ESOERoleImpl(List<String> keyNames, List<String> nameIDFormat, EndpointCollection singleLogoutEndpoints, EndpointCollection singleSignOnEndpoints, EndpointCollection attributeServiceEndpoints)
+	public ESOERoleImpl(List<String> keyNames, List<String> nameIDFormat, EndpointCollection singleLogoutEndpoints, EndpointCollection singleSignOnEndpoints, IndexedEndpointCollection artifactResolutionEndpoints, EndpointCollection attributeServiceEndpoints)
 	{
-		super(keyNames, nameIDFormat, singleLogoutEndpoints, singleSignOnEndpoints);
+		super(keyNames, nameIDFormat, singleLogoutEndpoints, singleSignOnEndpoints, artifactResolutionEndpoints);
 		
 		if (attributeServiceEndpoints == null) throw new IllegalArgumentException("Attribute service endpoints collection cannot be null");
 		

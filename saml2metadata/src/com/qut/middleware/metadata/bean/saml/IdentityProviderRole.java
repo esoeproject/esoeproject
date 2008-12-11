@@ -23,6 +23,8 @@ package com.qut.middleware.metadata.bean.saml;
 import java.util.List;
 
 import com.qut.middleware.metadata.bean.saml.endpoint.Endpoint;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpoint;
+import com.qut.middleware.metadata.bean.saml.endpoint.IndexedEndpointCollection;
 
 public interface IdentityProviderRole extends SAMLRole
 {
@@ -49,4 +51,15 @@ public interface IdentityProviderRole extends SAMLRole
 	 *         or null if none exist.
 	 */
 	public String getSingleSignOnService(String binding);
+	
+	/**
+	 * @return A list of zero or more artifact resolution endpoints
+	 */
+	public List<IndexedEndpoint> getArtifactResolutionServiceList();
+	
+	/**
+	 * @return A random artifact resolution service endpoint with the given index
+	 *         that supports the given binding, or null if none exist.
+	 */
+	public String getArtifactResolutionService(String binding, int index);
 }

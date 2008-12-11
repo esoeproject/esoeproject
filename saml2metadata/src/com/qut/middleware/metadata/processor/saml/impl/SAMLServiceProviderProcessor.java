@@ -95,6 +95,7 @@ public class SAMLServiceProviderProcessor implements SAMLEntityDescriptorProcess
 				List<String> nameIDFormatList = nameIDFormatsFromSPSSODescriptor(spSSODescriptor);
 				IndexedEndpointCollection assertionConsumerServiceEndpoints = assertionConsumerServiceEndpointsFromDescriptor(spSSODescriptor, entityData.getRandom());
 				EndpointCollection singleLogoutServiceEndpoints = singleLogoutServiceEndpointsFromDescriptor(spSSODescriptor, entityData.getRandom());
+				IndexedEndpointCollection artifactResolutionServiceEndpoints = artifactResolutionServiceEndpointsFromDescriptor(spSSODescriptor, entityData.getRandom());
 				IndexedEndpointCollection cacheClearServiceEndpoints = cacheClearServiceEndpointsFromDescriptor(spSSODescriptor, entityData.getRandom());
 				Map<Integer, AttributeConsumingService> attributeConsumingServices = new TreeMap<Integer, AttributeConsumingService>();
 				
@@ -134,7 +135,7 @@ public class SAMLServiceProviderProcessor implements SAMLEntityDescriptorProcess
 				if (cacheClearServiceEndpoints.getEndpointList().size() == 0)
 				{
 					this.logger.debug("Identified entity as a SAML service provider. Entity ID: " + entityDescriptor.getEntityID());
-					ServiceProviderRole spRole = new ServiceProviderRoleImpl(keyNames, nameIDFormatList, assertionConsumerServiceEndpoints, singleLogoutServiceEndpoints, attributeConsumingServices);
+					ServiceProviderRole spRole = new ServiceProviderRoleImpl(keyNames, nameIDFormatList, assertionConsumerServiceEndpoints, singleLogoutServiceEndpoints, attributeConsumingServices, artifactResolutionServiceEndpoints);
 					entityData.addRoleData(spRole);
 				}
 				else
@@ -152,7 +153,7 @@ public class SAMLServiceProviderProcessor implements SAMLEntityDescriptorProcess
 					}
 					
 					this.logger.debug("Identified entity as an SPEP (or SPEP compatible). Entity ID: " + entityDescriptor.getEntityID());
-					SPEPRole spepRole = new SPEPRoleImpl(keyNames, nameIDFormatList, assertionConsumerServiceEndpoints, singleLogoutServiceEndpoints, attributeConsumingServices, cacheClearServiceEndpoints);
+					SPEPRole spepRole = new SPEPRoleImpl(keyNames, nameIDFormatList, assertionConsumerServiceEndpoints, singleLogoutServiceEndpoints, attributeConsumingServices, artifactResolutionServiceEndpoints, cacheClearServiceEndpoints);
 					entityData.addRoleData(spepRole);
 				}
 			}
@@ -204,6 +205,22 @@ public class SAMLServiceProviderProcessor implements SAMLEntityDescriptorProcess
 			indexedEndpoints.getEndpointList().add(new IndexedEndpointImpl(binding, location, index));
 		}
 
+		return indexedEndpoints;
+	}
+	
+	private IndexedEndpointCollection artifactResolutionServiceEndpointsFromDescriptor(SPSSODescriptor spSSODescriptor, Random random)
+	{
+		IndexedEndpointCollection indexedEndpoints = new IndexedEndpointCollectionImpl(random);
+		
+		for (IndexedEndpointType artifactResolutionService : spSSODescriptor.getArtifactResolutionServices())
+		{
+			String location = artifactResolutionService.getLocation();
+			String binding = artifactResolutionService.getBinding();
+			int index = artifactResolutionService.getIndex();
+			
+			indexedEndpoints.getEndpointList().add(new IndexedEndpointImpl(binding, location, index));
+		}
+		
 		return indexedEndpoints;
 	}
 

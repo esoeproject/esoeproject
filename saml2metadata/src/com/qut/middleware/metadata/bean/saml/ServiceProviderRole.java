@@ -62,4 +62,15 @@ public interface ServiceProviderRole extends SAMLRole
 	 * 		   or null if none exist.
 	 */
 	public AttributeConsumingService getAttributeConsumingService(int index);
+	
+	/**
+	 * @return A list of zero or more artifact resolve endpoints.
+	 */
+	public List<IndexedEndpoint> getArtifactResolutionEndpointList();
+	
+	/**
+	 * @return A random artifact resolve endpoint with the given index that 
+	 *         supports the given binding, or null if none exist.
+	 */
+	public String getArtifactResolutionEndpoint(String binding, int index);
 }

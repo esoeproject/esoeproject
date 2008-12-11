@@ -179,4 +179,9 @@ public class MetadataProcessorImpl implements MetadataProcessor
 	{
 		return this.cache.resolveKey(issuerDN, serialNumber);
 	}
+	
+	public List<String> getEntityList()
+	{
+		return this.cache.getEntityList();
+	}
 }

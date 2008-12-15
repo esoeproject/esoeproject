@@ -4,8 +4,10 @@ ESOE Deployer
 
 This component will setup a new server instance to execute ESOE.
 
-To run this component using Java SE 6.x execute the following:
+Before continuing ensure you have your database JDBC driver jar in the runtime directory, failure to do this will result in a 
+fault when validating database details. (This also assumes you've already populated DB schema and created a suitable DB account for ESOE to utilize).
 
+To run this component using Java SE 6.x execute the following:
 java -cp "runtime/*" com.qut.middleware.deployer.Main
 
 You will then be prompted for several details on the command line to setup your local environment.

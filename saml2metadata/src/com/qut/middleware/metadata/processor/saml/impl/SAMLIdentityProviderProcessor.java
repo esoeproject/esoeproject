@@ -161,6 +161,7 @@ public class SAMLIdentityProviderProcessor implements SAMLEntityDescriptorProces
 			EndpointCollection attributeServiceEndpoints = attributeServiceEndpointsFromDescriptor(attributeAuthorityDescriptor, entityData.getRandom());
 			EndpointCollection spepStartupServiceEndpoints = spepStartupServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
 			EndpointCollection lxacmlAuthzDecisionEndpoints = lxacmlAuthzDecisionEndpointsFromDescriptor(lxacmlPDPDescriptor, entityData.getRandom());
+			IndexedEndpointCollection artifactResolutionServiceEndpoints = artifactResolutionServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
 			
 			if (singleSignOnServiceEndpoints.getEndpointList().size() == 0)
 			{
@@ -183,7 +184,7 @@ public class SAMLIdentityProviderProcessor implements SAMLEntityDescriptorProces
 				throw new InvalidMetadataException("Trusted ESOE did not have any single sign-on endpoints. Entity ID: " + this.trustedEntityID);
 			}
 			
-			TrustedESOERoleImpl role = new TrustedESOERoleImpl(keyNames, nameIDFormat, singleLogoutServiceEndpoints, singleSignOnServiceEndpoints, attributeServiceEndpoints, spepStartupServiceEndpoints, lxacmlAuthzDecisionEndpoints);
+			TrustedESOERoleImpl role = new TrustedESOERoleImpl(keyNames, nameIDFormat, singleLogoutServiceEndpoints, singleSignOnServiceEndpoints, artifactResolutionServiceEndpoints, attributeServiceEndpoints, spepStartupServiceEndpoints, lxacmlAuthzDecisionEndpoints);
 
 			entityData.addRoleData(role);
 		}
@@ -201,7 +202,8 @@ public class SAMLIdentityProviderProcessor implements SAMLEntityDescriptorProces
 				EndpointCollection singleLogoutServiceEndpoints = singleLogoutServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
 				EndpointCollection singleSignOnServiceEndpoints = singleSignOnServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
 				EndpointCollection attributeServiceEndpoints = attributeServiceEndpointsFromDescriptor(attributeAuthorityDescriptor, entityData.getRandom());
-				ESOERoleImpl role = new ESOERoleImpl(keyNames, nameIDFormat, singleLogoutServiceEndpoints, singleSignOnServiceEndpoints, attributeServiceEndpoints);
+				IndexedEndpointCollection artifactResolutionServiceEndpoints = artifactResolutionServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
+				ESOERoleImpl role = new ESOERoleImpl(keyNames, nameIDFormat, singleLogoutServiceEndpoints, singleSignOnServiceEndpoints, artifactResolutionServiceEndpoints, attributeServiceEndpoints);
 
 				entityData.addRoleData(role);
 
@@ -218,7 +220,8 @@ public class SAMLIdentityProviderProcessor implements SAMLEntityDescriptorProces
 					List<String> nameIDFormat = nameIDFormatsFromIDPSSODescriptor(idpSSODescriptor);
 					EndpointCollection singleLogoutServiceEndpoints = singleLogoutServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
 					EndpointCollection singleSignOnServiceEndpoints = singleSignOnServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
-					IdentityProviderRole role = new IdentityProviderRoleImpl(keyNames, nameIDFormat, singleLogoutServiceEndpoints, singleSignOnServiceEndpoints);
+					IndexedEndpointCollection artifactResolutionServiceEndpoints = artifactResolutionServiceEndpointsFromDescriptor(idpSSODescriptor, entityData.getRandom());
+					IdentityProviderRole role = new IdentityProviderRoleImpl(keyNames, nameIDFormat, singleLogoutServiceEndpoints, singleSignOnServiceEndpoints, artifactResolutionServiceEndpoints);
 
 					entityData.addRoleData(role);
 				}

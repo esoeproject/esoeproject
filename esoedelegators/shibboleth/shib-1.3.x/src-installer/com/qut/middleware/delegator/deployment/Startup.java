@@ -91,7 +91,7 @@ public class Startup
 					return;
 			}
 
-			/* User has provided all we need to configure the openID delegator, perform operations to create war */
+			/* User has provided all we need to configure the shib delegator, perform operations to create war */
 			startup.configureEnvironment();
 
 		}
@@ -162,7 +162,7 @@ public class Startup
 
 		System.out.print("Please enter a directory this application can write to ");
 		if (this.configBean.getOutputDirectory() == null)
-			System.out.print("(eg: /tmp/openiddelegator): ");
+			System.out.print("(eg: /tmp/shibdelegator): ");
 		else
 			System.out.print("[" + this.configBean.getOutputDirectory() + "] :");
 		tmp = br.readLine();
@@ -213,7 +213,7 @@ public class Startup
 	private void createKeystores() throws Exception
 	{
 		/*
-		 * This will create two keystores, one for the OpenID delegator and an updated ESOE keystore with the OpenID
+		 * This will create two keystores, one for the shib delegator and an updated ESOE keystore with the shib
 		 * Delegators public key inserted
 		 */
 		KeyStore shibKeystore, esoeKeystore;
@@ -241,7 +241,7 @@ public class Startup
 		/* Store the updated ESOE keystore to disk for manual updaing by deployer */
 		this.cryptoProcessor.serializeKeyStore(esoeKeystore, this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + ESOE_KEYSTORE_NAME);
 
-		/* Store new OpenID delegator keystore for insertion to war */
+		/* Store new shib delegator keystore for insertion to war */
 		this.configBean.setKeyStore(shibKeystore);
 	}
 	

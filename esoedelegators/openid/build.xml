@@ -7,23 +7,17 @@
 	<target name="release" depends="war" description="Builds a gzipped tar for release of the delegator">
 		<copy file="${output}/${output.war}" todir="${output}/${output.tar}" />
 		<copy file="${annotatedconfig}" todir="${output}/${output.tar}" />
-		<copy file="${output}/${output.jar.installer}.jar" todir="${output}/${output.tar}" />
+		<copy file="${output}/${output.jar.installer}" todir="${output}/${output.tar}" />
 		
 		<mkdir dir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/esoecrypto.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/esoetools.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/saml2lib-j.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/slf4j-api.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/slf4j-log4j12.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/log4j.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/commons-codec.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/bcprov.jar" todir="${output}/${output.tar}/lib" />
-		<copy file="${artifacts.compile}/click.jar" todir="${output}/${output.tar}/lib" />
+		<copy todir="${output}/${output.tar}/lib">
+			<fileset dir="${artifacts.runtime}"/>
+		</copy>
 		
 		<tar destfile="${output}/${output.tar}.tar.gz" basedir="${output}/${output.tar}" compression="gzip" />
 	</target>
 
-	<target name="war" depends="jar" description="Assembles ESOE development war">
+	<target name="war" depends="jar">
 		<war destfile="${output}/${output.war}" webxml="${war.descriptor}">
 			<webinf dir="${webapp.spring.resources}">
 				<include name="**/*.xml" />
@@ -41,8 +35,8 @@
 		</war>
 	</target>
 
-	<target name="jar" depends="esoe-build.jar" description="Assembles ESOE development jar">
-		<jar destfile="${output}/${output.jar.installer}.jar" manifest="${output.manifest.installer}">
+	<target name="jar" depends="esoe-build.jar">
+		<jar destfile="${output}/${output.jar.installer}" manifest="${output.manifest.installer}">
 			<fileset dir="${src.installer}">
 				<include name="**/*.properties" />
 				<include name="**/*.xml" />
@@ -54,7 +48,7 @@
 		</jar>
 	</target>
 
-	<target name="build" depends="esoe-build.build" description="Compiles ESOE code base">
+	<target name="build" depends="setup, esoe-build.build" description="Compiles ESOE code base">
 		<javac destdir="${output.build.installer}" srcdir="${src.installer}" debug="true" debuglevel="lines,vars,source">
 			<classpath>
 				<fileset dir="${artifacts.provided}">
@@ -65,6 +59,10 @@
 				</fileset>
 			</classpath>
 		</javac>
+	</target>
+	
+	<target name="setup" depends="esoe-env.setup">
+		<mkdir dir="${output.build.installer}" />
 	</target>
 
 </project>

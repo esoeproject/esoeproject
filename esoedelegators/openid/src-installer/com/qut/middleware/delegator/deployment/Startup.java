@@ -25,11 +25,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Properties;
 
 import com.qut.middleware.crypto.CryptoProcessor;
@@ -232,8 +236,10 @@ public class Startup
 		 * This will create two keystores, one for the OpenID delegator and an updated ESOE keystore with the OpenID
 		 * Delegators public key inserted
 		 */
-		KeyStore oidKeyStore;
+		KeyStore oidKeyStore, esoeKeystore;
 		KeyPair oidKeyPair, esoeKeyPair;
+		
+		esoeKeystore = loadKeystore(this.configBean.getEsoeKeystore(), this.configBean.getEsoeKeyStorePassphrase());
 
 		String oidKeyStorePassphrase = this.cryptoProcessor.generatePassphrase();
 		this.configBean.setOidKeyStorePassphrase(oidKeyStorePassphrase);
@@ -250,13 +256,22 @@ public class Startup
 
 		esoeKeyPair = new KeyPair(this.keyStoreResolver.getLocalPublicKey(), this.keyStoreResolver.getLocalPrivateKey());
 		this.cryptoProcessor.addPublicKey(oidKeyStore, esoeKeyPair, this.keyStoreResolver.getLocalKeyAlias(), this.generateSubjectDN(this.configBean.getEsoeURL()));
-		this.cryptoProcessor.addPublicKey(this.keyStoreResolver., oidKeyPair, oidKeyPairName, this.generateSubjectDN(this.configBean.getOpenIDEndpoint()));
+		this.cryptoProcessor.addPublicKey(esoeKeystore, oidKeyPair, oidKeyPairName, this.generateSubjectDN(this.configBean.getOpenIDEndpoint()));
 
 		/* Store the updated ESOE keystore to disk for manual updating by deployer */
-		this.cryptoProcessor.serializeKeyStore(this.keyStoreResolver.getKeyStore(), this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + ESOE_KEYSTORE_NAME);
+		this.cryptoProcessor.serializeKeyStore(esoeKeystore, this.configBean.getEsoeKeyStorePassphrase(), this.configBean.getOutputDirectory() + File.separatorChar + ESOE_KEYSTORE_NAME);
 
 		/* Store new OpenID delegator keystore for insertion to war */
 		this.configBean.setKeyStore(oidKeyStore);
+	}
+	
+	private KeyStore loadKeystore(String keystoreFileName, String keystorePassword) throws Exception{
+			InputStream keystoreInputStream = new FileInputStream(keystoreFileName);
+			KeyStore keystore = KeyStore.getInstance("JKS");
+			keystore.load(keystoreInputStream, keystorePassword.toCharArray());
+			keystoreInputStream.close();
+			
+			return keystore;
 	}
 
 	private void loadESOEConfigProperties() throws FileNotFoundException, IOException

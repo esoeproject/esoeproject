@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
 
-import com.qut.middleware.crypto.KeyStoreResolver;
+import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.delegator.shib.ConfigurationConstants;
 import com.qut.middleware.delegator.shib.authn.AuthnProcessor;
 import com.qut.middleware.delegator.shib.authn.bean.AuthnProcessorData;
@@ -55,6 +55,7 @@ import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalResponse;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
+import com.sun.org.apache.xml.internal.security.keys.storage.implementations.KeyStoreResolver;
 
 public class AuthnProcessorImpl implements AuthnProcessor
 {
@@ -64,7 +65,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	private WSClient wsClient;
 	
 	private IdentifierGenerator identiferGenerator;
-	private KeyStoreResolver keyStoreResolver;
+	private KeystoreResolver keyStoreResolver;
 	private String issuerID;
 	private String principalRegistrationEndpoint;
 	private String userIdentifier;
@@ -82,7 +83,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
 
-	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeyStoreResolver keyStoreResolver, String issuerID, String principalRegistrationEndpoint, List<ShibAttribute> defaultSiteAttributes, List<ShibAttribute> requestedAttributes, String userIdentifier) throws UnmarshallerException, MarshallerException
+	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeyStoreResolver keytoreResolver, String issuerID, String principalRegistrationEndpoint, List<ShibAttribute> defaultSiteAttributes, List<ShibAttribute> requestedAttributes, String userIdentifier) throws UnmarshallerException, MarshallerException
 	{
 		this.validator = validator;
 		this.wsClient = wsClient;
@@ -95,7 +96,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		this.userIdentifier = userIdentifier;
 
 		this.unmarshaller = new UnmarshallerImpl<RegisterPrincipalResponse>(this.UNMAR_PKGNAMES, schemas, keyStoreResolver);
-		this.marshaller = new MarshallerImpl<RegisterPrincipalRequest>(this.MAR_PKGNAMES, schemas, this.keyStoreResolver.getKeyAlias(), this.keyStoreResolver.getPrivateKey());
+		this.marshaller = new MarshallerImpl<RegisterPrincipalRequest>(this.MAR_PKGNAMES, schemas, this.keyStoreResolver);
 	}
 
 	/*

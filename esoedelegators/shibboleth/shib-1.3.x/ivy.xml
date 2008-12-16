@@ -13,8 +13,11 @@
 	</info>
 
 	<configurations>
-		<conf name="dev" />
-		<conf name="release" />
+		<conf name="compile" visibility="public" description="Compile dependencies" />
+		<conf name="runtime" visibility="public" description="Runtime dependencies" />
+		
+		<conf name="optional" visibility="public" description="Optional dependencies" />
+		<conf name="provided" visibility="public" description="Provided dependencies" />
 	</configurations>
 	
 	<publications>
@@ -22,38 +25,26 @@
 	</publications>
 
 	<dependencies>
-		<!-- Development release dependencies -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="release->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="release->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="release->default"/>
-        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev-release->default"/>
-        
-        <dependency org="esoeproject" name="esoecrypto" rev="latest.integration" conf="release->release"/>
-        <dependency org="esoeproject" name="esoetools" rev="latest.integration" conf="release->release"/>
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="release->release"/>
-                
-        <dependency org="spring" name="core" rev="latest.integration" conf="release->default"/>
-        
-        <dependency org="sourceforge" name="click" rev="latest.integration" conf="release->default"/>
-        
-        <!-- Development dependencies -->
-        <dependency org="apache" name="axis2" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="commons-lang" rev="latest.integration" conf="dev->default"/>
-        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
-        <dependency org="slf4j" name="slf4j" rev="latest.integration" conf="dev->default"/> 
-        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>  
-        
-        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
-        
-        <dependency org="esoeproject" name="esoecrypto" rev="latest.integration" conf="dev->dev"/>
-        <dependency org="esoeproject" name="esoetools" rev="latest.integration" conf="dev->dev"/>
-        <dependency org="esoeproject" name="saml2lib-j" rev="latest.integration" conf="dev->dev"/>
-                
-        <dependency org="spring" name="core" rev="latest.integration" conf="dev->default"/>
-        
-        <dependency org="sourceforge" name="click" rev="latest.integration" conf="dev->default"/>
+		<dependency org="org.springframework" name="org.springframework.spring-library" rev="2.5.4.A" conf="compile,runtime"/>
+		<dependency org="sourceforge" name="click" rev="1.2A" conf="compile,runtime"/>
+		<dependency org="apache" name="axis2" rev="1.1.1A" conf="compile,runtime"/>
+		<dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile,runtime"/>
+		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.lang" rev="2.4.0" conf="compile,runtime"/>
+		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" conf="compile,runtime"/>
 	
+		<dependency org="esoeproject" name="esoecrypto" rev="${esoe.version}" conf="compile,runtime" />
+		<dependency org="esoeproject" name="saml2lib-j" rev="${esoe.version}" conf="compile,runtime" />
+		<dependency org="esoeproject" name="esoetools" rev="${esoe.version}" conf="compile,runtime" />
         
+        <dependency org="javax.servlet" name="com.springsource.javax.servlet" rev="2.5.0" conf="provided"/>
+        <dependency org="org.apache.xalan" name="com.springsource.org.apache.xalan" rev="2.7.0" conf="provided"/>
+	    <dependency org="org.apache.xerces" name="com.springsource.org.apache.xerces" rev="2.8.1"  conf="provided"/>
+        
+	
+		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="optional"/>
+	    <dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="optional"/>
+			
+		<exclude artifact=".*-sources" matcher="regexp" conf="runtime,optional,provided"/>  
 	</dependencies>
 
 </ivy-module>

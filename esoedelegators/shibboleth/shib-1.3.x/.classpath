@@ -3,21 +3,22 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-installer"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/dev/slf4j-api.jar"/>
-	<classpathentry kind="lib" path="lib/dev/servlet-api.jar"/>
-	<classpathentry kind="lib" path="lib/dev/spring.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axiom-impl.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axiom-api.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axiom-dom.jar"/>
-	<classpathentry kind="lib" path="lib/dev/axis2-kernel.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoecrypto"/>
-	<classpathentry kind="lib" path="lib/dev/stax-api.jar"/>
-	<classpathentry kind="lib" path="lib/dev/wstx.jar"/>
-	<classpathentry kind="lib" path="lib/dev/click.jar"/>
-	<classpathentry kind="lib" path="lib/dev/click-extras.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/esoetools"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/saml2java"/>
-	<classpathentry kind="lib" path="lib/dev/log4j.jar"/>
-	<classpathentry kind="lib" path="lib/dev/slf4j-log4j12.jar"/>
+	<classpathentry kind="lib" path="lib/compile/click-extras.jar"/>
+	<classpathentry kind="lib" path="lib/compile/click.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.log4j.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.api.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.slf4j.log4j.jar"/>
+	<classpathentry kind="lib" path="lib/provided/com.springsource.javax.servlet.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.context.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.beans.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.web.jar"/>
+	<classpathentry kind="lib" path="lib/compile/org.springframework.core.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axiom-api.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axiom-dom.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axiom-impl.jar"/>
+	<classpathentry kind="lib" path="lib/compile/axis2-kernel.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

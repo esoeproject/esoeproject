@@ -54,8 +54,6 @@ import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalResponse;
 import com.qut.middleware.saml2.validator.SAMLValidator;
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
-import com.sun.org.apache.xml.internal.security.keys.storage.implementations.KeyStoreResolver;
 
 public class AuthnProcessorImpl implements AuthnProcessor
 {
@@ -83,7 +81,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
 
-	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeyStoreResolver keytoreResolver, String issuerID, String principalRegistrationEndpoint, List<ShibAttribute> defaultSiteAttributes, List<ShibAttribute> requestedAttributes, String userIdentifier) throws UnmarshallerException, MarshallerException
+	public AuthnProcessorImpl(SAMLValidator validator, WSClient wsClient, IdentifierGenerator identiferGenerator, KeystoreResolver keyStoreResolver, String issuerID, String principalRegistrationEndpoint, List<ShibAttribute> defaultSiteAttributes, List<ShibAttribute> requestedAttributes, String userIdentifier) throws UnmarshallerException, MarshallerException
 	{
 		this.validator = validator;
 		this.wsClient = wsClient;

@@ -24,7 +24,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Purpose: Defines spring integration for
 		====================================================================== -->
 	<bean id="shibDelegKeyStoreResolver"
-		class="com.qut.middleware.crypto.impl.KeyStoreResolverImpl">
+		class="com.qut.middleware.crypto.impl.KeystoreResolverImpl">
 		<constructor-arg index="0" type="java.io.File" value="${shibdelegkeystoreresolver.keystorePath}" />
 		<constructor-arg index="1" value="${shibdelegkeystoreresolver.keystorePassword}" />
 		<constructor-arg index="2" value="${shibdelegkeystoreresolver.keyAlias}" />

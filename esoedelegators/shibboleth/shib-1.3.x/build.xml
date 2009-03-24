@@ -28,7 +28,7 @@
 
 			<classes dir="${webapp.classes}" />
 
-			<lib file="${output}/${output.jar}.jar" />
+			<lib file="${output}/${output.jar}" />
 			<lib dir="${artifacts.runtime}" />
 
 			<fileset dir="${webapp.content}" />

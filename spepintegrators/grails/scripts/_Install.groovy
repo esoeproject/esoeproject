@@ -11,11 +11,9 @@
 Ant.property(environment:"env")
 grailsHome = Ant.antProject.properties."env.GRAILS_HOME"
 
-def baseDir = Ant.antProject.properties."baseDir"
-
 def contextXml = new File("web-app/META-INF/context.xml")
 if (!contextXml.exists()) {
-	println "No context.xml .. creating one for you."
+	println "No context.xml .. creating one for you. This will not be automatically removed if you uninstall this plugin."
 	Ant.mkdir(dir:contextXml.parent);
 
 	contextXml.write("""<?xml version="1.0" encoding="UTF-8"?>
@@ -25,5 +23,7 @@ if (!contextXml.exists()) {
 </Context>
 """);
 
+} else {
+	println "${contextXml} already exists. Please ensure that crossContext=\"true\" is specified if not enabled globally."
 }
 

@@ -64,6 +64,14 @@ int spep::apache::SSOHandler::handleSSOGetRequest( request_rec *req )
 	if( base64RedirectURLChars != NULL )
 	{
 		base64RedirectURL = std::string( base64RedirectURLChars );
+
+		// Work around Apache's need to URL decode everything it touches
+		for ( int i=0; i<base64RedirectURL.length(); ++i ) {
+			// + is translated to a space, change it back
+			if (base64RedirectURL[i] == ' ') base64RedirectURL[i] = '+';
+
+			// No other Base64 chars are treated specially by Apache.
+		}
 	}
 	
 	// Try and get the hostname from the Host: header in the request.

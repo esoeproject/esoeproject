@@ -1,4 +1,4 @@
-<plugin name='spep' version='0.1' grailsVersion='1.1 &gt; *'>
+<plugin name='spep' version='0.2' grailsVersion='1.1.1 &gt; *'>
   <author>Shaun Mangelsdorf</author>
   <authorEmail>s.mangelsdorf@gmail.com</authorEmail>
   <title>Integrates the SPEP filter with a Grails application</title>
@@ -6,9 +6,10 @@
 </description>
   <documentation>http://esoeproject.org/wiki/esoe/SPEP_Grails_Plugin</documentation>
   <resources>
+    <resource>DataSource</resource>
     <resource>SpepFilters</resource>
     <resource>UrlMappings</resource>
-    <resource>DataSource</resource>
+    <resource>grails.spep.SpepUser</resource>
   </resources>
   <dependencies />
 </plugin>

@@ -1,8 +1,6 @@
 import grails.util.Environment
 
 class SpepFilters {
-	def spepUser
-
 	def filters = {
 		setSpepAttributesInSessionBean(controller:'*', action:'*') {
 			before = {
@@ -13,26 +11,34 @@ class SpepFilters {
 					break;
 
 					default:
-					attributes = session[com.qut.middleware.spep.filter.SPEPFilter.ATTRIBUTES]
+					attributes = session[(com.qut.middleware.spep.filter.SPEPFilter.ATTRIBUTES)]
 					break;
 				}
 
-				// If the user is authenticated..
-				if (attributes != null) {
-					// .. and the bean does not already reflect this..
-					if (!spepUser.authenticated) {
-						// .. update it.
-						spepUser.attributes = attributes
-						spepUser.authenticated = true
+				def spepUser = applicationContext.getBean(grailsApplication.config.spep.beanName ?: 'spepUser')
+
+				// If the user is authenticated but we haven't updated the spepUser object yet
+				if (attributes && !spepUser.authenticated) {
+					spepUser.metaPropertyValues.each {
+						if (it.name == 'attributes') {
+							it.value = attributes
+						} else if (attributes && attributes[it.name]) {
+							this.assign(it, attributes[it.name])
+						}
 					}
-				}
-				else {
-					// To get here, lazy session init would have to be enabled.
-					// Pass the unauthenticated status straight through.
-					spepUser.attributes = null
-					spepUser.authenticated = false
+					spepUser.authenticated = true
 				}
 			}
+		}
+	}
+
+	// Convenience method to reduce the level of nesting
+	void assign(property, values) {
+		if (List.isAssignableFrom(property.type)) {
+			property.value = values
+		} else if (String == property.type || Object == property.type) {
+			if (values.size() == 0) property.value = null
+			else property.value = values[0]
 		}
 	}
 }

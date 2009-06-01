@@ -15,13 +15,25 @@ Integrates the SPEP filter with a Grails application.
 
 	def documentation = "http://esoeproject.org/wiki/esoe/SPEP_Grails_Plugin"
 
+	def pluginExcludes = [
+		'grails-app/conf/hibernate/*',
+		'grails-app/conf/spring/*',
+		'grails-app/conf/DataSource.groovy',
+		'grails-app/conf/UrlMappings.groovy',
+		'grails-app/i18n/*',
+		'test/**/*',
+		'web-app/**/*'
+	]
+
 	def doWithSpring = {
-		spepUserSessionBean(SpepUser) {
+		def spepUserBeanName = application.config.spep.beanName ?: "spepUser"
+
+		spepUserSessionBean(application.config.spep.userClass ?: SpepUser) {
 			it.scope = "session"
 			it.autowire = "byName"
 		}
 
-		spepUser(ScopedProxyFactoryBean) {
+		"${spepUserBeanName}"(ScopedProxyFactoryBean) {
 			targetBeanName = "spepUserSessionBean"
 			proxyTargetClass = false
 		}

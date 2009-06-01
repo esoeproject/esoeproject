@@ -11,8 +11,6 @@ class SpepUser {
 	}
 
 	def propertyMissing(String name) {
-		def propertyAccessor = { attributes[name] }
-		SpepUser.metaClass."get${MetaClassHelper.capitalize(name)}" = propertyAccessor
-		propertyAccessor()
+		this.attributes[name]
 	}
 }

@@ -3,7 +3,7 @@ import grails.util.Environment
 import org.springframework.aop.scope.ScopedProxyFactoryBean
 
 class SpepGrailsPlugin {
-	def version = 0.2
+	def version = 0.3
 	def dependsOn = [:]
 
 	def author = "Shaun Mangelsdorf"

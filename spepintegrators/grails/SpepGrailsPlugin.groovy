@@ -25,22 +25,28 @@ Integrates the SPEP filter with a Grails application.
 		'web-app/**/*'
 	]
 
+	
 	def doWithSpring = {
-		def spepUserBeanName = application.config.spep.beanName ?: "spepUser"
+		if (application.config.spep.enabled) {
+			
+			log.debug("SPEP: configuring user bean with name ${application.config.spep.beanName} of class ${application.config.spep.userClass.name}") 
+			
+			spepUserSessionBean(application.config.spep.userClass) {
+				it.scope = "session"
+				it.autowire = "byName"
+			}
 
-		spepUserSessionBean(application.config.spep.userClass ?: SpepUser) {
-			it.scope = "session"
-			it.autowire = "byName"
-		}
-
-		"${spepUserBeanName}"(ScopedProxyFactoryBean) {
-			targetBeanName = "spepUserSessionBean"
-			proxyTargetClass = false
+			"${application.config.spep.beanName}"(ScopedProxyFactoryBean) {
+				targetBeanName = "spepUserSessionBean"
+				proxyTargetClass = false
+			}
+		} else {
+			log.info("SPEP: enabled is false")
 		}
 	}
    
 	def doWithWebDescriptor = { xml ->
-		if (Environment.current != Environment.DEVELOPMENT) {
+		if (application.config.spep.enabled) {
 			xml.'filter' + {
 				'filter' {
 					'filter-class'("com.qut.middleware.spep.filter.SPEPFilter")

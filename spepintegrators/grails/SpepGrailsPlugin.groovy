@@ -1,6 +1,7 @@
 import grails.spep.SpepUser
 import grails.util.Environment
 import org.springframework.aop.scope.ScopedProxyFactoryBean
+import org.codehaus.groovy.grails.web.servlet.WrappedResponseHolder
 
 class SpepGrailsPlugin {
 	def version = 0.3
@@ -28,7 +29,8 @@ Integrates the SPEP filter with a Grails application.
 	final static DEFAULT_CONFIG = [
 		beanName: "spepUser", 
 		userClass: SpepUser, 
-		enabled: false
+		enabled: false, 
+		logoutUrl: null
 	]
 	
 	void rationaliseConfig(config) {
@@ -81,6 +83,27 @@ Integrates the SPEP filter with a Grails application.
 					'filter-name'("spep-grails-plugin-filter")
 					'url-pattern'("/*")
 				}
+			}
+		}
+	}
+	
+	def doWithDynamicMethods = {
+		if (application.config.spep.enabled) {
+			application.config.spep.userClass.metaClass.logout = { ->
+				def response = WrappedResponseHolder.wrappedResponse
+				def logoutUrl = application.config.spep.logoutUrl
+
+				if (response) {
+					if (logoutUrl) {
+						response.sendRedirect(logoutUrl)
+					} else {
+						throw new IllegalStateException("Cannot logout spep user as spep.logoutUrl is not defined in application config")
+					}
+				} else {
+					throw new IllegalStateException("Cannot logout spep user as response is unavailable")
+				}
+
+				false
 			}
 		}
 	}

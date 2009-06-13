@@ -1,32 +1,27 @@
-import grails.util.Environment
+import com.qut.middleware.spep.filter.SPEPFilter
 
 class SpepFilters {
+	
+	def grailsApplication
+	
 	def filters = {
-		setSpepAttributesInSessionBean(controller:'*', action:'*') {
-			before = {
-				def attributes
-				switch (Environment.current) {
-					case Environment.DEVELOPMENT:
-					attributes = grailsApplication.config.spep.devAttributes
-					break;
+		if (grailsApplication.config.spep.enabled) {
+			setSpepAttributesInSessionBean(controller:'*', action:'*') {
+				before = {
+					def spepUser = applicationContext.getBean(grailsApplication.config.spep.beanName)
+					def attributes = session[SPEPFilter.ATTRIBUTES]
 
-					default:
-					attributes = session[(com.qut.middleware.spep.filter.SPEPFilter.ATTRIBUTES)]
-					break;
-				}
-
-				def spepUser = applicationContext.getBean(grailsApplication.config.spep.beanName ?: 'spepUser')
-
-				// If the user is authenticated but we haven't updated the spepUser object yet
-				if (attributes && !spepUser.authenticated) {
-					spepUser.metaPropertyValues.each {
-						if (it.name == 'attributes') {
-							it.value = attributes
-						} else if (attributes && attributes[it.name]) {
-							this.assign(it, attributes[it.name])
+					// If the user is authenticated but we haven't updated the spepUser object yet
+					if (attributes && !spepUser.authenticated) {
+						spepUser.metaPropertyValues.each {
+							if (it.name == 'attributes') {
+								it.value = attributes
+							} else if (attributes && attributes[it.name]) {
+								this.assign(it, attributes[it.name])
+							}
 						}
+						spepUser.authenticated = true
 					}
-					spepUser.authenticated = true
 				}
 			}
 		}

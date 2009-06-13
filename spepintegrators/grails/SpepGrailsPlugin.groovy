@@ -25,8 +25,27 @@ Integrates the SPEP filter with a Grails application.
 		'web-app/**/*'
 	]
 
+	final static DEFAULT_CONFIG = [
+		beanName: "spepUser", 
+		userClass: SpepUser, 
+		enabled: false
+	]
+	
+	void rationaliseConfig(config) {
+		if (config.containsKey('spep')) {
+			DEFAULT_CONFIG.each {
+				if (!config.containsKey(it.key)) {
+					config[it.key] = it.value
+				}
+			}
+		} else {
+			config.spep = DEFAULT_CONFIG.clone()
+		}
+	}
 	
 	def doWithSpring = {
+		rationaliseConfig(application.config)
+
 		if (application.config.spep.enabled) {
 			
 			log.debug("SPEP: configuring user bean with name ${application.config.spep.beanName} of class ${application.config.spep.userClass.name}") 

@@ -29,4 +29,18 @@ eventPackagingEnd = {
 	}
 }
 
+eventCreateWarStart = { warName, stagingDir ->
+	def contextXml = new File("$stagingDir/META-INF/context.xml")
+	if (!contextXml.exists()) {
+		ant.mkdir(dir:contextXml.parent);
 
+		contextXml.write("""<?xml version="1.0" encoding="UTF-8"?>
+<Context crossContext="true">
+	<WatchedResource>WEB-INF/web.xml</WatchedResource>
+	<WatchedResource>META-INF/context.xml</WatchedResource>
+</Context>""");
+
+	} else {
+		ant.echo "SPEP: ${contextXml} already exists. Please ensure that crossContext=\"true\" is specified if not enabled globally."
+	}
+}

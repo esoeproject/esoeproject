@@ -12,7 +12,6 @@ class Spep {
 	
 	def authenticate() {
 		if (enabled && !user.authenticated) {
-			def attributes = RequestContextHolder.requestAttributes.getAttribute(SPEPFilter.ATTRIBUTES, RequestAttributes.SCOPE_SESSION)
 			user.metaPropertyValues.each {
 				if (it.name == 'attributes') {
 					it.value = attributes
@@ -34,4 +33,7 @@ class Spep {
 		}
 	}
 	
+	def getAttributes() {
+		RequestContextHolder.requestAttributes.getAttribute(SPEPFilter.ATTRIBUTES, RequestAttributes.SCOPE_SESSION)
+	}
 }

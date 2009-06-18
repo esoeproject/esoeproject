@@ -5,7 +5,7 @@ import org.springframework.aop.scope.ScopedProxyFactoryBean
 import org.codehaus.groovy.grails.web.servlet.WrappedResponseHolder
 
 class SpepGrailsPlugin {
-	def version = 0.3
+	def version = 0.4
 	def dependsOn = [:]
 
 	def author = "Shaun Mangelsdorf"

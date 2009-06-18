@@ -17,16 +17,6 @@ Integrates the SPEP filter with a Grails application.
 
 	def documentation = "http://esoeproject.org/wiki/esoe/SPEP_Grails_Plugin"
 
-	def pluginExcludes = [
-		'grails-app/conf/hibernate/*',
-		'grails-app/conf/spring/*',
-		'grails-app/conf/DataSource.groovy',
-		'grails-app/conf/UrlMappings.groovy',
-		'grails-app/i18n/*',
-		'test/**/*',
-		'web-app/**/*'
-	]
-
 	final static DEFAULT_CONFIG = [
 		beanName: "spepUser", 
 		userClass: SpepUser, 

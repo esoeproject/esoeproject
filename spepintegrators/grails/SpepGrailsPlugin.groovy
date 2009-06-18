@@ -1,3 +1,4 @@
+import grails.spep.Spep
 import grails.spep.SpepUser
 import grails.util.Environment
 import org.springframework.aop.scope.ScopedProxyFactoryBean
@@ -64,6 +65,12 @@ Integrates the SPEP filter with a Grails application.
 		} else {
 			log.info("SPEP: enabled is false")
 		}
+		
+		spep(Spep) {
+			enabled = application.config.spep.enabled
+			user = ref(application.config.spep.beanName)
+		}
+		
 	}
    
 	def doWithWebDescriptor = { xml ->

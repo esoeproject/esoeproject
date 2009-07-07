@@ -2,12 +2,11 @@ eventPackagingEnd = {
 	if (config.spep?.enabled) {
 		def data = config.spep.data
 
-		if (!data) {
-			System.err.println "SPEP: 'spep.data' is not specified in the application config for this environment" 
-			System.exit 1
+		if (data) {
+			System.setProperty("spep.data", data)
+		} else {
+			ant.echo("SPEP: 'spep.data' is not specified in the application config for this environment")
 		}
-
-		System.setProperty("spep.data", data)
 
 		System.setProperty("grails.server.factory", "grails.spep.SpepEnabledJettyServerFactory")
 

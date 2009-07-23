@@ -37,9 +37,9 @@
 
 #include <openssl/rand.h>
 
-spep::AuthnProcessor::AuthnProcessor( spep::ReportingProcessor *reportingProcessor, spep::AttributeProcessor *attributeProcessor, spep::Metadata *metadata, spep::SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex )
+spep::AuthnProcessor::AuthnProcessor( saml2::Logger *logger, spep::AttributeProcessor *attributeProcessor, spep::Metadata *metadata, spep::SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor("spep::AuthnProcessor") ),
+_localLogger( logger, "spep::AuthnProcessor" ),
 _attributeProcessor( attributeProcessor ),
 _metadata( metadata ),
 _sessionCache( sessionCache ),
@@ -58,13 +58,19 @@ _logoutRequestUnmarshaller( NULL )
 	std::vector<std::string> authnSchemaList;
 	authnSchemaList.push_back( ConfigurationConstants::samlProtocol );
 	authnSchemaList.push_back( ConfigurationConstants::samlAssertion );
-	_authnRequestMarshaller = new saml2::MarshallerImpl<saml2::protocol::AuthnRequestType>( schemaPath, authnSchemaList, "AuthnRequest", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey() );
-	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( schemaPath, authnSchemaList, metadata );
+	_authnRequestMarshaller = new saml2::MarshallerImpl<saml2::protocol::AuthnRequestType>( logger, schemaPath, 
+		authnSchemaList, "AuthnRequest", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyAlias(),
+		this->_keyResolver->getSPEPPrivateKey()
+	);
+	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( logger, schemaPath, authnSchemaList, metadata );
 	
 	std::vector<std::string> logoutSchemaList;
 	logoutSchemaList.push_back( ConfigurationConstants::samlProtocol );
-	_logoutResponseMarshaller = new saml2::MarshallerImpl<saml2::protocol::ResponseType>( schemaPath, logoutSchemaList, "LogoutResponse", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey() );
-	_logoutRequestUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::LogoutRequestType>( schemaPath, logoutSchemaList, metadata );
+	_logoutResponseMarshaller = new saml2::MarshallerImpl<saml2::protocol::ResponseType>( logger, schemaPath, 
+		logoutSchemaList, "LogoutResponse", "urn:oasis:names:tc:SAML:2.0:protocol", this->_keyResolver->getSPEPKeyAlias(),
+		this->_keyResolver->getSPEPPrivateKey()
+	);
+	_logoutRequestUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::LogoutRequestType>( logger, schemaPath, logoutSchemaList, metadata );
 	
 	std::size_t pos = _ssoRedirect.find( '?', 0 );
 	if( pos != 0 )
@@ -123,11 +129,11 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 {
 	saml2::SAMLDocument responseDocument( data.getResponseDocument() );
 	
-	this->_localReportingProcessor.log( DEBUG, "About to process Authn response." );
+	_localLogger.debug() << "About to process Authn response.";
 	
 	if (responseDocument.getData() == NULL || responseDocument.getLength() == 0 )
 	{
-		this->_localReportingProcessor.log( ERROR, "NULL Authn Response was received. Unable to process." );
+		_localLogger.error() << "NULL Authn Response was received. Unable to process.";
 		throw AuthnException( "NULL Authn Response was received. Unable to process." );
 	}
 	
@@ -141,17 +147,17 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 	catch (saml2::UnmarshallerException &ex)
 	{
 		// Couldn't unmarshal.
-		this->_localReportingProcessor.log( ERROR, "Failed to unmarshal Authn Response. Error was: " + ex.getMessage() + ". Cause was: " + ex.getCause() );
+		_localLogger.error() << "Failed to unmarshal Authn Response. Error was: " << ex.getMessage() << ". Cause was: " << ex.getCause();
 		throw AuthnException( "Unable to unmarshal Authn Response. Couldn't authenticate session." );
 	}
 	catch (std::exception &ex)
 	{
 		// Couldn't unmarshal.
-		this->_localReportingProcessor.log( ERROR, std::string("Unknown exception while trying unmarshal Authn Response. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Unknown exception while trying unmarshal Authn Response. Message was: ") << ex.what();
 		throw AuthnException( "Unknown error occurred trying to unmarshal Authn Response. Couldn't authenticate session." );
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, "Unmarshalled Authn Response with SAML ID: " + UnicodeStringConversion::toString( response->ID() ) );
+	_localLogger.debug() << "Unmarshalled Authn Response with SAML ID: " << UnicodeStringConversion::toString( response->ID() );
 	
 	// Get the request ID from the "InResponseTo" value.
 	// We need to match this against an UnauthenticatedSession in the session cache, otherwise the request
@@ -165,12 +171,12 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 	}
 	catch (std::exception &ex)
 	{
-		this->_localReportingProcessor.log( ERROR, "Couldn't find unauthenticated session for request ID: " + UnicodeStringConversion::toString( requestID ) + ". Rejecting Authn Response." );
+		_localLogger.error() << "Couldn't find unauthenticated session for request ID: " << UnicodeStringConversion::toString( requestID ) << ". Rejecting Authn Response.";
 		throw AuthnException( "Failed to find an unauthenticated session for the given response. Couldn't authenticate session." );
 	}
 	
 	this->_sessionCache->terminateUnauthenticatedSession( requestID );
-	this->_localReportingProcessor.log( DEBUG, "Terminated unauthenticated session for request ID: " + UnicodeStringConversion::toString( requestID ) + ". Going to process Authn Response" );
+	_localLogger.info() << "Terminated unauthenticated session for request ID: " << UnicodeStringConversion::toString( requestID ) << ". Going to process Authn Response";
 
 	try
 	{
@@ -180,13 +186,13 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 	catch( saml2::InvalidSAMLResponseException &ex )
 	{
 		// Response was rejected explicitly.
-		this->_localReportingProcessor.log( ERROR, "SAML response was rejected by SAML Validator. Reason: " + ex.getMessage() );
+		_localLogger.error() << "SAML response was rejected by SAML Validator. Reason: " << ex.getMessage();
 		throw AuthnException( "SAML response was rejected by SAML Validator." );
 	}
 	catch( std::exception &ex )
 	{
 		// Error occurred validating the response. Reject it anyway.
-		this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+		_localLogger.error() << "Error occurred in the SAML Validator. Message: " << std::string(ex.what());
 		throw AuthnException( "Error occurred in the SAML Validator." );
 	}
 	
@@ -207,13 +213,13 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 		catch( saml2::InvalidSAMLAssertionException &ex )
 		{
 			// Assertion was rejected explicitly.
-			this->_localReportingProcessor.log( ERROR, "SAML assertion was rejected by SAML Validator. Reason: " + ex.getMessage() );
+			_localLogger.error() << "SAML assertion was rejected by SAML Validator. Reason: " << ex.getMessage();
 			throw AuthnException( "SAML assertion was rejected by SAML Validator." );
 		}
 		catch( std::exception &ex )
 		{
 			// Error occurred validating the assertion. Reject it anyway.
-			this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+			_localLogger.error() << "Error occurred in the SAML Validator. Message: " << std::string(ex.what());
 			throw AuthnException( "Error occurred in the SAML Validator." );
 		}
 		
@@ -232,7 +238,7 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 				throw AuthnException( "Failure occurred processing AuthnStatement. Couldn't authenticate session." );
 			}
 			
-			this->_localReportingProcessor.log( AUTHN, "Authenticated new session. SPEP Session ID: " + resultPair.second );
+			_localLogger.info() << "Authenticated new session. SPEP Session ID: " << resultPair.second;
 			
 			data.setSessionID( resultPair.second );
 			
@@ -241,14 +247,14 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 		}
 	}
 	
-	this->_localReportingProcessor.log( ERROR, "No AuthnStatements found. Rejecting Authn Response." );
+	_localLogger.error() << "No AuthnStatements found. Rejecting Authn Response.";
 	
 	throw AuthnException( "No AuthnStatements were found in the response document. Couldn't authenticate session." );
 }
 
 void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data )
 {
-	this->_localReportingProcessor.log( DEBUG, "Going to create a new AuthnRequest" );
+	_localLogger.debug() << "Going to create a new AuthnRequest";
 	
 	std::wstring authnRequestSAMLID( this->_identifierGenerator->generateSAMLAuthnID() );
 
@@ -297,19 +303,19 @@ void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data 
 	}
 	catch (saml2::MarshallerException &ex)
 	{
-		this->_localReportingProcessor.log( ERROR, "Couldn't marshal new AuthnRequest. Message was: " + ex.getMessage() + ". Cause was: " + ex.getCause() );
+		_localLogger.error() << "Couldn't marshal new AuthnRequest. Message was: " << ex.getMessage() << ". Cause was: " << ex.getCause();
 		throw AuthnException( "Unable to marshal a new AuthnRequest. Unable to initiate authentication." );
 	}
 	catch (std::exception &ex)
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Unknown error while trying to marshal new AuthnRequest. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Unknown error while trying to marshal new AuthnRequest. Message was: ") << ex.what();
 		throw AuthnException( "Unknown error occurred while trying to marshal a new AuthnRequest. Unable to initiate authentication." );
 	}
 	
 	// Success! Insert the unauthenticated session in the cache.
 	this->_sessionCache->insertUnauthenticatedSession( unauthenticatedSession );
 	
-	this->_localReportingProcessor.log( DEBUG, "Created unauthenticated session for new AuthnRequest. SAML ID: " + UnicodeStringConversion::toString( authnRequestSAMLID ) );
+	_localLogger.info() << "Created unauthenticated session for new AuthnRequest. SAML ID: " << UnicodeStringConversion::toString( authnRequestSAMLID );
 }
 
 std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const saml2::assertion::AuthnStatementType& authnStatement, const saml2::assertion::AssertionType& assertion, bool disableAttributeQuery )
@@ -319,7 +325,7 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 	
 	std::string sessionID = this->_identifierGenerator->generateSessionID();
 	
-	this->_localReportingProcessor.log( DEBUG, "Going to process authn statement for new session. Session ID: " + sessionID );
+	_localLogger.info() << "Going to process authn statement for new session. Session ID: " << sessionID;
 	
 	// Get the ESOE session ID and session index out of the document.
 	saml2::assertion::SubjectType subject = assertion.Subject().get();
@@ -329,12 +335,12 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 	
 	if( authnStatement.SessionNotOnOrAfter().present() )
 	{
-		this->_localReportingProcessor.log( DEBUG, "Session expiry time from ESOE is: " + boost::posix_time::to_iso_extended_string(authnStatement.SessionNotOnOrAfter().get()) );
+		_localLogger.info() << "Session expiry time from ESOE is: " << boost::posix_time::to_iso_extended_string(authnStatement.SessionNotOnOrAfter().get());
 		principalSession.setSessionNotOnOrAfter( authnStatement.SessionNotOnOrAfter().get() );
 	}
 	else
 	{
-		this->_localReportingProcessor.log( DEBUG, "Session expiry value was not presented." );
+		_localLogger.error() << "Session expiry value was not presented.";
 	}
 	
 	principalSession.setESOESessionID( esoeSessionID );
@@ -342,18 +348,18 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 	
 	if( disableAttributeQuery )
 	{
-		this->_localReportingProcessor.log( DEBUG, "Skipping attribute processing because it is disabled for session: " + sessionID );
+		_localLogger.debug() << "Skipping attribute processing because it is disabled for session: " << sessionID;
 	}
 	else
 	{
 		try
 		{
-			this->_localReportingProcessor.log( DEBUG, "Doing attribute processing for session: " + sessionID );
+			_localLogger.debug() << "Doing attribute processing for session: " << sessionID;
 			this->_attributeProcessor->doAttributeProcessing( principalSession );
 		}
 		catch ( std::exception &e )
 		{
-			this->_localReportingProcessor.log( ERROR, "Failed attribute processing for session: " + sessionID + ". Can't continue authentication." );
+			_localLogger.error() << "Failed attribute processing for session: " << sessionID << ". Can't continue authentication.";
 			return std::make_pair( result, sessionID );
 		}
 	}
@@ -364,11 +370,11 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 		this->_sessionCache->insertPrincipalSession( sessionID, principalSession );
 		result = true;
 		
-		this->_localReportingProcessor.log( DEBUG, "Successfully inserted authenticated session (" + sessionID + ") into session cache." );
+		_localLogger.info() << "Successfully inserted authenticated session (" << sessionID << ") into session cache.";
 	}
 	catch ( std::exception &ex )
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Failed to insert authenticated session into session cache. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Failed to insert authenticated session into session cache. Message was: ") << ex.what();
 	}
 	
 	// We need to return the result (whether or not the session was added)
@@ -385,12 +391,12 @@ spep::PrincipalSession spep::AuthnProcessor::verifySession( std::string &session
 		// Try to get the principal session from the session cache.
 		_sessionCache->getPrincipalSession( clientSession, sessionID );
 		
-		this->_localReportingProcessor.log( DEBUG, "Verified existing session: " + sessionID );
+		_localLogger.debug() << "Verified existing session: " << sessionID;
 	}
 	catch (std::exception &ex)
 	{
 		// Can't return null because it's not a pointer type.
-		this->_localReportingProcessor.log( DEBUG, "Couldn't verify existing session: " + sessionID + ". Failing." );
+		_localLogger.error() << "Couldn't verify existing session: " << sessionID << ". Failing.";
 		throw AuthnException( "Unable to verify an existing session. Failing." );
 	}
 	
@@ -401,7 +407,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2:
 {
 	PrincipalSession principalSession;
 	
-	this->_localReportingProcessor.log( DEBUG, "Going to log out an authenticated session. Unmarshalling request document" );
+	_localLogger.debug() << "Going to log out an authenticated session. Unmarshalling request document";
 	
 	std::wstring requestSAMLID( logoutRequest->ID().c_str() );
 
@@ -420,7 +426,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2:
 	}
 	catch (std::exception &ex)
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Error trying to retrieve session from the session cache. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Error trying to retrieve session from the session cache. Message was: ") << ex.what();
 		
 		// Can't return null, no pointer type
 		return generateLogoutResponse( saml2::statuscode::UNKNOWN_PRINCIPAL, L"The principal specified in the logout request is not known at this node.", requestSAMLID );
@@ -430,7 +436,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2:
 	
 	_sessionCache->terminatePrincipalSession( principalSession.getESOESessionID() );
 	
-	this->_localReportingProcessor.log( DEBUG, "Successfully logged out the session requested. Returning a success response document" );
+	_localLogger.debug() << "Successfully logged out the session requested. Returning a success response document";
 	
 	// Generate a response to the document.
 	return generateLogoutResponse( saml2::statuscode::SUCCESS, L"Logout succeeded", requestSAMLID );
@@ -439,7 +445,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2:
 
 XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo )
 {
-	this->_localReportingProcessor.log( DEBUG, "Generating Logout Response document with status code: " + UnicodeStringConversion::toString( statusCodeValue ) + " and status message: " + UnicodeStringConversion::toString( statusMessage ) );
+	_localLogger.debug() << "Generating Logout Response document with status code: " << UnicodeStringConversion::toString( statusCodeValue ) << " and status message: " << UnicodeStringConversion::toString( statusMessage );
 	
 	std::wstring logoutResponseSAMLID( this->_identifierGenerator->generateSAMLID() );
 	
@@ -474,11 +480,11 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::generateLogoutResponse(
 	}
 	catch( saml2::MarshallerException &ex )
 	{
-		this->_localReportingProcessor.log( ERROR, "Failed to marshal Logout Response document. Message was: " + ex.getMessage() + ". Cause was: " + ex.getCause() );
+		_localLogger.error() << "Failed to marshal Logout Response document. Message was: " << ex.getMessage() << ". Cause was: " << ex.getCause();
 	}
 	catch( std::exception &ex )
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Unknown error trying to marshal Logout Response document. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Unknown error trying to marshal Logout Response document. Message was: ") << ex.what();
 	}
 	
 	return NULL;

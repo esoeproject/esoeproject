@@ -51,11 +51,11 @@
 #define SHORT_SLEEP_LENGTH_NANOSECONDS ( 20 * 1000 * 1000 ) 
 #define ONE_SECOND_LENGTH_NANOSECONDS ( 1000 * 1000 * 1000 )
 
-spep::MetadataImpl::MetadataImpl( spep::ReportingProcessor *reportingProcessor, std::string schemaPath, std::wstring spepIdentifier, std::wstring esoeIdentifier, std::string metadataURL, std::string caBundle, spep::KeyResolver *keyResolver, int assertionConsumerIndex, int interval )
+spep::MetadataImpl::MetadataImpl( saml2::Logger *logger, std::string schemaPath, std::wstring spepIdentifier, std::wstring esoeIdentifier, std::string metadataURL, std::string caBundle, spep::KeyResolver *keyResolver, int assertionConsumerIndex, int interval )
 :
 _metadataMutex(),
-_reportingProcessor(reportingProcessor),
-_localReportingProcessor(reportingProcessor->localReportingProcessor("spep::MetadataImpl")),
+_logger(logger),
+_localLogger(logger, "spep::MetadataImpl"),
 _spepIdentifier(spepIdentifier), 
 _esoeIdentifier(esoeIdentifier),
 _metadataURL(metadataURL),
@@ -74,11 +74,10 @@ _caBundle( caBundle ),
 _thread(NULL),
 _threadGroup()
 {
-	//_domElementMarshaller = new saml2::MarshallerImpl<middleware::spepStartupServiceSchema::SPEPStartupServiceType>(std::string(),std::vector<std::string>(),std::string("SPEPStartupService"),std::string("http://www.qut.com/middleware/spepStartupServiceSchema"));
-	
 	std::vector<std::string> spepStartupSchemas;
 	spepStartupSchemas.push_back( ConfigurationConstants::spepStartupService );
-	_spepStartupServiceUnmarshaller = new saml2::UnmarshallerImpl<middleware::spepStartupServiceSchema::SPEPStartupServiceType>( schemaPath, spepStartupSchemas );
+	_spepStartupServiceUnmarshaller = new saml2::UnmarshallerImpl<middleware::spepStartupServiceSchema::SPEPStartupServiceType>
+		( logger, schemaPath, spepStartupSchemas );
 	
 	init();
 }
@@ -94,14 +93,14 @@ spep::MetadataImpl::~MetadataImpl()
 
 void spep::MetadataImpl::init()
 {
-	this->_localReportingProcessor.log( DEBUG, "Spawning metadata thread." );
-	this->_thread = new MetadataThread( this->_reportingProcessor, this, this->_caBundle, this->_schemaPath, this->_interval );
+	_localLogger.debug() << "Spawning metadata thread.";
+	this->_thread = new MetadataThread( this->_logger, this, this->_caBundle, this->_schemaPath, this->_interval, this->_keyResolver );
 	this->_threadGroup.create_thread( this->_thread->getThreadHandler() );
 }
 
 void spep::MetadataImpl::rebuildCache( saml2::metadata::EntitiesDescriptorType &entitiesDescriptor, std::string hashValue, spep::MetadataImpl::KeyMap &keyMap )
 {
-	this->_localReportingProcessor.log( DEBUG, "About to rebuild metadata cache from document with hash value: " + hashValue );
+	_localLogger.debug() << "About to rebuild metadata cache from document with hash value: " << hashValue;
 	
 	MetadataCache *newCache = new MetadataCache();
 	int errors = 0;
@@ -109,28 +108,28 @@ void spep::MetadataImpl::rebuildCache( saml2::metadata::EntitiesDescriptorType &
 	buildCacheRecurse( entitiesDescriptor, *newCache );
 	if (newCache->singleSignOnEndpoints.size() == 0)
 	{
-		this->_localReportingProcessor.log( INFO, "No single sign-on endpoints for ESOE were found in metadata" );
+		_localLogger.info() << "No single sign-on endpoints for ESOE were found in metadata";
 		++errors;
 	}
 	if (newCache->attributeServiceEndpoints.size() == 0)
 	{
-		this->_localReportingProcessor.log( INFO, "No attribute service endpoints for ESOE were found in metadata" );
+		_localLogger.info() << "No attribute service endpoints for ESOE were found in metadata";
 		++errors;
 	}
 	if (newCache->authzServiceEndpoints.size() == 0)
 	{
-		this->_localReportingProcessor.log( INFO, "No authorization service endpoints for ESOE were found in metadata" );
+		_localLogger.info() << "No authorization service endpoints for ESOE were found in metadata";
 		++errors;
 	}
 	if (newCache->spepStartupServiceEndpoints.size() == 0)
 	{
-		this->_localReportingProcessor.log( INFO, "No startup service endpoints for ESOE were found in metadata" );
+		_localLogger.info() << "No startup service endpoints for ESOE were found in metadata";
 		++errors;
 	}
 	
 	if (errors > 0)
 	{
-		this->_localReportingProcessor.log( ERROR, "An error occurred while processing the metadata document update. Aborting." );
+		_localLogger.error() << "An error occurred while processing the metadata document update. Aborting.";
 		throw MetadataException( "Errors prevented the metadata cache update from occurring." );
 	}
 	
@@ -146,7 +145,7 @@ void spep::MetadataImpl::rebuildCache( saml2::metadata::EntitiesDescriptorType &
 		this->_cache = newCache;
 		
 		this->_hasData = true;
-		this->_localReportingProcessor.log( INFO, "New metadata document was processed successfully and is now active." );
+		_localLogger.info() << "New metadata document was processed successfully and is now active.";
 	}
 }
 
@@ -171,7 +170,7 @@ void spep::MetadataImpl::buildCacheRecurse( saml2::metadata::EntitiesDescriptorT
 		if ( this->_esoeIdentifier.compare( entityDescriptorIterator->entityID().c_str() ) == 0 )
 		{
 			
-			this->_localReportingProcessor.log( DEBUG, "Found ESOE entity descriptor (" + UnicodeStringConversion::toString(this->_esoeIdentifier) + ")" );
+			_localLogger.debug() << "Found ESOE entity descriptor (" << UnicodeStringConversion::toString(this->_esoeIdentifier) << ")";
 			// Loop through the <IDPSSODescriptor> elements and add all single sign-on
 			// and single logout endpoints.
 			saml2::metadata::EntityDescriptorType::IDPSSODescriptor_iterator idpSSODescriptorIterator;
@@ -299,11 +298,11 @@ void spep::MetadataImpl::buildCacheRecurse( saml2::metadata::EntitiesDescriptorT
 				
 			}
 			
-			this->_localReportingProcessor.log( DEBUG, boost::lexical_cast<std::string>(cache.singleSignOnEndpoints.size()) + " single sign-on endpoint(s) found." );
-			this->_localReportingProcessor.log( DEBUG, boost::lexical_cast<std::string>(cache.singleLogoutEndpoints.size()) + " single logout endpoint(s) found." );
-			this->_localReportingProcessor.log( DEBUG, boost::lexical_cast<std::string>(cache.spepStartupServiceEndpoints.size()) + " spep startup endpoint(s) found." );
-			this->_localReportingProcessor.log( DEBUG, boost::lexical_cast<std::string>(cache.attributeServiceEndpoints.size()) + " attribute service endpoint(s) found." );
-			this->_localReportingProcessor.log( DEBUG, boost::lexical_cast<std::string>(cache.authzServiceEndpoints.size()) + " authorization service endpoint(s) found." );
+			_localLogger.info() << boost::lexical_cast<std::string>(cache.singleSignOnEndpoints.size()) << " single sign-on endpoint(s) found.";
+			_localLogger.info() << boost::lexical_cast<std::string>(cache.singleLogoutEndpoints.size()) << " single logout endpoint(s) found.";
+			_localLogger.info() << boost::lexical_cast<std::string>(cache.spepStartupServiceEndpoints.size()) << " spep startup endpoint(s) found.";
+			_localLogger.info() << boost::lexical_cast<std::string>(cache.attributeServiceEndpoints.size()) << " attribute service endpoint(s) found.";
+			_localLogger.info() << boost::lexical_cast<std::string>(cache.authzServiceEndpoints.size()) << " authorization service endpoint(s) found.";
 			
 		}
 	}
@@ -414,7 +413,7 @@ XSECCryptoKey *spep::MetadataImpl::resolveKey (DSIGKeyInfoList *list)
 	if( list->isEmpty() )
 		return NULL;
 	
-	this->_localReportingProcessor.log( DEBUG, "About to resolve XSECCryptoKey from DSIGKeyInfoList.");
+	_localLogger.debug() << "About to resolve XSECCryptoKey from DSIGKeyInfoList.";
 	
 	// Loop through the key info list and look for a name.
 	for( DSIGKeyInfoList::size_type i = 0; i < list->getSize(); ++i )
@@ -429,13 +428,13 @@ XSECCryptoKey *spep::MetadataImpl::resolveKey (DSIGKeyInfoList *list)
 		
 		// Grab the keyname as a std::string
 		std::string keyName( keyNameChars->get() );
-		this->_localReportingProcessor.log( DEBUG, "Found keyname " + keyName + ", attempting to find key data" );
+		_localLogger.debug() << "Found keyname " << keyName << ", attempting to find key data";
 		
 		try
 		{
 			// Resolve the key locally
 			saml2::KeyData keyData( this->resolveKey( keyName ) );
-			this->_localReportingProcessor.log( DEBUG, "Got key data. Returning" );
+			_localLogger.debug() << "Got key data. Returning";
 			
 			// Create a XSECCryptoKey
 			return keyData.createXSECCryptoKey();
@@ -445,7 +444,7 @@ XSECCryptoKey *spep::MetadataImpl::resolveKey (DSIGKeyInfoList *list)
 		}
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, "No key data found. Returning NULL" );
+	_localLogger.error() << "No key data found. Returning NULL";
 	// No key data found/returned. Return null now.
 	return NULL;
 }
@@ -467,15 +466,15 @@ XSECKeyInfoResolver* spep::MetadataImpl::clone() const
 	this->waitForData();
 	ScopedLock lock( this->_metadataMutex );
 
-	this->_localReportingProcessor.log( DEBUG, "Cloning metadata key resolver.");
+	_localLogger.debug() << "Cloning metadata key resolver.";
 
-	return new MetadataKeyResolver( this->_reportingProcessor, this->_cache->keyMap );
+	return new MetadataKeyResolver( this->_logger, this->_cache->keyMap );
 }
 
-spep::MetadataImpl::MetadataKeyResolver::MetadataKeyResolver( spep::ReportingProcessor *reportingProcessor, const spep::MetadataImpl::KeyMap& map )
+spep::MetadataImpl::MetadataKeyResolver::MetadataKeyResolver( saml2::Logger *logger, const spep::MetadataImpl::KeyMap& map )
 :
-_reportingProcessor( reportingProcessor ),
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::MetadataImpl::MetadataKeyResolver" ) ),
+_logger( logger ),
+_localLogger( logger, "spep::MetadataImpl::MetadataKeyResolver" ),
 _map( map )
 {
 }
@@ -489,7 +488,7 @@ XSECCryptoKey *spep::MetadataImpl::MetadataKeyResolver::resolveKey (DSIGKeyInfoL
 	if( list->isEmpty() )
 		return NULL;
 	
-	this->_localReportingProcessor.log( DEBUG, "About to resolve XSECCryptoKey from DSIGKeyInfoList.");
+	_localLogger.debug() << "About to resolve XSECCryptoKey from DSIGKeyInfoList.";
 	
 	// Loop through the key info list and look for a name.
 	for( DSIGKeyInfoList::size_type i = 0; i < list->getSize(); ++i )
@@ -502,12 +501,12 @@ XSECCryptoKey *spep::MetadataImpl::MetadataKeyResolver::resolveKey (DSIGKeyInfoL
 		std::auto_ptr<XercesCharStringAdapter> keyNameChars( new XercesCharStringAdapter( XMLString::transcode( keyInfoName->getKeyName() ) ) );
 		
 		std::string keyName( keyNameChars->get() );
-		this->_localReportingProcessor.log( DEBUG, "Found keyname " + keyName + ", attempting to find key data" );
+		_localLogger.debug() << "Found keyname " << keyName << ", attempting to find key data";
 		
 		try
 		{
 			saml2::KeyData keyData( this->resolveKey( keyName ) );
-			this->_localReportingProcessor.log( DEBUG, "Got key data. Returning" );
+			_localLogger.debug() << "Got key data. Returning";
 			
 			return keyData.createXSECCryptoKey();
 		}
@@ -516,7 +515,7 @@ XSECCryptoKey *spep::MetadataImpl::MetadataKeyResolver::resolveKey (DSIGKeyInfoL
 		}
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, "No key data found. Returning NULL" );
+	_localLogger.error() << "No key data found. Returning NULL";
 	// No key data found/returned. Return null now.
 	return NULL;
 }
@@ -532,5 +531,5 @@ saml2::KeyData spep::MetadataImpl::MetadataKeyResolver::resolveKey (std::string 
 
 XSECKeyInfoResolver* spep::MetadataImpl::MetadataKeyResolver::clone() const
 {
-	return new MetadataKeyResolver( this->_reportingProcessor, this->_map );
+	return new MetadataKeyResolver( this->_logger, this->_map );
 }

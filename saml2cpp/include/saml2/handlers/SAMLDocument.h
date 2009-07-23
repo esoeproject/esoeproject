@@ -24,6 +24,7 @@
 
 #include <memory>
 #include <iostream>
+#include <cstring>
 
 namespace saml2
 {

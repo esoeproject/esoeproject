@@ -39,8 +39,8 @@
 #include "saml2/bindings/saml-schema-assertion-2.0.hxx"
 #include "saml2/bindings/saml-schema-protocol-2.0.hxx"
 
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 namespace spep
 {
@@ -59,7 +59,7 @@ namespace spep
 		/**
 		 * Constructor
 		 */
-		AttributeProcessor( ReportingProcessor *reportingProcessor, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, spep::WSClient *wsClient, saml2::SAMLValidator *samlValidator, std::string schemaPath, const std::map<std::string,std::string>& attributeRenameMap );
+		AttributeProcessor( saml2::Logger *logger, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, spep::WSClient *wsClient, saml2::SAMLValidator *samlValidator, std::string schemaPath, const std::map<std::string,std::string>& attributeRenameMap );
 		
 		/**
 		 * Destructor
@@ -105,7 +105,7 @@ namespace spep
 		/// Disable assignment by declaring operator= privately.
 		AttributeProcessor& operator=( const AttributeProcessor& other );
 
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		Metadata *_metadata;
 		KeyResolver *_keyResolver;
 		saml2::IdentifierGenerator *_identifierGenerator;

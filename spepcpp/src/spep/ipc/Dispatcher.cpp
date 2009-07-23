@@ -19,11 +19,11 @@
  
 #include "spep/ipc/Dispatcher.h"
 
-#include "spep/reporting/ReportingLevels.h"
+#include "saml2/logging/api.h"
 
-spep::ipc::MultifacetedDispatcher::MultifacetedDispatcher( spep::ReportingProcessor *reportingProcessor, std::vector<Dispatcher*> dispatchers )
+spep::ipc::MultifacetedDispatcher::MultifacetedDispatcher( saml2::Logger *logger, std::vector<Dispatcher*> dispatchers )
 : 
-_reportingProcessor( "spep::ipc::MultifacetedDispatcher", reportingProcessor ),
+_localLogger( logger, "spep::ipc::MultifacetedDispatcher" ),
 _dispatchers(dispatchers) 
 {}
 
@@ -38,7 +38,7 @@ spep::ipc::MultifacetedDispatcher::~MultifacetedDispatcher()
 
 bool spep::ipc::MultifacetedDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
 {
-	this->_reportingProcessor.log( spep::DEBUG, "Dispatching request bound for " + header.getDispatch() );
+	_localLogger.trace() << "Dispatching request bound for " << header.getDispatch();
 	
 	// For each dispatcher in the list..
 	for( DispatcherIterator iter = _dispatchers.begin(); iter != _dispatchers.end(); ++iter )
@@ -49,14 +49,14 @@ bool spep::ipc::MultifacetedDispatcher::dispatch( spep::ipc::MessageHeader &head
 			return true;
 	}
 	
-	this->_reportingProcessor.log( spep::DEBUG, "No dispatcher for " + header.getDispatch() + ". Failing." );
+	_localLogger.warn() << "No dispatcher for " << header.getDispatch() << ". Failing.";
 	// All dispatchers returned false, so we can as well.
 	return false;
 }
 
-spep::ipc::ExceptionCatchingDispatcher::ExceptionCatchingDispatcher( spep::ReportingProcessor *reportingProcessor, spep::ipc::Dispatcher* nextDispatcher )
+spep::ipc::ExceptionCatchingDispatcher::ExceptionCatchingDispatcher( saml2::Logger *logger, spep::ipc::Dispatcher* nextDispatcher )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::ipc::ExceptionCatchingDispatcher" ) ),
+_localLogger( logger, "spep::ipc::ExceptionCatchingDispatcher" ),
 _nextDispatcher( nextDispatcher )
 {
 }
@@ -88,7 +88,7 @@ bool spep::ipc::ExceptionCatchingDispatcher::dispatch( spep::ipc::MessageHeader 
 		else
 		{
 			// Not expecting a response. We can still log it.
-			this->_localReportingProcessor.log( spep::ERROR, "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " + message );
+			_localLogger.error() << "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " << message;
 		}
 		
 		return true;
@@ -108,7 +108,7 @@ bool spep::ipc::ExceptionCatchingDispatcher::dispatch( spep::ipc::MessageHeader 
 		else
 		{
 			// Not expecting a response. We can still log it.
-			this->_localReportingProcessor.log( spep::ERROR, "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " + message );
+			_localLogger.error() << "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " << message;
 		}
 		
 		return true;

@@ -27,6 +27,9 @@
 
 #include <openssl/x509.h>
 
+#include <xsec/dsig/DSIGKeyInfo.hpp>
+#include <xsec/dsig/DSIGKeyInfoName.hpp>
+
 spep::KeyResolver::KeyResolver()
 :
 _spepPublicKey(NULL),
@@ -35,9 +38,7 @@ _spepPublicKeyLength(0),
 _spepPrivateKey(NULL),
 _spepPrivateKeyData(NULL),
 _spepPrivateKeyLength(0),
-_metadataKey(NULL),
-_metadataKeyData(NULL),
-_metadataKeyLength(0)
+_trustedCerts()
 {
 }
 
@@ -54,10 +55,8 @@ _spepPublicKeyLength(0),
 _spepPrivateKey(NULL),
 _spepPrivateKeyData(NULL),
 _spepPrivateKeyLength(0),
-_metadataKey(NULL),
-_metadataKeyData(NULL),
-_metadataKeyLength(0),
-_spepKeyAlias( other._spepKeyAlias )
+_spepKeyAlias( other._spepKeyAlias ),
+_trustedCerts( other._trustedCerts )
 {
 	if( other._spepPublicKeyData != NULL )
 	{
@@ -73,13 +72,6 @@ _spepKeyAlias( other._spepKeyAlias )
 		std::memcpy( _spepPrivateKeyData, other._spepPrivateKeyData, _spepPrivateKeyLength );
 	}
 	
-	if( other._metadataKeyData != NULL )
-	{
-		_metadataKeyLength = other._metadataKeyLength;
-		_metadataKeyData = new char[ _metadataKeyLength ];
-		std::memcpy( _metadataKeyData, other._metadataKeyData, _metadataKeyLength );
-	}
-	
 	if( other._spepPublicKey != NULL )
 	{
 		_spepPublicKey = other._spepPublicKey->clone();
@@ -88,11 +80,6 @@ _spepKeyAlias( other._spepKeyAlias )
 	if( other._spepPrivateKey != NULL )
 	{
 		_spepPrivateKey = other._spepPrivateKey->clone();
-	}
-	
-	if( other._metadataKey != NULL )
-	{
-		_metadataKey = other._metadataKey->clone();
 	}
 }
 
@@ -114,13 +101,6 @@ spep::KeyResolver& spep::KeyResolver::operator=( const spep::KeyResolver &other 
 		std::memcpy( _spepPrivateKeyData, other._spepPrivateKeyData, _spepPrivateKeyLength );
 	}
 	
-	if( other._metadataKeyData != NULL )
-	{
-		_metadataKeyLength = other._metadataKeyLength;
-		_metadataKeyData = new char[ _metadataKeyLength ];
-		std::memcpy( _metadataKeyData, other._metadataKeyData, _metadataKeyLength );
-	}
-	
 	if( other._spepPublicKey != NULL )
 	{
 		_spepPublicKey = other._spepPublicKey->clone();
@@ -131,10 +111,6 @@ spep::KeyResolver& spep::KeyResolver::operator=( const spep::KeyResolver &other 
 		_spepPrivateKey = other._spepPrivateKey->clone();
 	}
 	
-	if( other._metadataKey != NULL )
-	{
-		_metadataKey = other._metadataKey->clone();
-	}
 	if( other._spepPublicKey != NULL )
 	{
 		_spepPublicKey = other._spepPublicKey->clone();
@@ -153,21 +129,14 @@ spep::KeyResolver& spep::KeyResolver::operator=( const spep::KeyResolver &other 
 		_spepPrivateKey = NULL;
 	}
 	
-	if( other._metadataKey != NULL )
-	{
-		_metadataKey = other._metadataKey->clone();
-	}
-	else
-	{
-		_metadataKey = NULL;
-	}
-	
 	_spepKeyAlias = other._spepKeyAlias;
+
+	_trustedCerts = other._trustedCerts;
 	
 	return *this;
 }
 
-spep::KeyResolver::KeyResolver( std::string keystorePath, std::string keystorePassword, std::string spepKeyAlias, std::string spepKeyPassword, std::string metadataKeyAlias )
+spep::KeyResolver::KeyResolver( std::string keystorePath, std::string keystorePassword, std::string spepKeyAlias, std::string spepKeyPassword )
 :
 _spepPublicKey(NULL),
 _spepPublicKeyData(NULL),
@@ -175,19 +144,13 @@ _spepPublicKeyLength(0),
 _spepPrivateKey(NULL),
 _spepPrivateKeyData(NULL),
 _spepPrivateKeyLength(0),
-_metadataKey(NULL),
-_metadataKeyData(NULL),
-_metadataKeyLength(0),
-_spepKeyAlias(spepKeyAlias)
+_spepKeyAlias(spepKeyAlias),
+_trustedCerts()
 {
-	//std::map<std::string,std::string> passwordMap;
-	//passwordMap[spepKeyAlias] = spepKeyPassword;
-	//JKSKeystore keystore( keystorePath, keystorePassword, passwordMap );
 	JKSKeystore keystore( keystorePath, keystorePassword, spepKeyPassword );
 	
 	const JKSPrivateKeyData *spepPkeyData = keystore.getKeyData( spepKeyAlias );
 	const JKSTrustedCertData *spepCertData = &(keystore.getCertificateChain( spepKeyAlias ).at(0));
-	const JKSTrustedCertData *metadataCertData = keystore.getCertificateData( metadataKeyAlias );
 	
 	{
 		Base64Encoder encoder;
@@ -199,21 +162,27 @@ _spepKeyAlias(spepKeyAlias)
 		_spepPublicKeyData = new char[ _spepPublicKeyLength ];
 		std::memcpy( _spepPublicKeyData, cert.getData(), _spepPublicKeyLength );
 	}
+
+	std::vector<std::string> trustedCertAliases( keystore.getCertificateAliases() );
+	for( std::vector<std::string>::iterator iter = trustedCertAliases.begin();
+		iter != trustedCertAliases.end(); ++iter )
+	{
+		std::string keyAlias(*iter);
+		const JKSTrustedCertData *certData = keystore.getCertificateData( keyAlias );
+
+		Base64Encoder encoder;
+		encoder.push( reinterpret_cast<const char*>(certData->data), certData->len );
+		encoder.close();
+		Base64Document cert = encoder.getResult();
+
+		std::string encodedCert( cert.getData(), cert.getLength() );
+
+		_trustedCerts[keyAlias] = encodedCert;
+	}
 	
 	_spepPrivateKeyLength = spepPkeyData->len;
 	_spepPrivateKeyData = new char[ _spepPrivateKeyLength ];
 	std::memcpy( _spepPrivateKeyData, spepPkeyData->data, _spepPrivateKeyLength );
-	
-	{
-		Base64Encoder encoder;
-		encoder.push( reinterpret_cast<const char*>(metadataCertData->data), metadataCertData->len );
-		encoder.close();
-		Base64Document cert = encoder.getResult();
-		
-		_metadataKeyLength = cert.getLength();
-		_metadataKeyData = new char[ _metadataKeyLength ];
-		std::memcpy( _metadataKeyData, cert.getData(), _metadataKeyLength );
-	}
 }
 
 void spep::KeyResolver::deleteKeys()
@@ -236,16 +205,6 @@ void spep::KeyResolver::deleteKeys()
 	if( _spepPrivateKey != NULL )
 	{
 		delete _spepPrivateKey;
-	}
-	
-	if( _metadataKeyData != NULL )
-	{
-		delete[] _metadataKeyData;
-	}
-	
-	if( _metadataKey != NULL )
-	{
-		delete _metadataKey;
 	}
 }
 
@@ -273,10 +232,8 @@ void spep::KeyResolver::loadSPEPPrivateKey()
 	// Read the key data into an OpenSSL RSA key.
 	BIO* bioMem = BIO_new_mem_buf( this->_spepPrivateKeyData, this->_spepPrivateKeyLength );
 	
-	/* 
-	 * TODO Find out how much (if any) leaks from here.
-	 */
 	PKCS8_PRIV_KEY_INFO *pkeyInfo = NULL;
+	// TODO This line leaks 4 blocks. (2918 bytes)
 	d2i_PKCS8_PRIV_KEY_INFO_bio( bioMem, &pkeyInfo );
 	
 	if( pkeyInfo == NULL )
@@ -288,20 +245,6 @@ void spep::KeyResolver::loadSPEPPrivateKey()
 	_spepPrivateKey = new OpenSSLCryptoKeyRSA( rawkey );
 	
 	BIO_free( bioMem );
-}
-
-void spep::KeyResolver::loadMetadataKey()
-{
-	if( _spepPublicKey != NULL )
-	{
-		delete _spepPublicKey;
-	}
-
-	// OpenSSLCryptoX509 object to hold the key until it is cloned.
-	std::auto_ptr<OpenSSLCryptoX509> x509( new OpenSSLCryptoX509() );
-	x509->loadX509Base64Bin( reinterpret_cast<const char*>(this->_metadataKeyData), this->_metadataKeyLength );
-	
-	_metadataKey = x509->clonePublicKey();
 }
 
 XSECCryptoKey* spep::KeyResolver::getSPEPPublicKey()
@@ -323,9 +266,51 @@ std::string spep::KeyResolver::getSPEPKeyAlias()
 	return _spepKeyAlias;
 }
 
-XSECCryptoKey* spep::KeyResolver::getMetadataKey()
+XSECCryptoKey *spep::KeyResolver::resolveKey (DSIGKeyInfoList *list)
 {
-	if( !_metadataKey )
-		loadMetadataKey();
-	return _metadataKey;
+	if( list->isEmpty() )
+		return NULL;
+
+	// Loop through the key info list and look for a name.
+	for( DSIGKeyInfoList::size_type i = 0; i < list->getSize(); ++i )
+	{
+		DSIGKeyInfo *keyInfo = list->item(i);
+		if( keyInfo->getKeyInfoType() != DSIGKeyInfo::KEYINFO_NAME ) continue;
+
+		// This keyInfo is a key name, so cast it and grab the name as a Xerces char*
+		DSIGKeyInfoName* keyInfoName = reinterpret_cast<DSIGKeyInfoName*>( keyInfo );
+		std::auto_ptr<XercesCharStringAdapter> keyNameChars( new XercesCharStringAdapter( XMLString::transcode( keyInfoName->getKeyName() ) ) );
+
+		std::string keyName( keyNameChars->get() );
+
+		try
+		{
+			XSECCryptoKey* key = this->resolveKey( keyName );
+			return key;
+		}
+		catch( std::exception e )
+		{
+		}
+	}
+
+	// No key data found/returned. Return null now.
+	return NULL;
 }
+
+XSECCryptoKey* spep::KeyResolver::resolveKey(std::string keyName)
+{
+	std::map<std::string,std::string>::iterator iter =  _trustedCerts.find(keyName);
+	if (iter == _trustedCerts.end()) return NULL;
+
+	std::auto_ptr<OpenSSLCryptoX509> x509( new OpenSSLCryptoX509() );
+	x509->loadX509Base64Bin( reinterpret_cast<const char*>(iter->second.c_str()), iter->second.length() );
+
+	XSECCryptoKey *key = x509->clonePublicKey();
+	return key;
+}
+
+XSECKeyInfoResolver* spep::KeyResolver::clone() const
+{
+	return new spep::KeyResolver(*this);
+}
+

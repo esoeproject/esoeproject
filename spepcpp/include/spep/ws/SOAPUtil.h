@@ -31,8 +31,8 @@
 #include "saml2/bindings/soap-1.2-envelope.hxx"
 
 #include "spep/Util.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 #include <utility>
 #include <string>
@@ -54,7 +54,7 @@ namespace spep
 		class SOAP11Handler
 		{
 			private:
-			LocalReportingProcessor _localReportingProcessor;
+			saml2::LocalLogger _localLogger;
 			saml2::Unmarshaller< soap::v11::Envelope > *_envelopeUnmarshaller;
 			saml2::Marshaller< soap::v11::Envelope > *_envelopeMarshaller;
 			saml2::Unmarshaller< soap::v11::Body > *_bodyUnmarshaller;
@@ -66,7 +66,7 @@ namespace spep
 			SOAP11Handler& operator=( const SOAP11Handler& other );
 				
 			public:
-			SOAP11Handler( ReportingProcessor *reportingProcessor, std::string schemaPath );
+			SOAP11Handler( saml2::Logger *logger, std::string schemaPath );
 			~SOAP11Handler();
 			template <typename T>
 			T* unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument );
@@ -79,7 +79,7 @@ namespace spep
 		class SOAP12Handler
 		{
 			private:
-			LocalReportingProcessor _localReportingProcessor;
+			saml2::LocalLogger _localLogger;
 			saml2::Unmarshaller< soap::v12::Envelope > *_envelopeUnmarshaller;
 			saml2::Marshaller< soap::v12::Envelope > *_envelopeMarshaller;
 			XMLCh* _implFlags;
@@ -89,14 +89,14 @@ namespace spep
 			SOAP12Handler& operator=( const SOAP12Handler& other );
 
 			public:
-			SOAP12Handler( ReportingProcessor *reportingProcessor, std::string schemaPath );
+			SOAP12Handler( saml2::Logger *logger, std::string schemaPath );
 			~SOAP12Handler();
 			template <typename T>
 			T* unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument );
 			SOAPDocument wrap( DOMElement *objectElement, std::string characterEncoding );
 		};
 		
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		SOAP11Handler *_soap11Handler;
 		SOAP12Handler *_soap12Handler;
 		
@@ -113,7 +113,7 @@ namespace spep
 		};
 		
 
-		SOAPUtil( ReportingProcessor *reportingProcessor, std::string schemaPath );
+		SOAPUtil( saml2::Logger *logger, std::string schemaPath );
 		~SOAPUtil();
 		
 		/**
@@ -130,13 +130,13 @@ namespace spep
 			switch( soapVersion )
 			{
 				case SOAP12:
-				this->_localReportingProcessor.log( DEBUG, "Going to unwrap SOAP/1.2 envelope." );
+				_localLogger.debug() << "Going to unwrap SOAP/1.2 envelope.";
 				return this->_soap12Handler->unwrap<T>( unmarshaller, soapDocument );
 
 				// Default to SOAP/1.1 processing
 				case SOAP11:
 				default:
-				this->_localReportingProcessor.log( DEBUG, "Going to unwrap SOAP/1.1 envelope." );
+				_localLogger.debug() << "Going to unwrap SOAP/1.1 envelope.";
 				return this->_soap11Handler->unwrap<T>( unmarshaller, soapDocument );
 			}
 		}
@@ -154,72 +154,9 @@ namespace spep
 	template <typename T>
 	T* SOAPUtil::SOAP11Handler::unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument )
 	{
-#if 0
-		std::auto_ptr<soap::v11::Envelope> envelope( this->_envelopeUnmarshaller->unMarshallUnSigned( soapDocument ) );
-		
-		this->_localReportingProcessor.log( DEBUG, "Unmarshalled envelope successfully. Going to process xsd:any children looking for a Body." );
-		soap::v11::Envelope::any_iterator envelopeAnyIterator;
-		for( envelopeAnyIterator = envelope->any().begin();
-			envelopeAnyIterator != envelope->any().end();
-			++envelopeAnyIterator )
-		{
-			DOMElement &envelopeChildElement = *envelopeAnyIterator;
-			XercesCharStringAdapter localName( XMLString::transcode( envelopeChildElement.getLocalName() ) );
-			if( std::string("Body").compare( localName.get() ) == 0 )
-			{
-				this->_localReportingProcessor.log( DEBUG, "Found a <Body> element. Trying to unmarshal." );
-				std::auto_ptr<soap::v11::Body> body;
-				// Try to unmarshal the SOAP body.
-				try
-				{
-					body.reset( this->_bodyUnmarshaller->unMarshallUnSignedElement( &envelopeChildElement ) );
-				}
-				catch( std::exception &ex )
-				{
-					/* Might have been just plain bad XML, wrong namespace, etc. No cause for concern
-					 * For all we know this could be some random user firing stupid requests at an
-					 * endpoint, so we don't really want to bog down for too long figuring out what
-					 * they were trying to do. */
-					this->_localReportingProcessor.log( WARN, std::string("Couldn't unmarshal <Body> element. Message was: ") + ex.what() );
-					continue;
-				}
-				
-				this->_localReportingProcessor.log( DEBUG, "Unmarshalled <Body> element. Finding child document." );
-				soap::v11::Body::any_iterator bodyAnyIterator;
-				for( bodyAnyIterator = body->any().begin();
-					bodyAnyIterator != body->any().end();
-					++bodyAnyIterator )
-				{
-					DOMElement *root = &(*bodyAnyIterator);
-					DOMDocument *domDoc = this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 );
-					
-					{
-						XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );
-						XercesCharStringAdapter namespaceURI( XMLString::transcode( root->getNamespaceURI() ) );
-						this->_localReportingProcessor.log( DEBUG, std::string( "Got document element with namespace ") + namespaceURI.get() + " and local name " + localName.get() );
-					}
-					
-					try
-					{
-						domDoc->adoptNode( domDoc->importNode( root, true ) );
-						unmarshaller->validateSignature( domDoc );
-					}
-					catch( ... )
-					{
-						domDoc->release();
-						throw;
-					}
-					return unmarshaller->unMarshallUnSignedElement( &(*bodyAnyIterator) );
-				}
-			}
-		}
-		
-		this->_localReportingProcessor.log( ERROR, "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller." );
-		return NULL;
-#endif
 		std::auto_ptr<soap::v11::Envelope> envelope( this->_envelopeUnmarshaller->unMarshallUnSigned( soapDocument, true ) );
 		
-		this->_localReportingProcessor.log( DEBUG, "Unmarshalled envelope successfully. Going to process Body." );
+		_localLogger.debug() << "Unmarshalled envelope successfully. Going to process Body.";
 
 		// Not going to change anything. Just seems dumb that we can't get a reference without being const
 		soap::v11::Body &body = const_cast<soap::v11::Body&>( envelope->Body() );
@@ -235,7 +172,7 @@ namespace spep
 			{
 				XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );
 				XercesCharStringAdapter namespaceURI( XMLString::transcode( root->getNamespaceURI() ) );
-				this->_localReportingProcessor.log( DEBUG, std::string( "Got document element with namespace ") + namespaceURI.get() + " and local name " + localName.get() );
+				_localLogger.debug() << "Got document element with namespace " << namespaceURI.get() << " and local name " << localName.get();
 			}
 
 			DOMElement *documentElement = domDoc->getDocumentElement();
@@ -250,7 +187,7 @@ namespace spep
 			return unmarshaller->unMarshallUnSignedElement( static_cast<DOMElement*>( root->cloneNode( true ) ), true );
 		}
 		
-		this->_localReportingProcessor.log( ERROR, "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller." );
+		_localLogger.error() << "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller.";
 		return NULL;
 	}
 	
@@ -259,7 +196,7 @@ namespace spep
 	{
 		std::auto_ptr<soap::v12::Envelope> envelope( this->_envelopeUnmarshaller->unMarshallUnSigned( soapDocument, true ) );
 		
-		this->_localReportingProcessor.log( DEBUG, "Unmarshalled envelope successfully. Going to process Body." );
+		_localLogger.debug() << "Unmarshalled envelope successfully. Going to process Body.";
 
 		// Not going to change anything. Just seems dumb that we can't get a reference without being const
 		soap::v12::Body &body = const_cast<soap::v12::Body&>( envelope->Body() );
@@ -275,7 +212,7 @@ namespace spep
 			{
 				XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );
 				XercesCharStringAdapter namespaceURI( XMLString::transcode( root->getNamespaceURI() ) );
-				this->_localReportingProcessor.log( DEBUG, std::string( "Got document element with namespace ") + namespaceURI.get() + " and local name " + localName.get() );
+				_localLogger.debug() << "Got document element with namespace " << namespaceURI.get() << " and local name " << localName.get();
 			}
 
 			DOMElement *documentElement = domDoc->getDocumentElement();
@@ -290,7 +227,7 @@ namespace spep
 			return unmarshaller->unMarshallUnSignedElement( static_cast<DOMElement*>( root->cloneNode( true ) ), true );
 		}
 		
-		this->_localReportingProcessor.log( ERROR, "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller." );
+		_localLogger.error() << "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller.";
 		return NULL;
 	}
 }

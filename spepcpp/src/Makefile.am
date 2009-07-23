@@ -1,7 +1,7 @@
 
 lib_LTLIBRARIES = libspep.la
 libspep_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
-#-version-info $(VERSION_INFO) 
+#-version-info $(VERSION_INFO)
 libspep_la_SOURCES = spep/pep/PolicyEnforcementProcessorData.cpp \
 spep/pep/PolicyEnforcementProcessor.cpp \
 spep/pep/proxy/SessionGroupCacheProxy.cpp \
@@ -22,9 +22,6 @@ spep/config/proxy/ConfigurationProxy.cpp \
 spep/config/proxy/ConfigurationDispatcher.cpp \
 spep/config/ConfigurationReader.cpp \
 spep/config/impl/ConfigurationImpl.cpp \
-spep/reporting/LocalReportingProcessor.cpp \
-spep/reporting/ReportingProcessor.cpp \
-spep/reporting/ReportingLevels.cpp \
 spep/SPEP.cpp \
 spep/Base64.cpp \
 spep/sessions/UnauthenticatedSession.cpp \
@@ -53,6 +50,8 @@ spep/exceptions/MetadataException.cpp \
 spep/exceptions/InvalidResponseException.cpp \
 spep/exceptions/InvalidSessionIdentifierException.cpp \
 spep/exceptions/KeystoreException.cpp \
+spep/logging/proxy/LoggerProxy.cpp \
+spep/logging/proxy/LoggerDispatcher.cpp \
 spep/metadata/KeyResolver.cpp \
 spep/metadata/JKSKeystore.cpp \
 spep/metadata/MetadataThread.cpp \

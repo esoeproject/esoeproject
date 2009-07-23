@@ -32,9 +32,9 @@
 
 #include <boost/lexical_cast.hpp>
 
-spep::SessionGroupCacheImpl::SessionGroupCacheImpl( spep::ReportingProcessor *reportingProcessor, spep::Decision defaultPolicyDecision )
+spep::SessionGroupCacheImpl::SessionGroupCacheImpl( saml2::Logger *logger, spep::Decision defaultPolicyDecision )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::SessionGroupCacheImpl" ) ),
+_localLogger( logger, "spep::SessionGroupCacheImpl" ),
 _cacheMutex(),
 _defaultPolicyDecision(defaultPolicyDecision)
 {
@@ -119,15 +119,15 @@ void spep::SessionGroupCacheImpl::clearCache( std::map< UnicodeString, std::vect
 	_groupTargets.clear();
 	_groupTargets = groupTargets;
 	
-	this->_localReportingProcessor.log( DEBUG, "Cleared cache. " + boost::lexical_cast<std::string>(groupTargets.size()) + " group targets in cache now." );
+	_localLogger.debug() << "Cleared cache. " << boost::lexical_cast<std::string>(groupTargets.size()) << " group targets in cache now.";
 	for( std::map< UnicodeString, std::vector<UnicodeString> >::iterator groupTargetIterator = groupTargets.begin();
 		groupTargetIterator != groupTargets.end(); ++groupTargetIterator )
 	{
-		this->_localReportingProcessor.log( DEBUG, "Group target " + UnicodeStringConversion::toString( groupTargetIterator->first ) );
+		_localLogger.debug() << "Group target " << UnicodeStringConversion::toString( groupTargetIterator->first );
 		for( std::vector<UnicodeString>::iterator authzTargetIterator = groupTargetIterator->second.begin();
 			authzTargetIterator != groupTargetIterator->second.end(); ++authzTargetIterator )
 		{
-			this->_localReportingProcessor.log( DEBUG, "- authz target " + UnicodeStringConversion::toString( *authzTargetIterator ) );
+			_localLogger.debug() << "- authz target " << UnicodeStringConversion::toString( *authzTargetIterator );
 		}
 	}
 	
@@ -142,12 +142,12 @@ spep::Decision spep::SessionGroupCacheImpl::makeCachedAuthzDecision( std::wstrin
 		ss << "Going to make cached authz decision for session [" << UnicodeStringConversion::toString( sessionID );
 		ss << "] resource: " << UnicodeStringConversion::toString( resource ) << std::ends;
 
-		this->_localReportingProcessor.log( DEBUG, ss.str() );
+		_localLogger.debug() << ss.str();
 	}
 	
 	if (!_initialized)
 	{
-		this->_localReportingProcessor.log( ERROR, "Session group cache has not been initialized. Rejecting authorization request." );
+		_localLogger.error() << "Session group cache has not been initialized. Rejecting authorization request.";
 		return Decision::ERROR;
 	}
 	
@@ -158,12 +158,12 @@ spep::Decision spep::SessionGroupCacheImpl::makeCachedAuthzDecision( std::wstrin
 	if (iter == _groupCaches.end() || iter->second == NULL)
 	{
 		// Not there, we need a new set of authz decisions from the PDP.
-		this->_localReportingProcessor.log( DEBUG, "No authorization cache for this session. Returning." );
+		_localLogger.debug() << "No authorization cache for this session. Returning.";
 		return Decision::CACHE;
 	}
 	
 	GroupCache *groupCache = iter->second;
-	this->_localReportingProcessor.log( DEBUG, "Got authorization cache for session. Going to perform cached authorization." );
+	_localLogger.debug() << "Got authorization cache for session. Going to perform cached authorization.";
 	
 	// Go into the group cache to make the decision.
 	Decision result = groupCache->makeCachedAuthzDecision( resource );
@@ -173,7 +173,7 @@ spep::Decision spep::SessionGroupCacheImpl::makeCachedAuthzDecision( std::wstrin
 	{
 		std::stringstream ss;
 		ss << "No matching policy for resource: " << UnicodeStringConversion::toString( resource ) << ". Falling back to default policy decision." << std::ends;
-		this->_localReportingProcessor.log( DEBUG, ss.str() );
+		_localLogger.debug() << ss.str();
 		return _defaultPolicyDecision;
 	}
 	
@@ -197,18 +197,13 @@ spep::Decision spep::SessionGroupCacheImpl::makeCachedAuthzDecision( std::wstrin
 		{
 			ss << "ERROR";
 		}
-		// We already checked for NONE above.
-		//else if( result == Decision::NONE )
-		//{
-		//	ss << "NONE";
-		//}
 		else
 		{
 			ss << "An invalid decision";
 		}
 		
 		ss << std::ends;
-		this->_localReportingProcessor.log( AUTHZ, ss.str() );
+		_localLogger.info() << ss.str();
 	}
 	
 	return result;

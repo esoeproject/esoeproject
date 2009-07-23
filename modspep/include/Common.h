@@ -1,27 +1,26 @@
 /* Copyright 2006-2007, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Shaun Mangelsdorf
  * Creation Date: Jul 4, 2007
- * 
- * Purpose: 
+ *
+ * Purpose:
  */
 
 #ifndef COMMON_H_
 #define COMMON_H_
 
 #include "spep/SPEP.h"
-#include "spep/reporting/Handler.h"
 
 #include "ModuleConstants.h"
 
@@ -37,7 +36,7 @@
 #define MODSPEPCONSTANT __declspec(dllimport) extern
 #endif /*BUILDING_SPEP*/
 
-// VC++ (or more accurately, the windows platform SDK) doesn't define snprintf.. 
+// VC++ (or more accurately, the windows platform SDK) doesn't define snprintf..
 // instead it defines _snprintf
 #define snprintf _snprintf
 
@@ -72,8 +71,8 @@ namespace spep
 
 #ifndef MODSPEPEXPORT
 // If nothing has been defined, we don't need any special flags to export symbols
-#define MODSPEPEXPORT 
-#define MODSPEPCONSTANT 
+#define MODSPEPEXPORT
+#define MODSPEPCONSTANT
 #endif /*MODSPEPEXPORT*/
 
 // Not using this can cause a problem for some platforms.
@@ -101,13 +100,12 @@ struct SPEPInstance
 {
 	int port;
 	spep::SPEP *spep;
-	spep::Handler *logger;
 	const char *spepBasePath;
 	const char *spepSSOPath;
 	const char *spepWebServices;
 	const char *spepAuthzCacheClear;
 	const char *spepSingleLogout;
-	
+
 	SPEPInstance();
 };
 
@@ -115,7 +113,6 @@ struct SPEPInstance
 struct SPEPServerConfig
 {
 	apr_pool_t *serverPool;
-	const char *logFilename;
 	SPEPInstance *instance;
 };
 
@@ -126,6 +123,7 @@ struct SPEPDirectoryConfig
 };
 
 extern "C" const char *parse_port_string( cmd_parms *parms, void *cfg, const char *value );
+/** Deprecated. Will be removed before 1.0 */
 extern "C" const char *set_log_string( cmd_parms *parms, void* cfg, const char *value );
 extern "C" const char *set_enabled_flag( cmd_parms *parms, void *cfg, int arg );
 extern "C" const char *set_spep_base_path( cmd_parms *parms, void *cfg, const char *value );

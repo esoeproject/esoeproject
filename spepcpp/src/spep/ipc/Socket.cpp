@@ -32,11 +32,10 @@ spep::ipc::platform::socket_t spep::ipc::ClientSocket::newSocket( int port )
 spep::ipc::ClientSocket::ClientSocket( spep::ipc::ClientSocketPool* pool, int port )
 :
 _pool( pool ),
-_socket( ),//spep::ipc::ClientSocket::ClientSocket::newSocket(port) ),
+_socket( ),
 _engine( NULL ),
 _port( port )
 {
-	//_engine = new Engine( _socket );
 }
 
 void spep::ipc::ClientSocket::reconnect( int retry )

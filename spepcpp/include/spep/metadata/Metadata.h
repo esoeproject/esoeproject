@@ -28,7 +28,7 @@
 
 #include "spep/Util.h"
 #include "spep/metadata/KeyResolver.h"
-#include "spep/reporting/ReportingProcessor.h"
+#include "saml2/logging/api.h"
 
 #include "saml2/handlers/MetadataOutput.h"
 #include "saml2/resolver/ExternalKeyResolver.h"
@@ -41,7 +41,6 @@ namespace spep
 		
 		public:
 		virtual ~Metadata(){}
-		//virtual void init() = 0;
 		virtual const std::wstring getSPEPIdentifier() const = 0;
 		virtual const std::wstring getESOEIdentifier() const = 0;
 		virtual const std::string getSingleSignOnEndpoint() const = 0;

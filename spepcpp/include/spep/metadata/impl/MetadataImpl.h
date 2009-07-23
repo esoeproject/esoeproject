@@ -27,8 +27,8 @@
 #include "saml2/handlers/Marshaller.h"
 #include "saml2/handlers/Unmarshaller.h"
 #include "saml2/handlers/MetadataOutput.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 #include <map>
 
@@ -64,12 +64,12 @@ namespace spep
 		{
 		
 			private:
-			ReportingProcessor *_reportingProcessor;
-			LocalReportingProcessor _localReportingProcessor;
+			saml2::Logger *_logger;
+			saml2::LocalLogger _localLogger;
 			KeyMap _map;
 			
 			public:
-			MetadataKeyResolver( ReportingProcessor *reportingProcessor, const KeyMap& map );
+			MetadataKeyResolver( saml2::Logger *logger, const KeyMap& map );
 			virtual ~MetadataKeyResolver();
 			virtual XSECCryptoKey *resolveKey (DSIGKeyInfoList *list);
 			virtual saml2::KeyData resolveKey (std::string keyName);
@@ -79,8 +79,8 @@ namespace spep
 		
 		private:
 		mutable Mutex _metadataMutex;
-		mutable ReportingProcessor *_reportingProcessor;
-		mutable LocalReportingProcessor _localReportingProcessor;
+		mutable saml2::Logger *_logger;
+		mutable saml2::LocalLogger _localLogger;
 		std::wstring _spepIdentifier;
 		std::wstring _esoeIdentifier;
 		std::string _metadataURL;
@@ -91,7 +91,6 @@ namespace spep
 		mutable int _balancingIndex;
 		mutable Mutex _indexMutex;
 		
-		//saml2::Marshaller<middleware::spepStartupServiceSchema::SPEPStartupServiceType> *_domElementMarshaller;
 		saml2::Unmarshaller<middleware::spepStartupServiceSchema::SPEPStartupServiceType> *_spepStartupServiceUnmarshaller;
 		
 		std::string _currentRevision;
@@ -127,7 +126,7 @@ namespace spep
 		void waitForData() const;
 		
 		public:
-		MetadataImpl( ReportingProcessor *reportingProcessor, std::string schemaPath, std::wstring spepIdentifier, std::wstring esoeIdentifier, std::string metadataURL, std::string caBundle, KeyResolver *keyResolver, int assertionConsumerIndex, int interval );
+		MetadataImpl( saml2::Logger *logger, std::string schemaPath, std::wstring spepIdentifier, std::wstring esoeIdentifier, std::string metadataURL, std::string caBundle, KeyResolver *keyResolver, int assertionConsumerIndex, int interval );
 		virtual ~MetadataImpl();
 		
 		virtual const std::wstring getSPEPIdentifier() const;

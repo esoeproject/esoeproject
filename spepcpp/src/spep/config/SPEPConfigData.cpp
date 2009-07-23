@@ -141,10 +141,9 @@ spep::SPEPConfigData::SPEPConfigData( const spep::ConfigurationReader& config )
 	std::string keystorePassword( config.getStringValue( CONFIGURATION_KEYSTOREPASSWORD ) );
 	std::string spepKeyAlias( config.getStringValue( CONFIGURATION_SPEPKEYALIAS ) );
 	std::string spepKeyPassword( config.getStringValue( CONFIGURATION_SPEPKEYPASSWORD ) );
-	std::string metadataKeyAlias( config.getStringValue( CONFIGURATION_METADATAKEYALIAS ) );
 	
 	// Create a new key resolver and load the keystore.
-	this->_keyResolver = KeyResolver( keystorePath, keystorePassword, spepKeyAlias, spepKeyPassword, metadataKeyAlias );
+	this->_keyResolver = KeyResolver( keystorePath, keystorePassword, spepKeyAlias, spepKeyPassword );
 }
 
 spep::SPEPConfigData& spep::SPEPConfigData::operator=( const spep::SPEPConfigData &other )

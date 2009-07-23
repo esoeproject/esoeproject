@@ -33,6 +33,9 @@
 /* for saml2::KeyData */
 #include "saml2/handlers/MetadataOutput.h"
 
+/* for saml2::LogLevel */
+#include "saml2/logging/LogLevel.h"
+
 #include "spep/ipc/Platform.h"
 #include "spep/Util.h"
 
@@ -128,6 +131,13 @@ namespace spep
 					load( len );
 					buf = new char[len];
 					_sa->load_binary( buf, len );
+				}
+
+				void load(saml2::LogLevel &level)
+				{
+					int val;
+					load( val );
+					level = static_cast<saml2::LogLevel>(val);
 				}
 				
 				void load(boost::posix_time::ptime &ptime)
@@ -386,6 +396,12 @@ namespace spep
 					save( len );
 					_sa->save_binary( buf, len );
 				}
+
+				void save(saml2::LogLevel &level)
+				{
+					int val = level;
+					save( val );
+				}
 				
 				void save(boost::posix_time::ptime &ptime)
 				{
@@ -571,10 +587,6 @@ namespace spep
 				}
 			}
 			
-			// TODO Shouldn't need to overload for void* and const void*
-			//void save_binary(void *address, std::size_t size)
-			//{ save_binary( address, size ); }
-			
 			void save_binary(const void *address, std::size_t size)
 			{
 				if (size > 0)
@@ -717,6 +729,7 @@ namespace spep
 					catch (SocketException e)
 					{
 						_closed = true;
+						throw;
 					}
 
 					// .. and update the position by how many bytes were written.
@@ -761,6 +774,7 @@ namespace spep
 				// If we still don't, it's EOF.
 				if (_size <= 0)
 				{
+					if (_eof) throw SocketException("The socket for this archive reached end-of-file");
 					_eof = true;
 					return '\0';
 				}

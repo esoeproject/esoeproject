@@ -30,8 +30,8 @@
 #include "spep/Util.h"
 
 #include "spep/sessions/PrincipalSession.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 namespace spep
 {
@@ -85,7 +85,7 @@ namespace spep
 		typedef std::map< UnicodeString, std::vector<UnicodeString> > GroupTargetMap;
 			
 		private:
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		mutable Mutex _cacheMutex;
 		bool _initialized;
 		GroupCacheMap _groupCaches;
@@ -107,7 +107,7 @@ namespace spep
 		static bool targetMatch( const UnicodeString &target, const UnicodeString &pattern );
 
 		~SessionGroupCacheImpl();
-		SessionGroupCacheImpl( ReportingProcessor *reportingProcessor, Decision defaultPolicyDecision );
+		SessionGroupCacheImpl( saml2::Logger *logger, Decision defaultPolicyDecision );
 		/** @see spep::SessionGroupCache */
 		/*@{*/
 		virtual void updateCache( std::wstring &esoeSessionID, UnicodeString groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision );

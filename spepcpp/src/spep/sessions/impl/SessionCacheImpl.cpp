@@ -32,9 +32,9 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-spep::SessionCacheImpl::SessionCacheImpl( spep::ReportingProcessor *reportingProcessor )
+spep::SessionCacheImpl::SessionCacheImpl( saml2::Logger *logger )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::SessionCacheImpl" ) ),
+_localLogger( logger, "spep::SessionCacheImpl" ),
 _sessionIDs(),
 _esoeSessions(),
 _unauthenticatedSessions()
@@ -56,7 +56,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 		{
 			// Serious problem. Inconsistent map. No ESOE session ID for the given session.
 			
-			this->_localReportingProcessor.log( FATAL, "Session cache has become inconsistent. No ESOE session found for principal session, even though the session ID was found successfully." );
+			_localLogger.error() << "Session cache has become inconsistent. No ESOE session found for principal session, even though the session ID was found successfully.";
 			throw InvalidStateException( "Session cache has become inconsistent" );
 		}
 		
@@ -68,7 +68,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 			return;
 		}
 		
-		this->_localReportingProcessor.log( DEBUG, "Session expiry: " + sessionID + " was set to expire at " + boost::posix_time::to_simple_string(principalSession.getSessionNotOnOrAfter()) );
+		_localLogger.debug() << "Session expiry: " << sessionID << " was set to expire at " << boost::posix_time::to_simple_string(principalSession.getSessionNotOnOrAfter());
 		
 		// Expired. Terminate it.
 		this->terminatePrincipalSession( principalSession.getESOESessionID() );

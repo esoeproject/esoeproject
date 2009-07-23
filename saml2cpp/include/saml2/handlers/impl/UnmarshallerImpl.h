@@ -61,6 +61,8 @@
 #include "saml2/resolver/ResourceResolver.h"
 #include "saml2/resolver/ExternalKeyResolver.h"
 #include "saml2/SAML2Defs.h"
+#include "saml2/logging/api.h"
+#include "saml2/xsd/xml-schema.hxx"
 
 #include "saml2/handlers/SAMLDocument.h"
 
@@ -75,8 +77,8 @@ namespace saml2
 	class UnmarshallerImpl : public saml2::Unmarshaller<T>
 	{
 		public:
-			UnmarshallerImpl(std::string schemaDir, std::vector<std::string> schemaList);
-			UnmarshallerImpl(std::string schemaDir, std::vector<std::string> schemaList, ExternalKeyResolver* extKeyResolver);
+			UnmarshallerImpl(Logger* logger, std::string schemaDir, std::vector<std::string> schemaList);
+			UnmarshallerImpl(Logger* logger, std::string schemaDir, std::vector<std::string> schemaList, ExternalKeyResolver* extKeyResolver);
 
 			~UnmarshallerImpl();
 
@@ -84,10 +86,12 @@ namespace saml2
 			T* unMarshallSigned (const SAMLDocument& document, bool keepDOM = false);
 			T* unMarshallUnSigned (const SAMLDocument& document, bool keepDOM = false);
 			T* unMarshallUnSignedElement (DOMElement* elem, bool keepDOM = false);
-			saml2::MetadataOutput<T>* unMarshallMetadata (const SAMLDocument& document, XSECCryptoKey* pk, bool keepDOM = false);
+			saml2::MetadataOutput<T>* unMarshallMetadata (const SAMLDocument& document, bool keepDOM = false);
 			void validateSignature(DOMDocument* doc, XSECCryptoKey* pk = NULL);
 			
 		private:
+			LocalLogger localLogger;
+			
 			void init();
 			DOMDocument* validate(const SAMLDocument& document);
 
@@ -121,7 +125,8 @@ namespace saml2
 	 * Constructor for unmarshaller instances that do not require usage of an external key resolver
 	 */
 	template <class T>
-	UnmarshallerImpl<T>::UnmarshallerImpl(std::string schemaDir, std::vector<std::string> schemaList)
+	UnmarshallerImpl<T>::UnmarshallerImpl(Logger* logger, std::string schemaDir, std::vector<std::string> schemaList)
+	: localLogger(logger, "saml2::UnmarshallerImpl")
 	{
 		try
 		{
@@ -141,7 +146,8 @@ namespace saml2
 	 * Constructor for unmarshaller instances that do require usage of an external key resolver
 	 */
 	template <class T>
-	UnmarshallerImpl<T>::UnmarshallerImpl(std::string schemaDir, std::vector<std::string> schemaList, ExternalKeyResolver* extKeyResolver)
+	UnmarshallerImpl<T>::UnmarshallerImpl(Logger* logger, std::string schemaDir, std::vector<std::string> schemaList, ExternalKeyResolver* extKeyResolver)
+	: localLogger(logger, "saml2::UnmarshallerImpl")
 	{
 		if(extKeyResolver == NULL)
 			SAML2LIB_INVPARAM_EX("Supplied external key resolver was NULL");
@@ -241,7 +247,6 @@ namespace saml2
 	template <class T>
 	T*  UnmarshallerImpl<T>::unMarshallSigned (const SAMLDocument& document, XSECCryptoKey* pk, bool keepDOM)
 	{
-		DOMDocument* domDoc = NULL;
 		T* obj = NULL;
 		
 		if(document.getData() == NULL || document.getLength() == 0 )
@@ -252,51 +257,59 @@ namespace saml2
 			
 		try
 		{
-			domDoc = validate(document);
-			validateSignature(domDoc, pk);
+			xml_schema::dom::auto_ptr<DOMDocument> domDoc( validate(document) );
+			validateSignature(domDoc.get(), pk);
 			if(keepDOM)
 			{
 				/* Note that the memory referenced by domDoc becomes owned by our XSD object implementation
 				 * in this case and will be cleaned up as required when this object is removed 
 				 */
+				domDoc->setUserData( xml_schema::dom::tree_node_key, &domDoc, 0 );
 				obj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::keep_dom | xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
 			}
 			else
 			{
 				obj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
-				domDoc->release();
 			}
 		}
 		catch (xsd::cxx::tree::parsing< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Parsing exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD Parsing exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected elements exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected elements exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_attribute< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Attribute exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected attribute exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_enumerator< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Enumerator exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected enumerator exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::no_type_info< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD No Type Info exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD no type info exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::not_derived< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Not Derived exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD not derived exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::exception< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Tree exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD generic exception while unmarshalling signed document", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
@@ -305,18 +318,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "SAXException while unmarshalling signed document", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "DOMException while unmarshalling signed document", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "XMLException while unmarshalling signed document", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "Exception while unmarshalling signed document", exc.what() );
 		}
 		catch(...)
@@ -342,7 +359,6 @@ namespace saml2
 	template <class T>
 	T*  UnmarshallerImpl<T>::unMarshallSigned (const SAMLDocument& document, bool keepDOM)
 	{
-		DOMDocument* domDoc;
 		T* obj = NULL;
 
 		if(document.getData() == NULL || document.getLength() == 0)
@@ -353,51 +369,59 @@ namespace saml2
 			if(extKeyResolver == NULL)
 				SAML2LIB_UNMAR_EX( "Incorrect constructor called for validation of content with external key resolver, re-initialise unmarshaller correctly" );
 				
-			domDoc = validate(document);
-			validateSignature(domDoc, NULL);
+			xml_schema::dom::auto_ptr<DOMDocument> domDoc( validate(document) );
+			validateSignature(domDoc.get(), NULL);
 			if(keepDOM)
 			{
 				/* Note that the memory referenced by domDoc becomes owned by our XSD object implementation
 				 * in this case and will be cleaned up as required when this object is removed 
 				 */
+				domDoc->setUserData( xml_schema::dom::tree_node_key, &domDoc, 0 );
 				obj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::keep_dom | xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
 			}
 			else
 			{
 				obj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
-				domDoc->release();
 			}
 		}
 		catch (xsd::cxx::tree::parsing< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Parsing exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD Parsing exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected elements exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected elements exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_attribute< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Attribute exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected attribute exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_enumerator< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Enumerator exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected enumerator exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::no_type_info< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD No Type Info exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD no type info exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::not_derived< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Not Derived exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD not derived exception while unmarshalling signed document", exc.what() );
 		}
 		catch (xsd::cxx::tree::exception< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD generic exception while unmarshalling signed document", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
@@ -406,18 +430,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "SAXException while unmarshalling signed document", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "DOMException while unmarshalling signed document", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "XMLException while unmarshalling signed document", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "Exception while unmarshalling signed document", exc.what() );
 		}
 		catch(...)
@@ -442,7 +470,6 @@ namespace saml2
 	template <class T>
 	T* UnmarshallerImpl<T>::unMarshallUnSigned (const SAMLDocument& document, bool keepDOM)
 	{
-		DOMDocument* domDoc;
 		T* obj = NULL;
 
 		if(document.getData() == NULL || document.getLength() == 0)
@@ -450,50 +477,58 @@ namespace saml2
 
 		try
 		{
-			domDoc = validate(document);
+			xml_schema::dom::auto_ptr<DOMDocument> domDoc( validate(document) );
 			if(keepDOM)
 			{
 				/* Note that the memory referenced by domDoc becomes owned by our XSD object implementation
 				 * in this case and will be cleaned up as required when this object is removed 
 				 */
+				domDoc->setUserData( xml_schema::dom::tree_node_key, &domDoc, 0 );
 				obj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::keep_dom | xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
 			}
 			else
 			{
 				obj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
-				domDoc->release();
 			}
 		}
 		catch (xsd::cxx::tree::parsing< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Parsing exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD Parsing exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected elements exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected elements exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_attribute< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Attribute exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected attribute exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_enumerator< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Enumerator exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected enumerator exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::no_type_info< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD No Type Info exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD no type info exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::not_derived< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Not Derived exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD not derived exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::exception< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD generic exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
@@ -502,18 +537,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "SAXException while unmarshalling unsigned document", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "DOMException while unmarshalling unsigned document", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "XMLException while unmarshalling unsigned document", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "Exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch(...)
@@ -548,7 +587,7 @@ namespace saml2
 		{
 			if(keepDOM)
 			{
-				DOMDocument *domDoc = this->domImpl->createDocument( elem->getNamespaceURI(), elem->getLocalName(), 0 );
+				xml_schema::dom::auto_ptr<DOMDocument> domDoc( this->domImpl->createDocument( elem->getNamespaceURI(), elem->getLocalName(), 0 ) );
 				if( domDoc->getDocumentElement() != NULL )
 				{
 					domDoc->removeChild( domDoc->getDocumentElement() );
@@ -561,8 +600,8 @@ namespace saml2
 				 * becomes owned by the unmarshaller object. This allows DOMElements that resulted
 				 * from other unmarshalling operations to be unmarshaller further.
 				 */
-				// instead of *elem, use *( static_cast<DOMElement*>( elem->cloneNode( true ) ) )
-				obj = new T ( *(domDoc->getDocumentElement()), xsd::cxx::tree::flags::keep_dom /*| xsd::cxx::tree::flags::not_root*/ | xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
+				domDoc->setUserData( xml_schema::dom::tree_node_key, &domDoc, 0 );
+				obj = new T ( *(domDoc->getDocumentElement()), xsd::cxx::tree::flags::keep_dom | xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
 			}
 			else
 			{
@@ -572,34 +611,42 @@ namespace saml2
 		}
 		catch (xsd::cxx::tree::parsing< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Parsing exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD Parsing exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected elements exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected elements exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_attribute< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Attribute exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected attribute exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_enumerator< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Enumerator exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected enumerator exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::no_type_info< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD No Type Info exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD no type info exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::not_derived< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Not Derived exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD not derived exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (xsd::cxx::tree::exception< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD generic exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
@@ -608,18 +655,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "SAXException while unmarshalling unsigned document", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "DOMException while unmarshalling unsigned document", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "XMLException while unmarshalling unsigned document", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "Exception while unmarshalling unsigned document", exc.what() );
 		}
 		catch(...)
@@ -644,24 +695,20 @@ namespace saml2
 	 * @exception InvalidParameterException, when invalid data is fed to the library
 	 */
 	template <class T>
-	saml2::MetadataOutput<T>*  UnmarshallerImpl<T>::unMarshallMetadata (const SAMLDocument& document, XSECCryptoKey* pk, bool keepDOM)
+	saml2::MetadataOutput<T>*  UnmarshallerImpl<T>::unMarshallMetadata (const SAMLDocument& document, bool keepDOM)
 	{
-		DOMDocument* domDoc = NULL;
 		DOMNodeList* keyDescriptorList = NULL;	
 		T* xmlObj = NULL;
 		
 		if(document.getData() == NULL || document.getLength() == 0)
 			SAML2LIB_INVPARAM_EX("Supplied xml document was NULL");
 
-		if(pk == NULL)
-			SAML2LIB_INVPARAM_EX("Supplied public key was NULL");
-			
 		saml2::MetadataOutput<T>* output = new MetadataOutput<T>();
 		bool validKeyData = false;
 		try
 		{
-			domDoc = validate(document);
-			validateSignature(domDoc, pk);
+			xml_schema::dom::auto_ptr<DOMDocument> domDoc( validate(document) );
+			validateSignature(domDoc.get(), NULL);
 			
 			/* Once metadata is validated extract all public keys for usage by caller, most likely in a key resolver impl */		
 			keyDescriptorList = domDoc->getElementsByTagNameNS(this->metadataURI, this->keyDescriptor);
@@ -811,46 +858,54 @@ namespace saml2
 				/* Note that the memory referenced by domDoc becomes owned by our XSD object implementation
 				 * in this case and will be cleaned up as required when this object is removed 
 				 */
+				domDoc->setUserData( xml_schema::dom::tree_node_key, &domDoc, 0 );
 				xmlObj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::keep_dom | xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
 			}
 			else
 			{
 				xmlObj = new T ( *domDoc->getDocumentElement(), xsd::cxx::tree::flags::dont_validate | xsd::cxx::tree::flags::dont_initialize);
-				domDoc->release();
 			}
 			
 			output->xmlObj = xmlObj;			
 		}
 		catch (xsd::cxx::tree::parsing< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Parsing exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD Parsing exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected elements exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_element< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Element exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected elements exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::expected_attribute< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Expected Attribute exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD expected attribute exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::unexpected_enumerator< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Unexpected Enumerator exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD unexpected enumerator exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::no_type_info< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD No Type Info exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD no type info exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::not_derived< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Not Derived exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD not derived exception while unmarshalling metadata", exc.what() );
 		}
 		catch (xsd::cxx::tree::exception< wchar_t > &exc)
 		{
+			localLogger.warn() << "XSD Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "XSD generic exception while unmarshalling metadata", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
@@ -859,18 +914,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "SAXException while unmarshalling metadata", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "DOMException while unmarshalling metadata", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML Exception: " << exc.getMessage();
 			SAML2LIB_UNMAR_EX_CAUSE( "XMLException while unmarshalling metadata", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_UNMAR_EX_CAUSE( "Exception while unmarshalling metadata", exc.what() );
 		}
 		catch(...)

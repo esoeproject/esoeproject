@@ -67,23 +67,23 @@ spep::MetadataThread::RawMetadata& spep::MetadataThread::RawMetadata::operator=(
 	return *this;
 }
 
-spep::MetadataThread::ThreadHandler::ThreadHandler( MetadataThread *metadataThread, ReportingProcessor *reportingProcessor )
+spep::MetadataThread::ThreadHandler::ThreadHandler( MetadataThread *metadataThread, saml2::Logger *logger )
 :
 _metadataThread( metadataThread ),
-_localReportingProcessor( reportingProcessor->localReportingProcessor("spep::MetadataThread::ThreadHandler"))
+_localLogger( logger, "spep::MetadataThread::ThreadHandler" )
 {
 }
 
 spep::MetadataThread::ThreadHandler::ThreadHandler( const ThreadHandler& other )
 :
 _metadataThread( other._metadataThread ),
-_localReportingProcessor( other._localReportingProcessor )
+_localLogger( _metadataThread->_logger, "spep::MetadataThread::ThreadHandler" )
 {
 }
 
 void spep::MetadataThread::ThreadHandler::operator()()
 {
-	this->_localReportingProcessor.log( DEBUG, "Metadata background thread invoked. Doing initial metadata retrieval." );
+	_localLogger.debug() << "Metadata background thread invoked. Doing initial metadata retrieval.";
 	
 	// Struct to hold timestamp for doing a thread sleep.
 	boost::xtime nextUpdate;
@@ -99,17 +99,17 @@ void spep::MetadataThread::ThreadHandler::operator()()
 	{
 		std::stringstream error;
 		error << "Exception thrown during metadata retrieval process. Error was: " << ex.what() << std::ends;
-		this->_localReportingProcessor.log( ERROR, error.str() );
+		_localLogger.error() << error.str();
 		this->_metadataThread->_metadata->_error = true;
 	}
 	catch (...)
 	{
-		this->_localReportingProcessor.log( ERROR, "Unexpected throw during metadata retrieval process. Initial retrieve failed." );
+		_localLogger.error() << "Unexpected throw during metadata retrieval process. Initial retrieve failed.";
 		this->_metadataThread->_metadata->_error = true;
 	}
 	
 	// Enter the "main" loop for the metadata processor.
-	this->_localReportingProcessor.log( DEBUG, "Metadata background thread entering loop." );
+	_localLogger.debug() << "Metadata background thread entering loop.";
 	while(!this->_metadataThread->_die)
 	{
 		try
@@ -139,7 +139,7 @@ void spep::MetadataThread::ThreadHandler::operator()()
 			boost::thread::sleep( nextUpdate );
 			
 			// Perform the metadata retrieve operation.
-			this->_localReportingProcessor.log( DEBUG, "Metadata background thread woke up. Doing metadata retrieval." );
+			_localLogger.debug() << "Metadata background thread woke up. Doing metadata retrieval.";
 			this->_metadataThread->doGetMetadata();
 			this->_metadataThread->_metadata->_error = false;
 		}
@@ -149,18 +149,18 @@ void spep::MetadataThread::ThreadHandler::operator()()
 			// using the old metadata we have cached.
 			std::stringstream error;
 			error << "Exception thrown during metadata retrieval process. Error was: " << ex.what() << std::ends;
-			this->_localReportingProcessor.log( ERROR, error.str() );
+			_localLogger.error() << error.str();
 		}
 		catch (...)
 		{
-			this->_localReportingProcessor.log( ERROR, "Unexpected throw during metadata retrieval process. Continuing." );
+			_localLogger.error() << "Unexpected throw during metadata retrieval process. Continuing.";
 		}
 	}
 }
 
 spep::MetadataThread::ThreadHandler spep::MetadataThread::getThreadHandler()
 {
-	return ThreadHandler( this, this->_reportingProcessor );
+	return ThreadHandler( this, this->_logger );
 }
 
 std::size_t spep::MetadataThread::curlCallback( void *buffer, std::size_t size, std::size_t nmemb, void *userp )
@@ -199,36 +199,36 @@ int spep::MetadataThread::debugCallback( CURL *curl, curl_infotype info, char *m
 		case CURLINFO_TEXT:
 		//The data is informational text.
 		ss << "curl-info: " << std::string( msg, len );
-		metadataThread->_localReportingProcessor.log( DEBUG, ss.str() );
+		metadataThread->_localLogger.debug() << ss.str();
 		break;
 		
 		case CURLINFO_HEADER_IN:
 		//The data is header (or header-like) data received from the peer.
 		//ss << "curl-header-in: " << std::string( msg, len );
-		//metadataThread->_localReportingProcessor.log( DEBUG, ss.str() );
+		//metadataThread->_localLogger.debug() << ss.str();
 		break;
 		
 		case CURLINFO_HEADER_OUT:
 		//The data is header (or header-like) data sent to the peer.
 		//ss << "curl-header-out: " << std::string( msg, len );
-		//metadataThread->_localReportingProcessor.log( DEBUG, ss.str() );
+		//metadataThread->_localLogger.debug() << ss.str();
 		break;
 		
 		case CURLINFO_DATA_IN:
 		//The data is protocol data received from the peer.
 		//ss << "curl-data-in: len=" << len << std::ends;
-		//metadataThread->_localReportingProcessor.log( DEBUG, ss.str() );
+		//metadataThread->_localLogger.debug() << ss.str();
 		break;
 		
 		case CURLINFO_DATA_OUT:
 		//The data is protocol data sent to the peer.
 		//ss << "curl-data-out: len=" << len << std::ends;
-		//metadataThread->_localReportingProcessor.log( DEBUG, ss.str() );
+		//metadataThread->_localLogger.debug() << ss.str();
 		break;
 		
 		default:
 		//ss << "curl-unknown-message: [suppressing output]";
-		//metadataThread->_localReportingProcessor.log( DEBUG, ss.str() );
+		//metadataThread->_localLogger.debug() << ss.str();
 		break;
 	}
 	
@@ -243,12 +243,12 @@ void spep::MetadataThread::doGetMetadata()
 	if( data.failed )
 		throw MetadataException( "Metadata document download failed. Couldn't perform metadata update." );
 
-	this->_localReportingProcessor.log( DEBUG, "Metadata retrieve succeeded. Going to process. Hash code is " + data.hashValue + " (current: " + this->_metadata->_currentRevision + ")" );
+	_localLogger.info() << "Metadata retrieve succeeded. Going to process. Hash code is " << data.hashValue << " (current: " << this->_metadata->_currentRevision << ")";
 			
 	// Check if the metadata has been modified since the last time the cache was updated.
 	if ( data.hashValue.compare( this->_metadata->_currentRevision ) != 0 )
 	{
-		this->_localReportingProcessor.log( DEBUG, "Hash code has changed. Rebuilding metadata cache." ); 
+		_localLogger.info() << "Hash code has changed. Rebuilding metadata cache."; 
 		
 		try
 		{
@@ -257,28 +257,28 @@ void spep::MetadataThread::doGetMetadata()
 			
 			// Unmarshal the metadata..
 			std::auto_ptr<saml2::MetadataOutput<saml2::metadata::EntitiesDescriptorType> > mdo( 
-				this->_metadataUnmarshaller->unMarshallMetadata( metadataDocument, this->_metadata->_keyResolver->getMetadataKey(), true )
+				this->_metadataUnmarshaller->unMarshallMetadata( metadataDocument, true )
 			);
 			
 			// .. and use it to rebuild the metadata cache.
 			this->_metadata->rebuildCache( *(mdo->xmlObj), data.hashValue, mdo->keyList );
 			
-			this->_localReportingProcessor.log( DEBUG, "Finished rebuilding metadata cache." );
+			_localLogger.info() << "Finished rebuilding metadata cache.";
 		}
 		catch (saml2::InvalidParameterException ex)
 		{
-			this->_localReportingProcessor.log( ERROR, "Invalid parameter passed to unmarshaller. Unmarshalling failed." ); 
+			_localLogger.error() << "Invalid parameter passed to unmarshaller. Unmarshalling failed."; 
 			throw;
 		}
 		catch (saml2::UnmarshallerException ex)
 		{
-			this->_localReportingProcessor.log( ERROR, "Invalid metadata document. Unmarshalling failed: " + ex.getMessage() );
+			_localLogger.error() << "Invalid metadata document. Unmarshalling failed: " << ex.getMessage();
 			throw;
 		}
 	}
 	else
 	{
-		this->_localReportingProcessor.log( DEBUG, "Hash code has not changed. Ignoring new metadata." ); 
+		_localLogger.debug() << "Hash code has not changed. Ignoring new metadata."; 
 	}
 }
 
@@ -296,7 +296,7 @@ spep::MetadataThread::RawMetadata spep::MetadataThread::getRawMetadata( std::str
 	CArray<char> errorBuffer( CURL_ERROR_SIZE );
 	std::memset( errorBuffer.get(), 0, CURL_ERROR_SIZE );
 	
-	this->_localReportingProcessor.log( DEBUG, "Calling cURL to retrieve metadata from " + metadataURL );
+	_localLogger.debug() << "Calling cURL to retrieve metadata from " << metadataURL;
 
 	// Set the URL for curl to retrieve from
 	curl_easy_setopt(this->_curl, CURLOPT_URL, metadataURL.c_str());
@@ -321,12 +321,12 @@ spep::MetadataThread::RawMetadata spep::MetadataThread::getRawMetadata( std::str
 	// Perform the retrieve operation. This will block until complete.
 	CURLcode result = curl_easy_perform(this->_curl);
 	
-	this->_localReportingProcessor.log( DEBUG, boost::lexical_cast<std::string>( result ) );
+	_localLogger.debug() << boost::lexical_cast<std::string>( result );
 
 	// If the request didn't succeed, handle the error condition.
 	if (result != CURLE_OK)
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Metadata retrieve failed. Error message was: ") + errorBuffer.get() );
+		_localLogger.error() << std::string("Metadata retrieve failed. Error message was: ") << errorBuffer.get();
 		data.failed = true;
 		return data;
 	}
@@ -351,10 +351,10 @@ spep::MetadataThread::RawMetadata spep::MetadataThread::getRawMetadata( std::str
 	return data;
 }
 
-spep::MetadataThread::MetadataThread( spep::ReportingProcessor *reportingProcessor, spep::MetadataImpl *metadata, std::string caBundle, std::string schemaPath, int interval )
+spep::MetadataThread::MetadataThread( saml2::Logger *logger, spep::MetadataImpl *metadata, std::string caBundle, std::string schemaPath, int interval, saml2::ExternalKeyResolver* extKeyResolver )
 :
-_reportingProcessor(reportingProcessor),
-_localReportingProcessor(reportingProcessor->localReportingProcessor("spep::MetadataThread")),
+_logger(logger),
+_localLogger(logger, "spep::MetadataThread"),
 _metadata(metadata),
 _interval(interval),
 _hashType( EVP_sha1() ), // Initialize to SHA1 hash
@@ -369,5 +369,5 @@ _die(false)
 	metadataSchemas.push_back( ConfigurationConstants::lxacmlMetadata );
 	metadataSchemas.push_back( ConfigurationConstants::cacheClearService );
 	metadataSchemas.push_back( ConfigurationConstants::spepStartupService );
-	this->_metadataUnmarshaller = new saml2::UnmarshallerImpl<saml2::metadata::EntitiesDescriptorType>( schemaPath, metadataSchemas );
+	this->_metadataUnmarshaller = new saml2::UnmarshallerImpl<saml2::metadata::EntitiesDescriptorType>( logger, schemaPath, metadataSchemas, extKeyResolver );
 }

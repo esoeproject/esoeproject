@@ -65,10 +65,10 @@
 
 #define ENVIRONMENT L"Unspecified environment"
 
-spep::StartupProcessorImpl::StartupProcessorImpl( spep::ReportingProcessor *reportingProcessor, spep::WSClient *wsClient, spep::Metadata *metadata, spep::KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, std::string schemaPath, std::wstring spepIdentifier, const std::vector<std::wstring>& ipAddresses, std::string nodeID, int authzCacheIndex, int startupRetryInterval )
+spep::StartupProcessorImpl::StartupProcessorImpl( saml2::Logger *logger, spep::WSClient *wsClient, spep::Metadata *metadata, spep::KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, std::string schemaPath, std::wstring spepIdentifier, const std::vector<std::wstring>& ipAddresses, std::string nodeID, int authzCacheIndex, int startupRetryInterval )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::StartupProcessorImpl" ) ),
-_reportingProcessor( reportingProcessor ),
+_localLogger( logger, "spep::StartupProcessorImpl" ),
+_logger( logger ),
 _wsClient( wsClient ),
 _metadata( metadata ),
 _keyResolver( keyResolver ),
@@ -86,8 +86,15 @@ _identifierGenerator( identifierGenerator )
 	std::vector<std::string> spepStartupSchemas;
 	spepStartupSchemas.push_back( ConfigurationConstants::esoeProtocol );
 	
-	this->_validateInitializationRequestMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ValidateInitializationRequestType>( schemaPath, spepStartupSchemas, "ValidateInitializationRequest", "http://www.qut.com/middleware/ESOEProtocolSchema", this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey() );
-	this->_validateInitializationResponseUnmarshaller = new saml2::UnmarshallerImpl<middleware::ESOEProtocolSchema::ValidateInitializationResponseType>( schemaPath, spepStartupSchemas, this->_metadata );
+	this->_validateInitializationRequestMarshaller = new saml2::MarshallerImpl
+		<middleware::ESOEProtocolSchema::ValidateInitializationRequestType>(
+			logger, schemaPath, spepStartupSchemas, "ValidateInitializationRequest", "http://www.qut.com/middleware/ESOEProtocolSchema", 
+			this->_keyResolver->getSPEPKeyAlias(), this->_keyResolver->getSPEPPrivateKey()
+		);
+	
+	this->_validateInitializationResponseUnmarshaller = new saml2::UnmarshallerImpl
+		<middleware::ESOEProtocolSchema::ValidateInitializationResponseType>
+			( logger, schemaPath, spepStartupSchemas, this->_metadata );
 }
 
 spep::StartupProcessorImpl::~StartupProcessorImpl()
@@ -96,7 +103,7 @@ spep::StartupProcessorImpl::~StartupProcessorImpl()
 	
 XERCES_CPP_NAMESPACE::DOMDocument* spep::StartupProcessorImpl::buildRequest( const std::wstring &samlID )
 {
-	this->_localReportingProcessor.log( spep::DEBUG, "Going to build SPEP startup request." );
+	_localLogger.debug() << "Going to build SPEP startup request.";
 	
 	saml2::assertion::NameIDType issuer( this->_spepIdentifier );
 	
@@ -137,13 +144,13 @@ void spep::StartupProcessorImpl::processResponse( middleware::ESOEProtocolSchema
 	catch( saml2::InvalidSAMLResponseException &ex )
 	{
 		// Response was rejected explicitly.
-		this->_localReportingProcessor.log( ERROR, "SAML response was rejected by SAML Validator. Reason: " + ex.getMessage() );
+		_localLogger.error() << "SAML response was rejected by SAML Validator. Reason: " << ex.getMessage();
 		throw SPEPStartupException( "SAML response was rejected by SAML Validator." );
 	}
 	catch( std::exception &ex )
 	{
 		// Error occurred validating the response. Reject it anyway.
-		this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+		_localLogger.error() << "Error occurred in the SAML Validator. Message: " << std::string(ex.what());
 		throw SPEPStartupException( "Error occurred in the SAML Validator." );
 	}
 	
@@ -153,17 +160,17 @@ void spep::StartupProcessorImpl::processResponse( middleware::ESOEProtocolSchema
 	if( saml2::statuscode::SUCCESS.compare( 0, statusCodeValue.length(), statusCodeValue.c_str() ) == 0 )
 	{
 		// Success. Permit the SPEP startup.
-		this->_localReportingProcessor.log( spep::INFO, "SPEP startup SUCCESS. Beginning normal operation." );
+		_localLogger.info() << "SPEP startup SUCCESS. Beginning normal operation.";
 		return;
 	}
 	
 	if( response->Status().StatusMessage().present() )
 	{
-		this->_localReportingProcessor.log( spep::ERROR, "SPEP startup FAILED. Retrying later. Message from ESOE was: " + UnicodeStringConversion::toString( response->Status().StatusMessage().get().c_str() ) );
+		_localLogger.error() << "SPEP startup FAILED. Retrying later. Message from ESOE was: " << UnicodeStringConversion::toString( response->Status().StatusMessage().get().c_str() );
 	}
 	else
 	{
-		this->_localReportingProcessor.log( spep::ERROR, "SPEP startup FAILED. Retrying later. No message from ESOE to explain failure." );
+		_localLogger.error() << "SPEP startup FAILED. Retrying later. No message from ESOE to explain failure.";
 	}
 	
 	throw SPEPStartupException( "Response from ESOE did not indicate successful SPEP startup." );
@@ -194,7 +201,7 @@ void spep::StartupProcessorImpl::beginSPEPStart()
 		this->setStartupResult( STARTUP_WAIT );
 	}
 	
-	StartupProcessorThread threadObject( this->_reportingProcessor, this, this->_startupRetryInterval );
+	StartupProcessorThread threadObject( this->_logger, this, this->_startupRetryInterval );
 	this->_threadGroup.create_thread( threadObject );
 }
 
@@ -203,12 +210,6 @@ void spep::StartupProcessorImpl::doStartup()
 	
 	try
 	{
-		// Locking here might improve efficiency, because a startup request in progress will block all requests
-		// for "started" status until it is finished - saves returning a value and having them sleep to retry.
-		
-		// Disabled to fix startup issue in #SPEPC-5
-		//ScopedLock lock( this->_startupResultMutex );
-		
 		// Generate the request document
 		std::wstring samlID( this->_identifierGenerator->generateSAMLID() );
 		
@@ -219,7 +220,7 @@ void spep::StartupProcessorImpl::doStartup()
 		{
 			std::stringstream ss;
 			ss << "About to send SPEP startup WS query to ESOE endpoint: " << endpoint << std::ends;
-			this->_localReportingProcessor.log( spep::DEBUG, ss.str() );
+			_localLogger.debug() << ss.str();
 		}
 		
 		// Perform the web service call.
@@ -229,7 +230,7 @@ void spep::StartupProcessorImpl::doStartup()
 				this->_wsClient->doWSCall( endpoint, requestDocument.get(), this->_validateInitializationResponseUnmarshaller )
 			);
 			
-			this->_localReportingProcessor.log( spep::DEBUG, "Received response from web service endpoint. Going to process." );
+			_localLogger.debug() << "Received response from web service endpoint. Going to process.";
 			
 			// Process the response.
 			this->processResponse( response.get(), samlID );
@@ -238,14 +239,14 @@ void spep::StartupProcessorImpl::doStartup()
 		{
 			std::stringstream ss;
 			ss << "SPEP startup ERROR. Exception when unmarshalling startup response. Exception was: " << ex.getMessage() << ". Cause was: " << ex.getCause() << std::ends;
-			this->_localReportingProcessor.log( spep::ERROR, ss.str() );
+			_localLogger.debug() << ss.str();
 			throw SPEPStartupException( "Exception occurred while unmarshalling SPEP startup response." );
 		}
 		catch( std::exception &ex )
 		{
 			std::stringstream ss;
 			ss << "SPEP startup ERROR. Exception when unmarshalling startup response. Exception was: " << ex.what() << std::ends;
-			this->_localReportingProcessor.log( spep::ERROR, ss.str() );
+			_localLogger.debug() << ss.str();
 			throw SPEPStartupException( "Exception occurred while unmarshalling SPEP startup response." );
 		}
 		
@@ -259,7 +260,7 @@ void spep::StartupProcessorImpl::doStartup()
 		ss << "Failed to marshal request document. Error was: " << ex.getMessage() << " .. cause: " << ex.getCause() << std::ends;
 		
 		// .. otherwise it failed for some reason.
-		this->_localReportingProcessor.log( spep::ERROR, ss.str() );
+		_localLogger.debug() << ss.str();
 		this->setStartupResult( STARTUP_FAIL );
 		
 	}
@@ -270,15 +271,16 @@ void spep::StartupProcessorImpl::doStartup()
 		ss << "Failed SPEP startup. Exception message was: " << ex.what() << std::ends;
 		
 		// .. otherwise it failed for some reason.
-		this->_localReportingProcessor.log( spep::ERROR, ss.str() );
+		_localLogger.debug() << ss.str();
 		this->setStartupResult( STARTUP_FAIL );
 		
 	}
 }
 
-spep::StartupProcessorImpl::StartupProcessorThread::StartupProcessorThread( spep::ReportingProcessor *reportingProcessor, spep::StartupProcessorImpl *startupProcessor, int startupRetryInterval )
+spep::StartupProcessorImpl::StartupProcessorThread::StartupProcessorThread( saml2::Logger *logger, spep::StartupProcessorImpl *startupProcessor, int startupRetryInterval )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::StartupProcessor" ) ),
+_logger( logger ),
+_localLogger( logger, "spep::StartupProcessor" ),
 _startupProcessor( startupProcessor ),
 _startupRetryInterval( startupRetryInterval )
 {
@@ -286,7 +288,8 @@ _startupRetryInterval( startupRetryInterval )
 
 spep::StartupProcessorImpl::StartupProcessorThread::StartupProcessorThread( const spep::StartupProcessorImpl::StartupProcessorThread& other )
 :
-_localReportingProcessor( other._localReportingProcessor ),
+_logger( other._logger ),
+_localLogger( other._logger, "spep::StartupProcessor" ),
 _startupProcessor( other._startupProcessor ),
 _startupRetryInterval( other._startupRetryInterval )
 {
@@ -297,7 +300,7 @@ void spep::StartupProcessorImpl::StartupProcessorThread::operator()()
 
 	boost::xtime nextUpdate;
 
-	this->_localReportingProcessor.log( spep::INFO, "SPEP startup handler begins." );
+	_localLogger.debug() << "SPEP startup handler begins.";
 	// Loop until we're allowed to start.
 	while( this->_startupProcessor->allowProcessing() != STARTUP_ALLOW )
 	{
@@ -308,14 +311,14 @@ void spep::StartupProcessorImpl::StartupProcessorThread::operator()()
 		}
 		catch (...)
 		{
-			this->_localReportingProcessor.log( spep::DEBUG, "Unexpected throw from doStartup() .. ignoring and continuing loop." );
+			_localLogger.error() << "Unexpected throw from doStartup() .. ignoring and continuing loop.";
 		}
 		
 		if( this->_startupProcessor->allowProcessing() == STARTUP_ALLOW ) break;
 		
 		if( boost::xtime_get( &nextUpdate, boost::TIME_UTC ) == 0 )
 		{
-			this->_localReportingProcessor.log( spep::ERROR, "Couldn't get UTC time from boost::xtime_get" );
+			_localLogger.error() << "Couldn't get UTC time from boost::xtime_get";
 		}
 		
 		nextUpdate.sec += _startupRetryInterval;
@@ -323,15 +326,6 @@ void spep::StartupProcessorImpl::StartupProcessorThread::operator()()
 		boost::thread::sleep( nextUpdate );
 		
 	}
-	this->_localReportingProcessor.log( spep::DEBUG, "SPEP startup handler exiting loop." );
-}
-
-spep::StartupProcessorImpl::StartupProcessorThread& spep::StartupProcessorImpl::StartupProcessorThread::operator=( const spep::StartupProcessorImpl::StartupProcessorThread& other )
-{
-	this->_localReportingProcessor = other._localReportingProcessor;
-	this->_startupProcessor = other._startupProcessor;
-	this->_startupRetryInterval = other._startupRetryInterval;
-	
-	return *this;
+	_localLogger.debug() << "SPEP startup handler exiting loop.";
 }
 

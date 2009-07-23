@@ -29,8 +29,8 @@
 #include "spep/metadata/Metadata.h"
 #include "saml2/identifier/IdentifierGenerator.h"
 #include "spep/metadata/KeyResolver.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 #include "spep/sessions/SessionCache.h"
 #include "spep/ws/WSClient.h"
 
@@ -61,7 +61,7 @@ namespace spep
 		
 		public:
 		
-		PolicyEnforcementProcessor( ReportingProcessor *reportingProcessor, WSClient *wsClient, SessionGroupCache *sessionGroupCache, SessionCache *sessionCache, Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, KeyResolver *keyResolver, std::string schemaPath );
+		PolicyEnforcementProcessor( saml2::Logger *logger, WSClient *wsClient, SessionGroupCache *sessionGroupCache, SessionCache *sessionCache, Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, KeyResolver *keyResolver, std::string schemaPath );
 		
 		~PolicyEnforcementProcessor();
 		
@@ -103,7 +103,7 @@ namespace spep
 		
 		private:
 		
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		SessionGroupCache *_sessionGroupCache;
 		SessionCache *_sessionCache;
 		Metadata *_metadata;

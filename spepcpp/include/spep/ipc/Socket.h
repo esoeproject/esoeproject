@@ -254,21 +254,28 @@ namespace spep
 				
 				while( *running )
 				{
-					// accept a connection..
-					platform::socket_t clientSocket = platform::acceptSocket( _socket );
-					
-					if( platform::validSocket( clientSocket ) )
+					try
 					{
-						// .. and fire off a thread for it
-						ServerSocketThread threadFunction( *this, clientSocket );
+						// accept a connection..
+						platform::socket_t clientSocket = platform::acceptSocket( _socket );
 						
-						/* What's happening here?
-						 * Well according to the boost thread api docs, the constructor
-						 * for the thread object fires off the thread in the background
-						 * and the destructor detaches the thread so that it cleans
-						 * itself up with it's done. That's the exact behaviour we want.
-						 */
-						delete ( new boost::thread( threadFunction ) );
+						if( platform::validSocket( clientSocket ) )
+						{
+							// .. and fire off a thread for it
+							ServerSocketThread threadFunction( *this, clientSocket );
+							
+							/* What's happening here?
+							 * Well according to the boost thread api docs, the constructor
+							 * for the thread object fires off the thread in the background
+							 * and the destructor detaches the thread so that it cleans
+							 * itself up with it's done. That's the exact behaviour we want.
+							 */
+							delete ( new boost::thread( threadFunction ) );
+						}
+					}
+					catch (SocketException e)
+					{
+						// ignore
 					}
 				}
 			}

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([SPEP], 0.5.2)
+AC_INIT([SPEP], 0.7)
 AC_CONFIG_SRCDIR([include/spep/Util.h])
 #AC_CONFIG_HEADER([config.h])
 

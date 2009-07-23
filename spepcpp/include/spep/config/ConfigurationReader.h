@@ -85,12 +85,6 @@
 #define CONFIGURATION_DISABLEPOLICYENFORCEMENT "disablePolicyEnforcement"
 #define CONFIGURATION_DISABLESPEPSTARTUP "disableSPEPStartup"
 
-//#define CONFIGURATION_TOKENDOMAIN "tokenDomain"
-//#define CONFIGURATION_KEYPATH "keyPath"
-//#define CONFIGURATION_SPEPPRIVATEKEYFILENAME "spepPrivateKeyFilename"
-//#define CONFIGURATION_SPEPPUBLICKEYFILENAME "spepPublicKeyFilename"
-//#define CONFIGURATION_METADATAPUBLICKEYFILENAME "metadataPublicKeyFilename"
-
 #define MESSAGE_CONFIG_BUFFER_SIZE 512
 #define MESSAGE_CONFIG_VARIABLE_NOT_PRESENT "The property %s was not present in the configuration file."
 #define MESSAGE_CONFIG_NOT_MULTIVALUED "The property %s was specified multiple times, but is not a multi valued property"
@@ -132,3 +126,4 @@ namespace spep {
 }
 
 #endif /*CONFIGURATIONREADER_H_*/
+

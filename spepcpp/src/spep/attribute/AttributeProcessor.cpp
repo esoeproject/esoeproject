@@ -36,9 +36,9 @@
 
 XERCES_CPP_NAMESPACE_USE
 
-spep::AttributeProcessor::AttributeProcessor( spep::ReportingProcessor *reportingProcessor, spep::Metadata *metadata, spep::KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, spep::WSClient *wsClient, saml2::SAMLValidator *samlValidator, std::string schemaPath, const std::map<std::string,std::string>& attributeRenameMap )
+spep::AttributeProcessor::AttributeProcessor( saml2::Logger *logger, spep::Metadata *metadata, spep::KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, spep::WSClient *wsClient, saml2::SAMLValidator *samlValidator, std::string schemaPath, const std::map<std::string,std::string>& attributeRenameMap )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::AttributeProcessor" ) ),
+_localLogger( logger, "spep::AttributeProcessor" ),
 _metadata( metadata ),
 _keyResolver( keyResolver ),
 _identifierGenerator( identifierGenerator ),
@@ -52,8 +52,11 @@ _attributeRenameMap()
 	schemaList.push_back( ConfigurationConstants::samlAssertion );
 	schemaList.push_back( ConfigurationConstants::samlProtocol );
 	
-	_attributeQueryMarshaller = new saml2::MarshallerImpl<saml2::protocol::AttributeQueryType>( schemaPath, schemaList, "AttributeQuery", "urn:oasis:names:tc:SAML:2.0:protocol", keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
-	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( schemaPath, schemaList, this->_metadata );
+	_attributeQueryMarshaller = new saml2::MarshallerImpl<saml2::protocol::AttributeQueryType>( 
+		logger, schemaPath, schemaList, "AttributeQuery", "urn:oasis:names:tc:SAML:2.0:protocol", 
+		keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey()
+	);
+	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( logger, schemaPath, schemaList, this->_metadata );
 	
 	for( std::map<std::string,std::string>::const_iterator iter = attributeRenameMap.begin();
 		iter != attributeRenameMap.end(); ++iter )
@@ -80,11 +83,11 @@ void spep::AttributeProcessor::doAttributeProcessing(spep::PrincipalSession &pri
 	// Validate the ESOE session identifier
 	if( principalSession.getESOESessionID().length() <= 0 )
 	{
-		this->_localReportingProcessor.log( ERROR, "Rejecting attribute processing request for principal session with empty ESOE session identifier." );
+		_localLogger.error() << "Rejecting attribute processing request for principal session with empty ESOE session identifier.";
 		SAML2LIB_INVPARAM_EX( "Principal session had an empty ESOE session identifier. Unable to get attributes." );
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, "Building attribute query for new principal session. ESOE Session ID: " + UnicodeStringConversion::toString( principalSession.getESOESessionID() ) );
+	_localLogger.debug() << "Building attribute query for new principal session. ESOE Session ID: " << UnicodeStringConversion::toString( principalSession.getESOESessionID() );
 
 	// Build the attribute query
 	std::wstring samlID = this->_identifierGenerator->generateSAMLID();
@@ -100,29 +103,27 @@ void spep::AttributeProcessor::doAttributeProcessing(spep::PrincipalSession &pri
 	try
 	{
 		std::string endpoint( this->_metadata->getAttributeServiceEndpoint() );
-		this->_localReportingProcessor.log( DEBUG, "Doing attribute query to endpoint: " + endpoint );
+		_localLogger.debug() << "Doing attribute query to endpoint: " << endpoint;
 		response.reset( this->_wsClient->doWSCall( endpoint, requestDocument.get(), this->_responseUnmarshaller ) );
 	}
 	catch( std::exception& ex )
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("An exception occurred during the attribute web service call. Unable to continue. Exception was: ") + ex.what() );
+		_localLogger.error() << "An exception occurred during the attribute web service call. Unable to continue. "
+			"Exception was: " << ex.what();
 		throw AttributeException( "An exception occurred during the attribute web service call. Unable to continue." );
 	}
 	
-	// NULL is handled in processAttributeResponse
-	//if( response.get() == NULL )
-	
-	this->_localReportingProcessor.log( DEBUG, "Got attribute response document. Going to process attribute statements." );
+	_localLogger.debug() << "Got attribute response document. Going to process attribute statements.";
 	
 	// Process the response
 	try
 	{
-		this->_localReportingProcessor.log( DEBUG, "Processing attribute response." );
+		_localLogger.debug() << "Processing attribute response.";
 		this->processAttributeResponse( response.get(), principalSession, samlID );
 	}
 	catch ( std::exception& ex )
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("An exception occurred while processing the attribute response. Exception was: ") + ex.what() );
+		_localLogger.error() << "An exception occurred while processing the attribute response. Exception was: " << ex.what();
 		throw AttributeException( "An exception occurred while processing the attribute response." );
 	}
 }
@@ -151,20 +152,21 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AttributeProcessor::buildAttributeQuery
 	
 	try
 	{
-		this->_localReportingProcessor.log( DEBUG, "Marshalling document for SAML ID: " + UnicodeStringConversion::toString( samlID ) );
+		std::string samlIDString( UnicodeStringConversion::toString( samlID ) );
+		_localLogger.debug() << "Marshalling attribute query document with SAML ID: " << samlIDString;
 		
 		// Marshal the request.
 		DOMDocument *requestDocument = this->_attributeQueryMarshaller->generateDOMDocument( &attributeQuery );
 		requestDocument = this->_attributeQueryMarshaller->validate( requestDocument );
 		this->_attributeQueryMarshaller->sign( requestDocument, identifierList );
 		
-		this->_localReportingProcessor.log( DEBUG, "Marshalled document successfully." );
+		_localLogger.debug() << "Marshalled attribute query document successfully. SAML ID: " << samlIDString;
 		
 		return requestDocument;
 	}
 	catch ( saml2::MarshallerException &ex )
 	{
-		this->_localReportingProcessor.log( ERROR, "Failed to marshal attribute query document. Exception was: " + ex.getMessage() + ". Cause was: " + ex.getCause() );
+		_localLogger.error() << "Failed to marshal attribute query document. Exception was: " << ex.getMessage() << ". Cause was: " << ex.getCause();
 		throw AttributeException( "Unable to marshal attribute query document." );
 	}
 }
@@ -173,7 +175,7 @@ void spep::AttributeProcessor::processAttributeResponse( saml2::protocol::Respon
 {
 	if ( response == NULL )
 	{
-		this->_localReportingProcessor.log( ERROR, "Attribute Response is NULL or empty. Failing attribute processing." );
+		_localLogger.error() << "Attribute Response is NULL or empty. Failing attribute processing.";
 		throw AttributeException( "Attribute Response is NULL or empty. Failing attribute processing." );
 	}
 	
@@ -185,13 +187,13 @@ void spep::AttributeProcessor::processAttributeResponse( saml2::protocol::Respon
 	catch( saml2::InvalidSAMLResponseException &ex )
 	{
 		// Response was rejected explicitly.
-		this->_localReportingProcessor.log( ERROR, "SAML response was rejected by SAML Validator. Reason: " + ex.getMessage() );
+		_localLogger.error() << "SAML response was rejected by SAML Validator. Reason: " << ex.getMessage();
 		throw AttributeException( "SAML response was rejected by SAML Validator." );
 	}
 	catch( std::exception &ex )
 	{
 		// Error occurred validating the response. Reject it anyway.
-		this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+		_localLogger.error() << "Error occurred in the SAML Validator. Message: " << ex.what();
 		throw AttributeException( "Error occurred in the SAML Validator." );
 	}
 	
@@ -214,13 +216,13 @@ void spep::AttributeProcessor::processAttributeResponse( saml2::protocol::Respon
 		catch( saml2::InvalidSAMLAssertionException &ex )
 		{
 			// Assertion was rejected explicitly.
-			this->_localReportingProcessor.log( ERROR, "SAML assertion was rejected by SAML Validator. Reason: " + ex.getMessage() );
+			_localLogger.error() << "SAML assertion was rejected by SAML Validator. Reason: " << ex.getMessage();
 			throw AttributeException( "SAML assertion was rejected by SAML Validator." );
 		}
 		catch( std::exception &ex )
 		{
 			// Error occurred validating the assertion. Reject it anyway.
-			this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+			_localLogger.error() << "Error occurred in the SAML Validator. Message: " << ex.what();
 			throw AttributeException( "Error occurred in the SAML Validator." );
 		}
 		
@@ -240,7 +242,7 @@ void spep::AttributeProcessor::processAttributeResponse( saml2::protocol::Respon
 		
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, "Attribute statements found: " + boost::lexical_cast<std::string>( attributeStatements.size() ) + ". Going to process." );
+	_localLogger.debug() << "Attribute statements found: " << attributeStatements.size() << ". Going to process.";
 	// Process the attribute statements
 	this->processAttributeStatements( attributeStatements, principalSession );
 }
@@ -266,14 +268,14 @@ void spep::AttributeProcessor::processAttributeStatements( AttributeStatementPoi
 			std::map<UnicodeString,UnicodeString>::iterator renameIterator = this->_attributeRenameMap.find( attributeNameText );
 			if( renameIterator != this->_attributeRenameMap.end() )
 			{
-				this->_localReportingProcessor.log( DEBUG, "Found rename for attribute " + UnicodeStringConversion::toString(attributeNameText) + "... renaming to " + UnicodeStringConversion::toString( renameIterator->second ) );
+				_localLogger.debug() << "Found rename for attribute " << UnicodeStringConversion::toString(attributeNameText) << "... renaming to " << UnicodeStringConversion::toString( renameIterator->second );
 				attributeNameText = renameIterator->second;
 			}
 			
 			// This will either a) create an empty list, or b) let us append to the existing list of values
 			std::vector<UnicodeString>& attributeValueList = principalSession.getAttributeMap()[attributeNameText];
 
-			this->_localReportingProcessor.log( DEBUG, "Current attribute: " + UnicodeStringConversion::toString( attributeNameText ) + ". " + boost::lexical_cast<std::string>( attributeValueList.size() ) + " value(s) already populated." );
+			_localLogger.debug() << "Current attribute: " << UnicodeStringConversion::toString( attributeNameText ) << ". " << attributeValueList.size() << " value(s) already populated.";
 
 			// Loop through the attribute values.
 			saml2::assertion::AttributeType::AttributeValue_iterator attributeValueIterator;
@@ -295,7 +297,7 @@ void spep::AttributeProcessor::processAttributeStatements( AttributeStatementPoi
 							DOMText *attributeValueTextNode = static_cast<DOMText*>(attributeValueChildNode);
 							UnicodeString attributeValueText( UnicodeStringConversion::toUnicodeString( attributeValueTextNode->getData() ) );
 							
-							this->_localReportingProcessor.log( DEBUG, "Adding value: " + UnicodeStringConversion::toString( attributeNameText ) + " = " + UnicodeStringConversion::toString( attributeValueText ) );
+							_localLogger.debug() << "Adding value: " << UnicodeStringConversion::toString( attributeNameText ) << " = " << UnicodeStringConversion::toString( attributeValueText );
 							attributeValueList.push_back( attributeValueText );
 							
 							break;
@@ -309,7 +311,7 @@ void spep::AttributeProcessor::processAttributeStatements( AttributeStatementPoi
 				
 			}
 			
-			this->_localReportingProcessor.log( DEBUG, "Finished processing attributes for " + UnicodeStringConversion::toString( attributeNameText ) + ". " + boost::lexical_cast<std::string>( attributeValueList.size() ) + " attribute in value list now." );
+			_localLogger.debug() << "Finished processing attributes for " << UnicodeStringConversion::toString( attributeNameText ) << ". " << attributeValueList.size() << " attributes in value list now.";
 		}
 		
 	}

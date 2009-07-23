@@ -25,11 +25,11 @@
 #include "saml2/SAML2Defs.h"
 
 
-spep::SOAPUtil::SOAPUtil( spep::ReportingProcessor *reportingProcessor, std::string schemaPath )
+spep::SOAPUtil::SOAPUtil( saml2::Logger *logger, std::string schemaPath )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::SOAPUtil" ) ),
-_soap11Handler( new SOAP11Handler( reportingProcessor, schemaPath ) ),
-_soap12Handler( new SOAP12Handler( reportingProcessor, schemaPath ) )
+_localLogger( logger, "spep::SOAPUtil" ),
+_soap11Handler( new SOAP11Handler( logger, schemaPath ) ),
+_soap12Handler( new SOAP12Handler( logger, schemaPath ) )
 {
 }
 
@@ -47,20 +47,20 @@ spep::SOAPDocument spep::SOAPUtil::wrapObjectInSOAP( DOMElement *objectElement, 
 	switch( soapVersion )
 	{
 		case SOAP12:
-		this->_localReportingProcessor.log( DEBUG, "Going to wrap SOAP/1.2 envelope." );
+		_localLogger.debug() << "Going to wrap SOAP/1.2 envelope.";
 		return this->_soap12Handler->wrap( objectElement, characterEncoding );
 
 		// Default to SOAP/1.1 processing
 		case SOAP11:
 		default:
-		this->_localReportingProcessor.log( DEBUG, "Going to wrap SOAP/1.1 envelope." );
+		_localLogger.debug() << "Going to wrap SOAP/1.1 envelope.";
 		return this->_soap11Handler->wrap( objectElement, characterEncoding );
 	}
 }
 
-spep::SOAPUtil::SOAP11Handler::SOAP11Handler( spep::ReportingProcessor *reportingProcessor, std::string schemaPath )
+spep::SOAPUtil::SOAP11Handler::SOAP11Handler( saml2::Logger *logger, std::string schemaPath )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::SOAPUtil::SOAP11Handler" ) ),
+_localLogger( logger, "spep::SOAPUtil::SOAP11Handler" ),
 _envelopeUnmarshaller( NULL ),
 _envelopeMarshaller( NULL )
 {
@@ -81,10 +81,14 @@ _envelopeMarshaller( NULL )
 	schemas.push_back( spep::ConfigurationConstants::sessionData );
 	schemas.push_back( spep::ConfigurationConstants::attributeConfig );
 	
-	_envelopeUnmarshaller = new saml2::UnmarshallerImpl< soap::v11::Envelope >( schemaPath, schemas );
-	_envelopeMarshaller = new saml2::MarshallerImpl< soap::v11::Envelope >( schemaPath, schemas, "Envelope", "http://schemas.xmlsoap.org/soap/envelope/" );
-	_bodyUnmarshaller = new saml2::UnmarshallerImpl< soap::v11::Body >( schemaPath, schemas );
-	_bodyMarshaller = new saml2::MarshallerImpl< soap::v11::Body >( schemaPath, schemas, "Body", "http://schemas.xmlsoap.org/soap/envelope/" );
+	_envelopeUnmarshaller = new saml2::UnmarshallerImpl< soap::v11::Envelope >( logger, schemaPath, schemas );
+	_envelopeMarshaller = new saml2::MarshallerImpl< soap::v11::Envelope >( logger, schemaPath, schemas, 
+		"Envelope", "http://schemas.xmlsoap.org/soap/envelope/"
+	);
+	_bodyUnmarshaller = new saml2::UnmarshallerImpl< soap::v11::Body >( logger, schemaPath, schemas );
+	_bodyMarshaller = new saml2::MarshallerImpl< soap::v11::Body >( logger, schemaPath, schemas, 
+		"Body", "http://schemas.xmlsoap.org/soap/envelope/"
+	);
 	
 	_implFlags = XMLString::transcode( IMPL_FLAGS );
 	_domImpl = DOMImplementationRegistry::getDOMImplementation(this->_implFlags);
@@ -110,18 +114,6 @@ spep::SOAPUtil::SOAP11Handler::~SOAP11Handler()
 
 spep::SOAPDocument spep::SOAPUtil::SOAP11Handler::wrap( DOMElement *objectElement, std::string characterEncoding )
 {
-	/*soap::v11::Body body;
-	body.any().push_back( *objectElement );
-	
-	DOMDocument* bodyDocument = this->_bodyMarshaller->generateDOMDocument( &body );
-	bodyDocument = this->_bodyMarshaller->validate( bodyDocument );
-	
-	soap::v11::Envelope envelope;
-	DOMElement* importedNode = static_cast<DOMElement*>( envelope.dom_document().importNode( bodyDocument->getDocumentElement(), true ) );
-	envelope.any().push_back( importedNode );
-	
-	bodyDocument->release();*/
-	
 	soap::v11::Body body;
 	body.any().push_back( *objectElement );
 	
@@ -131,9 +123,9 @@ spep::SOAPDocument spep::SOAPUtil::SOAP11Handler::wrap( DOMElement *objectElemen
 	return this->_envelopeMarshaller->marshallUnSigned( &envelope, false );
 }
 
-spep::SOAPUtil::SOAP12Handler::SOAP12Handler( spep::ReportingProcessor *reportingProcessor, std::string schemaPath )
+spep::SOAPUtil::SOAP12Handler::SOAP12Handler( saml2::Logger *logger, std::string schemaPath )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::SOAPUtil::SOAP12Handler" ) ),
+_localLogger( logger, "spep::SOAPUtil::SOAP12Handler" ),
 _envelopeUnmarshaller( NULL ),
 _envelopeMarshaller( NULL )
 {
@@ -154,8 +146,10 @@ _envelopeMarshaller( NULL )
 	schemas.push_back( spep::ConfigurationConstants::sessionData );
 	schemas.push_back( spep::ConfigurationConstants::attributeConfig );
 	
-	_envelopeUnmarshaller = new saml2::UnmarshallerImpl< soap::v12::Envelope >( schemaPath, schemas );
-	_envelopeMarshaller = new saml2::MarshallerImpl< soap::v12::Envelope >( schemaPath, schemas, "Envelope", "http://www.w3.org/2003/05/soap-envelope" );
+	_envelopeUnmarshaller = new saml2::UnmarshallerImpl< soap::v12::Envelope >( logger, schemaPath, schemas );
+	_envelopeMarshaller = new saml2::MarshallerImpl< soap::v12::Envelope >( logger, schemaPath, schemas, 
+		"Envelope", "http://www.w3.org/2003/05/soap-envelope"
+	);
 	
 	_implFlags = XMLString::transcode( IMPL_FLAGS );
 	_domImpl = DOMImplementationRegistry::getDOMImplementation(this->_implFlags);

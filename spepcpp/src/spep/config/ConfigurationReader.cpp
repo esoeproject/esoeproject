@@ -275,7 +275,6 @@ spep::ConfigurationReader::ConfigurationReader( boost::program_options::variable
 	this->setStringValue( variablesMap, CONFIGURATION_KEYSTOREPASSWORD );
 	this->setStringValue( variablesMap, CONFIGURATION_SPEPKEYALIAS );
 	this->setStringValue( variablesMap, CONFIGURATION_SPEPKEYPASSWORD );
-	this->setStringValue( variablesMap, CONFIGURATION_METADATAKEYALIAS );
 
 	// Mandatory config
 	this->setStringValue( variablesMap, CONFIGURATION_SCHEMAPATH );
@@ -326,6 +325,9 @@ spep::ConfigurationReader::ConfigurationReader( boost::program_options::variable
 	this->setStringValue( variablesMap, CONFIGURATION_DISABLEATTRIBUTEQUERY, "false" );
 	this->setStringValue( variablesMap, CONFIGURATION_DISABLEPOLICYENFORCEMENT, "false" );
 	this->setStringValue( variablesMap, CONFIGURATION_DISABLESPEPSTARTUP, "false" );
+
+	// Deprecated/unused options
+	this->setStringValue( variablesMap, CONFIGURATION_METADATAKEYALIAS, "" );
 }
 
 bool spep::ConfigurationReader::isValid()

@@ -22,9 +22,9 @@
 #include "spep/UnicodeStringConversion.h"
 
 
-spep::WSProcessor::WSProcessor( spep::ReportingProcessor *reportingProcessor, spep::AuthnProcessor *authnProcessor, spep::PolicyEnforcementProcessor *policyEnforcementProcessor, spep::SOAPUtil *soapUtil )
+spep::WSProcessor::WSProcessor( saml2::Logger *logger, spep::AuthnProcessor *authnProcessor, spep::PolicyEnforcementProcessor *policyEnforcementProcessor, spep::SOAPUtil *soapUtil )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor("spep::WSProcessor") ),
+_localLogger( logger, "spep::WSProcessor" ),
 _authnProcessor( authnProcessor ),
 _policyEnforcementProcessor( policyEnforcementProcessor ),
 _soapUtil( soapUtil )
@@ -33,7 +33,7 @@ _soapUtil( soapUtil )
 
 spep::SOAPDocument spep::WSProcessor::authzCacheClear( spep::SOAPDocument requestDocument, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding )
 {
-	this->_localReportingProcessor.log( spep::DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( requestDocument ) ) );
+	_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( requestDocument ) );
 	
 	std::auto_ptr<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType> request;
 	saml2::Unmarshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType> *unmarshaller =
@@ -41,18 +41,18 @@ spep::SOAPDocument spep::WSProcessor::authzCacheClear( spep::SOAPDocument reques
 	try
 	{
 		request.reset( this->_soapUtil->unwrapObjectFromSOAP( unmarshaller, requestDocument, soapVersion ) );
-		this->_localReportingProcessor.log( spep::DEBUG, "Unwrapped SOAP document successfully. Going to perform authz cache clear." );
+		_localLogger.debug() << "Unwrapped SOAP document successfully. Going to perform authz cache clear.";
 	}
 	catch( saml2::UnmarshallerException &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, "Error occurred unwrapping SOAP envelope. Message was: " + ex.getMessage() + " Cause was: " + ex.getCause() );
+		_localLogger.error() << "Error occurred unwrapping SOAP envelope. Message was: " << ex.getMessage() << " Cause was: " << ex.getCause();
 		return spep::SOAPDocument();
 	}
 	
 	if( request.get() == NULL )
 	{
-		this->_localReportingProcessor.log( spep::ERROR, "Unwrapped SOAP message was NULL(?) Can't continue with authz cache clear request." );
+		_localLogger.error() << "Unwrapped SOAP message was NULL(?) Can't continue with authz cache clear request.";
 		return spep::SOAPDocument();
 	}
 	
@@ -64,46 +64,31 @@ spep::SOAPDocument spep::WSProcessor::authzCacheClear( spep::SOAPDocument reques
 	catch( std::exception &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, std::string("Error occurred performing cache clear. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Error occurred performing cache clear. Message was: ") << ex.what();
 		return spep::SOAPDocument();
 	}
 	DOMDocumentAutoRelease responseAutoRelease( response );
 	
-	this->_localReportingProcessor.log( spep::DEBUG, "Performed authz cache clear. Going to wrap response document." );
+	_localLogger.debug() << "Performed authz cache clear. Going to wrap response document.";
 	try
 	{
 		SOAPDocument responseDocument = this->_soapUtil->wrapObjectInSOAP( response->getDocumentElement(), characterEncoding, SOAPUtil::SOAP11 );
-		this->_localReportingProcessor.log( spep::DEBUG, "Wrapped response document. Returning." );
-		this->_localReportingProcessor.log( spep::DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( responseDocument ) ) );
+		_localLogger.debug() << "Wrapped response document. Returning.";
+		_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( responseDocument ) );
 		
 		return responseDocument;
 	}
 	catch( saml2::MarshallerException &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, "Error occurred wrapping SOAP response. Message was: " + ex.getMessage() + " Cause was: " + ex.getCause() );
+		_localLogger.error() << "Error occurred wrapping SOAP response. Message was: " << ex.getMessage() << " Cause was: " << ex.getCause();
 		return spep::SOAPDocument();
 	}
 }
 
 spep::SOAPDocument spep::WSProcessor::singleLogout( spep::SOAPDocument requestDocument, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding )
 {
-#if 0
-	this->_localReportingProcessor.log( spep::DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPRequestDocument() ) ) );
-	
-	this->processSOAPRequest( data );
-	
-	AuthnProcessorData authnProcessorData;
-	authnProcessorData.setRequestDocument( data.getSAMLRequestDocument() );
-	
-	this->_authnProcessor->logoutPrincipal( authnProcessorData );
-	
-	data.setSAMLResponseDocument( authnProcessorData.getResponseDocument() );
-	
-	this->createSOAPResponse( data );
-	this->_localReportingProcessor.log( spep::DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPResponseDocument() ) ) );
-#endif
-	this->_localReportingProcessor.log( spep::DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( requestDocument ) ) );
+	_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( requestDocument ) );
 	
 	std::auto_ptr<saml2::protocol::LogoutRequestType> request;
 	saml2::Unmarshaller<saml2::protocol::LogoutRequestType> *unmarshaller =
@@ -111,24 +96,24 @@ spep::SOAPDocument spep::WSProcessor::singleLogout( spep::SOAPDocument requestDo
 	try
 	{
 		request.reset( this->_soapUtil->unwrapObjectFromSOAP( unmarshaller, requestDocument, soapVersion ) );
-		this->_localReportingProcessor.log( spep::DEBUG, "Unwrapped SOAP document successfully. Going to perform single logout." );
+		_localLogger.debug() << "Unwrapped SOAP document successfully. Going to perform single logout.";
 	}
 	catch( saml2::UnmarshallerException &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, "Error occurred unwrapping SOAP envelope. Message was: " + ex.getMessage() + " Cause was: " + ex.getCause() );
+		_localLogger.error() << "Error occurred unwrapping SOAP envelope. Message was: " << ex.getMessage() << " Cause was: " << ex.getCause();
 		return spep::SOAPDocument();
 	}
 	catch( std::exception &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, std::string("Error occurred unwrapping SOAP envelope. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Error occurred unwrapping SOAP envelope. Message was: ") << ex.what();
 		return spep::SOAPDocument();
 	}
 	
 	if( request.get() == NULL )
 	{
-		this->_localReportingProcessor.log( spep::ERROR, "Unwrapped SOAP message was NULL(?) Can't continue with authz cache clear request." );
+		_localLogger.error() << "Unwrapped SOAP message was NULL(?) Can't continue with authz cache clear request.";
 		return spep::SOAPDocument();
 	}
 	
@@ -140,31 +125,31 @@ spep::SOAPDocument spep::WSProcessor::singleLogout( spep::SOAPDocument requestDo
 	catch( std::exception &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, std::string("Error occurred performing logout. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Error occurred performing logout. Message was: ") << ex.what();
 		return spep::SOAPDocument();
 	}
 	
 	DOMDocumentAutoRelease responseAutoRelease( response );
 
-	this->_localReportingProcessor.log( spep::DEBUG, "Performed single logout. Going to wrap response document." );
+	_localLogger.debug() << "Performed single logout. Going to wrap response document.";
 	try
 	{
 		SOAPDocument responseDocument = this->_soapUtil->wrapObjectInSOAP( response->getDocumentElement(), characterEncoding, SOAPUtil::SOAP11 );
-		this->_localReportingProcessor.log( spep::DEBUG, "Wrapped response document. Returning." );
-		this->_localReportingProcessor.log( spep::DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( responseDocument ) ) );
+		_localLogger.debug() << "Wrapped response document. Returning.";
+		_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( responseDocument ) );
 		
 		return responseDocument;
 	}
 	catch( saml2::MarshallerException &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, "Error occurred wrapping SOAP response. Message was: " + ex.getMessage() + " Cause was: " + ex.getCause() );
+		_localLogger.error() << "Error occurred wrapping SOAP response. Message was: " << ex.getMessage() << " Cause was: " << ex.getCause();
 		return spep::SOAPDocument();
 	}
 	catch( std::exception &ex )
 	{
 		// TODO Maybe generate a SOAP fault.
-		this->_localReportingProcessor.log( spep::ERROR, std::string("Error occurred wrapping SOAP response. Message was: ") + ex.what() );
+		_localLogger.error() << std::string("Error occurred wrapping SOAP response. Message was: ") << ex.what();
 		return spep::SOAPDocument();
 	}
 }

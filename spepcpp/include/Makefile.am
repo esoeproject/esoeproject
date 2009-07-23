@@ -23,10 +23,6 @@ spep/config/proxy/ConfigurationDispatcher.h \
 spep/config/Configuration.h \
 spep/config/ConfigurationReader.h \
 spep/config/impl/ConfigurationImpl.h \
-spep/reporting/ReportingProcessor.h \
-spep/reporting/ReportingLevels.h \
-spep/reporting/LocalReportingProcessor.h \
-spep/reporting/Handler.h \
 spep/sessions/SessionCacheThread.h \
 spep/sessions/SessionCache.h \
 spep/sessions/PrincipalSession.h \
@@ -46,6 +42,8 @@ spep/ipc/Exceptions.h \
 spep/ipc/Platform.h \
 spep/ipc/Socket.h \
 spep/ipc/Engine.h \
+spep/logging/proxy/LoggerDispatcher.h \
+spep/logging/proxy/LoggerProxy.h \
 spep/Base64.h \
 spep/SPEP.h \
 spep/exceptions/SPEPStartupException.h \

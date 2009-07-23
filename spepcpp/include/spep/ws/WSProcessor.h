@@ -18,8 +18,8 @@
  */
 
 #include "spep/Util.h"
-#include "spep/reporting/LocalReportingProcessor.h"
-#include "spep/reporting/ReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 #include "spep/authn/AuthnProcessor.h"
 #include "spep/pep/PolicyEnforcementProcessor.h"
 
@@ -34,7 +34,7 @@ namespace spep
 	{
 		
 		public:
-		WSProcessor( ReportingProcessor *reportingProcessor, AuthnProcessor *authnProcessor, PolicyEnforcementProcessor *policyEnforcementProcessor, SOAPUtil *soapUtil );
+		WSProcessor( saml2::Logger *logger, AuthnProcessor *authnProcessor, PolicyEnforcementProcessor *policyEnforcementProcessor, SOAPUtil *soapUtil );
 		
 		SOAPDocument authzCacheClear( SOAPDocument requestDocument, SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding );
 		SOAPDocument singleLogout( SOAPDocument requestDocument, SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding );
@@ -43,7 +43,7 @@ namespace spep
 		void processSOAPRequest( WSProcessorData& data );
 		void createSOAPResponse( WSProcessorData& data );
 
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		AuthnProcessor *_authnProcessor;
 		PolicyEnforcementProcessor *_policyEnforcementProcessor;
 		SOAPUtil *_soapUtil;

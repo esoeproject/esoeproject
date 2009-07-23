@@ -58,6 +58,7 @@
 #include "saml2/handlers/SAMLDocument.h"
 #include "saml2/namespace/NamespacePrefixMapper.h"
 #include "saml2/SAML2Defs.h"
+#include "saml2/logging/api.h"
 
 XERCES_CPP_NAMESPACE_USE
 
@@ -70,8 +71,8 @@ namespace saml2
 	class MarshallerImpl : public saml2::Marshaller<T>
 	{
 		public:
-			MarshallerImpl( std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI );
-			MarshallerImpl( std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI, std::string keyPairName, XSECCryptoKey* pk );
+			MarshallerImpl( Logger* logger, std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI );
+			MarshallerImpl( Logger* logger, std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI, std::string keyPairName, XSECCryptoKey* pk );
 			~MarshallerImpl();
 
 			SAMLDocument  marshallSigned( T*  xmlObj, std::vector<std::string> idList );
@@ -84,6 +85,8 @@ namespace saml2
 			DOMDocument* validate (DOMDocument* domDoc);
 			
 		private:
+			LocalLogger localLogger;
+
 			std::string schemaDir;
 			std::vector<std::string> schemaList;
 			std::string rootElementName;
@@ -118,7 +121,8 @@ namespace saml2
 	 * Constructor for marshaller instances that are not required to do any cryptography
 	 */
 	template <class T>
-	MarshallerImpl<T>::MarshallerImpl( std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI )
+	MarshallerImpl<T>::MarshallerImpl( Logger* logger, std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI )
+	: localLogger(logger, "MarshallerImpl")
 	{
 		this->schemaDir = schemaDir;
 		this->schemaList = schemaList;
@@ -139,7 +143,8 @@ namespace saml2
 	 * Caller is responsible for memory management of all passed data.
 	 */
 	template <class T>
-	MarshallerImpl<T>::MarshallerImpl( std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI, std::string keyPairName, XSECCryptoKey* pk )
+	MarshallerImpl<T>::MarshallerImpl( Logger* logger, std::string schemaDir, std::vector<std::string> schemaList, std::string rootElementName, std::string namespaceURI, std::string keyPairName, XSECCryptoKey* pk )
+	: localLogger(logger, "MarshallerImpl")
 	{
 		if(pk == NULL)
 			SAML2LIB_INVPARAM_EX("Supplied private key was NULL");
@@ -269,29 +274,10 @@ namespace saml2
 			domDoc->release();
 			domDoc = NULL;
 		}
-		catch(xsd::cxx::tree::serialization< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD Serialization exception while marshalling signed document", exc.what() );
-		}
-		catch(xsd::cxx::tree::expected_element< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD Excpected Element exception while marshalling signed document", exc.what() );
-		}
-		catch(xsd::cxx::tree::no_namespace_mapping< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD No Namespace Mapping exception while marshalling signed document", exc.what() );
-		}
-		catch(xsd::cxx::tree::no_prefix_mapping< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD No Prefix Mapping exception while marshalling signed document", exc.what() );
-		}
-		catch(xsd::cxx::tree::xsi_already_in_use< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD XSI Already In Use exception while marshalling signed document", exc.what() );
-		}
 		catch(xsd::cxx::tree::exception< wchar_t >  &exc)
 		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD generic exception while marshalling signed document", exc.what() );
+			localLogger.warn() << "XSD tree exception: " << exc.what();
+			SAML2LIB_MAR_EX_CAUSE( "XSD exception while marshalling signed document", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
 		{
@@ -299,18 +285,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "SAXException while marshalling signed document", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "DOMException while marshalling signed document", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "XMLException while marshalling signed document", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_MAR_EX_CAUSE( "Exception while marshalling signed document", exc.what() );
 		}
 		catch(...)
@@ -345,29 +335,10 @@ namespace saml2
 			domDoc->release();
 			domDoc = NULL;
 		}
-		catch(xsd::cxx::tree::serialization< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD Serialization exception while marshalling unsigned document", exc.what() );
-		}
-		catch(xsd::cxx::tree::expected_element< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD Excpected Element exception while marshalling unsigned document", exc.what() );
-		}
-		catch(xsd::cxx::tree::no_namespace_mapping< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD No Namespace Mapping exception while marshalling unsigned document", exc.what() );
-		}
-		catch(xsd::cxx::tree::no_prefix_mapping< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD No Prefix Mapping exception while marshalling unsigned document", exc.what() );
-		}
-		catch(xsd::cxx::tree::xsi_already_in_use< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD XSI Already In Use exception while marshalling unsigned document", exc.what() );
-		}
 		catch(xsd::cxx::tree::exception< wchar_t >  &exc)
 		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD generic exception while marshalling unsigned document", exc.what() );
+			localLogger.warn() << "XSD tree exception: " << exc.what();
+			SAML2LIB_MAR_EX_CAUSE( "XSD exception while marshalling unsigned document", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
 		{
@@ -375,18 +346,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "SAXException while marshalling unsigned document", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "DOMException while marshalling unsigned document", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "XMLException while marshalling unsigned document", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_MAR_EX_CAUSE( "Exception while marshalling unsigned document", exc.what() );
 		}
 		catch(...)
@@ -419,29 +394,10 @@ namespace saml2
 			elem = generateDOMElement( xmlObj );
 			samlDocument = this->generateOutput( elem );
 		}
-		catch(xsd::cxx::tree::serialization< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD Serialization exception while marshalling unsigned element", exc.what() );
-		}
-		catch(xsd::cxx::tree::expected_element< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD Excpected Element exception while marshalling unsigned element", exc.what() );
-		}
-		catch(xsd::cxx::tree::no_namespace_mapping< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD No Namespace Mapping exception while marshalling unsigned element", exc.what() );
-		}
-		catch(xsd::cxx::tree::no_prefix_mapping< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD No Prefix Mapping exception while marshalling unsigned element", exc.what() );
-		}
-		catch(xsd::cxx::tree::xsi_already_in_use< wchar_t >  &exc)
-		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD XSI Already In Use exception while marshalling unsigned element", exc.what() );
-		}
 		catch(xsd::cxx::tree::exception< wchar_t >  &exc)
 		{
-			SAML2LIB_MAR_EX_CAUSE( "XSD generic exception while marshalling unsigned element", exc.what() );
+			localLogger.warn() << "XSD tree exception: " << exc.what();
+			SAML2LIB_MAR_EX_CAUSE( "XSD exception while marshalling unsigned element", exc.what() );
 		}
 		catch (std::bad_alloc &exc)
 		{
@@ -449,18 +405,22 @@ namespace saml2
 		}
 		catch(SAXException &exc)
 		{
+			localLogger.warn() << "SAX exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "SAXException while marshalling unsigned element", exc.getMessage() );
 		}
 		catch(DOMException &exc)
 		{
+			localLogger.warn() << "DOM exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "DOMException while marshalling unsigned element", exc.getMessage() );
 		}
 		catch(XMLException &exc)
 		{
+			localLogger.warn() << "XML exception: " << exc.getMessage();
 			SAML2LIB_MAR_EX_CAUSE( "XMLException while marshalling unsigned element", exc.getMessage() );
 		}
 		catch(std::exception &exc)
 		{
+			localLogger.warn() << "Exception: " << exc.what();
 			SAML2LIB_MAR_EX_CAUSE( "Exception while marshalling unsigned element", exc.what() );
 		}
 		catch(...)
@@ -504,6 +464,7 @@ namespace saml2
 		}
 		catch(...)
 		{
+			localLogger.warn() << "Exception occurred while generating output.";
 			if(formatTarget != NULL)
 			{
 				delete formatTarget;
@@ -553,6 +514,7 @@ namespace saml2
 		}
 		catch(...)
 		{
+			localLogger.warn() << "Exception occurred while generating output.";
 			if(formatTarget != NULL)
 			{
 				delete formatTarget;
@@ -643,6 +605,7 @@ namespace saml2
 		}
 		catch(...)
 		{
+			localLogger.warn() << "Exception occurred while generating DOMDocument object.";
 			if(uriVal != NULL)
 			{
 				XMLString::release(&uriVal);
@@ -700,6 +663,7 @@ namespace saml2
 		}
 		catch(...)
 		{
+			localLogger.warn() << "Exception occurred while generating DOMElement";
 			if(uriVal != NULL)
 			{
 				XMLString::release(&uriVal);
@@ -793,6 +757,7 @@ namespace saml2
 		}
 		catch(...)
 		{
+			localLogger.warn() << "Exception occurred while validating DOMDocument";
 			/* Clean up any memory allocated and throw back up stack */
 			if(schema != NULL)
 			{
@@ -916,6 +881,7 @@ namespace saml2
 		}
 		catch (XSECCryptoException &exc)
 		{		
+			localLogger.warn() << "Exception with XSEC Crypto: " << exc.getMsg();
 			if(domDoc != NULL)
 			{
 				domDoc->release();
@@ -944,6 +910,7 @@ namespace saml2
 		}
 		catch (XSECException &exc)
 		{
+			localLogger.warn() << "XSEC library threw an exception: " << exc.getMsg();
 			if(domDoc != NULL)
 			{
 				domDoc->release();
@@ -972,6 +939,7 @@ namespace saml2
 		}
 		catch(...)
 		{
+			localLogger.warn() << "Generic exception while signing document.";
 			if(domDoc != NULL)
 			{
 				domDoc->release();

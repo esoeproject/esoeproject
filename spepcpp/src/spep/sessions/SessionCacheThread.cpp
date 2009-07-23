@@ -20,16 +20,16 @@
 #include "spep/sessions/SessionCacheThread.h"
 #include "spep/Util.h"
 
-spep::SessionCacheThread::SessionCacheThread( spep::ReportingProcessor *reportingProcessor, spep::SessionCache *sessionCache, int timeout, int interval )
+spep::SessionCacheThread::SessionCacheThread( saml2::Logger *logger, spep::SessionCache *sessionCache, int timeout, int interval )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::SessionCacheThread" ) ),
+_localLogger( logger, "spep::SessionCacheThread" ),
 _sessionCache( sessionCache ),
 _threadGroup(),
 _timeout( timeout ),
 _interval( interval ),
 _die( false )
 {
-	this->_localReportingProcessor.log( DEBUG, "Session cache thread starting.." );
+	_localLogger.info() << "Session cache thread starting..";
 	
 	_threadGroup.create_thread( ThreadHandler( this ) );
 }
@@ -72,11 +72,11 @@ void spep::SessionCacheThread::doThreadAction()
 		InterruptibleSleeper( _interval, 500, &_die ).sleep();
 		if( _die )
 		{
-			this->_localReportingProcessor.log( INFO, "Session cache thread shutting down." );
+			_localLogger.info() << "Session cache thread shutting down.";
 			return;
 		}
 		
-		this->_localReportingProcessor.log( INFO, "Going to check expiry times on session cache." );
+		_localLogger.info() << "Going to check expiry times on session cache.";
 		_sessionCache->terminateExpiredSessions( _timeout );
 	}
 }

@@ -19,6 +19,12 @@ saml2/validator/SAMLResponseValidator.h \
 saml2/validator/SAMLRequestValidator.h \
 saml2/validator/SAMLAssertionValidator.h \
 saml2/validator/SAMLAuthnRequestValidator.h \
+saml2/logging/Handler.h \
+saml2/logging/LogLevel.h \
+saml2/logging/LogStreamMimic.h \
+saml2/logging/Logger.h \
+saml2/logging/LocalLogger.h \
+saml2/logging/api.h \
 saml2/SAML2Defs.h \
 saml2/handlers/SAMLDocument.h \
 saml2/handlers/Marshaller.h \

@@ -142,6 +142,11 @@ namespace spep
 		 * copy. Do not delete any pointers in the map data.
 		 */
 		const std::vector<JKSTrustedCertData>& getCertificateChain( const std::string& alias );
+
+		/**
+		 * Gets the list of certificate aliases known by this JKSKeystore
+		 */
+		std::vector<std::string> getCertificateAliases();
 	
 		private:
 	
@@ -173,7 +178,8 @@ namespace spep
 		const unsigned char *_keystorePassword;
 	
 		/**
-		 * Different variations on resolving keystore passwords
+		 * Different variations on resolving keystore passwords could go here.
+		 * The reference implementation is a single password for all keys.
 		 */
 		/** @{ */
 		class SinglePasswordResolver : public PrivateKeyPasswordResolver
@@ -185,13 +191,6 @@ namespace spep
 			private:
 			unsigned char *_data;
 			std::size_t _length;
-		};
-		class MapPasswordResolver : public PrivateKeyPasswordResolver
-		{
-			public:
-			MapPasswordResolver( const std::map<std::string,std::string>& passwordMap );
-			virtual ~MapPasswordResolver();
-			virtual bool getPrivateKeyPassword( const std::string& alias, std::size_t*, const unsigned char** );
 		};
 		/** @} */
 	};

@@ -2,11 +2,15 @@
 lib_LTLIBRARIES = libsaml2.la
 
 libsaml2_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
-#-version-info $(VERSION_INFO) 
 libsaml2_la_SOURCES = saml2/resolver/ResourceResolver.cpp \
 saml2/resolver/ExternalKeyResolver.cpp \
 saml2/identifier/IdentifierCache.cpp \
 saml2/identifier/IdentifierGenerator.cpp \
+saml2/logging/api.cpp \
+saml2/logging/LogLevel.cpp \
+saml2/logging/Logger.cpp \
+saml2/logging/LocalLogger.cpp \
+saml2/logging/LogStreamMimic.cpp \
 saml2/validator/SAMLAssertionValidator.cpp \
 saml2/validator/SAMLAuthnRequestValidator.cpp \
 saml2/validator/SAMLValidator.cpp \

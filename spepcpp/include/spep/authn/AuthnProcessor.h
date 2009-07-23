@@ -24,8 +24,8 @@
 #include "spep/Util.h"
 #include "spep/sessions/PrincipalSession.h"
 #include "spep/sessions/SessionCache.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 #include "spep/attribute/AttributeProcessor.h"
 #include "spep/metadata/Metadata.h"
 #include "spep/metadata/KeyResolver.h"
@@ -57,7 +57,7 @@ namespace spep
 		 * Constructor
 		 * @param schemaPath A std::string representation of the absolute path to schema files on the file system
 		 */
-		AuthnProcessor( ReportingProcessor *reportingProcessor, AttributeProcessor *attributeProcessor, Metadata *metadata, SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyStoreResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex );
+		AuthnProcessor( saml2::Logger *logger, AttributeProcessor *attributeProcessor, Metadata *metadata, SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyStoreResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex );
 		
 		/**
 		 * Destructor
@@ -102,7 +102,7 @@ namespace spep
 		DOMDocument* generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo = L"" );
 		static std::string hostnameFromURL( std::string url );
 		
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		AttributeProcessor *_attributeProcessor;
 		Metadata *_metadata;
 		SessionCache *_sessionCache;

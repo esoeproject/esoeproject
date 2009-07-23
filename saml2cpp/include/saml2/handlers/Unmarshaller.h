@@ -77,7 +77,7 @@ namespace saml2
 			 * associated XSD generated object representation for further processing. Additionally all keys are extracted from
 			 * metadata and stored in a map with a key of the name of the crpto key and object of type XSECCryptoKey
 			 */
-			virtual saml2::MetadataOutput<T>* unMarshallMetadata (const SAMLDocument& document, XSECCryptoKey* pk, bool keepDOM = false) = 0;
+			virtual saml2::MetadataOutput<T>* unMarshallMetadata (const SAMLDocument& document, bool keepDOM = false) = 0;
 			/*
 			 * Performs all cryptography operations associated with validating cryptography in the supplied domDocument
 			 */

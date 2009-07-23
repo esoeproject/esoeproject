@@ -21,8 +21,8 @@
 #define SESSIONCACHEIMPL_H_
 
 #include "spep/Util.h"
-#include "spep/reporting/LocalReportingProcessor.h"
-#include "spep/reporting/ReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 #include "spep/sessions/SessionCache.h"
 #include "spep/Util.h"
 
@@ -40,7 +40,7 @@ namespace spep {
 		typedef std::map<std::wstring,UnauthenticatedSession> UnauthenticatedSessionMap;
 		
 		public:
-		SessionCacheImpl( ReportingProcessor *reportingProcessor );
+		SessionCacheImpl( saml2::Logger *logger );
 		
 		/** @see spep::SessionCache */
 		/*@{*/
@@ -57,7 +57,7 @@ namespace spep {
 		/*@}*/
 		
 		private:
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		SessionIDMap _sessionIDs;
 		ESOESessionMap _esoeSessions; // Client sessions referenced by esoe session ID
 		mutable Mutex _principalSessionsMutex;

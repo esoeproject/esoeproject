@@ -45,7 +45,7 @@ namespace spep { namespace ipc {
 		
 		/**
 		 * Sends a request with the dispatch string provided but does not await any response.
-		 * It would be erroneous for the other end to response to a non blocking request.
+		 * It would be erroneous for the other end to respond to a non blocking request.
 		 * @param dispatch Where to dispatch the request at the other end
 		 * @param req The request object
 		 */

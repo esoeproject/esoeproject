@@ -35,9 +35,9 @@
 /**@}*/
 
 
-spep::WSClient::WSClient( spep::ReportingProcessor *reportingProcessor, std::string caBundle, spep::SOAPUtil *soapUtil )
+spep::WSClient::WSClient( saml2::Logger *logger, std::string caBundle, spep::SOAPUtil *soapUtil )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::WSClient" ) ),
+_localLogger( logger, "spep::WSClient" ),
 _caBundle( caBundle ),
 _curl( curl_easy_init() ),
 _soapUtil( soapUtil )
@@ -63,7 +63,7 @@ void spep::WSClient::doSOAPRequest( spep::WSProcessorData& data, std::string end
 	AutoArray<char> errorBuffer( CURL_ERROR_SIZE );
 	std::memset( errorBuffer.get(), 0, CURL_ERROR_SIZE );
 	
-	this->_localReportingProcessor.log( DEBUG, "Calling cURL to make web service call to " + endpoint );
+	_localLogger.debug() << "Calling cURL to make web service call to " << endpoint;
 	
 	// Set the URL for curl to retrieve from
 	curl_easy_setopt( this->_curl, CURLOPT_URL, endpoint.c_str() );
@@ -118,7 +118,7 @@ void spep::WSClient::doSOAPRequest( spep::WSProcessorData& data, std::string end
 		contentTypeHeader += data.getCharacterEncoding();
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, std::string( "Setting content type header to - " ) + contentTypeHeader );
+	_localLogger.debug() << std::string( "Setting content type header to - " ) << contentTypeHeader;
 	
 	std::string contentLengthHeader( HEADER_NAME_CONTENT_LENGTH );
 	contentLengthHeader += ": ";
@@ -141,11 +141,11 @@ void spep::WSClient::doSOAPRequest( spep::WSProcessorData& data, std::string end
 	// If the request didn't succeed, handle the error condition.
 	if (result != CURLE_OK)
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("Web service call failed. Error message was: ") + errorBuffer.get() );
+		_localLogger.error() << std::string("Web service call failed. Error message was: ") << errorBuffer.get();
 		throw WSException( std::string("Web service call failed. Error message was: ") + errorBuffer.get() );
 	}
 	
-	this->_localReportingProcessor.log( DEBUG, std::string( "Web service call returned. Setting SOAP response document." ) );
+	_localLogger.debug() << std::string( "Web service call returned. Setting SOAP response document." );
 	
 	data.setSOAPResponseDocument( SOAPDocument( responseDocument.data, responseDocument.len ) );
 	// Make sure the RawSOAPDocument destructor doesn't delete the document.
@@ -209,36 +209,36 @@ int spep::WSClient::debugCallback( CURL *curl, curl_infotype info, char *msg, st
 		case CURLINFO_TEXT:
 		//The data is informational text.
 		ss << "curl-info: " << std::string( msg, len );
-		wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		wsClient->_localLogger.debug() << ss.str();
 		break;
 		
 		case CURLINFO_HEADER_IN:
 		//The data is header (or header-like) data received from the peer.
 		//ss << "curl-header-in: " << std::string( msg, len );
-		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//wsClient->_localLogger.log( DEBUG, ss.str() );
 		break;
 		
 		case CURLINFO_HEADER_OUT:
 		//The data is header (or header-like) data sent to the peer.
 		//ss << "curl-header-out: " << std::string( msg, len );
-		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//wsClient->_localLogger.log( DEBUG, ss.str() );
 		break;
 		
 		case CURLINFO_DATA_IN:
 		//The data is protocol data received from the peer.
 		//ss << "curl-data-in: len=" << len << std::ends;
-		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//wsClient->_localLogger.log( DEBUG, ss.str() );
 		break;
 		
 		case CURLINFO_DATA_OUT:
 		//The data is protocol data sent to the peer.
 		//ss << "curl-data-out: len=" << len << std::ends;
-		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//wsClient->_localLogger.log( DEBUG, ss.str() );
 		break;
 		
 		default:
 		//ss << "curl-unknown-message: [suppressing output]";
-		//wsClient->_localReportingProcessor.log( DEBUG, ss.str() );
+		//wsClient->_localLogger.log( DEBUG, ss.str() );
 		break;
 	}
 	

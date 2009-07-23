@@ -30,8 +30,8 @@
 
 #include "spep/Util.h"
 #include "spep/UnicodeStringConversion.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 #include "spep/ws/WSClient.h"
 #include "spep/metadata/Metadata.h"
 #include "spep/metadata/KeyResolver.h"
@@ -56,19 +56,20 @@ namespace spep
 		class StartupProcessorThread
 		{
 			private:
-			LocalReportingProcessor _localReportingProcessor;
+			saml2::Logger *_logger;
+			saml2::LocalLogger _localLogger;
 			StartupProcessorImpl *_startupProcessor;
 			int _startupRetryInterval;
 			
 			public:
-			StartupProcessorThread( ReportingProcessor *reportingProcessor, StartupProcessorImpl *startupProcessor, int startupRetryInterval );
+			StartupProcessorThread( saml2::Logger *logger, StartupProcessorImpl *startupProcessor, int startupRetryInterval );
 			StartupProcessorThread( const StartupProcessorThread& other );
 			void operator()();
-			StartupProcessorThread& operator=( const StartupProcessorThread& other );
+			//StartupProcessorThread& operator=( const StartupProcessorThread& other );
 		};
 		
-		LocalReportingProcessor _localReportingProcessor;
-		ReportingProcessor *_reportingProcessor;
+		saml2::LocalLogger _localLogger;
+		saml2::Logger *_logger;
 		
 		WSClient *_wsClient;
 		Metadata *_metadata;
@@ -103,7 +104,7 @@ namespace spep
 		
 		public:
 		
-		StartupProcessorImpl( ReportingProcessor *reportingProcessor, WSClient *wsClient, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, std::string schemaPath, std::wstring spepIdentifier, const std::vector<std::wstring>& ipAddresses, std::string nodeID, int authzCacheIndex, int startupRetryInterval );
+		StartupProcessorImpl( saml2::Logger *logger, WSClient *wsClient, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, std::string schemaPath, std::wstring spepIdentifier, const std::vector<std::wstring>& ipAddresses, std::string nodeID, int authzCacheIndex, int startupRetryInterval );
 		
 		virtual ~StartupProcessorImpl();
 		

@@ -147,6 +147,19 @@ namespace spep
 		
 		throw KeystoreException( KEYSTORE_ERROR_NO_CERT_CHAIN );
 	}
+
+	std::vector<std::string> JKSKeystore::getCertificateAliases()
+	{
+		std::vector<std::string> retval;
+		for (std::map<std::string,JKSTrustedCertData>::iterator iter = _certDataMap.begin(); 
+			iter != _certDataMap.end();
+			++iter)
+		{
+			retval.push_back( iter->first );
+		}
+
+		return retval;
+	}
 	
 	/**
 	 * OpenSSL ASN.1 definitions to be used when parsing the private
@@ -298,6 +311,7 @@ namespace spep
 		EVP_MD_CTX *hashContext = EVP_MD_CTX_create();
 		EVP_MD_CTX_init( hashContext );
 		EVP_DigestInit_ex( hashContext, hashType, NULL );
+		// Hash password + magic + keystore data to get signature
 		EVP_DigestUpdate( hashContext, _keystorePassword, _keystorePasswordLength );
 		EVP_DigestUpdate( hashContext, KEYSTORE_MAGIC_STRING, strlen(KEYSTORE_MAGIC_STRING) );
 		EVP_DigestUpdate( hashContext, data, (ptr - data) );
@@ -559,11 +573,6 @@ namespace spep
 		*data = _data;
 		return true;
 	}
-	
-	// TODO Implement this.
-	JKSKeystore::MapPasswordResolver::MapPasswordResolver( const std::map<std::string,std::string>& passwordMap ){}
-	JKSKeystore::MapPasswordResolver::~MapPasswordResolver(){}
-	bool JKSKeystore::MapPasswordResolver::getPrivateKeyPassword( const std::string& alias, std::size_t*, const unsigned char** ){ return false; }
 	
 	JKSPrivateKeyData::JKSPrivateKeyData()
 	:

@@ -24,8 +24,8 @@
 #include "spep/ipc/MessageHeader.h"
 #include "spep/ipc/Engine.h"
 
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 namespace spep { namespace ipc {
 	
@@ -62,13 +62,13 @@ namespace spep { namespace ipc {
 		
 		public:
 		
-		MultifacetedDispatcher( spep::ReportingProcessor *reportingProcessor, std::vector<Dispatcher*> dispatchers );
+		MultifacetedDispatcher( saml2::Logger *logger, std::vector<Dispatcher*> dispatchers );
 		
 		virtual ~MultifacetedDispatcher();
 		virtual bool dispatch( MessageHeader &header, Engine &en );
 		
 		private:
-		spep::LocalReportingProcessor _reportingProcessor;
+		saml2::LocalLogger _localLogger;
 		std::vector<Dispatcher*> _dispatchers;
 		
 	};
@@ -80,13 +80,13 @@ namespace spep { namespace ipc {
 	{
 		
 		public:
-		ExceptionCatchingDispatcher( spep::ReportingProcessor *reportingProcessor, Dispatcher* nextDispatcher );
+		ExceptionCatchingDispatcher( saml2::Logger *logger, Dispatcher* nextDispatcher );
 		
 		virtual ~ExceptionCatchingDispatcher();
 		virtual bool dispatch( MessageHeader &header, Engine &en );
 		
 		private:
-		spep::LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		Dispatcher *_nextDispatcher;
 		
 	};

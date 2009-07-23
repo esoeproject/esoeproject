@@ -31,8 +31,8 @@
 
 #include <string>
 
-#include "spep/reporting/LocalReportingProcessor.h"
-#include "spep/reporting/ReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 #define WSCLIENT_CHARACTER_ENCODING "UTF-16"
 
@@ -61,7 +61,7 @@ namespace spep
 			
 		};
 			
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		std::string _caBundle;
 		CURL *_curl;
 		SOAPUtil *_soapUtil;
@@ -86,7 +86,7 @@ namespace spep
 		 * 
 		 * See http://curl.haxx.se/libcurl/c/curl_easy_init.html for details.
 		 */
-		WSClient( ReportingProcessor *reportingProcessor, std::string caBundle, SOAPUtil *soapUtil );
+		WSClient( saml2::Logger *logger, std::string caBundle, SOAPUtil *soapUtil );
 		~WSClient();
 		
 		template <typename Res>
@@ -95,14 +95,14 @@ namespace spep
 			WSProcessorData data;
 			
 			data.setSOAPRequestDocument( _soapUtil->wrapObjectInSOAP( requestDocument->getDocumentElement(), WSCLIENT_CHARACTER_ENCODING, soapVersion ) );
-			this->_localReportingProcessor.log( DEBUG, "Created SOAP request bound for endpoint " + endpoint + ". About to perform SOAP action." );
-			this->_localReportingProcessor.log( DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPRequestDocument() ) ) );
+			_localLogger.debug() << "Created SOAP request bound for endpoint " << endpoint << ". About to perform SOAP action.";
+			_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPRequestDocument() ) );
 			
 			data.setCharacterEncoding( "UTF-16" );
 			this->doSOAPRequest( data, endpoint );
 			
-			this->_localReportingProcessor.log( DEBUG, "Performed SOAP action at " + endpoint + ". About to process response." );
-			this->_localReportingProcessor.log( DEBUG, UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPResponseDocument() ) ) );
+			_localLogger.debug() << "Performed SOAP action at " << endpoint << ". About to process response.";
+			_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPResponseDocument() ) );
 			return( _soapUtil->unwrapObjectFromSOAP( resUnmarshaller, data.getSOAPResponseDocument(), soapVersion ) );
 		}
 		

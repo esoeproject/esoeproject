@@ -5,8 +5,7 @@ lib_LTLIBRARIES = modspep.la
 # to be used with dlopen(3) et al
 modspep_la_LDFLAGS = -module -avoid-version $(AM_LDFLAGS)
 modspep_la_LIBADD = -lboost_program_options$(BOOST_SUFFIX) -lcurl -lboost_regex$(BOOST_SUFFIX) -lsaml2 -lspep -lboost_thread$(BOOST_SUFFIX) -lboost_date_time$(BOOST_SUFFIX) -licuio -licule -liculx -licuuc -licui18n -licudata -licutu -lxerces-c -lxerces-depdom -lxml-security-c
-modspep_la_SOURCES = APRFileLogger.cpp \
-Cookies.cpp \
+modspep_la_SOURCES = Cookies.cpp \
 SSOHandler.cpp \
 WSHandler.cpp \
 RequestParameters.cpp \

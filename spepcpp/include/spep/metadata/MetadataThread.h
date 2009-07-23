@@ -28,9 +28,8 @@
 #include "saml2/SAML2Defs.h"
 
 #include "spep/Util.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
-//#include "spep/metadata/impl/MetadataImpl.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 
 #include "saml2/handlers/Unmarshaller.h"
 #include "saml2/handlers/impl/UnmarshallerImpl.h"
@@ -81,10 +80,10 @@ namespace spep
 			ThreadHandler& operator=( ThreadHandler& other );
 			
 			MetadataThread *_metadataThread;
-			LocalReportingProcessor _localReportingProcessor;
+			saml2::LocalLogger _localLogger;
 			
 			public:
-			ThreadHandler( MetadataThread *metadataThread, ReportingProcessor *reportingProcessor );
+			ThreadHandler( MetadataThread *metadataThread, saml2::Logger *logger );
 			/** Boost likes to clone the objects given to it.. so we define a copy constructor */
 			ThreadHandler( const ThreadHandler& other );
 			/** Operator to be called by boost threads. Does not return. */
@@ -98,8 +97,8 @@ namespace spep
 		static std::size_t curlCallback( void *buffer, std::size_t size, std::size_t nmemb, void *userp );
 		static int debugCallback( CURL *curl, curl_infotype info, char *msg, std::size_t len, void *userp );
 		
-		ReportingProcessor *_reportingProcessor;
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::Logger *_logger;
+		saml2::LocalLogger _localLogger;
 		MetadataImpl *_metadata;
 		int _interval;
 		const EVP_MD *_hashType;
@@ -120,11 +119,11 @@ namespace spep
 		 * 
 		 * See http://curl.haxx.se/libcurl/c/curl_easy_init.html for details.
 		 * 
-		 * @param reportingProcessor The global reporting processor.
+		 * @param logger The global reporting processor.
 		 * @param metadata The metadata instance.
 		 * @param interval Interval between metadata updates, in seconds.
 		 */
-		MetadataThread( ReportingProcessor *reportingProcessor, MetadataImpl *metadata, std::string caBundle, std::string schemaPath, int interval );
+		MetadataThread( saml2::Logger *logger, MetadataImpl *metadata, std::string caBundle, std::string schemaPath, int interval, saml2::ExternalKeyResolver *extKeyResolver );
 		/** Returns an object to be used by boost threads. */
 		ThreadHandler getThreadHandler();
 		/** Perform the metadata retrieval operation. Invoked by ThreadHandler::operator() */ 

@@ -35,9 +35,9 @@
 
 #include "spep/UnicodeStringConversion.h"
 
-spep::PolicyEnforcementProcessor::PolicyEnforcementProcessor( spep::ReportingProcessor *reportingProcessor, spep::WSClient *wsClient, spep::SessionGroupCache *sessionGroupCache, spep::SessionCache *sessionCache, spep::Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, spep::KeyResolver *keyResolver, std::string schemaPath )
+spep::PolicyEnforcementProcessor::PolicyEnforcementProcessor( saml2::Logger *logger, spep::WSClient *wsClient, spep::SessionGroupCache *sessionGroupCache, spep::SessionCache *sessionCache, spep::Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, spep::KeyResolver *keyResolver, std::string schemaPath )
 :
-_localReportingProcessor( reportingProcessor->localReportingProcessor( "spep::PolicyEnforcementProcessor" ) ),
+_localLogger( logger, "spep::PolicyEnforcementProcessor" ),
 _sessionGroupCache( sessionGroupCache ),
 _sessionCache( sessionCache ),
 _metadata( metadata ),
@@ -55,10 +55,20 @@ _wsClient( wsClient )
 	std::vector<std::string> lxacmlGroupTargetSchemaList;
 	lxacmlGroupTargetSchemaList.push_back( ConfigurationConstants::lxacmlGroupTarget );
 	
-	_lxacmlAuthzDecisionQueryMarshaller = new saml2::MarshallerImpl<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType>( schemaPath, lxacmlSchemaList, "LXACMLAuthzDecisionQuery", "http://www.qut.com/middleware/lxacmlSAMLProtocolSchema", keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
-	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>( schemaPath, lxacmlSchemaList, metadata );
-	_lxacmlAuthzDecisionStatementUnmarshaller = new saml2::UnmarshallerImpl<middleware::lxacmlSAMLAssertionSchema::LXACMLAuthzDecisionStatementType>( schemaPath, lxacmlSchemaList, metadata );
-	_groupTargetUnmarshaller = new saml2::UnmarshallerImpl<middleware::lxacmlGroupTargetSchema::GroupTargetType>( schemaPath, lxacmlGroupTargetSchemaList );
+	_lxacmlAuthzDecisionQueryMarshaller = new saml2::MarshallerImpl<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType>( 
+		logger, schemaPath, lxacmlSchemaList, "LXACMLAuthzDecisionQuery", "http://www.qut.com/middleware/lxacmlSAMLProtocolSchema",
+		keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey()
+	);
+	
+	_responseUnmarshaller = new saml2::UnmarshallerImpl<saml2::protocol::ResponseType>
+		( logger, schemaPath, lxacmlSchemaList, metadata );
+		
+	_lxacmlAuthzDecisionStatementUnmarshaller = new saml2::UnmarshallerImpl
+			<middleware::lxacmlSAMLAssertionSchema::LXACMLAuthzDecisionStatementType>
+		( logger, schemaPath, lxacmlSchemaList, metadata );
+	
+	_groupTargetUnmarshaller = new saml2::UnmarshallerImpl<middleware::lxacmlGroupTargetSchema::GroupTargetType>
+		( logger, schemaPath, lxacmlGroupTargetSchemaList );
 	
 	std::vector<std::string> cacheClearSchemaList;
 	
@@ -66,8 +76,11 @@ _wsClient( wsClient )
 	cacheClearSchemaList.push_back( ConfigurationConstants::samlAssertion );
 	cacheClearSchemaList.push_back( ConfigurationConstants::samlProtocol );
 	
-	_clearAuthzCacheRequestUnmarshaller = new saml2::UnmarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType>( schemaPath, cacheClearSchemaList, metadata );
-	_clearAuthzCacheResponseMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType>( schemaPath, cacheClearSchemaList, "ClearAuthzCacheResponse", "http://www.qut.com/middleware/ESOEProtocolSchema", keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
+	_clearAuthzCacheRequestUnmarshaller = new saml2::UnmarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType>
+		( logger, schemaPath, cacheClearSchemaList, metadata );
+	_clearAuthzCacheResponseMarshaller = new saml2::MarshallerImpl<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType>
+		( logger, schemaPath, cacheClearSchemaList, "ClearAuthzCacheResponse", "http://www.qut.com/middleware/ESOEProtocolSchema", 
+			keyResolver->getSPEPKeyAlias(), keyResolver->getSPEPPrivateKey() );
 }
 
 spep::PolicyEnforcementProcessor::~PolicyEnforcementProcessor()
@@ -82,7 +95,7 @@ spep::PolicyEnforcementProcessor::~PolicyEnforcementProcessor()
 
 void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcementProcessorData &data )
 {
-	this->_localReportingProcessor.log( DEBUG, "Going to make authz decision from group cache." );
+	_localLogger.debug() << "Going to make authz decision from group cache.";
 	
 	// Evaluate from the local cache
 	Decision policyDecision = _sessionGroupCache->makeCachedAuthzDecision( data.getESOESessionID(), data.getResource() );
@@ -90,7 +103,7 @@ void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcemen
 	// If the cache gave an authoritative answer, return it.
 	if ( policyDecision == spep::Decision::PERMIT || policyDecision == spep::Decision::DENY )
 	{
-		this->_localReportingProcessor.log( DEBUG, "Cached authz decision was either permit or deny. Returning result." );
+		_localLogger.debug() << "Cached authz decision was either permit or deny. Returning result.";
 		
 		data.setDecision( policyDecision );
 		return;
@@ -99,11 +112,11 @@ void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcemen
 	// No value is cached, so we need to query the PDP.
 	if ( policyDecision == spep::Decision::CACHE )
 	{
-		this->_localReportingProcessor.log( DEBUG, "No cached authz decision was found. Generating an authz decision query." );
+		_localLogger.debug() << "No cached authz decision was found. Generating an authz decision query.";
 		
 		DOMDocumentAutoRelease requestDocument( this->generateAuthzDecisionQuery( data ) );
 		
-		this->_localReportingProcessor.log( DEBUG, "Generated a query. Making web service call." );
+		_localLogger.debug() << "Generated a query. Making web service call.";
 		
 		std::auto_ptr<saml2::protocol::ResponseType> response;
 		try
@@ -115,20 +128,20 @@ void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcemen
 			throw PEPException( "Failed to unmarshal the response. Message was: " + ex.getMessage() );
 		}
 		
-		this->_localReportingProcessor.log( DEBUG, "Got web service response. Processing authz decision statement." );
+		_localLogger.debug() << "Got web service response. Processing authz decision statement.";
 		
 		this->processAuthzDecisionStatement( data, response.get() );
 		
 		if( data.getDecision() == spep::Decision::PERMIT || data.getDecision() == spep::Decision::DENY )
 		{
-			this->_localReportingProcessor.log( DEBUG, "PDP authz decision was either permit or deny. Returning result." );
+			_localLogger.debug() << "PDP authz decision was either permit or deny. Returning result.";
 			return;
 		}
 	}
 	
 	if ( policyDecision != spep::Decision::ERROR )
 	{
-		this->_localReportingProcessor.log( ERROR, "An error condition was encountered after the PDP WS query but the policy decision was not set to ERROR" ); 
+		_localLogger.error() << "An error condition was encountered after the PDP WS query but the policy decision was not set to ERROR";
 		// If there is no error at this stage, there is something very strange going on.
 		throw InvalidStateException( "Invalid policy decision was encountered, but error was not set" );
 	}
@@ -136,7 +149,7 @@ void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcemen
 	// decision is ERROR already
 	// data.setDecision( spep::Decision::ERROR );
 	
-	this->_localReportingProcessor.log( ERROR, "An error occurred during authz processing. Returning error condition" );
+	_localLogger.error() << "An error occurred during authz processing. Returning error condition";
 }
 
 XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheClear( middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType *request )
@@ -158,7 +171,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheC
 			statusCodeValue = saml2::statuscode::REQUESTOR;
 			statusMessage = L"Subject with no NameID present in request. The request is invalid.";
 			
-			this->_localReportingProcessor.log( ERROR, "The authz cache clear request Subject had no NameID. The request is invalid." );
+			_localLogger.error() << "The authz cache clear request Subject had no NameID. The request is invalid.";
 		}
 		else
 		{
@@ -179,7 +192,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheC
 	// Extensions element is expected to contain GroupTarget elements.
 	if (request->Extensions().present())
 	{
-		this->_localReportingProcessor.log( DEBUG, "Got an Extensions element in this Authz cache clear request. Processing group targets." );
+		_localLogger.debug() << "Got an Extensions element in this Authz cache clear request. Processing group targets.";
 		// Loop through the Extensions to find <GroupTarget> elements.
 		xercesc::DOMNode *node = request->Extensions()->_node();
 		xercesc::DOMNodeList *childNodes = node->getChildNodes();
@@ -190,7 +203,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheC
 			const XMLCh* localNameXMLString = element->getLocalName();
 			
 			std::auto_ptr<XercesCharStringAdapter> localName( new XercesCharStringAdapter( XMLString::transcode( localNameXMLString ) ) );
-			this->_localReportingProcessor.log( DEBUG, std::string("Got local name: ") + localName->get() );
+			_localLogger.debug() << "Got local name: " << localName->get();
 			
 			if ( std::string("GroupTarget").compare( 0, XMLString::stringLen( localNameXMLString ), localName->get() ) == 0 )
 			{
@@ -211,7 +224,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheC
 					authzTargets.push_back( authzTarget );
 				}
 				
-				this->_localReportingProcessor.log( DEBUG, "Added " + boost::lexical_cast<std::string>( authzTargets.size() ) + " authz targets for group target " + UnicodeStringConversion::toString( groupTargetID ) );
+				_localLogger.debug() << "Added " << boost::lexical_cast<std::string>( authzTargets.size() ) << " authz targets for group target " << UnicodeStringConversion::toString( groupTargetID );
 				
 			}
 			
@@ -222,14 +235,14 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::authzCacheC
 	{
 		this->_sessionGroupCache->clearCache( groupTargets );
 		
-		this->_localReportingProcessor.log( INFO, "Authorization cache clear succeeded. Flushed all cached authz decisions and created new cache with " + boost::lexical_cast<std::string>( groupTargets.size() ) + " group targets." );
+		_localLogger.info() << "Authorization cache clear succeeded. Flushed all cached authz decisions and created new cache with " << boost::lexical_cast<std::string>( groupTargets.size() ) << " group targets.";
 
 		statusCodeValue = saml2::statuscode::SUCCESS;
 		statusMessage = L"The authorization cache was cleared successfully.";
 	}
 	catch( std::exception &ex )
 	{
-		this->_localReportingProcessor.log( ERROR, std::string("An exception was thrown when trying to clear the authz cache. Exception was: ") + ex.what() );
+		_localLogger.error() << "An exception was thrown when trying to clear the authz cache. Exception was: " << ex.what();
 		
 		statusCodeValue = saml2::statuscode::RESPONDER;
 		statusMessage = L"An exception occurred while trying to clear the authz cache.";
@@ -268,14 +281,14 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::generateCle
 	responseDocument = _clearAuthzCacheResponseMarshaller->validate( responseDocument );
 	this->_clearAuthzCacheResponseMarshaller->sign( responseDocument, idList );
 	
-	this->_localReportingProcessor.log( DEBUG, "Generated authz cache clear response with status code: " + UnicodeStringConversion::toString( statusCodeValue ) + " and status message: " + UnicodeStringConversion::toString( statusMessage ) );
+	_localLogger.debug() << "Generated authz cache clear response with status code: " << UnicodeStringConversion::toString( statusCodeValue ) << " and status message: " << UnicodeStringConversion::toString( statusMessage );
 	
 	return responseDocument;
 }
 
 XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::generateAuthzDecisionQuery( spep::PolicyEnforcementProcessorData &data )
 {
-	this->_localReportingProcessor.log( DEBUG, "About to generate authz decision query." );
+	_localLogger.debug() << "About to generate authz decision query.";
 	
 	std::vector<std::string> idList;
 	
@@ -313,7 +326,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::generateAut
 	authzQuery.Version( saml2::versions::SAML_20 );
 	authzQuery.Issuer( issuer );
 	
-	this->_localReportingProcessor.log( DEBUG, "Going to marshal authz decision query." );
+	_localLogger.debug() << "Going to marshal authz decision query.";
 	
 	// Marshal and return.
 	try
@@ -326,7 +339,7 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::PolicyEnforcementProcessor::generateAut
 	}
 	catch( saml2::MarshallerException &ex )
 	{
-		this->_localReportingProcessor.log( ERROR, "Failed to marshal authz decision query. Message was: " + ex.getMessage() + ". Cause was: " + ex.getCause() );
+		_localLogger.error() << "Failed to marshal authz decision query. Message was: " << ex.getMessage() << ". Cause was: " << ex.getCause();
 		return NULL;
 	}
 }
@@ -340,7 +353,7 @@ void spep::PolicyEnforcementProcessor::processAuthzDecisionStatement( spep::Poli
 	
 	if( saml2::statuscode::AUTHN_FAILED.compare( response->Status().StatusCode().Value().c_str() ) == 0 )
 	{
-		this->_localReportingProcessor.log( ERROR, "PDP rejected session identifier with Authn Fail status. Terminating principal session." );
+		_localLogger.error() << "PDP rejected session identifier with Authn Fail status. Terminating principal session.";
 		data.setDecision( spep::Decision::DENY );
 		this->_sessionCache->terminatePrincipalSession( data.getESOESessionID() );
 		return;
@@ -354,13 +367,13 @@ void spep::PolicyEnforcementProcessor::processAuthzDecisionStatement( spep::Poli
 	catch( saml2::InvalidSAMLResponseException &ex )
 	{
 		// Response was rejected explicitly.
-		this->_localReportingProcessor.log( ERROR, "SAML response was rejected by SAML Validator. Reason: " + ex.getMessage() );
+		_localLogger.error() << "SAML response was rejected by SAML Validator. Reason: " << ex.getMessage();
 		throw PEPException( "SAML response was rejected by SAML Validator." );
 	}
 	catch( std::exception &ex )
 	{
 		// Error occurred validating the response. Reject it anyway.
-		this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+		_localLogger.error() << "Error occurred in the SAML Validator. Message: " << ex.what();
 		throw PEPException( "Error occurred in the SAML Validator." );
 	}
 	
@@ -379,13 +392,13 @@ void spep::PolicyEnforcementProcessor::processAuthzDecisionStatement( spep::Poli
 		catch( saml2::InvalidSAMLAssertionException &ex )
 		{
 			// Assertion was rejected explicitly.
-			this->_localReportingProcessor.log( ERROR, "SAML assertion was rejected by SAML Validator. Reason: " + ex.getMessage() );
+			_localLogger.error() << "SAML assertion was rejected by SAML Validator. Reason: " << ex.getMessage();
 			throw PEPException( "SAML assertion was rejected by SAML Validator." );
 		}
 		catch( std::exception &ex )
 		{
 			// Error occurred validating the assertion. Reject it anyway.
-			this->_localReportingProcessor.log( ERROR, "Error occurred in the SAML Validator. Message: " + std::string(ex.what()) );
+			_localLogger.error() << "Error occurred in the SAML Validator. Message: " << ex.what();
 			throw PEPException( "Error occurred in the SAML Validator." );
 		}
 		
@@ -424,22 +437,22 @@ void spep::PolicyEnforcementProcessor::processAuthzDecisionStatement( spep::Poli
 				// Check the decision from the document and set it in the data object.					
 				if ( decision == middleware::lxacmlContextSchema::DecisionType::Permit )
 				{
-					this->_localReportingProcessor.log( AUTHZ, UnicodeStringConversion::toString( data.getResource() ) + " <- ESOE Session[" + UnicodeStringConversion::toString( data.getESOESessionID() ) + "] result from PDP is PERMIT" );  
+					_localLogger.info() << UnicodeStringConversion::toString( data.getResource() ) << " <- ESOE Session[" << UnicodeStringConversion::toString( data.getESOESessionID() ) << "] result from PDP is PERMIT";  
 					data.setDecision( spep::Decision::PERMIT );
 				}
 				else if ( decision == middleware::lxacmlContextSchema::DecisionType::Deny )
 				{
-					this->_localReportingProcessor.log( AUTHZ, UnicodeStringConversion::toString( data.getResource() ) + " <- ESOE Session[" + UnicodeStringConversion::toString( data.getESOESessionID() ) + "] result from PDP is DENY" );  
+					_localLogger.info() << UnicodeStringConversion::toString( data.getResource() ) << " <- ESOE Session[" << UnicodeStringConversion::toString( data.getESOESessionID() ) << "] result from PDP is DENY";  
 					data.setDecision( spep::Decision::DENY );
 				}
 				else
 				{
-					this->_localReportingProcessor.log( ERROR, UnicodeStringConversion::toString( data.getResource() ) + " <- ESOE Session[" + UnicodeStringConversion::toString( data.getESOESessionID() ) + "] Erroneous result from PDP. Failing" );
+					_localLogger.error() << UnicodeStringConversion::toString( data.getResource() ) << " <- ESOE Session[" << UnicodeStringConversion::toString( data.getESOESessionID() ) << "] Erroneous result from PDP. Failing";
 					// No known decision. Error condition.
 					data.setDecision( spep::Decision::ERROR );
 				}
 				
-				this->_localReportingProcessor.log( DEBUG, "Going to process obligations for authz decision statement." );
+				_localLogger.debug() << "Going to process obligations for authz decision statement.";
 				this->processObligations( data, result.Obligations() );
 				
 			}
@@ -458,13 +471,13 @@ void spep::PolicyEnforcementProcessor::processObligations( spep::PolicyEnforceme
 		++obligationIterator )
 	{
 		
-		this->_localReportingProcessor.log( DEBUG, "Got obligation with ObligationId=" + UnicodeStringConversion::toString(obligationIterator->ObligationId().c_str()) );
+		_localLogger.debug() << "Got obligation with ObligationId=" << UnicodeStringConversion::toString(obligationIterator->ObligationId().c_str());
 		
 		// Check if the obligation ID is equal to the one we are to process.
 		if ( obligationIterator->ObligationId().compare( 0, wcslen(OBLIGATION_ID), OBLIGATION_ID ) == 0 )
 		{
 			
-			this->_localReportingProcessor.log( DEBUG, "ObligationId matched. Checking FulfillOn value." );
+			_localLogger.debug() << "ObligationId matched. Checking FulfillOn value.";
 			
 			// operator _xsd_EffectType() is defined, so we can just cast.
 			middleware::lxacmlSchema::EffectType::value effect = 
@@ -475,7 +488,7 @@ void spep::PolicyEnforcementProcessor::processObligations( spep::PolicyEnforceme
 				|| ( data.getDecision() == spep::Decision::DENY && effect == middleware::lxacmlSchema::EffectType::Deny ) )
 			{
 				
-				this->_localReportingProcessor.log( DEBUG, "FulfillOn value matched current decision. Processing attribute assignments." );
+				_localLogger.debug() << "FulfillOn value matched current decision. Processing attribute assignments.";
 
 				// Process the attribute assignments.
 				middleware::lxacmlSchema::ObligationType::AttributeAssignment_iterator attributeAssignmentIterator;
@@ -489,7 +502,7 @@ void spep::PolicyEnforcementProcessor::processObligations( spep::PolicyEnforceme
 					if ( attributeID.compare( 0, wcslen(ATTRIBUTE_ID), ATTRIBUTE_ID ) != 0 )
 						continue;
 					
-					this->_localReportingProcessor.log( DEBUG, "Matched attribute ID for current attribute. Processing group targets." );
+					_localLogger.debug() << "Matched attribute ID for current attribute. Processing group targets.";
 
 					// For each child node of this <AttributeAssignment> element.
 					xercesc::DOMNode *node = attributeAssignmentIterator->_node();
@@ -510,7 +523,7 @@ void spep::PolicyEnforcementProcessor::processObligations( spep::PolicyEnforceme
 							UnicodeString groupTargetID( UnicodeStringConversion::toUnicodeString( std::wstring(groupTarget->GroupTargetID()) ) );
 							std::vector<UnicodeString> authzTargets;
 							
-							this->_localReportingProcessor.log( DEBUG, "Current element is a group target. Group target ID: " + UnicodeStringConversion::toString( groupTargetID ) );
+							_localLogger.debug() << "Current element is a group target. Group target ID: " << UnicodeStringConversion::toString( groupTargetID );
 							
 							// Loop through the <AuthzTarget> elements.
 							middleware::lxacmlGroupTargetSchema::GroupTargetType::AuthzTarget_iterator authzTargetIterator;
@@ -521,7 +534,7 @@ void spep::PolicyEnforcementProcessor::processObligations( spep::PolicyEnforceme
 								
 								UnicodeString authzTarget( UnicodeStringConversion::toUnicodeString( std::wstring(authzTargetIterator->c_str()) ) );
 								authzTargets.push_back( authzTarget );
-								this->_localReportingProcessor.log( DEBUG, "Adding to group target " + UnicodeStringConversion::toString( groupTargetID ) + " authz target: " + UnicodeStringConversion::toString( authzTarget ) );
+								_localLogger.debug() << "Adding to group target " << UnicodeStringConversion::toString( groupTargetID ) << " authz target: " << UnicodeStringConversion::toString( authzTarget );
 								
 							}
 							

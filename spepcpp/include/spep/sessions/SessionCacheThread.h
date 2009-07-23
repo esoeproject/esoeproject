@@ -21,8 +21,8 @@
 #define SESSIONCACHETHREAD_H_
 
 #include "spep/Util.h"
-#include "spep/reporting/ReportingProcessor.h"
-#include "spep/reporting/LocalReportingProcessor.h"
+#include "saml2/logging/api.h"
+#include "saml2/logging/api.h"
 #include "spep/sessions/SessionCache.h"
 
 #include <boost/thread.hpp>
@@ -34,7 +34,7 @@ namespace spep
 	{
 	
 		private:
-		LocalReportingProcessor _localReportingProcessor;
+		saml2::LocalLogger _localLogger;
 		SessionCache *_sessionCache;
 		boost::thread_group _threadGroup;
 		int _timeout;
@@ -67,7 +67,7 @@ namespace spep
 		/**
 		 * Instantiates the thread object and starts the thread running.
 		 */
-		SessionCacheThread( ReportingProcessor *reportingProcessor, SessionCache *sessionCache, int timeout, int interval );
+		SessionCacheThread( saml2::Logger *logger, SessionCache *sessionCache, int timeout, int interval );
 		~SessionCacheThread();
 		
 		

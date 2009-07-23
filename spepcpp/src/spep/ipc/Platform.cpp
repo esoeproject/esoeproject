@@ -206,8 +206,6 @@ ssize_t spep::ipc::platform::readSocket( spep::ipc::platform::socket_t sock, cha
 	{
 		throw SocketException( strerror(errno) );
 	}
-	//else if (result == 0)
-	// ignore eof, calling method can handle it.
 	
 	return result;
 }

@@ -213,7 +213,7 @@ void spep::StartupProcessorImpl::doStartup()
 		// Generate the request document
 		std::wstring samlID( this->_identifierGenerator->generateSAMLID() );
 		
-		DOMDocumentAutoRelease requestDocument( this->buildRequest( samlID ) );
+		xml_schema::dom::auto_ptr<DOMDocument> requestDocument( this->buildRequest( samlID ) );
 		
 		std::string endpoint( this->_metadata->getSPEPStartupServiceEndpoint() );
 		

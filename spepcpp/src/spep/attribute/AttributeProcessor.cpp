@@ -92,7 +92,7 @@ void spep::AttributeProcessor::doAttributeProcessing(spep::PrincipalSession &pri
 	// Build the attribute query
 	std::wstring samlID = this->_identifierGenerator->generateSAMLID();
 	
-	DOMDocumentAutoRelease requestDocument( this->buildAttributeQuery( principalSession, samlID ) );
+	xml_schema::dom::auto_ptr<DOMDocument> requestDocument( this->buildAttributeQuery( principalSession, samlID ) );
 	
 	if ( requestDocument.get() == NULL )
 	{

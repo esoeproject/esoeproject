@@ -167,7 +167,7 @@ namespace spep
 			++bodyAnyIterator )
 		{
 			DOMElement *root = &(*bodyAnyIterator);
-			DOMDocumentAutoRelease domDoc( this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 ) );
+			xml_schema::dom::auto_ptr<DOMDocument> domDoc( this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 ) );
 			
 			{
 				XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );
@@ -207,7 +207,7 @@ namespace spep
 			++bodyAnyIterator )
 		{
 			DOMElement *root = &(*bodyAnyIterator);
-			DOMDocumentAutoRelease domDoc( this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 ) );
+			xml_schema::dom::auto_ptr<DOMDocument> domDoc( this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 ) );
 			
 			{
 				XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );

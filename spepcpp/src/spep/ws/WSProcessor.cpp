@@ -67,7 +67,7 @@ spep::SOAPDocument spep::WSProcessor::authzCacheClear( spep::SOAPDocument reques
 		_localLogger.error() << std::string("Error occurred performing cache clear. Message was: ") << ex.what();
 		return spep::SOAPDocument();
 	}
-	DOMDocumentAutoRelease responseAutoRelease( response );
+	xml_schema::dom::auto_ptr<DOMDocument> responseAutoRelease( response );
 	
 	_localLogger.debug() << "Performed authz cache clear. Going to wrap response document.";
 	try
@@ -129,7 +129,7 @@ spep::SOAPDocument spep::WSProcessor::singleLogout( spep::SOAPDocument requestDo
 		return spep::SOAPDocument();
 	}
 	
-	DOMDocumentAutoRelease responseAutoRelease( response );
+	xml_schema::dom::auto_ptr<DOMDocument> responseAutoRelease( response );
 
 	_localLogger.debug() << "Performed single logout. Going to wrap response document.";
 	try

@@ -281,24 +281,4 @@ namespace spep
 #define SPEPCONSTANT 
 #endif /*SPEPEXPORT*/
 
-namespace spep
-{
-	// This relies on the DOMDocument definition above, so we need to define it here.
-	class DOMDocumentAutoRelease
-	{
-		private:
-		DOMDocument *_domDoc;
-		
-		public:
-		//DOMDocumentAutoRelease():_domDoc(NULL){}
-		DOMDocumentAutoRelease( DOMDocument* domDoc ):_domDoc(domDoc){}
-		explicit DOMDocumentAutoRelease( DOMDocumentAutoRelease &copy ){ _domDoc = copy._domDoc; copy._domDoc = NULL; }
-		~DOMDocumentAutoRelease(){ if( _domDoc != NULL ) _domDoc->release(); }
-		
-		DOMDocument *get() { return _domDoc; }
-		DOMDocument* operator*() { return _domDoc; }
-		DOMDocument* operator->() { return _domDoc; }
-	};
-}
-
 #endif /*UTIL_H_*/

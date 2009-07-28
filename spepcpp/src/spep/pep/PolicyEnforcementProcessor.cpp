@@ -114,7 +114,7 @@ void spep::PolicyEnforcementProcessor::makeAuthzDecision( spep::PolicyEnforcemen
 	{
 		_localLogger.debug() << "No cached authz decision was found. Generating an authz decision query.";
 		
-		DOMDocumentAutoRelease requestDocument( this->generateAuthzDecisionQuery( data ) );
+		xml_schema::dom::auto_ptr<DOMDocument> requestDocument( this->generateAuthzDecisionQuery( data ) );
 		
 		_localLogger.debug() << "Generated a query. Making web service call.";
 		

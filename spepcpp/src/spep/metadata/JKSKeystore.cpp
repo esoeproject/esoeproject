@@ -52,12 +52,12 @@
 #define KEYSTORE_ENTRY_TRUSTED_CERT 2
 
 #define KEYSTORE_ERROR_NO_FILE "Unable to open Keystore. File does not exist or is not readable."
-#define KEYSTORE_ERROR_NO_CERT_CHAIN "No certificate chain for the specified alias."
+#define KEYSTORE_ERROR_NO_CERT_CHAIN "No entry in the keystore for the specified key alias."
 #define KEYSTORE_ERROR_CORRUPT_MAGIC "Keystore magic number does not match. Possibly corrupt?"
 #define KEYSTORE_ERROR_BAD_VERSION "Keystore version does not match the expected version number."
 #define KEYSTORE_ERROR_UNEXPECTED_EOF "Unexpected end of file while trying to parse the keystore."
 #define KEYSTORE_ERROR_UNKNOWN_ENTRY_TYPE "Unknown entry type was encountered. Unable to continue parsing."
-#define KEYSTORE_ERROR_CORRUPT_SIGNATURE "Hash value does not match the signed value in the keystore. Possibly corrupt?"
+#define KEYSTORE_ERROR_CORRUPT_SIGNATURE "Hash value does not match the signed value in the keystore. Possibly corrupt or wrong keystore password?"
 #define KEYSTORE_ERROR_CORRUPT_KEY "Private key data could not be validated. Wrong password?"
 
 namespace spep

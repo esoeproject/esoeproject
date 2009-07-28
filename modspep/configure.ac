@@ -159,6 +159,32 @@ AC_ARG_WITH(
 	]
 )
 
+AC_ARG_WITH(
+	[apxs],
+	[AS_HELP_STRING(
+		[--with-apxs=DIR],
+		[path to apxs command line util])
+	],
+	[
+		apacheflags=
+		apxspath=$withval
+		apache=1
+	]
+)
+
+AC_ARG_WITH(
+	[apxs2],
+	[AS_HELP_STRING(
+		[--with-apxs2=DIR],
+		[path to apxs2 command line util])
+	],
+	[
+		apacheflags=
+		apxspath=$withval
+		apache=2
+	]
+)
+
 if test $apache -eq 0
 then
 	AC_MSG_FAILURE([Please provide --with-apache1=DIR or --with-apache2=DIR])
@@ -215,6 +241,10 @@ fi
 if test -n "$apachepath"; then
 	apacheinc=-I$apachepath/include
 	apachelib=-L$apachepath/lib
+fi
+if test -n "$apxspath"; then
+	apacheinc=$($apxspath -q CPPFLAGS)
+	apachelib=$($apxspath -q LDFLAGS)
 fi
 if test -n "$apreqpath"; then
 	apreqinc=-I$apreqpath/include

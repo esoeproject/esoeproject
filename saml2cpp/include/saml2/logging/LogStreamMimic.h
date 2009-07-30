@@ -27,6 +27,8 @@
 
 #include "saml2/logging/LogLevel.h"
 
+#include <xercesc/util/XMLString.hpp>
+
 namespace saml2
 {
 
@@ -90,9 +92,10 @@ namespace saml2
 
 			return *this;
 		}
-
 	};
 
+	template <>
+	LogStreamMimic& LogStreamMimic::operator<< <XMLCh const*>( XMLCh const* const& str );
 }
 
 #endif /*LOGSTREAMMIMIC_H_*/

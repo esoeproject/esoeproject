@@ -19,6 +19,8 @@
 #include "saml2/logging/LogStreamMimic.h"
 #include "saml2/logging/LocalLogger.h"
 
+XERCES_CPP_NAMESPACE_USE
+
 saml2::LogStreamMimic::LogStreamMimic( const saml2::LogStreamMimic::LogStreamMimic& other )
 :
 _logger( other._logger ),
@@ -41,4 +43,14 @@ saml2::LogStreamMimic::~LogStreamMimic()
 	{
 		this->_logger->log( this->_level, this->_stringStream.str() );
 	}
+}
+
+template<>
+saml2::LogStreamMimic& saml2::LogStreamMimic::operator<< <XMLCh const*>( XMLCh const* const& str )
+{
+	char* transcoded = XMLString::transcode(str);
+	this->_stringStream << std::string(transcoded);
+	XMLString::release(&transcoded);
+
+	return *this;
 }

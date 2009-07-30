@@ -129,6 +129,27 @@ public class WSClientImpl implements WSClient
 		return invokeWSCall(spepStartup, endpoint, action);
 	}
 	
+	public Element artifactResolve(Element artifactResolve, String endpoint) throws WSClientException
+	{
+		final String action = "artifactResolve";
+
+		if (endpoint == null || endpoint.length() <= 0)
+		{
+			this.logger.error("WS target endpoint cannot be null");
+			throw new IllegalArgumentException("WS target endpoint cannot be null");
+		}
+		
+		if (artifactResolve == null)
+		{
+			this.logger.error("Artifact resolve request to endpoint {} failed, request was null", endpoint);
+			throw new IllegalArgumentException("Artifact resolve request cannot be null");
+		}
+		
+		this.logger.debug("Sending artifact resolve request to {}", endpoint);
+		
+		return invokeWSCall(artifactResolve, endpoint, action);
+	}
+	
 
 	/*
 	 * Responsible for actual logic in converting incoming string to Axis format and translating Axis response format to

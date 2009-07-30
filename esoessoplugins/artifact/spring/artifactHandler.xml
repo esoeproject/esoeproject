@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+		
+	<bean id="artifactHandler" class="com.qut.middleware.esoe.sso.plugins.artifact.handler.ArtifactHandler">
+		<constructor-arg index="0" ref="artifactLogic"/>
+	</bean>
+	
+	<bean id="artifactLogic" class="com.qut.middleware.esoe.sso.plugins.artifact.handler.impl.ArtifactLogicImpl">
+		<property name="artifactProcessor" ref="artifactProcessor"/>
+	</bean>
+	
+	<bean id="artifactProcessor" class="com.qut.middleware.esoe.sso.plugins.artifact.impl.ArtifactProcessorImpl">
+		<property name="identifierGenerator" ref="identifierGenerator"/>
+		<property name="entityIdentifier" value="${esoeIdentifier}"/>
+		<property name="WSClient" ref="wsClient"/>
+		<property name="metadataProcessor" ref="metadata"/>
+		<property name="keystoreResolver" ref="esoeKeyStoreResolver"/>
+		<property name="nodeIndex" value="0"/>
+	</bean>
+	
+	<bean id="localConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="ignoreResourceNotFound" value="true"/>
+		<property name="locations">
+			<list>
+				<value>file://${esoe.data}/config/esoe.config</value>
+				<value>file://${esoe.data}/plugins/plugins.config</value>
+				<value>file://${esoe.data}/plugins/sso/ssoplugins.config</value>
+				<value>file://${esoe.data}/plugins/sso/artifact/plugin.config</value>
+			</list>
+		</property>
+	</bean>
+
+</beans>

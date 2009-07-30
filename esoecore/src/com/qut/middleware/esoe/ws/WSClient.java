@@ -48,4 +48,13 @@ public interface WSClient
 	 * @throws WSClientException if the client cannot send the request.
 	 */
 	public Element singleLogout(Element request, String endpoint) throws WSClientException;
+	
+	/**
+	 * Sends an ArtifactResolve request to the specified endpoint.
+	 * @param request The request document element.
+	 * @param endpoint The endpoint location to make the request to.
+	 * @return The response document element.
+	 * @throws WSClientException If an error occurs while processing the request.
+	 */
+	public Element artifactResolve(Element request, String endpoint) throws WSClientException;
 }

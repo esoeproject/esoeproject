@@ -27,6 +27,8 @@ import com.qut.middleware.metadata.processor.MetadataProcessor;
 import com.qut.middleware.metadata.processor.impl.MetadataUpdateThread;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessor;
+import com.qut.middleware.spep.authn.bindings.ArtifactProcessor;
+import com.qut.middleware.spep.authn.bindings.AuthnBindingProcessor;
 import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
@@ -47,6 +49,11 @@ public interface SPEP
 	 * @return The authentication processor.
 	 */
 	public AuthnProcessor getAuthnProcessor();
+	
+	/**
+	 * @return The authentication binding processor.
+	 */
+	public AuthnBindingProcessor getAuthnBindingProcessor();
 	
 	/**
 	 * @return The metadata instance.
@@ -166,4 +173,14 @@ public interface SPEP
 	 * @return Boolean value indicating whether the SPEP will attempt to be compatible with a non-ESOE identity provider.
 	 */
 	public boolean enableCompatibility();
+
+	/**
+	 * @return Index of this SPEP node.
+	 */
+	public int getNodeIndex();
+	
+	/**
+	 * @return The artifact processor instance.
+	 */
+	public ArtifactProcessor getArtifactProcessor();
 }

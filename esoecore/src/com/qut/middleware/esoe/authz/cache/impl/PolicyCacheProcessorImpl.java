@@ -726,7 +726,7 @@ public class PolicyCacheProcessorImpl extends Thread implements PolicyCacheProce
 		queryData.setSequenceId(new BigDecimal(this.globalCache.getBuildSequenceId()));
 
 		List<PolicyCacheData> result = this.sqlConfig.queryPolicyCache(queryData);
-	
+
 		if (result != null)
 		{
 			this.logger.debug(MessageFormat.format("Query retrieved {0} results.", result.size()));

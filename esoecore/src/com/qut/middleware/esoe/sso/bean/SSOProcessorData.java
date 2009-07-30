@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.qut.middleware.esoe.bean.SAMLProcessorData;
+import com.qut.middleware.esoe.sessions.Principal;
+import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.saml2.schemas.protocol.AuthnRequest;
 
 /** Transfers data between components of the SSO system.  */
@@ -31,6 +33,32 @@ public interface SSOProcessorData extends SAMLProcessorData
 {
 	/** Session identifier for this data bean */
 	public static String SESSION_NAME = "com.qut.middleware.esoe.sso.bean"; //$NON-NLS-1$
+	
+	public enum RequestMethod {
+		/** HTTP standard GET request method */
+		HTTP_GET,
+		/** HTTP standard POST request method */
+		HTTP_POST
+	}
+	
+	public enum SSOAction {
+		/** Request processing step - processing the AuthnRequest */
+		REQUEST_PROCESSING,
+		/** SSO processing step - session validation, entity & session registration, etc. */
+		SSO_PROCESSING,
+		/** Response processing step - generating the AuthnResponse */
+		RESPONSE_PROCESSING
+	}
+	
+	/**
+	 * @return The HTTP request method that initiated this request.
+	 */
+	public RequestMethod getRequestMethod();
+	
+	/**
+	 * @param httpRequestMethod The HTTP request method that initiated this request.
+	 */
+	public void setRequestMethod(RequestMethod httpRequestMethod);
 	
 	/**
 	 * @return The binding used in this request
@@ -53,100 +81,9 @@ public interface SSOProcessorData extends SAMLProcessorData
 	public void setAuthnRequest(AuthnRequest authnRequest);
 	
 	/**
-	 * @return the relay stae of the request
-	 */
-	public String getRelayState();
-	
-	/**
-	 * @param relayState
-	 */
-	public void setRelayState(String relayState);
-	
-	/**
-	 * @return the SAML Encoding in use
-	 */
-	public String getSamlEncoding();
-	
-	/**
-	 * @param samlEncoding
-	 */
-	public void setSamlEncoding(String samlEncoding);
-	
-	/**
-	 * @return The value to set in the domain cookie
-	 */
-	public String getSamlDomainCookieData();
-	
-	/**
-	 * @param samlDomainCookieData
-	 */
-	public void setSamlDomainCookieData(String samlDomainCookieData);
-	
-	/**
-	 * @return The algorithm used to create the signature for HTTP Redirect binding
-	 */
-	public String getSigAlg();
-	
-	/**
-	 * @param sigAlg
-	 */
-	public void setSigAlg(String sigAlg);
-	
-	/*
-	 * @return The signature of the request for HTTP Redirect binding
-	 */
-	public String getSignature();
-	
-	/**
-	 * @param sigAlg
-	 */
-	public void setSignature(String signature);
-	
-	/**
-	 * @return the issuer ID of the communicating SPEP
-	 */
-	public String getIssuerID();
-
-	/**
 	 * @return the current http request object
 	 */
 	public HttpServletRequest getHttpRequest();
-
-	/**
-	 * @return the current http response object
-	 */
-	public HttpServletResponse getHttpResponse();
-
-	/**
-	 * @return the resolved endpoint of the spep instance it wishes us to respond to
-	 */
-	public String getResponseEndpoint();
-
-	/**
-	 * @return the endpoint id supplied in the request
-	 */
-	public int getResponseEndpointID();
-
-	/**
-	 * @return the url we should send the principal back to on response
-	 */
-	public String getResponseURL();
-
-	/**
-	 * @return the principals authn generated sessionID
-	 */
-	public String getSessionID();
-	
-	/**
-	 * @return representation as to if this sso request has previously had processing started or not
-	 */
-	public boolean isReturningRequest();
-
-	/**
-	 * Sets the issuerID
-	 * @param issuerID The issuer ID
-	 */
-	public void setIssuerID(String issuerID);
 
 	/**
 	 * Sets the httpRequest
@@ -155,57 +92,96 @@ public interface SSOProcessorData extends SAMLProcessorData
 	public void setHttpRequest(HttpServletRequest httpRequest);
 
 	/**
+	 * @return the current http response object
+	 */
+	public HttpServletResponse getHttpResponse();
+
+	/**
 	 * Sets the httpResponse
 	 * @param httpResponse The HTTP response
 	 */
 	public void setHttpResponse(HttpServletResponse httpResponse);
-
+	
 	/**
-	 * Sets the responseEndpoint
-	 * @param responseEndpoint The response endpoint
+	 * @param <T> Type expected to be returned
+	 * @param clazz Class object of type expected
+	 * @return The binding data bean
 	 */
+	public <T> T getBindingData(Class<T> clazz);
+	
+	/**
+	 * @param <T> Type of binding data bean
+	 * @param obj The binding data bean
+	 */
+	public <T> void setBindingData(T obj);
+
+	public String getResponseEndpoint();
+	
 	public void setResponseEndpoint(String responseEndpoint);
-
-	/**
-	 * Sets the responseEndpointID
-	 * @param responseEndpointID The response endpoint ID
-	 */
-	public void setResponseEndpointID(int responseEndpointID);
-
-	/**
-	 * Sets the responseURL
-	 * @param responseURL The response URL
-	 */
-	public void setResponseURL(String responseURL);
-
-	/**
-	 * Sets the sessionID
-	 * @param sessionID The session ID
-	 */
-	public void setSessionID(String sessionID);
 	
-	/**
-	 * Sets the returningRequest
-	 * @param returningRequest the returningRequest value
-	 */
-	public void setReturningRequest(boolean returningRequest);
-			
-	/**
-	 * @return The charset used by the caller
-	 */
 	public String getRequestCharsetName();
+
+	public void setRequestCharsetName(String detectCharSet);
 	
-	/**
-	 * @param name
-	 */
-	public void setRequestCharsetName(String name);
+	public String getRemoteAddress();
+
+	public void setRemoteAddress(String remoteAddress);
+	
+	public SSOAction getCurrentAction();
+	
+	public void setCurrentAction(SSOAction action);
+	
+	public String getCurrentHandler();
+	
+	public void setCurrentHandler(String handler);
 	
 	public String getCommonCookieValue();
 	
-	public void setCommonCookieValue(String commonCookieValue);
+	public void setCommonCookieValue(String value);
+	
+	public String getSessionID();
+	
+	public void setSessionID(String sessionID);
+	
+	public Principal getPrincipal();
+	
+	public void setPrincipal(Principal principal);
+	
+	public String getIssuerID();
+	
+	public void setIssuerID(String issuerID);
 	
 	public List<String> getValidIdentifiers();
 	
 	public void setValidIdentifiers(List<String> validIdentifiers);
 	
+	public boolean isResponded();
+	
+	public void setResponded(boolean responded);
+	
+	public SSOProcessor getSSOProcessor();
+	
+	public void setSSOProcessor(SSOProcessor processor);
+	
+	public String getSessionIndex();
+
+	public void setSessionIndex(String sessionIndex);
+
+	/**
+	 * Signals a reset. Used to prevent an overflow of resets if one or more handlers are behaving poorly.
+	 * @param handlerName The name of the handler requesting the reset.
+	 * @param limit The limit of resets before returning false
+	 * @return True if the reset should succeed, or false if the limit has been exceeded.
+	 */
+	public boolean handlerReset(String handlerName, int limit);
+
+	/**
+	 * @return The list of handlers that have issued a reset
+	 */
+	public List<String> getHandlerResetHistory();
+
+	/**
+	 * Resets the "handler resets" tracker.
+	 */
+	public void resetHandlerResets();
 }

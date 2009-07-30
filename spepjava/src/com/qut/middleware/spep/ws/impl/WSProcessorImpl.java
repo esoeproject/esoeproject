@@ -32,7 +32,9 @@ import com.qut.middleware.saml2.exception.SOAPException;
 import com.qut.middleware.saml2.handler.SOAPHandler;
 import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessorData;
+import com.qut.middleware.spep.authn.bindings.ArtifactProcessor;
 import com.qut.middleware.spep.authn.impl.AuthnProcessorDataImpl;
+import com.qut.middleware.spep.exception.AuthenticationException;
 import com.qut.middleware.spep.exception.LogoutException;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.ws.WSProcessor;
@@ -47,14 +49,16 @@ public class WSProcessorImpl implements WSProcessor
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(WSProcessorImpl.class.getName());
 	private List<SOAPHandler> soapHandlers;
+	private ArtifactProcessor artifactProcessor;
 
 	/**
 	 * Default constructor
 	 */
-	public WSProcessorImpl(PolicyEnforcementProcessor policyEnforcementProcessor, AuthnProcessor authnProcessor, List<SOAPHandler> soapHandlers)
+	public WSProcessorImpl(PolicyEnforcementProcessor policyEnforcementProcessor, AuthnProcessor authnProcessor, ArtifactProcessor artifactProcessor, List<SOAPHandler> soapHandlers)
 	{
 		this.policyEnforcementProcessor = policyEnforcementProcessor;
 		this.authnProcessor = authnProcessor;
+		this.artifactProcessor = artifactProcessor;
 		this.soapHandlers = soapHandlers;
 		
 		this.logger.debug("Initialized WSProcessorImpl.");
@@ -113,6 +117,31 @@ public class WSProcessorImpl implements WSProcessor
 		{
 			this.logger.error("Exception occurred while processing logout request. Message was: " + e.getMessage());
 			throw new WSProcessorException("Exception occurred while processing logout request.");
+		}
+	}
+	
+	public byte[] artifactResolve(byte[] artifactResolve, String contentType) throws WSProcessorException
+	{
+		try
+		{
+			SOAPHandler handler = this.getHandler(contentType);
+			
+			Element request = readRequest(artifactResolve, handler);
+			
+			Element response = this.artifactProcessor.execute(request);
+			if (response != null)
+			{
+				this.logger.debug("Artifact resolve processed. Responding to ESOE with response document");
+				return generateResponse(response, handler);
+			}
+
+			this.logger.warn("Artifact resolve resulted in null response document.");
+			throw new WSProcessorException("Artifact resolve resulted in null response document.");
+		}
+		catch (AuthenticationException e)
+		{
+			this.logger.error("Exception occurred while processing artifact request. Message was: " + e.getMessage());
+			throw new WSProcessorException("Exception occurred while processing artifact request.");
 		}
 	}
 	

@@ -23,6 +23,8 @@
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.codec.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.collections-sources.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.collections.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.lang-sources.jar"/>
+	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.lang.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.logging-sources.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.commons.logging.jar"/>
 	<classpathentry kind="lib" path="lib/compile/com.springsource.org.apache.log4j-sources.jar"/>

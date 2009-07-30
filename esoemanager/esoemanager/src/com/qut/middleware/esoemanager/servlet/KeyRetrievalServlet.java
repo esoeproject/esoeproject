@@ -66,7 +66,7 @@ public class KeyRetrievalServlet extends HttpServlet
 
 		try
 		{
-			KeyStoreBean keystoreBean = this.serviceCrypto.retireveKeystore(sidValue, nameValue);
+			KeyStoreBean keystoreBean = this.serviceCrypto.retrieveKeystore(sidValue, nameValue);
 			
 			resp.setContentType("application/octet-stream");
 			resp.addHeader("Content-disposition", "attachment; filename=spepKeystore.ks"); //$NON-NLS-1$ //$NON-NLS-2$

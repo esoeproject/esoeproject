@@ -25,7 +25,7 @@ public interface ServiceCrypto
 {
 	public List<KeyDetails> retrieveServiceKeys(String serviceID) throws RetrieveServiceCryptoException;
 	
-	public KeyStoreBean retireveKeystore(String serviceID, String keypairName)  throws RetrieveServiceCryptoException;
+	public KeyStoreBean retrieveKeystore(String serviceID, String keypairName)  throws RetrieveServiceCryptoException;
 	
 	public void createServiceKey(String serviceID) throws ServiceCryptoCreationException;
 	

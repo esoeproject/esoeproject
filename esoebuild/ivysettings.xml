@@ -11,11 +11,11 @@
 			</filesystem>
 			<url name="esoeproject ivy repository">
 				<ivy
-					pattern="http://esoeproject.org/ivy/[organisation]/[module]/[revision]/ivys/ivy.xml" />
+					pattern="http://esoeproject.org/static/ivy/[organisation]/[module]/[revision]/ivys/ivy.xml" />
 				<artifact
-					pattern="http://esoeproject.org/ivy/[organisation]/[module]/[revision]/jars/[artifact]-[revision].[ext]" />
+					pattern="http://esoeproject.org/static/ivy/[organisation]/[module]/[revision]/jars/[artifact]-[revision].[ext]" />
 				<artifact
-					pattern="http://esoeproject.org/ivy/[organisation]/[module]/[revision]/jars/[artifact].[ext]" />
+					pattern="http://esoeproject.org/static/ivy/[organisation]/[module]/[revision]/jars/[artifact].[ext]" />
 			</url>
 			<url name="com.springsource.repository.bundles.release">
 				<ivy

@@ -48,8 +48,6 @@
 			
 			<lib file="${output}/${output.jar}" />
 			<lib dir="${artifacts.runtime}"/>
-			
-			<fileset dir="${webapp.content}" />	
 		</war>
 	</target>
 	

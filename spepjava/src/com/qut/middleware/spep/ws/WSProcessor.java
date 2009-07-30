@@ -41,4 +41,13 @@ public interface WSProcessor
 	 * @throws AxisFault if the web service client cannot send the request.
 	 */
 	public byte[] singleLogout(byte[] request, String contentType) throws WSProcessorException;
+
+	/**
+	 * Performs an artifact resolution operation.
+	 * @param artifactResolve
+	 * @param contentType
+	 * @return
+	 * @throws WSProcessorException
+	 */
+	public byte[] artifactResolve(byte[] artifactResolve, String contentType) throws WSProcessorException;
 }

@@ -115,7 +115,7 @@ public class ServiceCryptoImpl implements ServiceCrypto
 		return keyDetailsList;
 	}
 
-	public KeyStoreBean retireveKeystore(String serviceID, String keypairName) throws RetrieveServiceCryptoException
+	public KeyStoreBean retrieveKeystore(String serviceID, String keypairName) throws RetrieveServiceCryptoException
 	{
 		List<Map<String, Object>> keyStoreData;
 		byte[] rawKeyStore;

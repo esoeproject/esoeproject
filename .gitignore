@@ -1,0 +1,46 @@
+# Compiled java things
+*.class
+lib
+dist
+build
+bin
+
+# Compiled C++ things
+*.o
+*.lo
+.deps
+.libs
+*.la
+spepd
+
+# Generated stuff
+saml2java/src-gen
+esoecore/webservice/deploy
+esoemanager/esoemanager/build-gwt
+
+# Archives
+*.war
+*.jar
+*.tar.[bg]z*
+
+# automake / autoconf / related
+aclocal.m4
+autom4te.cache
+config.guess
+config.h
+config.h.in
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
+Makefile
+Makefile.in
+missing
+stamp-h1
+
+# Editor swap files
+*.sw[op]

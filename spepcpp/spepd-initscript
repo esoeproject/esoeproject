@@ -1,0 +1,128 @@
+#!/bin/sh
+# Init script for SPEP daemon.
+#
+# chkconfig: 2345 90 10
+# description: SPEP daemon
+
+### BEGIN INIT INFO
+# Provides:          spepd
+# Required-Start:    $local_fs $remote_fs $network
+# Required-Stop:     $local_fs $remote_fs $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start/stop SPEP daemon
+### END INIT INFO
+#
+# spepd			This init.d script is used to start spepd
+
+SPEP_HOME=${SPEP_HOME}
+spepd=$SPEP_HOME/sbin/spepd
+pidfile=$SPEP_HOME/spepd.pid
+log=$SPEP_HOME/logs/spepd.log
+conf=$SPEP_HOME/etc/spep/spep.conf
+
+doStart() {
+	pidfile_dir=$(dirname $pidfile)
+	if [ \( ! -d $pidfile_dir -o ! -w $pidfile_dir \) -a ! -w $pidfile ]; then
+		echo warning: no access to write $pidfile, pidfile may not be written correctly >&2
+	fi
+	log_dir=$(dirname $log)
+	if [ \( ! -d $log_dir -o ! -w $log_dir \) -a ! -w $log ]; then
+		echo warning: no access to write $log, log may not be written correctly >&2
+	fi
+	if [ ! -r $conf ]; then
+		echo warning: no read access to $conf, startup will probably fail
+	fi
+	$spepd -l $log -f $conf -p $pidfile
+	return $?
+}
+
+startSpepd() {
+	echo -n starting spepd..
+	if quietStatus; then
+		echo already running, pid $pid
+	else
+		doStart && echo done
+	fi
+}
+
+stopSpepd() {
+	echo -n stopping spepd..
+	if quietStatus; then
+		kill $pid
+		# sleep 1 second if it's still up
+		quietStatus && sleep 1
+		if quietStatus; then
+			echo -n still running with pid $pid.. killing forcefully in 5 seconds.. 
+		else
+			echo done
+			return 0
+		fi
+		for Z in `seq 1 5`; do quietStatus && sleep 1; done
+		if ! quietStatus; then
+			echo spepd stopped
+		else
+			kill -KILL $pid
+			echo spepd killed
+		fi
+	else
+		echo not running
+	fi
+}
+
+quietStatus() {
+	if [ -e $pidfile ]; then
+		read pid < $pidfile
+
+		pids=$(pidof $spepd)
+		for Z in $pids; do
+			if [ $Z = $pid ]; then
+				return 0
+			fi
+		done
+	fi
+
+	return 1
+}
+
+status() {
+	if [ -e $pidfile ]; then
+		read pid < $pidfile
+
+		pids=$(pidof $spepd)
+		for Z in $pids; do
+			if [ $Z = $pid ]; then
+				echo spepd: running with pid $pid
+				return 0
+			fi
+		done
+	else
+		echo warning: no pidfile. unable to detect running spepd >&2
+		if ps -ef | grep "[s]pepd.*$conf"; then
+			echo possible running spepd instance above >&2
+		fi
+	fi
+
+	echo spepd: not running
+	return 1
+}
+
+case $1 in
+start)
+	startSpepd
+	;;
+stop)
+	stopSpepd
+	;;
+restart)
+	stopSpepd
+	startSpepd
+	;;
+status)
+	status
+	exit $?
+	;;
+*)
+	;;
+esac
+

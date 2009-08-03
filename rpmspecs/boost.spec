@@ -19,7 +19,7 @@ The Boost collection of libraries available from http://www.boost.org
 ./configure
 
 %install
-sed -i -e "s,^.*using\s*gcc.*\$,using gcc : : : <cxxflags>\"$RPM_OPT_FLAGS\" ;," user-config.jam
+sed -i -e "s!^.*using\s*gcc.*\$!using gcc : : : <cxxflags>\"$RPM_OPT_FLAGS\" ;!" user-config.jam
 tools/jam/src/bin.linuxx86/bjam --toolset=gcc --layout=system --buildid=esoe --with-regex --with-thread --with-program_options --with-date_time --prefix=$RPM_BUILD_ROOT%{prefix} install
 
 %post

@@ -1,12 +1,13 @@
 Summary: libapreq2
 Name: libapreq2-ESOE
-Version: 2.08
+Version: 2.12
 Release: 1
 Source0: libapreq2-%{version}.tar.gz
 License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root
 Requires: httpd >= 2.0
+BuildRequires: httpd-devel >= 2.0
 Prefix: /usr/local/spep
 
 %package module
@@ -50,22 +51,16 @@ make install DESTDIR="$RPM_BUILD_ROOT"
 %defattr(-,root,root)
 
 /usr/local/spep/bin/apreq2-config
-/usr/local/spep/lib/libapreq2.a
-/usr/local/spep/lib/libapreq2.la
-/usr/local/spep/lib/libapreq2.so
-/usr/local/spep/lib/libapreq2.so.2
-/usr/local/spep/lib/libapreq2.so.2.6.0
+/usr/local/spep/lib/libapreq2*
 
 %files module
 %defattr(-,root,root)
 
-/usr/lib/httpd/modules/mod_apreq2.a
-/usr/lib/httpd/modules/mod_apreq2.la
-/usr/lib/httpd/modules/mod_apreq2.so
+/usr/lib/httpd/modules/mod_apreq2*
 
 %files devel
 %defattr(-,root,root)
 
 /usr/local/spep/include/apreq2
-/usr/include/httpd/apreq2/apreq_module_apache2.h
+/usr/include/httpd/apreq2
 

@@ -1,3 +1,9 @@
+eventPackagePluginStart = {
+	if (it == "spep") {
+		pluginIncludes << "spep-war/**"
+	}
+}
+
 eventPackagingEnd = {
 	if (config.spep?.enabled) {
 		def data = config.spep.data

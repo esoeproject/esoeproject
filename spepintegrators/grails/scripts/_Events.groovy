@@ -1,6 +1,7 @@
 eventPackagePluginStart = {
 	if (it == "spep") {
-		pluginIncludes << "spep-war/**"
+		pluginIncludes << "spep-war/*.war"
+		pluginIncludes << "spep-war/lib/*.jar"
 	}
 }
 

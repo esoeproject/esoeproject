@@ -104,6 +104,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 done
 mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/ld.so.conf.d
 cat $RPM_BUILD_DIR/src/spep-%{version}/spepd-initscript | sed '/^SPEP_HOME/ s!\${SPEP_HOME}!'%{prefix}\! > $RPM_BUILD_ROOT/etc/init.d/spepd
+chmod +x $RPM_BUILD_ROOT/etc/init.d/spepd
 echo %{prefix}/lib > $RPM_BUILD_ROOT/etc/ld.so.conf.d/spep.conf
 
 %post

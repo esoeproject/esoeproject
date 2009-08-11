@@ -150,7 +150,8 @@ public class ServiceCryptoImpl implements ServiceCrypto
 			keyStore = this.cryptoProcessor.generateKeyStore();
 			ByteArrayInputStream in = new ByteArrayInputStream(rawKeyStore);
 			keyStore.load(in, keyStorePassphrase.toCharArray());
-			
+			this.cryptoProcessor.decorate(keyStore);
+
 			result.setKeyStore(keyStore);
 			result.setPassphrase(keyStorePassphrase);
 

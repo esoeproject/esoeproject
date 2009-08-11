@@ -74,4 +74,6 @@ public interface CryptoProcessor
 	
 	public byte[] convertPublicKeyByteArray(PublicKey key) throws CryptoException;
 
+	public void decorate(KeyStore keyStore);
+
 }

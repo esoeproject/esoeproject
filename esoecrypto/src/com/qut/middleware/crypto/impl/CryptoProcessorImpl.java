@@ -40,10 +40,13 @@ import java.security.Security;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Map;
 import java.util.Random;
 
 import javax.security.auth.x500.X500Principal;
@@ -673,5 +676,37 @@ public class CryptoProcessorImpl implements CryptoProcessor
 	public void setLocalResolver(KeystoreResolver localResolver)
 	{
 		this.localResolver = localResolver;
+	}
+
+	public void decorate(KeyStore keyStore) {
+		this.logger.debug("Going to decorate keystore");
+		try {
+			for (Map.Entry<String, Certificate> entry : this.localResolver.getCertificates().entrySet()) {
+				this.logger.debug("Processing certificate {} while decorating keystore", entry.getKey());
+
+				// Check the validity of any X.509 certificate
+				if (entry.getValue() instanceof X509Certificate) {
+					try {
+						((X509Certificate)entry.getValue()).checkValidity();
+					} catch (CertificateExpiredException e) {
+						// Expired. Skip this certificate
+						this.logger.debug("Certificate {} expired, not adding to keystore", entry.getKey());
+						continue;
+					} catch (CertificateNotYetValidException e) {
+						// Not yet valid. That's OK, put it in anyway.
+					}
+				}
+
+				if (!keyStore.containsAlias(entry.getKey())) {
+					this.logger.debug("Certificate {} not present already, adding to keystore", entry.getKey());
+					keyStore.setCertificateEntry(entry.getKey(), entry.getValue());
+				} else {
+					this.logger.debug("Certificate {} already present, not adding to keystore", entry.getKey());
+				}
+			}
+		} catch (KeyStoreException e) {
+			this.logger.error("Failed to decorate keystore, a keystore exception occurred. Message was: {}", e.getMessage());
+			throw new IllegalArgumentException("Unable to decorate the given keystore due to a keystore exception.", e);
+		}
 	}
 }

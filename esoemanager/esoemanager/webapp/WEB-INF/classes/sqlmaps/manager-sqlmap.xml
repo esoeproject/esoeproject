@@ -319,6 +319,9 @@
 		DESCRIPTORS.DESCRIPTORTYPEID='2'</select>
 	<select id="getKeyStore" resultMap="keyStoreMap"> SELECT KEYSTORE,
 		KEYSTORE_PASSPHRASE FROM PKI_STORES WHERE DESC_ID = #value#</select>
+	<select id="getKeyStoreByName" parameterMap="keystoreMap" resultMap="keyStoreMap"> SELECT KEYSTORE,
+		KEYSTORE_PASSPHRASE FROM PKI_STORES WHERE DESC_ID = ? AND KEYPAIRNAME = ?
+	</select>
 	<select id="getServiceDescriptor" parameterMap="descriptorType"
 		resultMap="descriptorMap"> SELECT DESC_ID, DESCRIPTORID, DESCRIPTORXML FROM
 		DESCRIPTORS WHERE ENT_ID = ? AND DESCRIPTORTYPEID = ?</select>

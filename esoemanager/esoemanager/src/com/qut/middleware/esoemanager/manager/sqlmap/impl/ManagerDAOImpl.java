@@ -522,7 +522,26 @@ public class ManagerDAOImpl extends SqlMapClientDaoSupport implements ManagerDAO
 			throw new ManagerDAOException(e.getLocalizedMessage(), e);
 		}
 	}
-	
+
+	public List<Map<String, Object>> queryKeystoreBinary(Integer descID,
+			String keyName) throws ManagerDAOException {
+		List<Map<String, Object>> keyStoreData;
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		parameters.put(Constants.FIELD_DESC_ID, descID);
+		parameters.put(Constants.FIELD_PKI_KEYPAIRNAME, keyName);
+		try
+		{
+			keyStoreData = this.getSqlMapClient().queryForList(Constants.QUERY_KEYSTORE_BY_NAME, parameters);
+			return keyStoreData;
+		}
+		catch (SQLException e)
+		{
+			this.logger.error("SQLException thrown, " + e.getLocalizedMessage());
+			this.logger.debug(e.toString());
+			throw new ManagerDAOException(e.getLocalizedMessage(), e);
+		}
+	}
+
 	public List<Map<String, Object>> queryServicePolicies(Integer entID) throws ManagerDAOException
 	{
 		List<Map<String, Object>> policyData;

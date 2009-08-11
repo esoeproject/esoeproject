@@ -70,6 +70,8 @@ public interface ManagerDAO
 	
 	public List<Map<String, Object>> queryKeystoreBinary(Integer descID) throws ManagerDAOException;
 
+	public List<Map<String, Object>> queryKeystoreBinary(Integer descID, String keyName) throws ManagerDAOException;
+
 	public List<Integer> queryServices() throws ManagerDAOException;
 	
 	public Map<String, Object> queryServiceDetails(Integer entID) throws ManagerDAOException;

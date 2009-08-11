@@ -130,12 +130,12 @@ public class ServiceCryptoImpl implements ServiceCrypto
 			if (entID.intValue() == this.esoeENTID)
 			{
 				Integer descID = this.managerDAO.getDescID(entID, Constants.IDP_DESCRIPTOR);
-				keyStoreData = this.managerDAO.queryKeystoreBinary(descID);
+				keyStoreData = this.managerDAO.queryKeystoreBinary(descID, keypairName);
 			}
 			else
 			{
 				Integer descID = this.managerDAO.getDescID(entID, Constants.SP_DESCRIPTOR);
-				keyStoreData = this.managerDAO.queryKeystoreBinary(descID);
+				keyStoreData = this.managerDAO.queryKeystoreBinary(descID, keypairName);
 			}
 
 			if (keyStoreData == null || keyStoreData.size() == 0)

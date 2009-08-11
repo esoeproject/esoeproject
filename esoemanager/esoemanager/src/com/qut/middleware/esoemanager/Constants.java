@@ -126,6 +126,7 @@ public class Constants
 	public static final String QUERY_CONTACTS = "getContacts";
 	public static final String QUERY_SERVICE_CONTACTS = "getServiceContacts";
 	public static final String QUERY_KEYSTORE = "getKeyStore";
+	public static final String QUERY_KEYSTORE_BY_NAME = "getKeyStoreByName";
 	public static final String QUERY_SERVICE_DETAILS = "getServiceDetails";
 	public static final String QUERY_SERVICE_NODES = "getServiceNodes";
 	public static final String QUERY_ACTIVE_SERVICE_NODES = "getActiveServiceNodes";

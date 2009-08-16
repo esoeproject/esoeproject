@@ -17,6 +17,7 @@ spepd
 saml2java/src-gen
 esoecore/webservice/deploy
 esoemanager/esoemanager/build-gwt
+*.log
 
 # Archives
 *.war

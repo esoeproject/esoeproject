@@ -1,7 +1,7 @@
 Summary: SPEP and dependencies
 Name: spep
 Version: 0.7
-Release: 1
+Release: 3
 Source0: saml2-%{version}.tar.gz
 Source1: spep-%{version}.tar.gz
 Source2: spepd-%{version}.tar.gz
@@ -102,10 +102,13 @@ cd $RPM_BUILD_DIR/src/$Z || exit 1
 pwd
 make install DESTDIR=$RPM_BUILD_ROOT
 done
-mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/ld.so.conf.d
+mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/ld.so.conf.d $RPM_BUILD_ROOT/etc/logrotate.d
 cat $RPM_BUILD_DIR/src/spep-%{version}/spepd-initscript | sed '/^SPEP_HOME/ s!\${SPEP_HOME}!'%{prefix}\! > $RPM_BUILD_ROOT/etc/init.d/spepd
 chmod +x $RPM_BUILD_ROOT/etc/init.d/spepd
 echo %{prefix}/lib > $RPM_BUILD_ROOT/etc/ld.so.conf.d/spep.conf
+for Z in '/usr/local/spep/logs/spepd.log {' '	compress' '	copytruncate' '	missingok' '}'; do
+echo $Z >> $RPM_BUILD_ROOT/etc/logrotate.d/spepd
+done
 
 %post
 ldconfig
@@ -121,6 +124,7 @@ ldconfig
 /usr/local/spep/bin
 /etc/ld.so.conf.d/spep.conf
 /etc/init.d/spepd
+/etc/logrotate.d/spepd
 
 %files devel
 %defattr(-,root,root)

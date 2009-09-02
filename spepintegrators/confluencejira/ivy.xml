@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
+
+	<info organisation="esoeproject" module="spepinteg-confluencejira" revision="${esoe.version}">
+		<license name="Apache 2.0"
+			url="http://www.apache.org/licenses/LICENSE-2.0" />
+		<ivyauthor name="Bradley Beddoes"
+			url="http://intient.com/roller/beddoes" />
+		<repository name="intient-ivy"
+			url="http://ivy.intient.com/repos/" ivys="true" artifacts="true" />
+	</info>
+
+	<configurations>
+		<conf name="dev" />
+		<conf name="prd" />
+	</configurations>
+	
+	<publications>
+		<artifact name="spepinteg-confluencejira" type="jar" />
+	</publications>
+
+	<dependencies>
+		<!-- Production dependencies -->
+        
+        <!-- Development dependencies -->
+        <dependency org="apache" name="log4j" rev="latest.integration" conf="dev->default"/>
+        <dependency org="apache" name="servlet" rev="latest.integration" conf="dev->default"/>
+        
+        <dependency org="atlassian" name="bucket" rev="latest.integration" conf="dev->default"/>
+        <dependency org="atlassian" name="seraph" rev="latest.integration" conf="dev->default"/> 
+        <dependency org="atlassian" name="user" rev="latest.integration" conf="dev->default"/>
+        
+        <dependency org="easymock" name="junit" rev="latest.integration" conf="dev->default"/> 
+        
+        <dependency org="esoeproject" name="spepfilter" rev="latest.integration" conf="dev->dev"/> 
+        
+	</dependencies>
+
+</ivy-module>

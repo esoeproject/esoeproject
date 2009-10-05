@@ -363,7 +363,7 @@ void WINAPI ServiceMain( DWORD argc, LPSTR *argv )
 				if( logFilename.length() != 0 )
 				{
 					stream.reset( new std::ofstream( logFilename.c_str() ) );
-					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, spep::DEBUG ) );
+					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, saml2::DEBUG ) );
 
 					handlers.push_back( logHandler.get() );
 				}

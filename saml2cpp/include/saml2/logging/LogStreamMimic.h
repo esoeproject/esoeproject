@@ -25,6 +25,8 @@
 #include <string>
 #include <sstream>
 
+#include "saml2/SAML2Defs.h"
+
 #include "saml2/logging/LogLevel.h"
 
 #include <xercesc/util/XMLString.hpp>
@@ -49,7 +51,7 @@ namespace saml2
 	 * destroyed naturally, and in the destructor we can pass the result
 	 * string to the logger to be logged.
 	 */
-	class LogStreamMimic
+	class SAML2EXPORT LogStreamMimic
 	{
 		// For access to the copy constructor. This is the only class trusted to use it properly ;)
 		friend class LocalLogger;
@@ -95,7 +97,7 @@ namespace saml2
 	};
 
 	template <>
-	LogStreamMimic& LogStreamMimic::operator<< <XMLCh const*>( XMLCh const* const& str );
+	SAML2EXPORT LogStreamMimic& LogStreamMimic::operator<< <XMLCh const*>( XMLCh const* const& str );
 }
 
 #endif /*LOGSTREAMMIMIC_H_*/

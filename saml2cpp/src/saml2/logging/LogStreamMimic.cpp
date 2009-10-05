@@ -21,7 +21,7 @@
 
 XERCES_CPP_NAMESPACE_USE
 
-saml2::LogStreamMimic::LogStreamMimic( const saml2::LogStreamMimic::LogStreamMimic& other )
+saml2::LogStreamMimic::LogStreamMimic( const LogStreamMimic& other )
 :
 _logger( other._logger ),
 _level( other._level ),

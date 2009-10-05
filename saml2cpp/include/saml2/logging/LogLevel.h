@@ -24,6 +24,8 @@
 
 #include <string>
 
+#include "saml2/SAML2Defs.h"
+
 namespace saml2
 {
 
@@ -34,7 +36,10 @@ namespace saml2
 	 */
 	enum LogLevel
 	{
-
+// Bad, bad, bad... but it won't break anything hopefully
+#if defined(WIN32) && defined(ERROR)
+#undef ERROR
+#endif
 		/// Error messages - things that may halt or severely impede operation
 		ERROR = 800,
 		/// Warning messages - things that may require attention
@@ -62,6 +67,6 @@ namespace saml2
 /**
  * operator<< overload for writing to an output stream.
  */
-std::ostream& operator<<( std::ostream& stream, saml2::LogLevel level );
+SAML2EXPORT std::ostream& operator<<( std::ostream& stream, saml2::LogLevel level );
 
 #endif /*LOGLEVEL_H_*/

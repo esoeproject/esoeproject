@@ -25,6 +25,8 @@
 
 #include <string>
 
+#include "saml2/SAML2Defs.h"
+
 #include "saml2/logging/LogLevel.h"
 
 namespace saml2
@@ -37,7 +39,7 @@ namespace saml2
 	 * Provides a base class for logging handlers. The Handler::log method is
 	 * overridden in derived classes to implement logging output.
 	 */
-	class Handler
+	class SAML2EXPORT Handler
 	{
 
 		public:

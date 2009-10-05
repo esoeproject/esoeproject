@@ -25,6 +25,8 @@
 
 #include <string>
 
+#include "saml2/SAML2Defs.h"
+
 #include "saml2/logging/Logger.h"
 #include "saml2/logging/LogLevel.h"
 #include "saml2/logging/LogStreamMimic.h"
@@ -41,7 +43,7 @@ namespace saml2
 	 *
 	 * Saves needing to type the name every time you log something.
 	 */
-	class LocalLogger
+	class SAML2EXPORT LocalLogger
 	{
 
 		private:

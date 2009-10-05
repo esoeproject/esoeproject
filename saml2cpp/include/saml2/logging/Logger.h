@@ -22,6 +22,8 @@
 #ifndef LOGGER_H_
 #define LOGGER_H_
 
+#include "saml2/SAML2Defs.h"
+
 #include "saml2/logging/Handler.h"
 #include "saml2/logging/LogLevel.h"
 
@@ -46,7 +48,7 @@ namespace saml2
 	 * No attempt is made to be thread safe when calling registerHandler()
 	 * and log() at the same time.
 	 */
-	class Logger
+	class SAML2EXPORT Logger
 	{
 
 		private:

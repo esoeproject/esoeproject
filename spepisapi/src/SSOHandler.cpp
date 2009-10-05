@@ -118,6 +118,7 @@ DWORD SSOHandler::handleSSOPostRequest( ISAPIRequest *request )
 	
 	spep::AuthnProcessorData data;
 	data.setResponseDocument( saml2::SAMLDocument( document, documentLength ) );
+	data.setDisableAttributeQuery( this->_spep->getSPEPConfigData()->disableAttributeQuery() );
 	
 	try
 	{
@@ -125,7 +126,6 @@ DWORD SSOHandler::handleSSOPostRequest( ISAPIRequest *request )
 	}
 	catch( ... )
 	{
-		//std::string reason( e.what() );
 		return request->sendErrorDocument( HTTP_INTERNAL_SERVER_ERROR );
 	}
 	

@@ -115,51 +115,59 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 		
 		if( validSession )
 		{
-			
-			// Put attributes into the environment.
-			
-			std::string usernameAttribute = spepConfigData->getUsernameAttribute();
-			
-			std::string attributeValueSeparator = spepConfigData->getAttributeValueSeparator();
-			std::string attributeNamePrefix = spepConfigData->getAttributeNamePrefix();
-			for( spep::PrincipalSession::AttributeMapType::iterator attributeIterator = principalSession.getAttributeMap().begin();
-				attributeIterator != principalSession.getAttributeMap().end();
-				++attributeIterator )
+			if( !this->_spep->getSPEPConfigData()->disableAttributeQuery() )
 			{
+				// Put attributes into the environment.
 				
-				std::string name = spep::UnicodeStringConversion::toString( attributeIterator->first );
-				std::string envName = attributeNamePrefix + name;
+				std::string usernameAttribute = spepConfigData->getUsernameAttribute();
 				
-				std::stringstream valueStream;
-				bool first = true;
-				for( std::vector<UnicodeString>::iterator attributeValueIterator = attributeIterator->second.begin(); 
-					attributeValueIterator != attributeIterator->second.end(); 
-					++attributeValueIterator )
+				std::string attributeValueSeparator = spepConfigData->getAttributeValueSeparator();
+				std::string attributeNamePrefix = spepConfigData->getAttributeNamePrefix();
+				for( spep::PrincipalSession::AttributeMapType::iterator attributeIterator = principalSession.getAttributeMap().begin();
+					attributeIterator != principalSession.getAttributeMap().end();
+					++attributeIterator )
 				{
-					std::string value = spep::UnicodeStringConversion::toString( *attributeValueIterator );
 					
-					if( first )
+					std::string name = spep::UnicodeStringConversion::toString( attributeIterator->first );
+					std::string envName = attributeNamePrefix + name;
+					
+					std::stringstream valueStream;
+					bool first = true;
+					for( std::vector<UnicodeString>::iterator attributeValueIterator = attributeIterator->second.begin(); 
+						attributeValueIterator != attributeIterator->second.end(); 
+						++attributeValueIterator )
 					{
-						valueStream << value;
-						first = false;
+						std::string value = spep::UnicodeStringConversion::toString( *attributeValueIterator );
+						
+						if( first )
+						{
+							valueStream << value;
+							first = false;
+						}
+						else
+						{
+							valueStream << attributeValueSeparator << value;
+						}
 					}
-					else
+					
+					std::string envValue = valueStream.str();
+					
+					// Insert the attribute name/value pair into the subprocess environment.
+					request->addRequestHeader( envName, envValue );
+					//apr_table_set( req->subprocess_env, envName.c_str(), envValue.c_str() );
+					
+					if( name.compare( usernameAttribute ) == 0 )
 					{
-						valueStream << attributeValueSeparator << value;
+						// Set the REMOTE_USER
+						request->setRemoteUser( envValue );
 					}
 				}
-				
-				std::string envValue = valueStream.str();
-				
-				// Insert the attribute name/value pair into the subprocess environment.
-				request->addRequestHeader( envName, envValue );
-				//apr_table_set( req->subprocess_env, envName.c_str(), envValue.c_str() );
-				
-				if( name.compare( usernameAttribute ) == 0 )
-				{
-					// Set the REMOTE_USER
-					request->setRemoteUser( envValue );
-				}
+			}
+
+			if( this->_spep->getSPEPConfigData()->disablePolicyEnforcement() )
+			{
+				// No need to perform authorization, just let them in.
+				return request->continueRequest();
 			}
 			
 			// Perform authorization on the URI requested.

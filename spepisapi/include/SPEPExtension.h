@@ -30,7 +30,6 @@
 #include "spep/SPEP.h"
 
 #include "ISAPIRequest.h"
-#include "StreamLogHandler.h"
 
 namespace spep{ namespace isapi{
 
@@ -46,7 +45,6 @@ namespace spep{ namespace isapi{
 		private:
 		spep::SPEP *_spep;
 		std::ofstream _stream;
-		StreamLogHandler _handler;
 		std::string _spepWebappURL;
 		std::string _spepSSOURL;
 		std::string _spepWebServicesURL;

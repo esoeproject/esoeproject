@@ -20,11 +20,11 @@
 #ifndef STREAMLOGHANDLER_H_
 #define STREAMLOGHANDLER_H_
 
-#include "spep/reporting/Handler.h"
+#include "saml2/logging/Handler.h"
 
 namespace spep { namespace isapi {
 	
-	class StreamLogHandler : public spep::Handler
+	class StreamLogHandler : public saml2::Handler
 	{
 		
 		private:
@@ -37,7 +37,7 @@ namespace spep { namespace isapi {
 		/**
 		 * @see spep::Handler::log
 		 */
-		virtual void log( const std::string &name, const Level level, const std::string &message );
+		virtual void log( const LogLevel level, const std::string &name, const std::string &message );
 		virtual ~StreamLogHandler();
 		
 	};

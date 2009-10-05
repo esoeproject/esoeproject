@@ -37,7 +37,6 @@ spep::isapi::SPEPExtension::SPEPExtension( spep::ConfigurationReader &configRead
 :
 _spep(NULL),
 _stream( log.c_str() ),
-_handler( _stream, spep::INFO ),
 _spepWebappURL( DEFAULT_URL_SPEP_WEBAPP ),
 _spepSSOURL( DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_SSO ),
 _spepWebServicesURL( DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_WEBSERVICES ),
@@ -46,12 +45,9 @@ _spepSingleLogoutURL( DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_WEBSERVICES DEFAU
 _wsHandler(NULL),
 _ssoHandler(NULL)
 {
-	std::vector<spep::Handler*> handlers;
-	handlers.push_back( &(this->_handler) );
-
 	int port = configReader.getIntegerValue( CONFIGURATION_SPEPDAEMONPORT );
 	
-	_spep = spep::SPEP::initializeClient( port, handlers );
+	_spep = spep::SPEP::initializeClient( port );
 	// Trigger a startup request.
 	_spep->isStarted();
 	

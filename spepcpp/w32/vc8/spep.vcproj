@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;Z:\workspaces\esoe\saml2cpp\include"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;C:\spep\esoeproject\saml2cpp\include;C:\OpenSSL\include;C:\Program Files\CodeSynthesis XSD 3.2\include;C:\Boost\include\boost-1_34_1;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3\include;C:\spep\icu\include;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\include;C:\spep\xml-security-c-1.5.1\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;WIN32_LEAN_AND_MEAN;BUILDING_SPEP"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -60,9 +60,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcurl.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1D.lib xerces-c_2D.lib saml2.lib ws2_32.lib"
+				AdditionalDependencies="libcurl_imp.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib saml2.lib ws2_32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="Z:\workspaces\esoe\saml2cpp\w32\vc8\Debug"
+				AdditionalLibraryDirectories="C:\spep\esoeproject\saml2cpp\w32\vc8\Debug;C:\OpenSSL\lib;C:\Boost\lib;&quot;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3&quot;;C:\spep\icu\lib;&quot;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\lib&quot;;&quot;C:\spep\xml-security-c-1.5.1\Build\Win32\VC8\Release No Xalan&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -115,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;Z:\workspaces\esoe\saml2cpp\include"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;C:\spep\esoeproject\saml2cpp\include;C:\OpenSSL\include;C:\Program Files\CodeSynthesis XSD 3.2\include;C:\Boost\include\boost-1_34_1;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3\include;C:\spep\icu\include;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\include;C:\spep\xml-security-c-1.5.1\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;BUILDING_SPEP"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -135,9 +135,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcurl.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib saml2.lib ws2_32.lib"
+				AdditionalDependencies="libcurl_imp.lib icudt.lib icule.lib icutu.lib iculx.lib icuuc.lib icuin.lib icuio.lib libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib saml2.lib ws2_32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="z:\workspaces\esoe\saml2cpp\w32\vc8\Release"
+				AdditionalLibraryDirectories="C:\spep\esoeproject\saml2cpp\w32\vc8\Release;C:\OpenSSL\lib;C:\Boost\lib;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3;C:\spep\icu\lib;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\lib;C:\spep\xml-security-c-1.5.1\Build\Win32\VC8\Release No Xalan"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -287,7 +287,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\spep\reporting\LocalReportingProcessor.cpp"
+				RelativePath="..\..\src\spep\logging\proxy\LoggerDispatcher.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\spep\logging\proxy\LoggerProxy.cpp"
 				>
 			</File>
 			<File
@@ -332,14 +336,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\spep\sessions\PrincipalSession.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\spep\reporting\ReportingLevels.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\spep\reporting\ReportingProcessor.cpp"
 				>
 			</File>
 			<File

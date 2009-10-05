@@ -779,7 +779,7 @@ namespace saml2
 						/* insert the created crypto key into the response map with its map key being the key name */
 						output->keyList.insert(std::make_pair( keyName, keyData ));
 						
-						delete [] keyName;
+						XMLString::release(&keyName);
 						XMLString::release(&modulus);
 						XMLString::release(&exponent);
 					}

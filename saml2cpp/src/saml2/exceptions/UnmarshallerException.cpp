@@ -56,7 +56,7 @@ namespace saml2
 		this->filename = filename;
 		this->line = line;
 		
-		delete tmp;
+		XMLString::release(&tmp);
 	}
 			
 	void UnmarshallerException::printStackTrace() const

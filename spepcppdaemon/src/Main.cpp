@@ -144,6 +144,7 @@ class SPEPService
 {
 	public:
 	static bool isInited;
+	static bool debug;
 	static SERVICE_STATUS serviceStatus;
 	static SERVICE_STATUS_HANDLE serviceStatusHandle;
 
@@ -214,6 +215,7 @@ class ServiceController
 };
 
 bool SPEPService::isInited = false;
+bool SPEPService::debug = false;
 SERVICE_STATUS SPEPService::serviceStatus;
 SERVICE_STATUS_HANDLE SPEPService::serviceStatusHandle;
 
@@ -307,6 +309,7 @@ int main( int argc, char** argv )
 		}
 		else if( arg.compare("-x") == 0 )
 		{
+			SPEPService::debug = true;
 			ServiceMain(argc,argv);
 		}
 		else
@@ -340,6 +343,7 @@ void WINAPI ServiceMain( DWORD argc, LPSTR *argv )
 	std::vector<saml2::Handler*> handlers;
 
 	std::auto_ptr<spep::daemon::StreamLogHandler> logHandler;
+	std::auto_ptr<spep::daemon::StreamLogHandler> debugHandler;
 	std::auto_ptr<std::ostream> stream;
 
 	std::string logFilename;
@@ -363,7 +367,11 @@ void WINAPI ServiceMain( DWORD argc, LPSTR *argv )
 				if( logFilename.length() != 0 )
 				{
 					stream.reset( new std::ofstream( logFilename.c_str() ) );
-					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, saml2::DEBUG ) );
+					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, saml2::INFO ) );
+					if (SPEPService::debug) {
+						debugHandler.reset( new spep::daemon::StreamLogHandler( std::cout, saml2::DEBUG ) );
+						handlers.push_back( debugHandler.get() );
+					}
 
 					handlers.push_back( logHandler.get() );
 				}

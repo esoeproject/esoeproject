@@ -36,6 +36,7 @@ spep::SessionGroupCacheImpl::SessionGroupCacheImpl( saml2::Logger *logger, spep:
 :
 _localLogger( logger, "spep::SessionGroupCacheImpl" ),
 _cacheMutex(),
+_initialized(false),
 _defaultPolicyDecision(defaultPolicyDecision)
 {
 }

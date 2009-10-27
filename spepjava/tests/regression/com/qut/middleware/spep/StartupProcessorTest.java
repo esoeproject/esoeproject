@@ -1,20 +1,20 @@
-/* 
+/*
  * Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author:
  * Creation Date:
- * 
+ *
  * Purpose:
  */
 package com.qut.middleware.spep;
@@ -88,7 +88,7 @@ public class StartupProcessorTest
 	private List<Object> mocked;
 	private EntityData esoeEntityData;
 	private TrustedESOERole esoeRole;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -96,10 +96,10 @@ public class StartupProcessorTest
 	public void setUp() throws Exception
 	{
 		this.mocked = new ArrayList<Object>();
-		
+
 		this.spepIdentifier = "http://spep.example.com";
 		this.spepStartupService = "http://esoe.example.com/spepStartup";
-		
+
 		this.identifierGenerator = createMock(IdentifierGenerator.class);
 		this.mocked.add(this.identifierGenerator);
 		this.wsClient = createMock(WSClient.class);
@@ -107,15 +107,15 @@ public class StartupProcessorTest
 		this.identifierCache = new IdentifierCacheImpl();
 		this.samlValidator = new SAMLValidatorImpl(this.identifierCache, 180);
 		this.serverInfo = "Server Info";
-		
+
 		File in = new File( "tests" + File.separator + "testdata" + File.separator + "testkeystore.ks");
 		String esoeKeyAlias = "esoeprimary";
 		String esoeKeyPass = "Es0EKs54P4SSPK";
 		this.keyStoreResolver = new KeystoreResolverImpl(in, esoeKeyPass, esoeKeyAlias, esoeKeyPass);
-		
+
 		this.ipAddressList = new Vector<String>();
 		this.ipAddressList.add("127.0.0.1");
-		
+
 		this.metadata = createMock(MetadataProcessor.class);
 		this.mocked.add(this.metadata);
 		this.esoeEntityData = createMock(EntityData.class);
@@ -129,19 +129,19 @@ public class StartupProcessorTest
 //		expect(this.metadata.getSPEPStartupServiceEndpoint()).andReturn(this.spepStartupService);
 //		expect(this.metadata.getSPEPAssertionConsumerLocation()).andReturn("assertionUrl").anyTimes();
 		expect(this.metadata.resolveKey(esoeKeyAlias)).andReturn(this.keyStoreResolver.getLocalPublicKey()).anyTimes();
-			
+
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier, this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
-		
+
 		String[] validateInitializationSchemas = new String[]{SchemaConstants.esoeProtocol};
 		this.validateInitializationPackages = ValidateInitializationResponse.class.getPackage().getName();
 		this.validateInitializationResponseMarshaller = new MarshallerImpl<ValidateInitializationResponse>(this.validateInitializationPackages, validateInitializationSchemas, this.keyStoreResolver);
 	}
-	
+
 	private void startMock()
 	{
 		for (Object o : this.mocked) replay(o);
 	}
-	
+
 	private void endMock()
 	{
 		for (Object o : this.mocked) verify(o);
@@ -149,9 +149,9 @@ public class StartupProcessorTest
 
 	/**
 	 * Test method for {@link com.qut.middleware.spep.StartupProcessor#allowProcessing()}.
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	@Test
+	@Test(timeout=1500)
 	public void testAllowProcessing1() throws Exception
 	{
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
@@ -159,26 +159,26 @@ public class StartupProcessorTest
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.success));
 //		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
-		
+
 		startMock();
-		
+
 		this.startupProcessor.beginSPEPStartup();
-		
+
 		while (result.wait.equals(this.startupProcessor.allowProcessing()))
 		{
 			Thread.sleep(100);
 		}
-		
+
 		assertTrue(MessageFormat.format("Expected allow, got {0}", this.startupProcessor.allowProcessing()), result.allow.equals(this.startupProcessor.allowProcessing()));
-		
+
 		endMock();
 	}
 
 	/**
 	 * Test method for {@link com.qut.middleware.spep.StartupProcessor#allowProcessing()}.
-	 * @throws Exception 
+	 * @throws Exception
 	 */
-	@Test
+	@Test(timeout=1500)
 	public void testAllowProcessing2() throws Exception
 	{
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
@@ -186,128 +186,128 @@ public class StartupProcessorTest
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
 //		expect(this.metadata.getESOEIdentifier()).andReturn(this.esoeID).anyTimes();
-		
+
 		startMock();
-		
+
 		this.startupProcessor.beginSPEPStartup();
-		
+
 		while (result.wait.equals(this.startupProcessor.allowProcessing()))
 		{
 			Thread.sleep(100);
 		}
-		
+
 		assertTrue(MessageFormat.format("Expected fail, got {0}", this.startupProcessor.allowProcessing()), result.fail.equals(this.startupProcessor.allowProcessing()));
-		
+
 		endMock();
 	}
-	
-	
+
+
 	/**
 	 * Test method for {@link com.qut.middleware.spep.StartupProcessor#allowProcessing()}.
-	 * @throws Exception 
+	 * @throws Exception
 	 *
 	 * Test the case where a response is recieved from someone other than expected ESOE. Expect fail.
 	 */
-	@Test
+	@Test(timeout=1500)
 	public void testAllowProcessing3() throws Exception
 	{
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse(samlID, StatusCodeConstants.requestDenied));
-		
+
 		// change is here
 //		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
-		
+
 		startMock();
-		
+
 		this.startupProcessor.beginSPEPStartup();
-		
+
 		while (result.wait.equals(this.startupProcessor.allowProcessing()))
 		{
 			Thread.sleep(100);
 		}
-		
+
 		assertTrue(MessageFormat.format("Expected fail, got {0}", this.startupProcessor.allowProcessing()), result.fail.equals(this.startupProcessor.allowProcessing()));
-		
+
 		endMock();
 	}
-	
-	
+
+
 	/**
 	 * Test method for {@link com.qut.middleware.spep.StartupProcessor#allowProcessing()}.
-	 * @throws Exception 
+	 * @throws Exception
 	 *
 	 * Test the case where an invalid response is recieved from ESOE. Expect fail.
 	 */
-	@Test
+	@Test(timeout=1500)
 	public void testAllowProcessing4() throws Exception
 	{
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andReturn(buildResponse("_4736247324", "blah"));
-		
+
 		// change is here
 //		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
-		
+
 		startMock();
-		
+
 		this.startupProcessor.beginSPEPStartup();
-		
+
 		while (result.wait.equals(this.startupProcessor.allowProcessing()))
 		{
 			Thread.sleep(100);
 		}
-		
+
 		assertTrue(MessageFormat.format("Expected fail, got {0}", this.startupProcessor.allowProcessing()), result.fail.equals(this.startupProcessor.allowProcessing()));
-		
+
 		endMock();
 	}
-	
-	
+
+
 	/**
 	 * Test method for {@link com.qut.middleware.spep.StartupProcessor#allowProcessing()}.
-	 * @throws Exception 
+	 * @throws Exception
 	 *
 	 * Test the case where the web service client cannot send request. Expect fail.
 	 */
-	@Test
+	@Test(timeout=1500)
 	public void testAllowProcessing5() throws Exception
 	{
 		String samlID = "_u598t98quw09u50293u509u2059uq89ut098u-9utq908ut98u20398u5098q2u35098qyw09t8yq098";
 		this.identifierCache.registerIdentifier(samlID);
 		expect(this.identifierGenerator.generateSAMLID()).andReturn(samlID);
 		expect(this.wsClient.spepStartup((Element)notNull(), eq(this.spepStartupService))).andThrow(new WSClientException("Unable to send ws request."));
-		
+
 		// change is here
 //		expect(this.metadata.getESOEIdentifier()).andReturn("No-ESOE").anyTimes();
-		
+
 		startMock();
-		
+
 		this.startupProcessor.beginSPEPStartup();
-		
+
 		while (result.wait.equals(this.startupProcessor.allowProcessing()))
 		{
 			Thread.sleep(100);
 		}
-		
+
 		assertTrue(MessageFormat.format("Expected fail, got {0}", this.startupProcessor.allowProcessing()), result.fail.equals(this.startupProcessor.allowProcessing()));
-		
+
 		endMock();
 	}
 	private Element buildResponse(String samlID, String statusCodeValue) throws MarshallerException
 	{
 		String issuerValue = this.esoeIdentifier;
-		
+
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(issuerValue);
-		
+
 		Status status = new Status();
 		StatusCode statusCode = new StatusCode();
 		status.setStatusCode(statusCode);
 		statusCode.setValue(statusCodeValue);
-		
+
 		ValidateInitializationResponse response = new ValidateInitializationResponse();
 		response.setID("_98tiajoeitj0q29jt0923059iqiw5i23i5-0i5i0q92u5098uq0uoaisjlkjqj6o6");
 		response.setInResponseTo(samlID);
@@ -318,85 +318,85 @@ public class StartupProcessorTest
 		response.setStatus(status);
 		// ordinarily this would be set to assertion consumer service location by the ESOE but for mocked testing it'll do
 		response.setDestination(this.spepStartupService);
-		
+
 		return this.validateInitializationResponseMarshaller.marshallSignedElement(response);
 	}
 
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction1() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(null, this.spepIdentifier, this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction2() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, null,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction3() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, null, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction4() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, null, this.samlValidator, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction5() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, null, this.keyStoreResolver, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction6() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, null, this.ipAddressList, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction7() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, null, this.serverInfo, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction8() throws Exception
 	{
 		this.startupProcessor = new StartupProcessorImpl(this.metadata, this.spepIdentifier,  this.esoeIdentifier, this.identifierGenerator, this.wsClient, this.samlValidator, this.keyStoreResolver, this.ipAddressList, null, this.spepNodeID, 20000, false, false);
 	}
-	
+
 	/** Test invalid params.
-	 * 
+	 *
 	 */
 	@Test (expected = IllegalArgumentException.class)
 	public void testConstruction9() throws Exception

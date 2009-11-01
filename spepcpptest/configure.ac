@@ -180,5 +180,5 @@ AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $icuinc $gtes
 AC_SUBST([AM_LDFLAGS],["$xerceslib $xmlseclib $boostlib $iculib $gtestlib $openssllib $curllib $saml2lib $speplib"])
 AC_SUBST([BOOST_SUFFIX],["$boostsuffix"])
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile include/Makefile])
 AC_OUTPUT

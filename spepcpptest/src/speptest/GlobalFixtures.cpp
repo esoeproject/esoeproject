@@ -48,8 +48,7 @@ namespace speptest {
 
 		ipAddresses.push_back(L"127.0.0.1");
 
-		//keyResolver
-		this->keyResolver = new KeyResolver( keystorePath, keystorePassword, spepKeyAlias, spepKeyPassword );
+		keyResolver = new KeyResolver( keystorePath, keystorePassword, spepKeyAlias, spepKeyPassword );
 
 		identifierCache = new saml2::IdentifierCache();
 		identifierGenerator = new saml2::IdentifierGenerator( identifierCache );

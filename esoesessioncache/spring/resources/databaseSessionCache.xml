@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+	<!-- ====================================================================== 
+		
+		Copyright 2006, Queensland University of Technology
+		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+		use this file except in compliance with the License. You may obtain a copy of 
+		the License at 
+		
+		http://www.apache.org/licenses/LICENSE-2.0 
+		
+		Unless required by applicable law or agreed to in writing, software 
+		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
+		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
+		License for the specific language governing permissions and limitations under 
+		the License.
+		
+		Author: Shaun Mangelsdorf
+		Date: 16/09/2008                                                    
+		Purpose: Defines spring integration for database-backed session cache
+		====================================================================== -->
+		
+		<!-- Session caching handler -->
+		<bean id="sessionCache" class="com.qut.middleware.esoe.sessions.impl.DatabaseSessionCacheImpl">
+			<constructor-arg index="0" ref="sessionCacheDao" />
+		</bean>
+		
+		<!-- Session cache DAO -->
+		<bean id="sessionCacheDao" class="com.qut.middleware.esoe.sessions.data.impl.SessionCacheDAOImpl">
+			<property name="sqlMapClient" ref="sessionSqlMapClient" />
+		</bean>
+		
+		<bean id="simpleExtractor"
+			class="org.springframework.jdbc.support.nativejdbc.SimpleNativeJdbcExtractor" />
+
+		<bean id="lobHandlerOra" class="org.springframework.jdbc.support.lob.OracleLobHandler">
+			<property name="nativeJdbcExtractor" ref="simpleExtractor" />
+		</bean>
+		
+		<bean id="lobHandlerDefault" class="org.springframework.jdbc.support.lob.DefaultLobHandler"></bean>
+
+		<!-- Session cache SqlMapClient -->
+		<bean id="sessionSqlMapClient" class="com.qut.middleware.esoe.sessions.data.ResourceLoaderSqlMapClientFactoryBean">
+			<constructor-arg index="0" ref="ibatisDataSource" />
+			<constructor-arg index="1" ref="lobHandlerOra" />
+			<constructor-arg index="2" ref="lobHandlerDefault" />
+			<property name="configLocation" value="sessionSqlMapConfig.xml" />
+		</bean>
+	
+		<!-- Session creation handler -->
+		<bean id="create" class="com.qut.middleware.esoe.sessions.impl.CreateImpl">
+			<constructor-arg index="0" ref="sessionCache"/>
+			<constructor-arg index="1" ref="sessionConfigData"/>
+			<constructor-arg index="2" ref="identityResolver"/>
+			<constructor-arg index="3" ref="identifierGenerator"/>
+			<constructor-arg index="4" value="${create.sessionLength}" />
+		</bean>
+		
+		<!-- Session query handler -->
+		<bean id="query" class="com.qut.middleware.esoe.sessions.impl.QueryImpl">
+			<constructor-arg ref="sessionCache"/>
+		</bean>
+		
+		<!-- Session termination handler -->
+		<bean id="terminate" class="com.qut.middleware.esoe.sessions.impl.TerminateImpl">
+			<constructor-arg ref="sessionCache"/>
+		</bean>
+		
+		<!-- Session updates handler -->
+		<bean id="update" class="com.qut.middleware.esoe.sessions.impl.UpdateImpl">
+			<constructor-arg ref="sessionCache"/>
+		</bean>
+			
+		<!-- Processor responsible for all session activity in the ESOE -->
+		<bean id="sessionsProcessor" class="com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl">
+			<constructor-arg ref="create"/>
+			<constructor-arg ref="query"/>
+			<constructor-arg ref="terminate"/>
+			<constructor-arg ref="update"/>
+		</bean>
+		
+		<!--  Sessions monitor. Removes expired data from caches -->
+		<bean id="sessionsMonitorThread" class="com.qut.middleware.esoe.sessions.impl.SessionsMonitor"
+		destroy-method="shutdown">
+			<constructor-arg index="0" ref="identifierCache"/>
+			<constructor-arg index="1" ref="sessionCache"/>
+			<constructor-arg index="2" value="${sessions.cleanupInterval}"/>
+			<constructor-arg index="3" value="${sessions.timeoutInterval}"/>
+		</bean>
+</beans>

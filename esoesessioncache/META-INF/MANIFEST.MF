@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Esoesessioncache Plug-in
+Bundle-SymbolicName: esoesessioncache
+Bundle-Version: 0.8
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.junit4

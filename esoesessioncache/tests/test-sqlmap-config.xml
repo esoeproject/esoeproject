@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+	<transactionManager type="JDBC">
+		<dataSource type="DBCP">
+			<property name="JDBC.Driver" value="com.mysql.jdbc.Driver"/>
+			<property name="JDBC.ConnectionURL" value="jdbc:mysql://localhost:3306/esoe?useUnicode=true" />
+			<property name="JDBC.Username" value="esoe" />
+			<property name="JDBC.Password" value="014a4613924963d1a5d5608d2559cc04" />
+			
+			<property name="Pool.MaximumWait" value="10000" />
+		</dataSource>
+	</transactionManager>
+	
+	<sqlMap url="file:spring/sqlmaps/sessions-sqlmap.xml"/>
+	<sqlMap url="file:tests/test-sessions-sqlmap.xml"/>
+	
+</sqlMapConfig>

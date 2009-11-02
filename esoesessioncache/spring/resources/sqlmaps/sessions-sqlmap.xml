@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="esoe">
+
+	<!-- Data object being mapped to -->
+	<typeAlias alias="sessionData" type="com.qut.middleware.esoe.sessions.data.impl.SessionData" />
+	<typeAlias alias="descriptorSessionData" type="com.qut.middleware.esoe.sessions.data.impl.DescriptorSessionData" />
+	
+	<!-- Parameter Maps -->
+	<parameterMap id="insertSessionParam" class="sessionData">
+		<parameter property="sessionID"  jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="samlAuthnIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="principalAuthnIdentifier" jdbcType="VARCHAR" javaType="java.lang.String" />
+		<parameter property="authenticationClassContext" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="authnTimestamp" jdbcType="NUMERIC" javaType="java.lang.Long" />
+		<parameter property="sessionNotOnOrAfter" jdbcType="NUMERIC" javaType="java.lang.Long" />
+		<parameter property="lastAccessed" jdbcType="NUMERIC" javaType="java.lang.Long" />
+		<parameter property="attributes" jdbcType="BLOB" javaType="[B" />
+	</parameterMap>
+	
+	<parameterMap id="insertDescriptorParam" class="descriptorSessionData">
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="entityID" jdbcType="VARCHAR" javaType="java.lang.String" />
+	</parameterMap>
+	
+	<parameterMap id="insertDescriptorSessionParam" class="descriptorSessionData">
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="entityID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="entitySessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+	</parameterMap>
+	
+	<parameterMap id="getSessionParam" class="sessionData">
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="sessionNotOnOrAfter" jdbcType="NUMERIC" javaType="java.lang.Long" />
+	</parameterMap>
+	
+	<parameterMap id="getIdleSessionsParam" class="sessionData">
+		<parameter property="lastAccessed" jdbcType="NUMERIC" javaType="java.lang.Long" />
+	</parameterMap>
+	
+	<parameterMap id="getSessionBySAMLIDParam" class="sessionData">
+		<parameter property="samlAuthnIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="sessionNotOnOrAfter" jdbcType="NUMERIC" javaType="java.lang.Long" />
+	</parameterMap>
+	
+	<parameterMap id="getActiveEntitySessionsParam" class="sessionData">
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String" />
+	</parameterMap>
+	
+	<parameterMap id="updateSessionLastAccessedParam" class="sessionData">
+		<parameter property="lastAccessed" jdbcType="NUMERIC" javaType="java.lang.Long"/>
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+	</parameterMap>
+	
+	<parameterMap id="updateSessionIdleGraceExpiryParam" class="sessionData">
+		<parameter property="idleGraceExpiry" jdbcType="NUMERIC" javaType="java.lang.Long"/>
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+	</parameterMap>
+	
+	<parameterMap id="updateSessionSAMLIDParam" class="sessionData">
+		<parameter property="samlAuthnIdentifier" jdbcType="VARCHAR" javaType="java.lang.String"/>
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+	</parameterMap>
+	
+	<parameterMap id="updateSessionAttributesParam" class="sessionData">
+		<parameter property="attributes" jdbcType="BLOB" javaType="[B" />
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+	</parameterMap>
+	
+	<parameterMap id="deleteSessionParam" class="sessionData">
+		<parameter property="sessionID" jdbcType="VARCHAR" javaType="java.lang.String"/>
+	</parameterMap>
+	
+	<parameterMap id="deleteExpiredSessionsParam" class="sessionData">
+		<parameter property="sessionNotOnOrAfter" jdbcType="NUMERIC" javaType="java.lang.Long"/>
+	</parameterMap>
+	
+	<parameterMap id="deleteIdleSessionsParam" class="sessionData">
+		<parameter property="idleGraceExpiry" jdbcType="NUMERIC" javaType="java.lang.Long"/>
+	</parameterMap>
+	
+	<!-- Result Maps -->
+	<resultMap id="getSessionResult" class="sessionData">
+		<result property="sessionID" jdbcType="VARCHAR" column="SESSIONID" javaType="java.lang.String" />
+		<result property="samlAuthnIdentifier" jdbcType="VARCHAR" column="SAMLAUTHNIDENTIFIER" javaType="java.lang.String" />
+		<result property="principalAuthnIdentifier" jdbcType="VARCHAR" column="PRINCIPALAUTHNIDENTIFIER" javaType="java.lang.String" />
+		<result property="authenticationClassContext" jdbcType="VARCHAR" column="AUTHENTICATIONCLASSCONTEXT"  javaType="java.lang.String"/>
+		<result property="authnTimestamp" jdbcType="NUMERIC" column="AUTHNTIMESTAMP" javaType="java.lang.Long" />
+		<result property="sessionNotOnOrAfter" jdbcType="NUMERIC" column="SESSIONNOTONORAFTER" javaType="java.lang.Long" />
+		<result property="lastAccessed" jdbcType="NUMERIC" column="LASTACCESSED" javaType="java.lang.Long" />
+		<result property="idleGraceExpiry" jdbcType="NUMERIC" column="IDLEGRACEEXPIRY" javaType="java.lang.Long" />
+		<result property="attributes" column="ATTRIBUTES" jdbcType="BLOB" javaType="[B" />
+	</resultMap>
+	
+	<resultMap id="getActiveEntitySessionsResult" class="descriptorSessionData">
+		<result property="entityID" jdbcType="VARCHAR" javaType="java.lang.String" column="DESCRIPTORID"/>
+		<result property="entitySessionID" jdbcType="VARCHAR" javaType="java.lang.String" column="DESCRIPTOR_SESSIONID" />
+	</resultMap>
+	
+	<!-- Insert Statements -->
+	<insert id="insertSession" parameterMap="insertSessionParam">
+		INSERT INTO ACTIVE_SESSIONS
+		(SESSIONID, SAMLAUTHNIDENTIFIER, PRINCIPALAUTHNIDENTIFIER, AUTHENTICATIONCLASSCONTEXT, 
+		AUTHNTIMESTAMP, SESSIONNOTONORAFTER, LASTACCESSED, ATTRIBUTES)
+		
+		VALUES
+		(?, ?, ?, ?, ?, ?, ?, ?)
+	</insert>
+	
+	<insert id="insertDescriptor" parameterMap="insertDescriptorParam">
+		INSERT INTO ACTIVE_ENTITIES
+		(SESSIONID, DESCRIPTORID)
+		
+		VALUES
+		(?, ?)
+	</insert>
+	
+	<insert id="insertDescriptorSession" parameterMap="insertDescriptorSessionParam">
+		INSERT INTO ACTIVE_ENTITY_SESSIONS
+		(SESSIONID, DESCRIPTORID, DESCRIPTOR_SESSIONID)
+		
+		VALUES
+		(?, ?, ?)
+	</insert>
+	
+	<!-- Select Statements -->
+	<select id="getSession" parameterMap="getSessionParam" resultMap="getSessionResult">
+		SELECT
+			SESSIONID, SAMLAUTHNIDENTIFIER, PRINCIPALAUTHNIDENTIFIER, AUTHENTICATIONCLASSCONTEXT, 
+			AUTHNTIMESTAMP, SESSIONNOTONORAFTER, IDLEGRACEEXPIRY, LASTACCESSED, ATTRIBUTES
+		FROM ACTIVE_SESSIONS
+			WHERE SESSIONID = ?
+			AND SESSIONNOTONORAFTER <![CDATA[ > ]]> ?
+	</select>
+	
+	<select id="getSessionBySAMLID" parameterMap="getSessionBySAMLIDParam" resultMap="getSessionResult">
+		SELECT
+			SESSIONID, SAMLAUTHNIDENTIFIER, PRINCIPALAUTHNIDENTIFIER, AUTHENTICATIONCLASSCONTEXT, 
+			AUTHNTIMESTAMP, SESSIONNOTONORAFTER, IDLEGRACEEXPIRY, LASTACCESSED, ATTRIBUTES
+		FROM ACTIVE_SESSIONS
+			WHERE SAMLAUTHNIDENTIFIER = ?
+			AND SESSIONNOTONORAFTER <![CDATA[ > ]]> ?
+	</select>
+	
+	<select id="getActiveEntitySessions" parameterMap="getActiveEntitySessionsParam" resultMap="getActiveEntitySessionsResult">
+		SELECT ACTIVE_ENTITY_SESSIONS.DESCRIPTOR_SESSIONID, ACTIVE_ENTITY_SESSIONS.DESCRIPTORID
+		FROM ACTIVE_ENTITY_SESSIONS
+      			INNER JOIN ACTIVE_SESSIONS 
+      			ON ACTIVE_SESSIONS.SESSIONID = ACTIVE_ENTITY_SESSIONS.SESSIONID
+  		WHERE ACTIVE_SESSIONS.SESSIONID = ?
+	</select>
+	
+	<select id="getSessionCacheSize" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM ACTIVE_SESSIONS
+	</select>
+	
+	<select id="getIdleSessions" parameterMap="getIdleSessionsParam" resultClass="java.lang.String">
+		SELECT ACTIVE_SESSIONS.SESSIONID
+		FROM ACTIVE_SESSIONS
+      			INNER JOIN ACTIVE_ENTITY_SESSIONS 
+      			ON ACTIVE_SESSIONS.SESSIONID = ACTIVE_ENTITY_SESSIONS.SESSIONID
+  		WHERE ACTIVE_SESSIONS.LASTACCESSED <![CDATA[ < ]]> ?
+	</select>
+	
+	<!-- Update Statements -->
+	<update id="updateSessionLastAccessed" parameterMap="updateSessionLastAccessedParam">
+		UPDATE ACTIVE_SESSIONS
+		SET IDLEGRACEEXPIRY = NULL,
+		LASTACCESSED = ?
+		WHERE SESSIONID = ?
+	</update>
+	
+	<update id="updateSessionIdleGraceExpiry" parameterMap="updateSessionIdleGraceExpiryParam">
+		UPDATE ACTIVE_SESSIONS
+		SET IDLEGRACEEXPIRY = ?
+		WHERE SESSIONID = ?
+	</update>
+	
+	<update id="updateSessionSAMLID" parameterMap="updateSessionSAMLIDParam">
+		UPDATE ACTIVE_SESSIONS
+		SET SAMLAUTHNIDENTIFIER = ?
+		WHERE SESSIONID = ?
+	</update>
+	
+	<update id="updateSessionAttributes" parameterMap="updateSessionAttributesParam">
+		UPDATE ACTIVE_SESSIONS
+		SET ATTRIBUTES = ?
+		WHERE SESSIONID = ?
+	</update>
+	
+	<!-- Delete Statements -->
+	
+	<delete id="deleteSession" parameterMap="deleteSessionParam">
+		DELETE FROM ACTIVE_SESSIONS
+		WHERE SESSIONID = ?
+	</delete>
+	
+	<delete id="deleteExpiredSessions" parameterMap="deleteExpiredSessionsParam">
+		DELETE FROM ACTIVE_SESSIONS
+		WHERE SESSIONNOTONORAFTER <![CDATA[ < ]]> ?
+	</delete>
+	
+	<delete id="deleteIdleSessions" parameterMap="deleteIdleSessionsParam">
+		DELETE FROM ACTIVE_SESSIONS
+		WHERE IDLEGRACEEXPIRY <![CDATA[ < ]]> ?
+	</delete>
+	
+	<delete id="deleteActiveEntitySessions" parameterMap="getActiveEntitySessionsParam">
+		DELETE FROM ACTIVE_ENTITY_SESSIONS
+		WHERE SESSIONID = ?
+	</delete>
+	
+</sqlMap>

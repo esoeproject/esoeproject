@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="esoesessioncache-cache-db" xmlns:ivy="antlib:org.apache.ivy.ant">
+
+	<import file="${esoebuild}/esoe.xml" />
+	
+	<target name="release" depends="jar">
+		<mkdir dir="${output.stage}"/>
+		<copy todir="${output.stage}">
+			<fileset dir="${spring.resources}">
+				<include name="**/*.xml"/>
+			</fileset>
+		</copy>
+		<copy todir="${output.stage.jars}">
+			<fileset dir="${output}">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="${artifacts.runtime}">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+		<tar tarfile="${output}/${output.tar}" basedir="${output}" compression="gzip">
+			<include name="${output.name}/**"/>
+		</tar>
+	</target>
+</project>

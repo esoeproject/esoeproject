@@ -25,6 +25,16 @@ dnl AC_C_CONST
 dnl AC_FUNC_FORK
 
 AC_ARG_WITH(
+	[keytool],
+	[AS_HELP_STRING(
+		[--with-keytool=DIR],
+		[path to keytool binary])
+	],
+	[keytoolpath=$withval],
+	[keytoolpath=]
+)
+
+AC_ARG_WITH(
 	[xerces],
 	[AS_HELP_STRING(
 		[--with-xerces=DIR],
@@ -172,6 +182,11 @@ fi
 if test -n "$saml2path"; then
 	saml2inc="-I$saml2path/include/saml2-\$(VERSION)"
 	saml2lib=-L$saml2path/lib
+fi
+if test -n "$keytoolpath"; then
+	AC_SUBST([KEYTOOL],["$keytoolpath"])
+else
+	AC_SUBST([KEYTOOL],["keytool"])
 fi
 
 localinc='-I${top_srcdir}/include'

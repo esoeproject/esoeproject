@@ -1,3 +1,6 @@
+#ifndef __GLOBALFIXTURES_H
+#define __GLOBALFIXTURES_H
+
 #include <string>
 #include <vector>
 #include <map>
@@ -75,3 +78,5 @@ namespace speptest {
 		spep::WSProcessor *wsProcessor;
 	};
 }
+
+#endif

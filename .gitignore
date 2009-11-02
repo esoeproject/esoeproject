@@ -18,6 +18,8 @@ saml2java/src-gen
 esoecore/webservice/deploy
 esoemanager/esoemanager/build-gwt
 *.log
+spepcpptest/schema
+spepcpptest/data/*.ks
 
 # Archives
 *.war

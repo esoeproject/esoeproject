@@ -8,17 +8,13 @@ using namespace spep;
 
 namespace speptest {
 	class AuthnProcessorTest : public ::testing::Test, protected ::speptest::GlobalFixtures {
-		protected:
-
-		virtual void SetUp() {
-		}
-
-		virtual void TearDown() {
-		}
 	};
 
 	TEST_F(AuthnProcessorTest, GenerateAuthnRequest) {
 		AuthnProcessorData data;
+		data.setBaseRequestURL(serviceHost);
 		authnProcessor->generateAuthnRequest(data);
+
+		ASSERT_FALSE(NULL == data.getRequestDocument().getData());
 	}
 }

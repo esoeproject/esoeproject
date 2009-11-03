@@ -95,7 +95,7 @@ namespace speptest {
 		if (document) delete document;
 	}
 
-	int mockWebDefaultHook(MockWeb::Request& req, MockWeb::Response& resp) {
+	int MockWebDefaultHook::serve(MockWeb::Request& req, MockWeb::Response& resp) {
 		resp.document = "<html><head><title>404 - Not Found</title></head><body><h3>The requested URL could not be found.</h3></body></html>";
 		resp.headers.insert(make_pair("Content-Type", "text/html"));
 		return 404;
@@ -122,21 +122,28 @@ namespace speptest {
 	}
 
 	int MockWeb::dispatch(MockWeb::Request& req, MockWeb::Response& resp) {
-		map<string,MockWebHookType>::const_iterator iter = _hooks.find(req.url);
-		MockWebHookType hook = NULL;
+		static MockWebDefaultHook mockWebDefaultHook;
+
+		map<string,Hook*>::const_iterator iter = _hooks.find(req.url);
+		Hook* hook = NULL;
 		if (iter != _hooks.end()) {
 			hook = iter->second;
 		}
 		if (!hook) hook = &mockWebDefaultHook;
 
-		return hook(req, resp);
+		return hook->serve(req, resp);
 	}
 
-	void MockWeb::hook(const std::string& path, MockWebHookType function) {
+	void MockWeb::hook(const std::string& path, MockWeb::Hook* function) {
 		_hooks.insert(make_pair(path, function));
 	}
 
 	const std::string& MockWeb::getBaseURL() {
 		return this->_baseURL;
 	}
+
+	MockWeb::Hook::~Hook() {}
+
+	MockWebDefaultHook::~MockWebDefaultHook() {}
+
 }

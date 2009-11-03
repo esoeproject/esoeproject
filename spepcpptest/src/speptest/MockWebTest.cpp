@@ -10,11 +10,15 @@ using namespace speptest;
 using namespace std;
 
 static const char *testWebHookDocument = "Test document";
-static int testWebHook(MockWeb::Request& req, MockWeb::Response &resp) {
-	resp.document = testWebHookDocument;
-	resp.headers.insert(make_pair("Content-Type", "text/html"));
-	return 200;
-}
+class TestWebHook : public MockWeb::Hook {
+	public:
+	virtual ~TestWebHook() {}
+	virtual int serve(MockWeb::Request& req, MockWeb::Response &resp) {
+		resp.document = testWebHookDocument;
+		resp.headers.insert(make_pair("Content-Type", "text/html"));
+		return 200;
+	}
+};
 
 static int curlTestCallback(void *buffer, size_t size, size_t nmemb, void *userp) {
 	char** target = reinterpret_cast<char**>(userp);
@@ -28,6 +32,7 @@ static int curlTestCallback(void *buffer, size_t size, size_t nmemb, void *userp
 
 TEST(MockWebTest, Serve) {
 	MockWeb mockWeb;
+	TestWebHook testWebHook;
 
 	string path("/test");
 	mockWeb.hook(path, &testWebHook);

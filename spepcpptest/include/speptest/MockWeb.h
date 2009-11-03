@@ -28,23 +28,30 @@ namespace speptest {
 			std::string document;
 			std::map<std::string,std::string> headers;
 		};
-
-		typedef int (*MockWebHookType)(Request&, Response&);
+		class Hook {
+			public:
+			virtual ~Hook();
+			virtual int serve(Request&, Response&) = 0;
+		};
 
 		int dispatch(Request& req, Response& resp);
 
 		MockWeb();
 		~MockWeb();
 		const std::string& getBaseURL();
-		void hook(const std::string& path, MockWebHookType function);
+		void hook(const std::string& path, Hook* function);
 
 		private:
 		std::string _baseURL;
-		std::map<std::string,MockWebHookType> _hooks;
+		std::map<std::string, Hook*> _hooks;
 		struct MHD_Daemon *_daemon;
 	};
 
-	int mockWebDefaultHook(MockWeb::Request& req, MockWeb::Response& resp);
+	class MockWebDefaultHook : public MockWeb::Hook {
+		public:
+		virtual ~MockWebDefaultHook();
+		virtual int serve(MockWeb::Request& req, MockWeb::Response& resp);
+	};
 }
 
 #endif

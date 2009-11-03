@@ -25,6 +25,16 @@ dnl AC_C_CONST
 dnl AC_FUNC_FORK
 
 AC_ARG_WITH(
+	[valgrind],
+	[AS_HELP_STRING(
+		[--with-valgrind=DIR],
+		[path to valgrind binary])
+	],
+	[valgrindpath=$withval],
+	[valgrindpath=]
+)
+
+AC_ARG_WITH(
 	[keytool],
 	[AS_HELP_STRING(
 		[--with-keytool=DIR],
@@ -182,6 +192,11 @@ fi
 if test -n "$saml2path"; then
 	saml2inc="-I$saml2path/include/saml2-\$(VERSION)"
 	saml2lib=-L$saml2path/lib
+fi
+if test -n "$valgrindpath"; then
+	AC_SUBST([VALGRIND],["$valgrindpath"])
+else
+	AC_SUBST([VALGRIND],["valgrind"])
 fi
 if test -n "$keytoolpath"; then
 	AC_SUBST([KEYTOOL],["$keytoolpath"])

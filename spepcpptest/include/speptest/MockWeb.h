@@ -25,7 +25,8 @@ namespace speptest {
 		};
 		class Response {
 			public:
-			std::string document;
+			const char *document;
+			size_t documentSize;
 			std::map<std::string,std::string> headers;
 		};
 		class Hook {

@@ -15,6 +15,7 @@ class TestWebHook : public MockWeb::Hook {
 	virtual ~TestWebHook() {}
 	virtual int serve(MockWeb::Request& req, MockWeb::Response &resp) {
 		resp.document = testWebHookDocument;
+		resp.documentSize = strlen(testWebHookDocument);
 		resp.headers.insert(make_pair("Content-Type", "text/html"));
 		return 200;
 	}

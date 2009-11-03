@@ -67,10 +67,10 @@ namespace speptest {
 
 			int status = mockWeb->dispatch(req, resp);
 			int ret;
-			if (resp.document.length()) {
+			if (resp.document) {
 				struct MHD_Response* response = 
-					MHD_create_response_from_data(resp.document.length(),
-						const_cast<char*>(resp.document.c_str()),
+					MHD_create_response_from_data(resp.documentSize,
+						const_cast<char*>(resp.document),
 						MHD_NO, MHD_NO);
 
 				ret = MHD_queue_response(connection, status, response);
@@ -97,6 +97,7 @@ namespace speptest {
 
 	int MockWebDefaultHook::serve(MockWeb::Request& req, MockWeb::Response& resp) {
 		resp.document = "<html><head><title>404 - Not Found</title></head><body><h3>The requested URL could not be found.</h3></body></html>";
+		resp.documentSize = strlen(resp.document);
 		resp.headers.insert(make_pair("Content-Type", "text/html"));
 		return 404;
 	}

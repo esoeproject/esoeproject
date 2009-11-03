@@ -66,23 +66,25 @@ namespace speptest {
 			MockWeb::Response resp;
 
 			int status = mockWeb->dispatch(req, resp);
-
+			int ret;
 			if (resp.document.length()) {
 				struct MHD_Response* response = 
 					MHD_create_response_from_data(resp.document.length(),
 						const_cast<char*>(resp.document.c_str()),
 						MHD_NO, MHD_NO);
 
-				MHD_queue_response(connection, status, response);
+				ret = MHD_queue_response(connection, status, response);
 				MHD_destroy_response(response);
 			} else {
 				// Send empty document with a 500 error, if there is no response document.
 				struct MHD_Response* response = 
 					MHD_create_response_from_data(0, const_cast<char*>(""), MHD_NO, MHD_NO);
 
-				MHD_queue_response(connection, 500, response);
+				ret = MHD_queue_response(connection, 500, response);
 				MHD_destroy_response(response);
 			}
+
+			return ret;
 		}
 	}
 

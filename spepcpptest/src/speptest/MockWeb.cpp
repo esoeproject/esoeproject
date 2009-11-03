@@ -34,6 +34,7 @@ namespace speptest {
 		}
 	};
 
+	// Callback function for a MHD request
 	static int mockWebStaticDispatch(void *cls, struct MHD_Connection *connection,
 			const char *url, const char *method, const char *version,
 			const char *uploadData, size_t *uploadDataSize,
@@ -41,17 +42,20 @@ namespace speptest {
 		MockWeb* mockWeb = static_cast<MockWeb*>(cls);
 		PostedDocument* document = static_cast<PostedDocument*>(*ptr);
 
+		// No existing document object - new request
 		if (document == NULL) {
 			document = new PostedDocument();
 			*ptr = static_cast<void*>(document);
 			return MHD_YES;
 		}
 
+		// A chunk of uploaded data. Buffer it.
 		if (*uploadDataSize) {
 			document->append(uploadData, *uploadDataSize);
 			*uploadDataSize = 0;
 			return MHD_YES;
 		} else {
+			// Done, respond to the request.
 			MockWeb::Request req;
 			req.url = url;
 			req.method = method;
@@ -72,6 +76,7 @@ namespace speptest {
 				MHD_queue_response(connection, status, response);
 				MHD_destroy_response(response);
 			} else {
+				// Send empty document with a 500 error, if there is no response document.
 				struct MHD_Response* response = 
 					MHD_create_response_from_data(0, const_cast<char*>(""), MHD_NO, MHD_NO);
 
@@ -81,6 +86,7 @@ namespace speptest {
 		}
 	}
 
+	// Cleanup callback
 	static int mockWebRequestCompleted(void *cls, struct MHD_Connection *connection,
 			void **ptr, enum MHD_RequestTerminationCode toe) {
 		PostedDocument* document = static_cast<PostedDocument*>(*ptr);
@@ -93,7 +99,10 @@ namespace speptest {
 		return 404;
 	}
 
-	MockWeb::MockWeb() {
+	MockWeb::MockWeb()
+	:
+	_baseURL("http://localhost:" STR(MOCKWEB_PORT))
+	{
 		_daemon = MHD_start_daemon(
 			// Use select to avoid lots of threads, make things easier to debug.
 			MHD_USE_SELECT_INTERNALLY, MOCKWEB_PORT,

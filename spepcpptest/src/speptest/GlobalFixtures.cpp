@@ -13,6 +13,7 @@ using namespace spep;
 namespace speptest {
 	GlobalFixtures::GlobalFixtures()
 	:
+	MockWeb(),
 	allowedTimeSkew(30),
 	metadataInterval(1),
 	attributeConsumingServiceIndex(1),
@@ -27,7 +28,7 @@ namespace speptest {
 	schemaPath("./schema"),
 	spepIdentifier(L"http://test-spep.example.com"),
 	esoeIdentifier(L"http://test-esoe.example.com"),
-	metadataURL("http://test-esoe.example.com/esoemanager/metadata/internal"),
+	metadataURL(getBaseURL() + "/esoemanager/metadata/internal"),
 	ssoRedirect("/spep/sso?redirectURL=%s"),
 	serviceHost("http://test-spep.example.com"),
 	keystorePath("./data/keystore.ks"),
@@ -35,6 +36,8 @@ namespace speptest {
 	spepKeyAlias("spep"),
 	spepKeyPassword("testkey")
 	{
+		// This code mostly duplicated from spep::SPEP::initializeServer()
+
 		logger = new saml2::Logger();
 
 		for( std::vector<saml2::Handler*>::iterator handlerIterator = handlers.begin();

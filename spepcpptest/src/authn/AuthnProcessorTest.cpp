@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <speptest/GlobalFixtures.h>
+#include <speptest/MockWeb.h>
 
 #include <spep/authn/AuthnProcessor.h>
 
 using namespace spep;
 
 namespace speptest {
-	class AuthnProcessorTest : public ::testing::Test, protected ::speptest::GlobalFixtures {
+	class AuthnProcessorTest : public ::testing::Test, protected GlobalFixtures {
 	};
 
 	TEST_F(AuthnProcessorTest, GenerateAuthnRequest) {

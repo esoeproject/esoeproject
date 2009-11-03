@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 
+#include <speptest/MockWeb.h>
+
 #include <saml2/resolver/ExternalKeyResolver.h>
 #include <saml2/logging/Logger.h>
 #include <saml2/validator/SAMLValidator.h>
@@ -25,7 +27,7 @@
 #include <spep/ws/WSProcessor.h>
 
 namespace speptest {
-	class GlobalFixtures {
+	class GlobalFixtures : public MockWeb {
 		public:
 		GlobalFixtures();
 		~GlobalFixtures();

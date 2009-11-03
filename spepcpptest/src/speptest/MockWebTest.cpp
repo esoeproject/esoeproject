@@ -27,13 +27,13 @@ static int curlTestCallback(void *buffer, size_t size, size_t nmemb, void *userp
 }
 
 TEST(MockWebTest, Serve) {
-	speptest::MockWeb mockWeb;
+	MockWeb mockWeb;
 
-	std::string path("/test");
+	string path("/test");
 	mockWeb.hook(path, &testWebHook);
 
 	CURL* curl = curl_easy_init();
-	std::string url = mockWeb.getBaseURL() + path;
+	string url = mockWeb.getBaseURL() + path;
 	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
 	char *buf = NULL;

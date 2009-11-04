@@ -4,15 +4,20 @@ SUBDIRS = include src
 
 EXTRA_DIST = AUTHORS LICENSE NOTICE README
 
-data/keystore.ks: data/keytool-responses.txt
+data/spepKeystore.ks: data/keytool-responses-spep.txt
 	rm -f $@
-	$(KEYTOOL) -genkey -keystore $@ -storepass testks -alias spep -keypass testkey -keyalg rsa -keysize 512 < data/keytool-responses.txt
+	$(KEYTOOL) -genkey -keystore $@ -storepass testks -alias spep -keypass testkey -keyalg rsa -keysize 512 < $<
+
+data/metadataKeystore.ks: data/keytool-responses-metadata.txt
+	$(KEYTOOL) -genkey -keystore $@ -storepass testks -alias metadata -keypass metadatakey -keyalg rsa -keysize 512 < $<
+
+keystores: data/spepKeystore.ks data/metadataKeystore.ks
 
 schema: ../saml2cpp/schema
 	mkdir -p schema
 	cp ../saml2cpp/schema/*.xsd schema/
 
-pre_test: all schema data/keystore.ks
+pre_test: all schema keystores
 
 test: pre_test
 	src/spepcpptest$(EXEEXT)

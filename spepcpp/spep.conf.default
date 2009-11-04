@@ -65,7 +65,7 @@ defaultUrl=https://example.com/index.htm
 # For example:
 #logoutClearCookie=MYAPP_SESSION example.com /myapp
 #
-logoutClearCookie=spepSession
+#logoutClearCookie=myAppHostSession
 
 # Port for the SPEP daemon to listen on. This is a required value, but is not used in IIS SPEPs.
 spepDaemonPort=7142

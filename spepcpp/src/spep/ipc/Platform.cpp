@@ -235,7 +235,8 @@ void spep::ipc::platform::closeSocket( spep::ipc::platform::socket_t sock )
 	if ( close( SOCKET(sock) ) == 0 ) return;
 #endif
 	
-	throw SocketException( strerror(errno) );
+	// We don't care about data loss since we're terminating a bad connection. No need to throw.
+	//throw SocketException( strerror(errno) );
 }
 		
 bool spep::ipc::platform::validSocket( spep::ipc::platform::socket_t sock )

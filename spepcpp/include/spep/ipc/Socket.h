@@ -89,6 +89,9 @@ namespace spep
 					}
 					catch( SocketException e )
 					{
+						if (platform::validSocket(_socket)) platform::closeSocket(_socket);
+						_socket = SocketWrapper();
+
 						delete _engine;
 						_engine = NULL;
 					}
@@ -122,6 +125,9 @@ namespace spep
 					}
 					catch( SocketException e )
 					{
+						if (platform::validSocket(_socket)) platform::closeSocket(_socket);
+						_socket = SocketWrapper();
+
 						delete _engine;
 						_engine = NULL;
 					}
@@ -210,8 +216,11 @@ namespace spep
 				// We can copy this as many times as we like.. as long as operator() is only invoked once.
 				void operator()()
 				{
-					_serverSocket.run(_socket);
-					platform::closeSocket( _socket );
+					try {
+						_serverSocket.run(_socket);
+					} catch (...) {
+						platform::closeSocket( _socket );
+					}
 				}
 			};
 			

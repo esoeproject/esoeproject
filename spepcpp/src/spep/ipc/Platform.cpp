@@ -19,6 +19,10 @@
 
 #include "spep/ipc/Platform.h"
 
+#include <sys/select.h>
+
+#include <sys/types.h>
+#include <unistd.h>
 
 protoent* spep::ipc::platform::tcpProtocol = NULL;
 
@@ -193,15 +197,33 @@ void spep::ipc::platform::setReadTimeout( spep::ipc::platform::socket_t sock, in
 	setsockopt( SOCKET(sock), SOL_SOCKET, SO_RCVTIMEO, (SOCKOPT_TYPE*)&value, sizeof(value) );
 }
 
-ssize_t spep::ipc::platform::readSocket( spep::ipc::platform::socket_t sock, char *buf, int buflen, int flags )
+ssize_t spep::ipc::platform::readSocket( spep::ipc::platform::socket_t sock, char *buf, int buflen, bool block = false )
 {
 #ifdef WIN32
 	int result;
+	int nfds = 0; // Windows select() ignores this argument, but takes it for compatibility.
 #else //WIN32
 	ssize_t result;
+	int nfds = SOCKET(sock) + 1;
 #endif //WIN32
 
-	result = recv( SOCKET(sock), buf, buflen, flags );
+	if (block) {
+		fd_set readfds;
+		fd_set exceptfds;
+
+		FD_SET( SOCKET(sock), &readfds );
+		FD_SET( SOCKET(sock), &exceptfds );
+
+		if (select( nfds, &readfds, NULL, &exceptfds, NULL ) < 0) {
+			throw new SocketException( strerror(errno) );
+		}
+
+		if (!FD_ISSET(SOCKET(sock), &readfds)) {
+			throw new SocketException( "Socket did not become available for reading due to an exception" );
+		}
+	}
+
+	result = recv( SOCKET(sock), buf, buflen, 0 );
 	if (result < 0)
 	{
 		throw SocketException( strerror(errno) );
@@ -210,15 +232,33 @@ ssize_t spep::ipc::platform::readSocket( spep::ipc::platform::socket_t sock, cha
 	return result;
 }
 
-ssize_t spep::ipc::platform::writeSocket( spep::ipc::platform::socket_t sock, const char *buf, int buflen, int flags )
+ssize_t spep::ipc::platform::writeSocket( spep::ipc::platform::socket_t sock, const char *buf, int buflen, bool block = false )
 {
 #ifdef WIN32
 	int result;
+	int nfds = 0; // Windows select() ignores this argument, but takes it for compatibility.
 #else //WIN32
 	ssize_t result;
+	int nfds = SOCKET(sock) + 1;
 #endif //WIN32
 
-	result = send( SOCKET(sock), buf, buflen, flags );
+	if (block) {
+		fd_set writefds;
+		fd_set exceptfds;
+
+		FD_SET( SOCKET(sock), &writefds );
+		FD_SET( SOCKET(sock), &exceptfds );
+
+		if (select( nfds, NULL, &writefds, &exceptfds, NULL ) < 0) {
+			throw new SocketException( strerror(errno) );
+		}
+
+		if (!FD_ISSET(SOCKET(sock), &writefds)) {
+			throw new SocketException( "Socket did not become available for writing due to an exception" );
+		}
+	}
+
+	result = send( SOCKET(sock), buf, buflen, 0 );
 	if (result < 0)
 	{
 		throw SocketException( strerror(errno) );

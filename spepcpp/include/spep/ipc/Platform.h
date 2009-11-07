@@ -200,22 +200,23 @@ namespace spep { namespace ipc {
 		 * @param sock The socket
 		 * @param buf The output buffer to read into
 		 * @param buflen The length of the output buffer (the amount of data to read)
-		 * @param flags Flags to be used when reading.
-		 * @return Number of bytes read, or 0 if EOF has been reached
+		 * @param block Flag to indicate blocking I/O
+		 * @return Number of bytes read, or 0 if EOF has been reached or I/O would block
+		 *		and non-blocking I/O was requested.
 		 * @throw SocketException if an error occurred
 		 */
-		static ssize_t readSocket( socket_t sock, char *buf, int buflen, int flags );
+		static ssize_t readSocket( socket_t sock, char *buf, int buflen, bool block );
 		
 		/**
 		 * Writes data to the given socket
 		 * @param sock The socket
 		 * @param buf The buffer to write into the socket
 		 * @param buflen The number of bytes to write
-		 * @param flags Flags to be used when writing
+		 * @param block Flag to indicate blocking I/O
 		 * @return Number of bytes written
 		 * @throw SocketException if a write error occurred
 		 */
-		static ssize_t writeSocket( socket_t sock, const char *buf, int buflen, int flags );
+		static ssize_t writeSocket( socket_t sock, const char *buf, int buflen, bool block );
 		
 		/**
 		 * Closes the socket
@@ -232,18 +233,6 @@ namespace spep { namespace ipc {
 		 * @return boolean value to indicate validitity
 		 */
 		static bool validSocket( socket_t sock );
-		
-		class flags
-		{
-			public:
-			static const int nonBlocking =
-#if defined(__CYGWIN__) || defined(WIN32)
-				0
-#else
-				MSG_DONTWAIT
-#endif
-				;
-		};
 		
 		/**
 		 * Performs text encoding operations

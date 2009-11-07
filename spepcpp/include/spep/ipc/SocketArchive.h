@@ -724,7 +724,7 @@ namespace spep
 					try
 					{
 						// .. try to write it..
-						written = platform::writeSocket( _socket, &buf[pos], bytes, 0 );
+						written = platform::writeSocket( _socket, &buf[pos], bytes, true );
 					}
 					catch (SocketException e)
 					{
@@ -752,15 +752,9 @@ namespace spep
 				std::size_t writelen = SOCKET_ARCHIVE_BUFFER_SIZE - _size;
 				
 				int flags = 0;
-				// If non blocking, add the non block flag
-				if (!block)
-				{
-					return;
-					flags |= platform::flags::nonBlocking;
-				}
 				
 				// Read into the buffer, and increase the size by the number of bytes read.
-				std::size_t written = platform::readSocket( _socket, writebuf, writelen, 0 );
+				std::size_t written = platform::readSocket( _socket, writebuf, writelen, block );
 				_size += written;
 			}
 			

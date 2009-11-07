@@ -9,6 +9,7 @@ data/spepKeystore.ks: data/keytool-responses-spep.txt
 	$(KEYTOOL) -genkey -keystore $@ -storepass testks -alias spep -keypass testkey -keyalg rsa -keysize 512 < $<
 
 data/metadataKeystore.ks: data/keytool-responses-metadata.txt
+	rm -f $@
 	$(KEYTOOL) -genkey -keystore $@ -storepass testks -alias metadata -keypass metadatakey -keyalg rsa -keysize 512 < $<
 
 keystores: data/spepKeystore.ks data/metadataKeystore.ks

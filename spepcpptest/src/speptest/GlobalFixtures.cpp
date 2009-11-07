@@ -31,7 +31,7 @@ namespace speptest {
 	metadataURL(getBaseURL() + "/esoemanager/metadata/internal"),
 	ssoRedirect("/spep/sso?redirectURL=%s"),
 	serviceHost("http://test-spep.example.com"),
-	keystorePath("./data/keystore.ks"),
+	keystorePath("./data/spepKeystore.ks"),
 	keystorePassword("testks"),
 	spepKeyAlias("spep"),
 	spepKeyPassword("testkey")

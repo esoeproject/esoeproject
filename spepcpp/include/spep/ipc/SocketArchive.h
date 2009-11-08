@@ -36,7 +36,6 @@
 /* for saml2::LogLevel */
 #include "saml2/logging/LogLevel.h"
 
-#include "spep/ipc/Platform.h"
 #include "spep/Util.h"
 
 #define DELIMITER_STRING " "

@@ -21,7 +21,6 @@
 #define ENGINE_H_
 
 #include "spep/Util.h"
-#include "spep/ipc/Platform.h"
 #include "spep/ipc/MessageHeader.h"
 #include "spep/ipc/SocketArchive.h"
 

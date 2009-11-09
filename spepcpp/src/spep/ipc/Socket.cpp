@@ -22,17 +22,24 @@
 
 #include <boost/thread.hpp>
 
-spep::ipc::platform::socket_t spep::ipc::ClientSocket::newSocket( int port )
+using asio::ip::tcp;
+
+tcp::socket* spep::ipc::ClientSocket::newSocket()
 {
-	platform::socket_t socket = platform::openSocket();
-	platform::connectLoopbackSocket( socket, port );
+	tcp::socket* socket = new tcp::socket(_pool->getIoService());
+	asio::error_code error;
+
+	socket->connect(tcp::endpoint(asio::ip::address_v4::loopback(), _port), error);
+	if (error) {
+		throw SocketException(error.message());
+	}
 	return socket;
 }
 
 spep::ipc::ClientSocket::ClientSocket( spep::ipc::ClientSocketPool* pool, int port )
 :
 _pool( pool ),
-_socket( ),
+_socket( NULL ),
 _engine( NULL ),
 _port( port )
 {
@@ -40,13 +47,10 @@ _port( port )
 
 void spep::ipc::ClientSocket::reconnect( int retry )
 {
-	int delay = ( (retry>2) ? 3 : retry );
+	if (retry > 0) {
+		throw SocketException("Retry limit (0) exceeded.");
+	}
 	
-	boost::xtime retryAt;
-	// TODO Maybe I should care if this fails [i.e. if (boost::xtime_get(..) == 0)]
-	boost::xtime_get( &retryAt, boost::TIME_UTC );
-	retryAt.sec += delay;
-
 	if( _engine != NULL )
 	{
 		// Unset it so we don't keep hammering a broken connection. The OS might not like that so much.
@@ -54,14 +58,12 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 		_engine = NULL;
 	}
 	
-	boost::thread::sleep( retryAt );
-
 	{
 		ScopedLock lock( _mutex );
 		
 		try
 		{
-			_socket = this->newSocket(_port);
+			_socket = this->newSocket();
 			_engine = new Engine( _socket );
 			
 			std::string serviceID;
@@ -70,6 +72,7 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 		}
 		catch( SocketException e )
 		{
+			// Failed. We'll throw when we retry though.
 			if( _engine != NULL ) delete _engine;
 			_engine = NULL;
 		}

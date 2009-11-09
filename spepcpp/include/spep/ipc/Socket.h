@@ -56,7 +56,7 @@ namespace spep
 		{
 
 			private:
-			static tcp::socket* newSocket( int port );
+			tcp::socket* newSocket();
 
 			void reconnect( int retry );
 
@@ -153,6 +153,7 @@ namespace spep
 			boost::condition _condition;
 			Mutex _mutex;
 			std::string _serviceID;
+			asio::io_service ioService;
 
 			public:
 			ClientSocketPool( int port, std::size_t n );
@@ -160,6 +161,7 @@ namespace spep
 			void release( ClientSocket* socket );
 			const std::string& getServiceID();
 			void setServiceID( const std::string& serviceID );
+			asio::io_service& getIoService();
 		};
 
 		class ClientSocketLease

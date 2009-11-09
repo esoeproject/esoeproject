@@ -721,7 +721,7 @@ namespace spep
 				asio::write( *_socket, asio::buffer(buf, len), asio::transfer_all(), error );
 
 				if (error) {
-					throw new SocketException(error.message());
+					throw SocketException(error.message());
 				}
 			}
 

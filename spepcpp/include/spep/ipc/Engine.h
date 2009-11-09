@@ -24,13 +24,18 @@
 #include "spep/ipc/MessageHeader.h"
 #include "spep/ipc/SocketArchive.h"
 
+#include <asio.hpp>
+
 namespace spep { namespace ipc {
+
+	using namespace boost;
+	using asio::ip::tcp;
 
 	class SPEPEXPORT Engine
 	{
 		
 		public:
-		Engine( platform::socket_t socket )
+		Engine( tcp::socket* socket )
 		: _archive( socket ) {}
 		
 		/**

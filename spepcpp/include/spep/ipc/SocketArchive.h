@@ -37,6 +37,9 @@
 #include "saml2/logging/LogLevel.h"
 
 #include "spep/Util.h"
+#include "spep/ipc/Exceptions.h"
+
+#include <asio.hpp>
 
 #define DELIMITER_STRING " "
 #define DELIMITER_CHAR ' '
@@ -46,6 +49,8 @@ namespace spep
 {
 	namespace ipc
 	{
+		using namespace boost;
+		using asio::ip::tcp;
 		
 		/**
 		 * This object, when serialized, puts no data into the stream. Also, when
@@ -60,7 +65,7 @@ namespace spep
 		{
 			public:
 			
-			SocketArchive( platform::socket_t socket ) : 
+			SocketArchive( tcp::socket* socket ) : 
 			_socket(socket), 
 			_pos(0),
 			_size(0),
@@ -541,6 +546,13 @@ namespace spep
 			 */
 			SocketArchiveOutput &out()
 			{ return _out; }
+
+			class textEncoding {
+				public:
+				static std::size_t encodedSize(std::size_t size);
+				static void encode(char* addr, char* buf, std::size_t size);
+				static void decode(char* addr, char* buf, std::size_t size);
+			};
 			
 			/**
 			 * Loads binary data from the socket into a buffer.
@@ -549,13 +561,10 @@ namespace spep
 			 */
 			void load_binary(void *address, std::size_t size)
 			{
-				// Fill the socket buffer
-				fill();
-				
 				// Zero all the memory in the buffer
 				memset( address, 0, size );
 				// Decide how many bytes need to be read.
-				std::size_t len = platform::textEncoding::encodedSize( size );
+				std::size_t len = textEncoding::encodedSize( size );
 				if (len > 0)
 				{
 					// Allocate a temporary buffer to read into.
@@ -582,7 +591,7 @@ namespace spep
 					
 					buf[len] = '\0';
 					// Decode the serialized data into the buffer
-					platform::textEncoding::decode( (char*)address, buf.get(), size );
+					textEncoding::decode( (char*)address, buf.get(), size );
 				}
 			}
 			
@@ -591,11 +600,11 @@ namespace spep
 				if (size > 0)
 				{
 					// Allocate a buffer for the length of the encoded data
-					std::size_t len = platform::textEncoding::encodedSize( size ) + 1;
+					std::size_t len = textEncoding::encodedSize( size ) + 1;
 					AutoArray<char> buf( len );
 					
 					// Encode into the buffer.
-					platform::textEncoding::encode( buf.get(), (char*)address, len );
+					textEncoding::encode( buf.get(), (char*)address, len );
 					
 					// Append a delimiter character to the encoded data and write it to the socket.
 					buf[len-1] = DELIMITER_CHAR;
@@ -606,8 +615,6 @@ namespace spep
 			template<class T>
 			void loadPrimitiveWholeNumber(T &t)
 			{
-				fill();
-
 				t = 0;
 				int multiplier = 1;
 				
@@ -664,9 +671,6 @@ namespace spep
 			template<class T>
 			void loadPrimitiveFloatingPoint(T &t)
 			{
-				// Fill the socket buffer
-				fill();
-
 				// A buffer for the floating point number.
 				char fpbuf[SOCKET_ARCHIVE_BUFFER_SIZE];
 				int fppos = 0;
@@ -712,27 +716,12 @@ namespace spep
 			void write( char *buf, std::size_t len )
 			{
 				if (_closed) throw SocketException("The socket for this archive was closed by a previous error");
-				
-				std::size_t pos = 0;
-				// Until all the data has been written..
-				while( pos < len ) 
-				{
-					std::size_t bytes = SOCKET_ARCHIVE_BUFFER_SIZE;
-					if (bytes > (len - pos)) bytes = (len - pos);
-					std::size_t written;
-					try
-					{
-						// .. try to write it..
-						written = platform::writeSocket( _socket, &buf[pos], bytes, true );
-					}
-					catch (SocketException e)
-					{
-						_closed = true;
-						throw;
-					}
 
-					// .. and update the position by how many bytes were written.
-					pos += written;
+				asio::error_code error;
+				asio::write( *_socket, asio::buffer(buf, len), asio::transfer_all(), error );
+
+				if (error) {
+					throw new SocketException(error.message());
 				}
 			}
 
@@ -740,7 +729,7 @@ namespace spep
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 #endif /* MIN */
 
-			void fill(bool block = false)
+			void fill()
 			{
 				// Reposition the data to the beginning of the buffer.
 				memmove(_buff, &_buff[_pos], _size);
@@ -753,7 +742,7 @@ namespace spep
 				int flags = 0;
 				
 				// Read into the buffer, and increase the size by the number of bytes read.
-				std::size_t written = platform::readSocket( _socket, writebuf, writelen, block );
+				std::size_t written = _socket->read_some( asio::buffer(writebuf, writelen) );
 				_size += written;
 			}
 			
@@ -763,7 +752,7 @@ namespace spep
 				if (_eof) throw SocketException("The socket for this archive reached end-of-file");
 				
 				// If we don't have a character, block until we do
-				if (_size <= 0) fill(true);
+				if (_size <= 0) fill();
 				// If we still don't, it's EOF.
 				if (_size <= 0)
 				{
@@ -776,7 +765,7 @@ namespace spep
 				--_size; return _buff[_pos++];
 			}
 			
-			platform::socket_t _socket;
+			tcp::socket* _socket;
 			char _buff[SOCKET_ARCHIVE_BUFFER_SIZE];
 			std::size_t _pos, _size;
 			SocketArchiveInput _in;

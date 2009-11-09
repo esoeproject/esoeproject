@@ -207,12 +207,13 @@ namespace spep
 
 				tcp::endpoint endpoint(asio::ip::address_v4::loopback(), port);
 				asio::error_code error;
-				if (!(acceptor.open(endpoint.protocol(), error)) &&
-					!(acceptor.set_option(tcp::acceptor::reuse_address(true), error)) &&
-					!(acceptor.bind(endpoint, error)) &&
-					!(acceptor.listen(asio::socket_base::max_connections, error))) {
+				// The truth value of the return indicates an error, so this piece of code doesn't read particularly nicely, but works.
+				if (acceptor.open(endpoint.protocol(), error) ||
+					acceptor.set_option(tcp::acceptor::reuse_address(true), error) ||
+					acceptor.bind(endpoint, error) ||
+					acceptor.listen(asio::socket_base::max_connections, error)) {
 
-					std::cout << "x" << std::endl;
+					log.error() << "An error occurred while opening the server socket: " << error.message();
 				}
 			}
 			

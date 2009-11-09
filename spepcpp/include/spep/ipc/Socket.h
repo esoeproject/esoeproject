@@ -1,22 +1,22 @@
 /* Copyright 2006-2007, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Shaun Mangelsdorf
  * Creation Date: 29/01/2007
- * 
- * Purpose: 
+ *
+ * Purpose:
  */
- 
+
 
 #ifndef SOCKET_H_
 #define SOCKET_H_
@@ -47,28 +47,29 @@ namespace spep
 
 		// To solve cyclic dependency
 		class ClientSocketPool;
+
 		/**
-		 * IPC client socket. Connects to a loopback address, makes requests 
+		 * IPC client socket. Connects to a loopback address, makes requests
 		 * and (optionally) awaits and returns a reply.
 		 */
 		class SPEPEXPORT ClientSocket
 		{
-			
+
 			private:
-			static platform::socket_t newSocket( int port );
-			
+			static tcp::socket* newSocket( int port );
+
 			void reconnect( int retry );
 
 			ClientSocketPool* _pool;
-			platform::socket_t _socket;
+			tcp::socket* _socket;
 			Engine *_engine;
 			int _port;
 			Mutex _mutex;
-			
+
 			public:
 			ClientSocket( ClientSocketPool* pool, int port );
 			int getSocketID();
-			
+
 			/**
 			 * Makes a request and awaits a reply
 			 * @param dispatch The string describing where to dispatch the request
@@ -79,9 +80,9 @@ namespace spep
 			Res makeRequest( std::string &dispatch, Req &req )
 			{
 				ScopedLock lock( _mutex );
-				
+
 				int retry = 0;
-				
+
 				for(;;)
 				{
 					try
@@ -93,8 +94,9 @@ namespace spep
 					}
 					catch( SocketException e )
 					{
-						if (platform::validSocket(_socket)) platform::closeSocket(_socket);
-						_socket = SocketWrapper();
+						asio::error_code error;
+						_socket->shutdown(tcp::socket::shutdown_both, error);
+						_socket->close(error);
 
 						delete _engine;
 						_engine = NULL;
@@ -104,7 +106,7 @@ namespace spep
 					reconnect( retry++ );
 				}
 			}
-			
+
 			/**
 			 * Makes a request and returns immediately, expecting no reply.
 			 * @param dispatch The string describing where to dispatch the request
@@ -114,11 +116,11 @@ namespace spep
 			void makeNonBlockingRequest( std::string &dispatch, Req &req )
 			{
 				ScopedLock lock( _mutex );
-				
+
 				for(;;)
 				{
 					int retry = 0;
-					
+
 					try
 					{
 						if( _engine != NULL )
@@ -129,8 +131,9 @@ namespace spep
 					}
 					catch( SocketException e )
 					{
-						if (platform::validSocket(_socket)) platform::closeSocket(_socket);
-						_socket = SocketWrapper();
+						asio::error_code error;
+						_socket->shutdown(tcp::socket::shutdown_both, error);
+						_socket->close(error);
 
 						delete _engine;
 						_engine = NULL;
@@ -140,9 +143,9 @@ namespace spep
 					reconnect( retry++ );
 				}
 			}
-			
+
 		};
-		
+
 		class ClientSocketPool
 		{
 			private:
@@ -150,7 +153,7 @@ namespace spep
 			boost::condition _condition;
 			Mutex _mutex;
 			std::string _serviceID;
-			
+
 			public:
 			ClientSocketPool( int port, std::size_t n );
 			ClientSocket* get();
@@ -158,20 +161,20 @@ namespace spep
 			const std::string& getServiceID();
 			void setServiceID( const std::string& serviceID );
 		};
-		
+
 		class ClientSocketLease
 		{
 			private:
 			ClientSocketPool *_pool;
 			ClientSocket *_socket;
-			
+
 			public:
 			ClientSocketLease( ClientSocketPool* pool );
 			~ClientSocketLease();
 			ClientSocket* operator->();
 			ClientSocket* operator*();
 		};
-		
+
 		/**
 		 * IPC server socket. Listens on a loopback address, receives and dispatches
 		 * and sends replies where expected.
@@ -185,9 +188,9 @@ namespace spep
 			asio::io_service ioService;
 			asio::ip::tcp::acceptor acceptor;
 			std::string id;
-				
+
 			public:
-			
+
 			/**
 			 * Constructor.
 			 * @param dispatcher The dispatcher to use when a request is received.
@@ -202,7 +205,7 @@ namespace spep
 			{
 				saml2::IdentifierCache identifierCache;
 				saml2::IdentifierGenerator identifierGenerator( &identifierCache );
-				
+
 				id = identifierGenerator.generateSessionID();
 
 				tcp::endpoint endpoint(asio::ip::address_v4::loopback(), port);
@@ -216,7 +219,7 @@ namespace spep
 					log.error() << "An error occurred while opening the server socket: " << error.message();
 				}
 			}
-			
+
 			/**
 			 * Body of listen method. Blocks indefinitely.
 			 */
@@ -230,7 +233,7 @@ namespace spep
 						function<void()> threadFunction( bind(&ServerSocket::run, this, socket) );
 
 						/* What's happening here?
-						 * According to the boost thread api docs, the constructor for 
+						 * According to the boost thread api docs, the constructor for
 						 * the thread object fires off the thread in the background and
 						 * the destructor detaches the thread so that it cleans itself
 						 * up with it's done. That's the exact behaviour we want.
@@ -240,10 +243,10 @@ namespace spep
 					}
 				}
 			}
-			
+
 			/**
 			 * Connection processing method. Not intended to be invoked directly.
-			 * @param socket The connected socket to use for 
+			 * @param socket The connected socket to use for
 			 */
 			void run(tcp::socket* socket_)
 			{
@@ -275,11 +278,16 @@ namespace spep
 					}
 				}
 
-				socket->close();
+				asio::error_code error;
+				if (socket->shutdown(tcp::socket::shutdown_both, error)
+					|| socket->close(error)) {
+
+					log.error() << "Error closing socket: " << error.message();
+				}
 			}
-			
+
 		};
-		
+
 	}
 }
 

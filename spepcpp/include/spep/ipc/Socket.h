@@ -69,6 +69,8 @@ namespace spep
 			public:
 			ClientSocket( ClientSocketPool* pool, int port );
 			int getSocketID();
+			void write(const std::vector<char>& buffer);
+			void read(std::vector<char>& buffer);
 
 			/**
 			 * Makes a request and awaits a reply
@@ -153,7 +155,7 @@ namespace spep
 			boost::condition _condition;
 			Mutex _mutex;
 			std::string _serviceID;
-			asio::io_service ioService;
+			asio::io_service _ioService;
 
 			public:
 			ClientSocketPool( int port, std::size_t n );

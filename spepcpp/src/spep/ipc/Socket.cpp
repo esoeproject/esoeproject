@@ -21,6 +21,7 @@
 #include <iostream>
 
 #include <boost/thread.hpp>
+#include <boost/bind.hpp>
 
 using asio::ip::tcp;
 
@@ -64,7 +65,7 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 		try
 		{
 			_socket = this->newSocket();
-			_engine = new Engine( _socket );
+			_engine = new Engine( boost::bind(&ClientSocket::write, this, _1), boost::bind(&ClientSocket::read, this, _1) );
 			
 			std::string serviceID;
 			_engine->getObject( serviceID );
@@ -119,6 +120,10 @@ void spep::ipc::ClientSocketPool::setServiceID( const std::string& serviceID )
 	ScopedLock lock( _mutex );
 	
 	this->_serviceID = serviceID;
+}
+
+asio::io_service& spep::ipc::ClientSocketPool::getIoService() {
+	return this->_ioService;
 }
 
 spep::ipc::ClientSocketLease::ClientSocketLease( spep::ipc::ClientSocketPool* pool )

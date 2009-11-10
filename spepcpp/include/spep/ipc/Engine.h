@@ -33,10 +33,9 @@ namespace spep { namespace ipc {
 
 	class SPEPEXPORT Engine
 	{
-		
 		public:
-		Engine( tcp::socket* socket )
-		: _archive( socket ) {}
+		Engine(function<void(const std::vector<char>&)> writeCallback, function<void(std::vector<char>&)> readCallback)
+		: _archive(writeCallback, readCallback) {}
 		
 		/**
 		 * Sends a request with the dispatch string provided and awaits a response.

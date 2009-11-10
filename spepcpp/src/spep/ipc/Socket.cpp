@@ -80,6 +80,12 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 	}
 }
 
+void spep::ipc::ClientSocket::write(const std::vector<char>& buffer) {
+}
+
+void spep::ipc::ClientSocket::read(std::vector<char>& buffer) {
+}
+
 spep::ipc::ClientSocketPool::ClientSocketPool( int port, std::size_t n )
 {
 	for( std::size_t i=0; i<n; ++i )

@@ -23,7 +23,38 @@
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
+#include <asio.hpp>
+
 using asio::ip::tcp;
+
+void spep::ipc::writeSocket(tcp::socket* socket, const std::vector<char>& buffer) {
+	asio::error_code error;
+
+	std::size_t len = buffer.size();
+	asio::write(*socket, asio::buffer(&len, sizeof(len)), asio::transfer_all(), error);
+	if (!error) {
+		asio::write(*socket, asio::buffer(&buffer.front(), len*sizeof(char)), asio::transfer_all(), error);
+	}
+
+	if (error) {
+		// TODO Something
+	}
+}
+void spep::ipc::readSocket(tcp::socket* socket, std::vector<char>& buffer) {
+	asio::error_code error;
+
+	std::size_t len;
+	asio::read(*socket, asio::buffer(&len, sizeof(len)), asio::transfer_all(), error);
+
+	if (!error) {
+		buffer.resize(len);
+		asio::read(*socket, asio::buffer(&buffer.front(), len*sizeof(char)), asio::transfer_all(), error);
+	}
+
+	if (error) {
+		// TODO Something.
+	}
+}
 
 tcp::socket* spep::ipc::ClientSocket::newSocket()
 {
@@ -65,7 +96,7 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 		try
 		{
 			_socket = this->newSocket();
-			_engine = new Engine( boost::bind(&ClientSocket::write, this, _1), boost::bind(&ClientSocket::read, this, _1) );
+			_engine = new Engine( boost::bind(&spep::ipc::writeSocket, _socket, _1), boost::bind(&spep::ipc::readSocket, _socket, _1) );
 			
 			std::string serviceID;
 			_engine->getObject( serviceID );
@@ -78,12 +109,6 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 			_engine = NULL;
 		}
 	}
-}
-
-void spep::ipc::ClientSocket::write(const std::vector<char>& buffer) {
-}
-
-void spep::ipc::ClientSocket::read(std::vector<char>& buffer) {
 }
 
 spep::ipc::ClientSocketPool::ClientSocketPool( int port, std::size_t n )

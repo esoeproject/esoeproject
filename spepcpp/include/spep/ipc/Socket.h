@@ -35,6 +35,8 @@
 
 #include <asio.hpp>
 
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 
@@ -47,6 +49,9 @@ namespace spep
 
 		// To solve cyclic dependency
 		class ClientSocketPool;
+
+		void writeSocket(tcp::socket* socket, const std::vector<char>& buffer);
+		void readSocket(tcp::socket* socket, std::vector<char>& buffer);
 
 		/**
 		 * IPC client socket. Connects to a loopback address, makes requests
@@ -69,8 +74,6 @@ namespace spep
 			public:
 			ClientSocket( ClientSocketPool* pool, int port );
 			int getSocketID();
-			void write(const std::vector<char>& buffer);
-			void read(std::vector<char>& buffer);
 
 			/**
 			 * Makes a request and awaits a reply
@@ -256,14 +259,14 @@ namespace spep
 			{
 				std::auto_ptr<tcp::socket> socket(socket_);
 
-				Engine engine( socket );
+				Engine engine( bind(spep::ipc::writeSocket, socket_, _1), bind(spep::ipc::readSocket, socket_, _1) );
 				engine.sendObject( id );
 				for(;;)
 				{
 					try
 					{
 						MessageHeader messageHeader = engine.getRequestHeader();
-						if ( !dispatcher.dispatch( messageHeader, engine ) )
+						if ( !dispatcher->dispatch( messageHeader, engine ) )
 						{
 							engine.sendErrorResponseHeader();
 							InvocationTargetException exception( "No dispatcher was available to handle the requested call." );

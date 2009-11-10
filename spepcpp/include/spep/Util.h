@@ -34,7 +34,8 @@
 XERCES_CPP_NAMESPACE_USE
 
 #define NANOSECONDS_PER_MILLISECOND 1000*1000
-#define NANOSECONDS_PER_SECOND 1000*NANOSECONDS_PER_MILLISECOND
+#define MILLISECONDS_PER_SECOND 1000
+#define NANOSECONDS_PER_SECOND MILLISECONDS_PER_SECOND*NANOSECONDS_PER_MILLISECOND
 
 namespace spep
 {
@@ -176,13 +177,16 @@ namespace spep
 		 * Creates an interruptible sleeper, to sleep for the given 
 		 * number of seconds or until the "die" value is true.
 		 */
-		InterruptibleSleeper( int seconds, int pollIntervalMilliseconds, bool* die )
+		InterruptibleSleeper( int seconds, int milliseconds, int pollIntervalMilliseconds, bool* die )
 		:
 		_targetTime(),
 		_interval( pollIntervalMilliseconds * NANOSECONDS_PER_MILLISECOND ),
 		_die( die )
 		{
 			boost::xtime_get( &_targetTime, boost::TIME_UTC ); 
+			milliseconds += _targetTime.nsec / NANOSECONDS_PER_MILLISECOND;
+			seconds += milliseconds / MILLISECONDS_PER_SECOND;
+			_targetTime.nsec = (milliseconds % MILLISECONDS_PER_SECOND) * NANOSECONDS_PER_MILLISECOND;
 			_targetTime.sec += seconds;
 		}
 		
@@ -229,6 +233,12 @@ namespace spep
 		}
 	};
 	
+	inline void delay(int secs, int msecs) {
+		bool die = false;
+		InterruptibleSleeper sleeper(secs, msecs, secs*1000+msecs, &die);
+
+		sleeper.sleep();
+	}
 }
 
 

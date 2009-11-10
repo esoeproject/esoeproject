@@ -610,6 +610,6 @@ void doInit( spep::ConfigurationReader &configuration, std::vector<saml2::Handle
 	spep::ipc::ExceptionCatchingDispatcher dispatcher( spep->getLogger(), &multiDispatcher );
 
 	int port = configuration.getIntegerValue( CONFIGURATION_SPEPDAEMONPORT );
-	spep::ipc::ServerSocket<spep::ipc::ExceptionCatchingDispatcher> serverSocket( dispatcher, port );
+	spep::ipc::ServerSocket<spep::ipc::ExceptionCatchingDispatcher> serverSocket( spep->getLogger(), &dispatcher, port );
 	serverSocket.listen( &SPEPDaemonIsRunning );
 }

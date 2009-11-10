@@ -230,9 +230,9 @@ namespace spep
 			/**
 			 * Body of listen method. Blocks indefinitely.
 			 */
-			void listen()
+			void listen(bool *running)
 			{
-				for(;;) {
+				while(*running) {
 					try {
 						tcp::socket* socket = new tcp::socket(ioService);
 						acceptor.accept(*socket);

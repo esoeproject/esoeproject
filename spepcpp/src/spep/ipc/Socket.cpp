@@ -37,7 +37,7 @@ void spep::ipc::writeSocket(tcp::socket* socket, const std::vector<char>& buffer
 	}
 
 	if (error) {
-		// TODO Something
+		throw SocketException(error.message());
 	}
 }
 void spep::ipc::readSocket(tcp::socket* socket, std::vector<char>& buffer) {
@@ -52,7 +52,7 @@ void spep::ipc::readSocket(tcp::socket* socket, std::vector<char>& buffer) {
 	}
 
 	if (error) {
-		// TODO Something.
+		throw SocketException(error.message());
 	}
 }
 

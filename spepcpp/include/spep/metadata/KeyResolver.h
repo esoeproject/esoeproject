@@ -87,19 +87,17 @@ namespace spep
 		void serialize( Archive &ar, const unsigned int version )
 		{
 			ar & _spepKeyAlias;
-			ar( _spepPublicKeyData, _spepPublicKeyLength );
-			ar( _spepPrivateKeyData, _spepPrivateKeyLength );
+			ar & _spepPublicKeyB64;
+			ar & _spepPrivateKeyB64;
 		}
 		
 		XSECCryptoKey* _spepPublicKey;
 		// for serialization
-		char *_spepPublicKeyData;
-		std::size_t _spepPublicKeyLength;
+		std::string _spepPublicKeyB64;
 		
 		XSECCryptoKey* _spepPrivateKey;
 		// for serialization
-		char *_spepPrivateKeyData;
-		std::size_t _spepPrivateKeyLength;
+		std::string _spepPrivateKeyB64;
 		
 		std::string _spepKeyAlias;
 

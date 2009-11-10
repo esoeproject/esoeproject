@@ -21,18 +21,57 @@
 #include <iostream>
 
 #include <boost/thread.hpp>
+#include <boost/bind.hpp>
 
-spep::ipc::platform::socket_t spep::ipc::ClientSocket::newSocket( int port )
+#include <asio.hpp>
+
+using asio::ip::tcp;
+
+void spep::ipc::writeSocket(tcp::socket* socket, const std::vector<char>& buffer) {
+	asio::error_code error;
+
+	std::size_t len = buffer.size();
+	asio::write(*socket, asio::buffer(&len, sizeof(len)), asio::transfer_all(), error);
+	if (!error) {
+		asio::write(*socket, asio::buffer(&buffer.front(), len*sizeof(char)), asio::transfer_all(), error);
+	}
+
+	if (error) {
+		throw SocketException(error.message());
+	}
+}
+void spep::ipc::readSocket(tcp::socket* socket, std::vector<char>& buffer) {
+	asio::error_code error;
+
+	std::size_t len;
+	asio::read(*socket, asio::buffer(&len, sizeof(len)), asio::transfer_all(), error);
+
+	if (!error) {
+		buffer.resize(len);
+		asio::read(*socket, asio::buffer(&buffer.front(), len*sizeof(char)), asio::transfer_all(), error);
+	}
+
+	if (error) {
+		throw SocketException(error.message());
+	}
+}
+
+tcp::socket* spep::ipc::ClientSocket::newSocket()
 {
-	platform::socket_t socket = platform::openSocket();
-	platform::connectLoopbackSocket( socket, port );
+	tcp::socket* socket = new tcp::socket(_pool->getIoService());
+	asio::error_code error;
+
+	socket->connect(tcp::endpoint(asio::ip::address_v4::loopback(), _port), error);
+	if (error) {
+		throw SocketException(error.message());
+	}
 	return socket;
 }
 
 spep::ipc::ClientSocket::ClientSocket( spep::ipc::ClientSocketPool* pool, int port )
 :
 _pool( pool ),
-_socket( ),
+_socket( NULL ),
 _engine( NULL ),
 _port( port )
 {
@@ -40,13 +79,10 @@ _port( port )
 
 void spep::ipc::ClientSocket::reconnect( int retry )
 {
-	int delay = ( (retry>2) ? 3 : retry );
+	if (retry > 0) {
+		throw SocketException("Retry limit (0) exceeded.");
+	}
 	
-	boost::xtime retryAt;
-	// TODO Maybe I should care if this fails [i.e. if (boost::xtime_get(..) == 0)]
-	boost::xtime_get( &retryAt, boost::TIME_UTC );
-	retryAt.sec += delay;
-
 	if( _engine != NULL )
 	{
 		// Unset it so we don't keep hammering a broken connection. The OS might not like that so much.
@@ -54,15 +90,13 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 		_engine = NULL;
 	}
 	
-	boost::thread::sleep( retryAt );
-
 	{
 		ScopedLock lock( _mutex );
 		
 		try
 		{
-			_socket = this->newSocket(_port);
-			_engine = new Engine( _socket );
+			_socket = this->newSocket();
+			_engine = new Engine( boost::bind(&spep::ipc::writeSocket, _socket, _1), boost::bind(&spep::ipc::readSocket, _socket, _1) );
 			
 			std::string serviceID;
 			_engine->getObject( serviceID );
@@ -70,6 +104,7 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 		}
 		catch( SocketException e )
 		{
+			// Failed. We'll throw when we retry though.
 			if( _engine != NULL ) delete _engine;
 			_engine = NULL;
 		}
@@ -116,6 +151,10 @@ void spep::ipc::ClientSocketPool::setServiceID( const std::string& serviceID )
 	ScopedLock lock( _mutex );
 	
 	this->_serviceID = serviceID;
+}
+
+asio::io_service& spep::ipc::ClientSocketPool::getIoService() {
+	return this->_ioService;
 }
 
 spep::ipc::ClientSocketLease::ClientSocketLease( spep::ipc::ClientSocketPool* pool )

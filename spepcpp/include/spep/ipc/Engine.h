@@ -21,18 +21,21 @@
 #define ENGINE_H_
 
 #include "spep/Util.h"
-#include "spep/ipc/Platform.h"
 #include "spep/ipc/MessageHeader.h"
 #include "spep/ipc/SocketArchive.h"
 
+#include <asio.hpp>
+
 namespace spep { namespace ipc {
+
+	using namespace boost;
+	using asio::ip::tcp;
 
 	class SPEPEXPORT Engine
 	{
-		
 		public:
-		Engine( platform::socket_t socket )
-		: _archive( socket ) {}
+		Engine(function<void(const std::vector<char>&)> writeCallback, function<void(std::vector<char>&)> readCallback)
+		: _archive(writeCallback, readCallback) {}
 		
 		/**
 		 * Sends a request with the dispatch string provided and awaits a response.

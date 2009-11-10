@@ -37,7 +37,6 @@ spep/ipc/Dispatcher.cpp \
 spep/ipc/Engine.cpp \
 spep/ipc/Socket.cpp \
 spep/ipc/MessageHeader.cpp \
-spep/ipc/Platform.cpp \
 spep/exceptions/AuthnException.cpp \
 spep/exceptions/AttributeException.cpp \
 spep/exceptions/PEPException.cpp \

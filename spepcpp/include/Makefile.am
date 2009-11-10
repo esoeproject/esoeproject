@@ -39,7 +39,6 @@ spep/ipc/Dispatcher.h \
 spep/ipc/MessageHeader.h \
 spep/ipc/Serialization.h \
 spep/ipc/Exceptions.h \
-spep/ipc/Platform.h \
 spep/ipc/Socket.h \
 spep/ipc/Engine.h \
 spep/logging/proxy/LoggerDispatcher.h \

@@ -69,7 +69,7 @@ void spep::SessionCacheThread::doThreadAction()
 {
 	for(;;)
 	{
-		InterruptibleSleeper( _interval, 500, &_die ).sleep();
+		InterruptibleSleeper( _interval, 0, 500, &_die ).sleep();
 		if( _die )
 		{
 			_localLogger.info() << "Session cache thread shutting down.";

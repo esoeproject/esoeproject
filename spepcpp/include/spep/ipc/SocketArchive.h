@@ -28,6 +28,7 @@
 #include <unicode/unistr.h>
 #include <unicode/ustring.h>
 
+#include <boost/function.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 /* for saml2::KeyData */
@@ -36,17 +37,15 @@
 /* for saml2::LogLevel */
 #include "saml2/logging/LogLevel.h"
 
-#include "spep/ipc/Platform.h"
 #include "spep/Util.h"
-
-#define DELIMITER_STRING " "
-#define DELIMITER_CHAR ' '
-#define ISDELIMITER(x) ( x == DELIMITER_CHAR ) 
+#include "spep/Base64.h"
+#include "spep/ipc/Exceptions.h"
 
 namespace spep
 {
 	namespace ipc
 	{
+		using namespace boost;
 		
 		/**
 		 * This object, when serialized, puts no data into the stream. Also, when
@@ -55,20 +54,15 @@ namespace spep
 		 */
 		struct NoData{};
 		
-#		define SOCKET_ARCHIVE_BUFFER_SIZE 1024
-
 		class SPEPEXPORT SocketArchive
 		{
 			public:
 			
-			SocketArchive( platform::socket_t socket ) : 
-			_socket(socket), 
-			_pos(0),
-			_size(0),
+			SocketArchive(boost::function<void(const std::vector<char>&)> writeCallback, boost::function<void(std::vector<char>&)> readCallback) : 
+			_writeCallback(writeCallback),
+			_readCallback(readCallback),
 			_in(this),
-			_out(this),
-			_closed(false),
-			_eof(false)
+			_out(this)
 			{
 			}
 			
@@ -81,58 +75,47 @@ namespace spep
 				SocketArchiveInput(SocketArchive *sa) :
 				_sa(sa) {}
 
-/// Debug define so we can get output from the socket archive if we need it.
-#define DEBUG_LOADING_TYPE(x)  {/*std::cout << std::endl << "load: " << (#x) << ' ' << std::endl;*/}
-
 				/**
 				 * The deserialization methods. 
 				 */
 				/*@{*/
 				
 				void load(bool &b)
-				{ DEBUG_LOADING_TYPE(bool); int i; _sa->loadPrimitiveWholeNumber(i); b = (i != 0); }
+				{ int i; _sa->loadLexical(i); b = (i != 0); }
 				
 				void load(char &c)
-				{ DEBUG_LOADING_TYPE(char); _sa->loadPrimitiveWholeNumber(c); }
+				{ _sa->loadLexical(c); }
 				
 				void load(unsigned char &c)
-				{ DEBUG_LOADING_TYPE(unsigned char); _sa->loadPrimitiveWholeNumber(c); }
+				{ _sa->loadLexical(c); }
 				
 				void load(short &s)
-				{ DEBUG_LOADING_TYPE(short); _sa->loadPrimitiveWholeNumber(s); }
+				{ _sa->loadLexical(s); }
 				
 				void load(unsigned short &s)
-				{ DEBUG_LOADING_TYPE(unsigned short); _sa->loadPrimitiveWholeNumber(s); }
+				{ _sa->loadLexical(s); }
 				
 				void load(int &i)
-				{ DEBUG_LOADING_TYPE(int); _sa->loadPrimitiveWholeNumber(i); }
+				{ _sa->loadLexical(i); }
 				
 				void load(unsigned int &i)
-				{ DEBUG_LOADING_TYPE(unsigned int); _sa->loadPrimitiveWholeNumber(i); }
+				{ _sa->loadLexical(i); }
 				
 				void load(long &l)
-				{ DEBUG_LOADING_TYPE(long); _sa->loadPrimitiveWholeNumber(l); }
+				{ _sa->loadLexical(l); }
 				
 				void load(unsigned long &l)
-				{ DEBUG_LOADING_TYPE(unsigned long); _sa->loadPrimitiveWholeNumber(l); }
+				{ _sa->loadLexical(l); }
 				
 				void load(float &f)
-				{ DEBUG_LOADING_TYPE(float); _sa->loadPrimitiveFloatingPoint(f); }
+				{ _sa->loadLexical(f); }
 				
 				void load(double &d)
-				{ DEBUG_LOADING_TYPE(double); _sa->loadPrimitiveFloatingPoint(d); }
+				{ _sa->loadLexical(d); }
 				
 				void load(long double &d)
-				{ DEBUG_LOADING_TYPE(long double); _sa->loadPrimitiveFloatingPoint(d); }
+				{ _sa->loadLexical(d); }
 				
-				void load(void*& buf, std::size_t& len)
-				{
-					DEBUG_LOADING_TYPE(void[]);
-					load( len );
-					buf = new char[len];
-					_sa->load_binary( buf, len );
-				}
-
 				void load(saml2::LogLevel &level)
 				{
 					int val;
@@ -142,7 +125,6 @@ namespace spep
 				
 				void load(boost::posix_time::ptime &ptime)
 				{
-					DEBUG_LOADING_TYPE(boost::posix_time::ptime);
 					std::string timeString;
 					load( timeString );
 					
@@ -152,83 +134,15 @@ namespace spep
 				template <class CharT>
 				void load(std::basic_string<CharT> &s)
 				{
-					DEBUG_LOADING_TYPE(std::basic_string<CharT>); 
-					CharT *sbuf;
-					std::size_t size;
-					
-					// First load the length of the string
-					load(size);
-					
-					if (size > 0)
-					{
-						// Allocate a buffer and load into it
-						sbuf = new CharT[size];
-						_sa->load_binary( sbuf, size*sizeof(CharT) );
-						
-						// Construct the string.
-						s = std::basic_string<CharT>(sbuf);
-						
-						delete[] sbuf;
-					}
-					else
-					{
-						// Size is 0, we don't need to load any more data.
-						s = std::basic_string<CharT>();
-					}
-				}
-				
-				void load(std::string &s)
-				{
-					DEBUG_LOADING_TYPE(std::string); 
-					char *sbuf;
-					std::size_t size;
-					
-					// First load the length of the string
-					load(size);
-					
-					if (size > 0)
-					{
-						// Allocate a buffer and load into it
-						sbuf = new char[size];
-						_sa->load_binary( sbuf, size );
-						
-						// Construct the string.
-						s = std::string(sbuf);
-						
-						delete[] sbuf;
-					}
-					else
-					{
-						// Size is 0, we don't need to load any more data.
-						s = std::string();
-					}
+					_sa->loadString(s);
 				}
 				
 				void load(UnicodeString &string)
 				{
-					DEBUG_LOADING_TYPE(UnicodeString); 
-					char *sbuf;
-					std::size_t size = 0;
-					
-					// First load the length of the string
-					load(size);
-					
-					if (size > 0)
-					{
-						// Allocate a buffer and load into it
-						sbuf = new char[size];
-						_sa->load_binary( sbuf, size );
-						
-						// Construct the string.
-						string.setTo( UnicodeString( reinterpret_cast<UChar*>(sbuf) ) );
-						
-						delete[] sbuf;
-					}
-					else
-					{
-						// Size is 0, we don't need to load any more data.
-						string = UnicodeString();
-					}
+					std::basic_string<UChar> ucharString;
+
+					load(ucharString);
+					string.setTo(ucharString.c_str(), ucharString.length());
 				}
 				
 				void load( NoData& )
@@ -237,7 +151,6 @@ namespace spep
 				
 				void load( saml2::KeyData &keyData )
 				{
-					DEBUG_LOADING_TYPE( saml2::KeyData );
 					load( keyData.p );
 					load( keyData.y );
 					load( keyData.j );
@@ -314,29 +227,11 @@ namespace spep
 				template <class T>
 				SocketArchiveInput &operator >>(T &t)
 				{ load(t); return *this; }
-				
-				template <class T, class U>
-				SocketArchiveInput &operator ()(T &t, U &u)
-				{ load((void*&)t,(std::size_t&)u); return *this; }
 				/*@}*/
 				
 				private:
 				SocketArchive *_sa;
 			};
-
-/// snprintf() format to serialize integer types as
-#define SOCKET_ARCHIVE_INT_FORMAT "%d" DELIMITER_STRING
-/// snprintf() format to serialize unsigned integer types as
-#define SOCKET_ARCHIVE_UNSIGNED_INT_FORMAT "%u" DELIMITER_STRING
-/// snprintf() format to serialize long integer types as
-#define SOCKET_ARCHIVE_LONG_FORMAT "%ld" DELIMITER_STRING
-/// snprintf() format to serialize unsigned long integer types as
-#define SOCKET_ARCHIVE_UNSIGNED_LONG_FORMAT "%lu" DELIMITER_STRING
-/// snprintf() format to serialize floating point types as
-#define SOCKET_ARCHIVE_FLOAT_FORMAT "%.*g" DELIMITER_STRING
-/// snprintf() format to serialize double floating point types as
-#define SOCKET_ARCHIVE_DOUBLE_FORMAT "%.*g" DELIMITER_STRING
-
 
 			/**
 			 * The output half of a socket archive. This is a generic serializer 
@@ -347,56 +242,46 @@ namespace spep
 				SocketArchiveOutput(SocketArchive *sa) :
 				_sa(sa) {}
 				
-/// Debug define so we can get output from the socket archive if we need it.
-#define DEBUG_SAVING_TYPE(x)  {/*std::cout << std::endl << "save: " << (#x) << ' ' << std::endl;*/}
-
 				/**
 				 * The serialization methods.
 				 */
 				/*@{*/
 				void save(bool b)
-				{ DEBUG_SAVING_TYPE( bool ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_INT_FORMAT, b); }
+				{ _sa->saveLexical(b); }
 				
 				void save(char c)
-				{ DEBUG_SAVING_TYPE( char ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_INT_FORMAT, c); }
+				{ _sa->saveLexical(c); }
 				
 				void save(unsigned char c)
-				{ DEBUG_SAVING_TYPE( unsigned char ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_UNSIGNED_INT_FORMAT, c); }
+				{ _sa->saveLexical(c); }
 				
 				void save(short s)
-				{ DEBUG_SAVING_TYPE( short ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_INT_FORMAT, s); }
+				{ _sa->saveLexical(s); }
 				
 				void save(unsigned short s)
-				{ DEBUG_SAVING_TYPE( unsigned short ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_UNSIGNED_INT_FORMAT, s); }
+				{ _sa->saveLexical(s); }
 				
 				void save(int i)
-				{ DEBUG_SAVING_TYPE( int ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_INT_FORMAT, i); }
+				{ _sa->saveLexical(i); }
 				
 				void save(unsigned int i)
-				{ DEBUG_SAVING_TYPE( unsigned int ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_UNSIGNED_INT_FORMAT, i); }
+				{ _sa->saveLexical(i); }
 				
 				void save(long l)
-				{ DEBUG_SAVING_TYPE( long ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_LONG_FORMAT, l); }
+				{ _sa->saveLexical(l); }
 				
 				void save(unsigned long l)
-				{ DEBUG_SAVING_TYPE( unsigned long ); _sa->savePrimitiveWholeNumber(SOCKET_ARCHIVE_UNSIGNED_LONG_FORMAT, l); }
+				{ _sa->saveLexical(l); }
 				
 				void save(float f)
-				{ DEBUG_SAVING_TYPE( float ); _sa->savePrimitiveFloatingPoint(SOCKET_ARCHIVE_FLOAT_FORMAT, f); }
+				{ _sa->saveLexical(f); }
 				
 				void save(double d)
-				{ DEBUG_SAVING_TYPE( double ); _sa->savePrimitiveFloatingPoint(SOCKET_ARCHIVE_DOUBLE_FORMAT, d); }
+				{ _sa->saveLexical(d); }
 				
 				void save(long double d)
-				{ DEBUG_SAVING_TYPE( long double ); _sa->savePrimitiveFloatingPoint(SOCKET_ARCHIVE_DOUBLE_FORMAT, d); }
+				{ _sa->saveLexical(d); }
 				
-				void save(void* buf, std::size_t len)
-				{
-					DEBUG_SAVING_TYPE( void[] );
-					save( len );
-					_sa->save_binary( buf, len );
-				}
-
 				void save(saml2::LogLevel &level)
 				{
 					int val = level;
@@ -405,7 +290,6 @@ namespace spep
 				
 				void save(boost::posix_time::ptime &ptime)
 				{
-					DEBUG_SAVING_TYPE(boost::posix_time::ptime);
 					std::string timeString( boost::posix_time::to_iso_string(ptime) );
 					save( timeString );
 				}
@@ -413,41 +297,13 @@ namespace spep
 				template <class CharT>
 				void save(std::basic_string<CharT> &s)
 				{
-					DEBUG_SAVING_TYPE( std::basic_string<CharT> );
-					std::size_t size = sizeof(CharT) * (s.size() + 1);
-					// Save the length
-					save(size);
-					if (size > 0)
-					{
-						// Serialize the string as plain bytes, but only if size is greater than 0
-						_sa->save_binary( s.c_str(), size ); 
-					}
-				}
-				
-				void save(std::string &s)
-				{
-					DEBUG_SAVING_TYPE( std::string );
-					std::size_t size = sizeof(std::string::value_type) * (s.size() + 1);
-					// Save the length
-					save(size);
-					if (size > 0) 
-					{
-						// Serialize the string, but only if size is greater than 0
-						_sa->save_binary( s.c_str(), size );
-					}
+					_sa->saveString(s);
 				}
 				
 				void save(UnicodeString &string)
 				{
-					DEBUG_SAVING_TYPE( UnicodeString );
-					std::size_t size = sizeof(UChar) * (string.length() + 1);
-					// Save the length
-					save(size);
-					if (size > 0)
-					{
-						// Serialize the string as plain bytes, but only if size is greater than 0
-						_sa->save_binary( (const char*)const_cast<UnicodeString&>(string).getTerminatedBuffer(), size );
-					}
+					std::basic_string<UChar> ucharString(string.getBuffer(), string.length());
+					save(ucharString);
 				}
 				
 				void save( NoData& )
@@ -456,7 +312,6 @@ namespace spep
 				
 				void save( saml2::KeyData &keyData )
 				{
-					DEBUG_SAVING_TYPE( saml2::KeyData );
 					// Save all possible KeyData fields.
 					save( keyData.p );
 					save( keyData.y );
@@ -522,10 +377,6 @@ namespace spep
 				template <class T>
 				SocketArchiveOutput &operator <<(T &t)
 				{ save(t); return *this; }
-				
-				template <class T, class U>
-				SocketArchiveOutput &operator ()(T *&t, U &u)
-				{ save((void*&)t,(std::size_t&)u); return *this; }
 				/*@}*/
 			
 				private:
@@ -542,253 +393,69 @@ namespace spep
 			 */
 			SocketArchiveOutput &out()
 			{ return _out; }
+
+			template<class T>
+			void loadLexical(T &t)
+			{
+				std::string value;
+				loadString(value);
+
+				if (value.length() == 0) {
+					t = T();
+				} else {
+					t = boost::lexical_cast<T>(value);
+				}
+			}
 			
+			template<class T>
+			void saveLexical(T &t)
+			{
+				std::string value(boost::lexical_cast<std::string>(t));
+				saveString(value);
+			}
+
+			template<class CharT>
+			void loadString(std::basic_string<CharT> &str) {
+				std::vector<char> buffer;
+				
+				read(buffer);
+
+				CharT *buf = reinterpret_cast<CharT*>(&buffer.front());
+				std::size_t len = (buffer.size() * sizeof(char)) / sizeof(CharT);
+				if (len == 0) {
+					str = std::basic_string<CharT>();
+				} else {
+					str = std::basic_string<CharT>(buf, len);
+				}
+			}
+
+			template<class CharT>
+			void saveString(const std::basic_string<CharT> &str) {
+				std::size_t len = (str.length() * sizeof(CharT)) / sizeof(char);
+
+				std::vector<char> buffer(len);
+				std::memcpy(&buffer.front(), str.c_str(), len);
+				write(buffer);
+			}
+
 			/**
-			 * Loads binary data from the socket into a buffer.
-			 * @param address The base address of the buffer
-			 * @param size The number of char elements that will fit in the allocated space
+			 * Loads binary data using the callback method.
+			 * @param address Location to set the buffer address.
+			 * @param size Location to set the size of the buffer.
 			 */
-			void load_binary(void *address, std::size_t size)
-			{
-				// Fill the socket buffer
-				fill();
-				
-				// Zero all the memory in the buffer
-				memset( address, 0, size );
-				// Decide how many bytes need to be read.
-				std::size_t len = platform::textEncoding::encodedSize( size );
-				if (len > 0)
-				{
-					// Allocate a temporary buffer to read into.
-					AutoArray<char> buf( len+1 );
-					
-					char n = DELIMITER_CHAR; // if we never enter the loop, don't skip the entry.
-					for (std::size_t pos = 0; pos < len; pos++)
-					{
-						// Consume a byte..
-						n = consume();
-						if ( ISDELIMITER(n) ) 
-						{
-							// We have hit the end of the serialized data for this object. Finish.
-							buf[pos] = '\0';
-							break;
-						}
-						
-						// ..and place it in the buffer.
-						buf[pos] = n;
-					}
-					
-					// Truncate the object and skip to the next one.
-					while ( !ISDELIMITER(n) ) n = consume();
-					
-					buf[len] = '\0';
-					// Decode the serialized data into the buffer
-					platform::textEncoding::decode( (char*)address, buf.get(), size );
-				}
+			void read(std::vector<char>& buffer) {
+				_readCallback(buffer);
 			}
 			
-			void save_binary(const void *address, std::size_t size)
-			{
-				if (size > 0)
-				{
-					// Allocate a buffer for the length of the encoded data
-					std::size_t len = platform::textEncoding::encodedSize( size ) + 1;
-					AutoArray<char> buf( len );
-					
-					// Encode into the buffer.
-					platform::textEncoding::encode( buf.get(), (char*)address, len );
-					
-					// Append a delimiter character to the encoded data and write it to the socket.
-					buf[len-1] = DELIMITER_CHAR;
-					write( buf.get(), len );
-				}
+			void write(const std::vector<char>& buffer) {
+				_writeCallback(buffer);
 			}
-			
-			template<class T>
-			void loadPrimitiveWholeNumber(T &t)
-			{
-				fill();
 
-				t = 0;
-				int multiplier = 1;
-				
-				// Consume first character, check if it's a negative sign.
-				char n = consume();
-				if ( n == '-' )
-				{
-					multiplier = -1;
-					// Consume the next character after the '-'
-					n = consume();
-				}
-				
-				while (_size >= 0)
-				{
-					if( ISDELIMITER(n) ) 
-					{
-						// Finished reading the number.. multiply by -1 if needed and return  
-						t = t * multiplier;
-						return;
-					}
-					if( !isdigit(n) )
-					{
-						// Number data is invalid. Skip the object and return -1.
-						t = -1;
-						for( ; !ISDELIMITER(n); n=consume() );
-						return;
-					}
-					
-					// Digits are stored base 10 in big endian
-					t = 10*t + (int)( n - '0' );
-					n = consume();
-				}
-			}
-			
-			template<class T>
-			void savePrimitiveWholeNumber(const char *format, T &t)
-			{
-				char outbuf[SOCKET_ARCHIVE_BUFFER_SIZE];
-				
-				// Write the number out to a buffer.
-				int len = snprintf( outbuf, SOCKET_ARCHIVE_BUFFER_SIZE, format, t );
-				
-				// If the number was too big, truncate and append a delimiter
-				if (len > SOCKET_ARCHIVE_BUFFER_SIZE)
-				{
-					len = SOCKET_ARCHIVE_BUFFER_SIZE;
-					outbuf[len - 1] = DELIMITER_CHAR;
-				}
-				
-				// Write the number data out.
-				write( outbuf, len );
-			}
-			
-			template<class T>
-			void loadPrimitiveFloatingPoint(T &t)
-			{
-				// Fill the socket buffer
-				fill();
-
-				// A buffer for the floating point number.
-				char fpbuf[SOCKET_ARCHIVE_BUFFER_SIZE];
-				int fppos = 0;
-				char n = consume();
-				while (ISDELIMITER(n)) n = consume();
-				// Make sure we don't go outside the buffer.
-				while (_size > 0 && fppos < ( SOCKET_ARCHIVE_BUFFER_SIZE - 1 ))
-				{
-					if (ISDELIMITER(n)) break;
-					// Store the character and load the next.
-					fpbuf[fppos++] = n;
-					n = consume();
-				}
-				
-				// Skip to the next element if we aren't already there
-				while (!ISDELIMITER(n)) n = consume();
-				
-				fpbuf[fppos] = '\0';
-				
-				t = (T)strtod(fpbuf, NULL);
-			}
-			
-			template<class T>
-			void savePrimitiveFloatingPoint(const char *format, T &t)
-			{
-				char outbuf[SOCKET_ARCHIVE_BUFFER_SIZE];
-				
-				// Print the number into the floating point buffer.
-				int len = snprintf( outbuf, SOCKET_ARCHIVE_BUFFER_SIZE, format, std::numeric_limits<T>::digits10, t );
-				
-				// If the number was too big, truncate and append a delimiter.
-				if (len > SOCKET_ARCHIVE_BUFFER_SIZE)
-				{
-					len = SOCKET_ARCHIVE_BUFFER_SIZE;
-					outbuf[len - 1] = DELIMITER_CHAR;
-				}
-				
-				write( outbuf, len );
-			}
-			
 			private:
-			
-			void write( char *buf, std::size_t len )
-			{
-				if (_closed) throw SocketException("The socket for this archive was closed by a previous error");
-				
-				std::size_t pos = 0;
-				// Until all the data has been written..
-				while( pos < len ) 
-				{
-					std::size_t bytes = SOCKET_ARCHIVE_BUFFER_SIZE;
-					if (bytes > (len - pos)) bytes = (len - pos);
-					std::size_t written;
-					try
-					{
-						// .. try to write it..
-						written = platform::writeSocket( _socket, &buf[pos], bytes, 0 );
-					}
-					catch (SocketException e)
-					{
-						_closed = true;
-						throw;
-					}
-
-					// .. and update the position by how many bytes were written.
-					pos += written;
-				}
-			}
-
-#ifndef MIN
-#define MIN(a,b) ( (a) < (b) ? (a) : (b) )
-#endif /* MIN */
-
-			void fill(bool block = false)
-			{
-				// Reposition the data to the beginning of the buffer.
-				memmove(_buff, &_buff[_pos], _size);
-				_pos = 0;
-				
-				// Determine the position and length to be written.
-				char *writebuf = _buff + _size;
-				std::size_t writelen = SOCKET_ARCHIVE_BUFFER_SIZE - _size;
-				
-				int flags = 0;
-				// If non blocking, add the non block flag
-				if (!block)
-				{
-					return;
-					flags |= platform::flags::nonBlocking;
-				}
-				
-				// Read into the buffer, and increase the size by the number of bytes read.
-				std::size_t written = platform::readSocket( _socket, writebuf, writelen, 0 );
-				_size += written;
-			}
-			
-			inline char consume()
-			{
-				if (_closed) throw SocketException("The socket for this archive was closed by a previous error");
-				if (_eof) throw SocketException("The socket for this archive reached end-of-file");
-				
-				// If we don't have a character, block until we do
-				if (_size <= 0) fill(true);
-				// If we still don't, it's EOF.
-				if (_size <= 0)
-				{
-					if (_eof) throw SocketException("The socket for this archive reached end-of-file");
-					_eof = true;
-					return '\0';
-				}
-				
-				// Consume a character from the buffer.
-				--_size; return _buff[_pos++];
-			}
-			
-			platform::socket_t _socket;
-			char _buff[SOCKET_ARCHIVE_BUFFER_SIZE];
-			std::size_t _pos, _size;
+			boost::function<void(const std::vector<char>&)> _writeCallback;
+			boost::function<void(std::vector<char>&)> _readCallback;
 			SocketArchiveInput _in;
 			SocketArchiveOutput _out;
-			bool _closed, _eof;
 		};
 		
 	}

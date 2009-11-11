@@ -48,8 +48,6 @@ namespace spep{ namespace apache{
 		std::vector<char*> _cookieStrings;
 		request_rec *_req;
 		
-		apr_table_t *createCookieTableFromRequest( request_rec *req );
-		
 		public:
 		
 		/**
@@ -68,11 +66,11 @@ namespace spep{ namespace apache{
 		 */
 		Cookies( request_rec *req );
 		/**
-		 * Retrieves a cookie value that was send in the request.
+		 * Retrieves all cookie values for the name that were sent in the request.
 		 * 
 		 * Cookies set with addCookie(..) are not returned.
 		 */
-		const char *operator[]( std::string name );
+		void getCookieValuesByName(std::vector<std::string>& out, const std::string& name);
 		void addCookie( request_rec *req, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0 );
 		void sendCookies( request_rec *req );
 		

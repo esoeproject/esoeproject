@@ -67,22 +67,25 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 	ap_unescape_url( properURI );
 	
 	Cookies cookies( req );
-	const char *cookieValue = cookies[ spepConfigData->getTokenName() ];
-	if( cookieValue != NULL )
+	std::vector<std::string> cookieValues;
+	cookies.getCookieValuesByName( cookieValues, spepConfigData->getTokenName() );
+	if( !cookieValues.empty() )
 	{
-		
-		// No SPEP cookie was found. Need to create a new session.
-		std::string sessionID = std::string( cookieValue );
-		
+		std::string sessionID;
 		spep::PrincipalSession principalSession;
 		bool validSession = false;
-		try
-		{
-			principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
-			validSession = true;
-		}
-		catch( std::exception& e )
-		{
+
+		// SPEP cookie was found, validate using one of the values and use that to proceed.
+		for (std::vector<std::string>::iterator cookieValueIterator = cookieValues.begin();
+			cookieValueIterator != cookieValues.end(); ++cookieValueIterator) {
+
+			sessionID = *cookieValueIterator;
+			try {
+				principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
+				validSession = true;
+				break;
+			} catch( std::exception& e ) {
+			}
 		}
 		
 		if( validSession )
@@ -211,8 +214,10 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 		}
 		
 		// If the user sent this cookie.
-		if( cookies[ cookieNameString ] != NULL )
-		{
+		Cookies cookies( req );
+		std::vector<std::string> cookieValues;
+		cookies.getCookieValuesByName( cookieValues, spepConfigData->getTokenName() );
+		if( !cookieValues.empty() ) {
 			cookieName = cookieNameString.c_str();
 			
 			if( cookieDomainString.length() > 0 )
@@ -243,8 +248,10 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 	{
 		
 		std::string globalESOECookieName( spepConfigData->getGlobalESOECookieName() );
-		if( cookies[ globalESOECookieName ] == NULL )
-		{
+		Cookies cookies( req );
+		std::vector<std::string> cookieValues;
+		cookies.getCookieValuesByName( cookieValues, globalESOECookieName );
+		if( cookieValues.empty() ) {
 			bool matchedLazyInitResource = false;
 			UnicodeString properURIUnicode( spep::UnicodeStringConversion::toUnicodeString( properURI ) );
 			

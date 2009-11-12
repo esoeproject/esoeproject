@@ -1,8 +1,8 @@
 
-lib_LTLIBRARIES = libsaml2.la
+lib_LTLIBRARIES = libesoesaml2.la
 
-libsaml2_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
-libsaml2_la_SOURCES = saml2/resolver/ResourceResolver.cpp \
+libesoesaml2_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
+libesoesaml2_la_SOURCES = saml2/resolver/ResourceResolver.cpp \
 saml2/resolver/ExternalKeyResolver.cpp \
 saml2/identifier/IdentifierCache.cpp \
 saml2/identifier/IdentifierGenerator.cpp \

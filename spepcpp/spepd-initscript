@@ -15,25 +15,30 @@
 #
 # spepd			This init.d script is used to start spepd
 
+
+# Redhat admins like their pretty init.d scripts.
+spepd_success='echo success'
+spepd_failure=''
+if [ -e /etc/redhat-release ]; then
+	. /etc/rc.d/init.d/functions
+	spepd_success=success
+	spepd_failure=failure
+fi
+
 SPEP_HOME=${SPEP_HOME}
 spepd=$SPEP_HOME/sbin/spepd
 pidfile=$SPEP_HOME/spepd.pid
 log=$SPEP_HOME/logs/spepd.log
 conf=$SPEP_HOME/etc/spep/spep.conf
+spepd_user=spepd
+
+su='sh'
+if [ 0$UID -eq 0 ]; then
+	su="su $spepd_user"
+fi
 
 doStart() {
-	pidfile_dir=$(dirname $pidfile)
-	if [ \( ! -d $pidfile_dir -o ! -w $pidfile_dir \) -a ! -w $pidfile ]; then
-		echo warning: no access to write $pidfile, pidfile may not be written correctly >&2
-	fi
-	log_dir=$(dirname $log)
-	if [ \( ! -d $log_dir -o ! -w $log_dir \) -a ! -w $log ]; then
-		echo warning: no access to write $log, log may not be written correctly >&2
-	fi
-	if [ ! -r $conf ]; then
-		echo warning: no read access to $conf, startup will probably fail
-	fi
-	$spepd -l $log -f $conf -p $pidfile
+	$su -c "$spepd -l $log -f $conf -p $pidfile"
 	return $?
 }
 
@@ -41,8 +46,9 @@ startSpepd() {
 	echo -n starting spepd..
 	if quietStatus; then
 		echo already running, pid $pid
+		$spepd_failure
 	else
-		doStart && echo done
+		doStart && $spepd_success || $spepd_failure
 	fi
 }
 
@@ -55,18 +61,20 @@ stopSpepd() {
 		if quietStatus; then
 			echo -n still running with pid $pid.. killing forcefully in 5 seconds.. 
 		else
-			echo done
+			$spepd_success
 			return 0
 		fi
 		for Z in `seq 1 5`; do quietStatus && sleep 1; done
 		if ! quietStatus; then
 			echo spepd stopped
+			$spepd_success
 		else
 			kill -KILL $pid
 			echo spepd killed
 		fi
 	else
 		echo not running
+		$spepd_failure
 	fi
 }
 

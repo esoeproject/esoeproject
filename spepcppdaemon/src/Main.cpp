@@ -27,7 +27,6 @@
 #include "spep/Util.h"
 #include "spep/UnicodeStringConversion.h"
 
-#include "spep/ipc/Platform.h"
 #include "spep/ipc/SocketArchive.h"
 #include "spep/ipc/MessageHeader.h"
 #include "spep/ipc/Engine.h"

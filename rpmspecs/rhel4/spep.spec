@@ -1,7 +1,7 @@
 Summary: SPEP and dependencies
 Name: spep
 Version: 0.7
-Release: 3
+Release: 3.el5
 Source0: saml2-%{version}.tar.gz
 Source1: spep-%{version}.tar.gz
 Source2: spepd-%{version}.tar.gz
@@ -11,14 +11,14 @@ License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root
 Prefix: /usr/local/spep
-Requires: boost-ESOE >= 1.33
+Requires: boost >= 1.33
 Requires: xml-security-c-ESOE >= 1.3.0
 Requires: xerces-ESOE >= 2.7.0
-Requires: icu-ESOE >= 3.6
-BuildRequires: boost-ESOE-devel >= 1.33
+Requires: libicu >= 3.6
+BuildRequires: boost-devel >= 1.33
 BuildRequires: xml-security-c-ESOE-devel >= 1.3.0
 BuildRequires: xerces-ESOE-devel >= 2.7.0
-BuildRequires: icu-ESOE-devel >= 3.6
+BuildRequires: libicu-devel >= 3.6
 BuildRequires: xsd = 3.2.0
 
 %description
@@ -35,9 +35,9 @@ This package includes the required files for an Apache SPEP.
 %package module
 Summary: SPEP Apache module
 Group: Development/Libraries
-Requires: libapreq2-ESOE >= 2.08
+Requires: libapreq2-ESOE = 2.08
 Requires: httpd >= 2.0.0
-BuildRequires: libapreq2-ESOE-devel >= 2.08
+BuildRequires: libapreq2-ESOE-devel = 2.08
 BuildRequires: httpd-devel >= 2.0.0
 
 %description module
@@ -82,17 +82,17 @@ export LDFLAGS="$SAML2LIB $SPEPLIB"
 
 cd $RPM_BUILD_DIR/src/spepd-%{version}
 
-./configure --prefix=%{prefix} --with-boost-suffix=-mt-esoe --with-xerces=/usr/local/spep
+./configure --prefix=%{prefix} --with-xerces=/usr/local/spep
 make
 
 cd $RPM_BUILD_DIR/src/modspep-%{version}
 
 export APXS=`which /usr/bin/apxs /usr/bin/apxs2 /usr/sbin/apxs /usr/sbin/apxs2`
 [ -z "$APXS" ] && echo "couldn't find apxs" && exit 1
-export APRCONFIG=`which /usr/bin/apr-config`
-[ -z "$APRCONFIG" ] && echo "couldn't find apr-config" && exit 1
+export APRCONFIG=`which /usr/bin/apr-1-config`
+[ -z "$APRCONFIG" ] && echo "couldn't find apr-1-config" && exit 1
 export CXXFLAGS="$CXXFLAGS -I`$APXS -q INCLUDEDIR` `$APXS -q CFLAGS` `$APRCONFIG --includes`"
-./configure --prefix=%{prefix} --with-apache2=/usr --with-boost-suffix=-mt-esoe --with-xerces=/usr/local/spep
+./configure --prefix=%{prefix} --with-apache2=/usr --with-xerces=/usr/local/spep
 make
 
 %install

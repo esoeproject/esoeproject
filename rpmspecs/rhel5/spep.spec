@@ -1,7 +1,7 @@
 Summary: SPEP and dependencies
 Name: spep
 Version: 0.7
-Release: 3
+Release: 3.el5
 Source0: saml2-%{version}.tar.gz
 Source1: spep-%{version}.tar.gz
 Source2: spepd-%{version}.tar.gz
@@ -35,9 +35,9 @@ This package includes the required files for an Apache SPEP.
 %package module
 Summary: SPEP Apache module
 Group: Development/Libraries
-Requires: libapreq2-ESOE >= 2.08
+Requires: libapreq2-ESOE = 2.08
 Requires: httpd >= 2.0.0
-BuildRequires: libapreq2-ESOE-devel >= 2.08
+BuildRequires: libapreq2-ESOE-devel = 2.08
 BuildRequires: httpd-devel >= 2.0.0
 
 %description module

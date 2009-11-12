@@ -1,7 +1,7 @@
 Summary: International Components for Unicode
 Name: icu-ESOE
 Version: 4.2.1
-Release: 1
+Release: 2.el4
 Source0: icu4c-4_2_1-src.tgz
 License: Apache 2.0
 Group: Development/Libraries

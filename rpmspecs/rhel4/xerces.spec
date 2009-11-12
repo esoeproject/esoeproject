@@ -1,7 +1,7 @@
 Summary: Xerces-C++
 Name: xerces-ESOE
 Version: 2.8
-Release: 1
+Release: 2.el4
 Source0: xerces-c-src_2_8_0.tar.gz
 License: Apache 2.0
 Group: Development/Libraries

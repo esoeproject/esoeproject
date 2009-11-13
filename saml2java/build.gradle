@@ -1,0 +1,41 @@
+configurations {
+	xjc
+}
+
+dependencies {
+	xjc 'com.sun.xml.bind:jaxb-xjc:2.1.12'
+
+	compile 'commons-codec:commons-codec:1.3'
+	compile 'commons-collections:commons-collections:3.2'
+	compile 'com.sun.xml.bind:jaxb-impl:2.1.12'
+	compile 'org.apache.santuario:xmlsec:1.4.3'
+	compile 'xalan:xalan:2.7.1'
+	compile 'xerces:xercesImpl:2.9.1'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+			srcDir 'src-gen'
+		}
+	}
+}
+
+task generate << {
+	ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath) 
+
+	ant.xjc(destdir:'src-gen', binding:'schema/saml2.xjb') {
+		arg value:'-extension'
+		schema(dir:'schema') {
+			include name:'*.xsd'
+			exclude name:'xml.xsd'
+			exclude name:'xmldsig-core-schema.xsd'
+			exclude name:'xenc-schema.xsd'
+		}
+	}
+}
+
+generate.dependsOn configurations.xjc
+compileJava.dependsOn generate
+

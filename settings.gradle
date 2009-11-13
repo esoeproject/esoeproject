@@ -1,0 +1,11 @@
+include [
+	'saml2java',
+	'esoecrypto',
+	'saml2metadata',
+	'spepjava',
+	'esoepdp',
+	'esoecore',
+	'esoetools',
+	'esoedeployer',
+	'spepjavafilter',
+]

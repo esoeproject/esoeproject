@@ -13,7 +13,14 @@ bin
 *.la
 spepd
 
-# Generated stuff
+# Project files
+.project
+.classpath
+.settings
+.springBeans
+pom.xml
+
+# Other generated stuff
 saml2java/src-gen
 esoecore/webservice/deploy
 esoemanager/esoemanager/build-gwt

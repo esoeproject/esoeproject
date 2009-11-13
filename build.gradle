@@ -1,0 +1,102 @@
+subprojects {
+	usePlugin 'groovy'
+	usePlugin 'eclipse'
+
+	group = 'com.qut.middleware'
+	version = '0.9.6'
+
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+			}
+		}
+		test {
+			groovy {
+				srcDir 'tests/regression'
+				srcDir 'tests/functional'
+			}
+			resources {
+				srcDir 'tests/testdata'
+			}
+		}
+	}
+
+	def cobSerFile="${project.buildDir}/cobertura.ser"
+	def srcOriginal="${sourceSets.main.classesDir}"
+	def srcCopy="${srcOriginal}-copy"
+
+	repositories  {
+		mavenCentral()
+	}
+
+	dependencies {
+		groovy 'org.codehaus.groovy:groovy-all:1.6.5'
+
+		testRuntime 'net.sourceforge.cobertura:cobertura:1.9.3'
+
+		testCompile 'junit:junit:4.7'
+		testCompile 'org.spockframework:spock-core:0.2'
+		testCompile 'cglib:cglib-nodep:2.2'
+	    testCompile 'org.easymock:easymock:2.5.2'
+
+		compile 'javax.servlet:servlet-api:2.5'
+
+		['api', 'log4j12'].each {
+			compile "org.slf4j:slf4j-${it}:1.5.8"
+		}
+	}
+	configurations.runtime.exclude group:'javax.servlet'
+
+	test.doFirst  {
+		ant {
+			// delete data file for cobertura, otherwise coverage would be added
+			delete(file:cobSerFile, failonerror:false)
+			// delete copy of original classes
+			delete(dir: srcCopy, failonerror:false)
+			// import cobertura task, so it is available in the script
+			taskdef(resource:'tasks.properties', classpath: configurations.testRuntime.asPath)
+			// create copy (backup) of original class files
+			copy(todir: srcCopy) {
+				fileset(dir: srcOriginal)
+			}
+			// instrument the relevant classes in-place
+			'cobertura-instrument'(datafile:cobSerFile) {
+				fileset(dir: srcOriginal) {
+					include "com/qut/middleware/**/*.class"
+					exclude "**/*Specification.class"
+					exclude "**/*Test.class"
+					exclude "**/*Tests.class"
+				}
+			}
+		}
+	}
+
+	test {
+		options.systemProperties['net.sourceforge.cobertura.datafile']="${cobSerFile}"
+	}
+
+	test.doLast {                  
+		if (new File(srcCopy).exists()) {
+			// replace instrumented classes with backup copy again
+			ant {                  
+				delete(file: srcOriginal)       
+				move(file: srcCopy,
+				tofile: srcOriginal)
+			}
+			// create cobertura reports     
+			ant.'cobertura-report'(destdir:"${project.buildDirName}/reports/coverage",
+				format:'html', srcdir:"src/main/java", datafile:cobSerFile)
+		}
+	}
+
+	configurations.testCompile.transitive = true
+}
+
+task wrapper(type:Wrapper) {
+	gradleVersion = '0.8'
+	jarPath = 'gradle-wrapper'
+}
+
+dependsOnChildren()
+

@@ -1,0 +1,7 @@
+
+dependencies {
+	compile project(':esoecrypto')
+	compile project(':saml2java')
+	compile project(':saml2metadata')
+	compile project(':esoepdp')
+}

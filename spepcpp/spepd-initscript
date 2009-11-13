@@ -17,7 +17,7 @@
 
 
 # Redhat admins like their pretty init.d scripts.
-spepd_success='echo success'
+spepd_success='echo -n success'
 spepd_failure=''
 if [ -e /etc/redhat-release ]; then
 	. /etc/rc.d/init.d/functions
@@ -45,10 +45,12 @@ doStart() {
 startSpepd() {
 	echo -n starting spepd..
 	if quietStatus; then
-		echo already running, pid $pid
+		echo -n already running, pid $pid
 		$spepd_failure
+		echo
 	else
 		doStart && $spepd_success || $spepd_failure
+		echo
 	fi
 }
 
@@ -62,19 +64,22 @@ stopSpepd() {
 			echo -n still running with pid $pid.. killing forcefully in 5 seconds.. 
 		else
 			$spepd_success
+			echo
 			return 0
 		fi
 		for Z in `seq 1 5`; do quietStatus && sleep 1; done
 		if ! quietStatus; then
 			echo spepd stopped
 			$spepd_success
+			echo
 		else
 			kill -KILL $pid
 			echo spepd killed
 		fi
 	else
-		echo not running
+		echo -n not running
 		$spepd_failure
+		echo
 	fi
 }
 

@@ -17,18 +17,18 @@
  * Purpose: 
  */
 
+#include <unicode/regex.h>
+#include <unicode/parseerr.h>
+
+#include "spep/UnicodeStringConversion.h"
+#include "spep/Base64.h"
+#include "spep/exceptions/AuthnException.h"
+
 #include "SPEPExtension.h"
 #include "Cookies.h"
 #include "FilterConstants.h"
 #include "WSHandler.h"
 #include "SSOHandler.h"
-
-#include "spep/Base64.h"
-#include "spep/UnicodeStringConversion.h"
-#include "spep/exceptions/AuthnException.h"
-
-#include <unicode/regex.h>
-#include <unicode/parseerr.h>
 
 namespace spep { namespace isapi {
 } }

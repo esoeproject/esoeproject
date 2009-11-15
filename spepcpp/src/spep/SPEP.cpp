@@ -35,8 +35,6 @@
 #include "spep/logging/proxy/LoggerProxy.h"
 #include "spep/ws/SOAPUtil.h"
 
-#include "spep/UnicodeStringConversion.h"
-
 // Define a "short sleep" to be 100 milliseconds.
 #define SHORT_SLEEP_NANOSECONDS (20*1000*1000)
 #define LONGER_SLEEP_NANOSECONDS (500*1000*1000)

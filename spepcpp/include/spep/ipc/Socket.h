@@ -50,8 +50,8 @@ namespace spep
 		// To solve cyclic dependency
 		class ClientSocketPool;
 
-		void writeSocket(tcp::socket* socket, const std::vector<char>& buffer);
-		void readSocket(tcp::socket* socket, std::vector<char>& buffer);
+		void SPEPEXPORT writeSocket(tcp::socket* socket, const std::vector<char>& buffer);
+		void SPEPEXPORT readSocket(tcp::socket* socket, std::vector<char>& buffer);
 
 		/**
 		 * IPC client socket. Connects to a loopback address, makes requests

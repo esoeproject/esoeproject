@@ -9,6 +9,10 @@ dependencies {
 	compile "log4j:log4j:1.2.14"
 }
 
+configurations {
+	interfaces
+}
+
 task propertyFile << {
 	def p = System.properties
 	def compileSystem = "${p['os.name']} ${p['os.version']} ${p['os.arch']} - ${p['java.runtime.name']} ${p['java.runtime.version']} ${p['java.vendor']}" as String
@@ -16,7 +20,7 @@ task propertyFile << {
 
 	def prefix = 'spep.compileTime.'
 	def out = file("${compileJava.destinationDir}/com/qut/middleware/spep/compile.properties").newOutputStream()
-	
+
 	([
 		"${prefix}compileDate": buildTime,
 		"${prefix}compileSystem": compileSystem,
@@ -25,4 +29,18 @@ task propertyFile << {
 	).store(out, null)
 }
 
-jar.dependsOn propertyFile
+task interfacesJar(type: Jar, dependsOn: classes) {
+	baseName = 'spep-interfaces'
+	fileSet(dir: compileJava.destinationDir) {
+		include 'com/qut/middleware/spep/SPEPProxy*.class'
+		include 'com/qut/middleware/spep/ConfigurationConstants.class'
+		include 'com/qut/middleware/spep/sessions/PrincipalSession.class'
+	}
+}
+
+artifacts {
+	archives jar
+	interfaces interfacesJar
+}
+
+jar.dependsOn propertyFile, interfacesJar

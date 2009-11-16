@@ -1,3 +1,10 @@
+usePlugin 'war'
+
 dependencies {
-	compile "sourceforge:click:1.2A"
+	compile "net.sf.click:click:1.5.3"
+}
+
+war {
+	webInf(dir: 'webapp/descriptors/')
+	fileSet(dir:'webapp/content/')
 }

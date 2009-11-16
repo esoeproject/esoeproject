@@ -1,12 +1,10 @@
-usePlugin 'war'
-
 dependencies {
 	compile project(':esoecrypto')
 	compile project(':saml2java')
 	compile project(':saml2metadata')
 	compile project(':esoepdp')
 
-	['core', 'web', 'beans', 'context', 'context-support'].each {
+	['core', 'beans', 'context', 'web'].each {
 		compile "org.springframework:spring-${it}:2.5.6"
 	}
 	['ibatis', 'dao'].each {
@@ -14,19 +12,19 @@ dependencies {
 	}
 	compile "commons-logging:commons-logging:1.1.1"
 	compile "org.apache.ibatis:ibatis-sqlmap:2.3.4.726"
-	compile "commons-lang:commons-lang:2.4"
 	compile "com.ibm.icu:icu4j:4.0.1"
-	compile "commons-dbcp:commons-dbcp:1.2.2"
-	compile "commons-pool:commons-pool:1.5.3"
 	compile "commons-codec:commons-codec:1.4"
 }
 
-war {
+task war(type: War, dependsOn: jar) {
+	classesFileSets = []
 	webInf(dir:'webapp/applicationContext') {
 		['xml','config','conf','keytab'].each {
 			include "**/*.${it}"
 		}
 	}
-	webInf dir:'webservice/deploy'
+	libConfigurations 'runtime'
+	additionalLibs(dir:jar.destinationDir) {
+		include jar.archiveName
+	}
 }
-

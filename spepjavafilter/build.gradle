@@ -1,5 +1,5 @@
 dependencies {
-	compile project(':spepjava')
+	compile project(path: ':spepjava', configuration: 'interfaces')
 
 	compile "commons-codec:commons-codec:1.4"
 }

@@ -1,0 +1,9 @@
+dependencies {
+	compile project(':esoecore')
+
+	compile "org.springframework:org.springframework.orm:2.5.4.A"
+	compile "org.apache.ibatis:com.springsource.com.ibatis:2.3.0.677"
+
+	compile "org.apache.commons:com.springsource.org.apache.commons.dbcp:1.2.2.osgi"
+	compile "org.apache.commons:com.springsource.org.apache.commons.pool:1.4.0"
+}

@@ -2,7 +2,7 @@ subprojects {
 	usePlugin 'groovy'
 	usePlugin 'eclipse'
 
-	group = 'com.qut.middleware'
+	group = 'esoeproject'
 	version = '0.9.6'
 
 	sourceSets {
@@ -91,11 +91,6 @@ subprojects {
 	}
 
 	configurations.testCompile.transitive = true
-}
-
-task wrapper(type:Wrapper) {
-	gradleVersion = '0.8'
-	jarPath = 'gradle-wrapper'
 }
 
 dependsOnChildren()

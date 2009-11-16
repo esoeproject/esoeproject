@@ -1,6 +1,6 @@
 dependencies {
 	compile project(':saml2java')
+	compile project(':esoecrypto')
 
 	compile "commons-codec:commons-codec:1.4"
-	compile "org.bouncycastle:bcprov-jdk15:1.44"
 }

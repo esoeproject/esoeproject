@@ -27,6 +27,7 @@ esoemanager/esoemanager/build-gwt
 *.log
 spepcpptest/schema
 spepcpptest/data/*.ks
+.gradle
 
 # Archives
 *.war

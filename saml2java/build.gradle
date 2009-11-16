@@ -23,6 +23,7 @@ sourceSets {
 }
 
 task generate << {
+	file('src-gen').mkdirs()
 	ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath) 
 
 	ant.xjc(destdir:'src-gen', binding:'schema/saml2.xjb') {
@@ -34,6 +35,10 @@ task generate << {
 			exclude name:'xenc-schema.xsd'
 		}
 	}
+	file('src-gen/.updated').text = new Date().dateString
+}
+generate.onlyIf {
+	file('src-gen/.updated').lastModified() < file('schema').listFiles().max{it.lastModified()}.lastModified()
 }
 
 generate.dependsOn configurations.xjc

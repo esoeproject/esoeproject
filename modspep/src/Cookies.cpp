@@ -151,30 +151,28 @@ void spep::apache::Cookies::sendCookies( request_rec *req )
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-apr_table_t *spep::apache::Cookies::createCookieTableFromRequest( request_rec *req )
+void spep::apache::Cookies::getCookieValuesByName(std::vector<std::string>& out, const std::string& expectedName)
 {
-	ApacheCookieJar *jar = ApacheCookie_parse( req, NULL );
+	ApacheCookieJar *jar = ApacheCookie_parse( _req, NULL );
 	
 	if( jar != NULL )
 	{
 		// Default to 10 just so we don't have to resize unless the user has
 		// a stupidly large number of cookies.
-		apr_table_t *cookieTable = apr_table_make( req->pool, 10 );
-		
 		for( int i = 0; i < ApacheCookieJarItems(jar); ++i )
 		{
 			ApacheCookie *cookie = ApacheCookieJarFetch(jar, i);
 			
 			if( ApacheCookieItems( cookie ) > 0 )
 			{
-				apr_table_set( cookieTable, cookie->name, ApacheCookieFetch( cookie, 0 ) );
+				std::string name(cookie->name);
+
+				if (name == expectedName) {
+					out.push_back(std::string(ApacheCookieFetch(cookie, 0)));
+				}
 			}
 		}
-		
-		return cookieTable;
 	}
-	
-	return NULL;
 }
 
 #include <iostream>

@@ -1,5 +1,5 @@
---- spep-0.7/spep.conf.default.orig	2008-04-01 13:46:17.000000000 +1000
-+++ spep-0.7/spep.conf.default	2008-04-01 13:46:41.000000000 +1000
+--- spep-0.8/spep.conf.default.orig	2008-04-01 13:46:17.000000000 +1000
++++ spep-0.8/spep.conf.default	2008-04-01 13:46:41.000000000 +1000
 @@ -15,14 +15,14 @@
  ####
  
@@ -11,8 +11,8 @@
  spepKeyPassword=
  
  # Path to look for schema documents as installed by the SAML2 library.
--schemaPath=/usr/local/share/saml2-0.7/schema
-+schemaPath=/usr/local/spep/share/saml2-0.7/schema
+-schemaPath=/usr/local/share/saml2/schema
++schemaPath=/usr/local/spep/share/saml2/schema
  
  # The unique identifier of the authenticating ESOE.
  esoeIdentifier=

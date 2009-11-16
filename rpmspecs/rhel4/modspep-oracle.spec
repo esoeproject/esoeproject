@@ -1,9 +1,10 @@
 Summary: SPEP for Oracle HTTPD
 Name: modspep-oracle
-Version: 0.7
-Release: 2.el4
+Version: 0.8
+Release: 1.el4
 Source0: modspep-%{version}.tar.gz
 Source1: Apache-oracle-1.3.31.tar.gz
+Source2: asio-1.4.1.tar.gz
 License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root
@@ -27,11 +28,11 @@ SPEP module for Oracle HTTPD (Apache 1.3.31)
 
 %prep
 [ $UID -eq 0 ] && echo "rpmbuild as root is bad." >&2 && exit 1
-%setup -q -n src -c -a 1
+%setup -q -n src -c -a 1 -a 2
 
 %build
 cd $RPM_BUILD_DIR/src/modspep-%{version}
-export CXXFLAGS="$RPM_OPT_FLAGS"
+export CXXFLAGS="$RPM_OPT_FLAGS -I$RPM_BUILD_DIR/src/asio-1.4.1/include"
 
 export APXS=`which /usr/bin/apxs /usr/bin/apxs2 /usr/sbin/apxs /usr/sbin/apxs2`
 [ -z "$APXS" ] && echo "couldn't find apxs" && exit 1

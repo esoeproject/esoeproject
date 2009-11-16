@@ -16,9 +16,9 @@
  * 
  * Purpose: 
  */
- 
-#include "Cookies.h"
+
 #include "RequestHandler.h"
+#include "Cookies.h"
 
 #include "spep/pep/PolicyEnforcementProcessorData.h"
 #include "spep/UnicodeStringConversion.h"

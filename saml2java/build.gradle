@@ -22,6 +22,14 @@ sourceSets {
 	}
 }
 
+copy.doLast {
+	copy {
+		from 'schema'
+		into "${compileJava.destinationDir}/com/qut/middleware/saml2/resolver"
+		include '*.xsd'
+	}
+}
+
 task generate << {
 	file('src-gen').mkdirs()
 	ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath) 

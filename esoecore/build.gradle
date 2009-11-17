@@ -17,14 +17,13 @@ dependencies {
 }
 
 task war(type: War, dependsOn: jar) {
-	classesFileSets = []
+	classes(dir:compileJava.destinationDir)
+	classes(dir:'ibatis')
 	webInf(dir:'webapp/applicationContext') {
 		['xml','config','conf','keytab'].each {
 			include "**/*.${it}"
 		}
 	}
+	webXml = file('webapp/descriptors/esoe.xml')
 	libConfigurations 'runtime'
-	additionalLibs(dir:jar.destinationDir) {
-		include jar.archiveName
-	}
 }

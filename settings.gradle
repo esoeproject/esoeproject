@@ -5,7 +5,6 @@ include 'esoecrypto',
 	'esoepdp',
 	'esoecore',
 	'esoetools',
-	'esoedeployer',
 	'spepjavafilter',
 	'web',
 	'esoesessioncache'

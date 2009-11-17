@@ -90,6 +90,14 @@ subprojects {
 		}
 	}
 
+	task copy(type:Copy) {
+		from 'src'
+		into compileJava.destinationDir
+		exclude '**/*.java'
+	}
+
+	classes.dependsOn copy
+
 	configurations.testCompile.transitive = true
 }
 

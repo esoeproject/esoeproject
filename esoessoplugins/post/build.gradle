@@ -1,0 +1,10 @@
+archiveBaseName = 'esoessoplugin-post'
+
+dependencies {
+	compile project(':esoecore')
+	compile project(':saml2java')
+
+	compile 'com.ibm.icu:icu4j:4.0.1'
+	compile 'commons-codec:commons-codec:1.4'
+	compile 'org.springframework:spring:2.5.6'
+}

@@ -1,0 +1,6 @@
+dependencies {
+	compile project(':esoecore')
+	compile project(':saml2java')
+
+	compile 'com.novell.ldap:jldap:4.3'
+}

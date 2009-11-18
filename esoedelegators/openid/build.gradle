@@ -1,0 +1,16 @@
+dependencies {
+	compile project(':saml2java')
+	compile project(':esoecrypto')
+	compile project(':esoecore')
+
+	['core', 'context', 'context-support', 'beans', 'web'].each {
+		compile "org.springframework:spring-${it}:2.5.6"
+	}
+
+	compile 'org.openid4java:openid4java:0.9.3'
+	compile 'net.sf.click:click:1.5.3'
+	compile 'org.apache.ws.commons.axiom:axiom-api:1.2.8'
+	['adb', 'adb-codegen', 'java2wsdl', 'kernel', 'saaj', 'spring'].each {
+		compile "org.apache.axis2:axis2-${it}:1.5"
+	}
+}

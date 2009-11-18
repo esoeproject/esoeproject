@@ -1,0 +1,6 @@
+dependencies {
+	compile project(':esoecore')
+	compile project(':saml2java')
+
+	compile 'org.springframework.ldap:spring-ldap:1.2.1'
+}

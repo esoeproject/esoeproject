@@ -14,8 +14,8 @@ bin
 spepd
 
 # Project files
-.project
-.classpath
+.project*
+.classpath*
 .settings
 .springBeans
 pom.xml

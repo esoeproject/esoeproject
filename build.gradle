@@ -1,4 +1,7 @@
-subprojects {
+
+def excludedProjects = [':spepintegrators:grails']
+
+configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	usePlugin 'groovy'
 	usePlugin 'eclipse'
 
@@ -46,7 +49,6 @@ subprojects {
 			compile "org.slf4j:slf4j-${it}:1.5.8"
 		}
 	}
-	configurations.runtime.exclude group:'javax.servlet'
 
 	test.doFirst  {
 		ant {
@@ -96,9 +98,10 @@ subprojects {
 		exclude '**/*.java'
 	}
 
-	classes.dependsOn copy
+	eclipseCp.srcDirs += sourceSets.main.groovy.srcDirs
+	eclipseCp.testSrcDirs += sourceSets.test.groovy.srcDirs
 
-	configurations.testCompile.transitive = true
+	classes.dependsOn copy
 }
 
 dependsOnChildren()

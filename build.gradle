@@ -85,6 +85,7 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 
 			// create cobertura reports
 			ant.'cobertura-report'(destdir:cobReportDir, format:'html', srcdir:"src/main/java", datafile:cobSerFile)
+			ant.'cobertura-report'(destdir:cobReportDir, format:'xml', srcdir:"src/main/java", datafile:cobSerFile)
 		}
 	}
 

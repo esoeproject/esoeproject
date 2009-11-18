@@ -1,5 +1,12 @@
 
-def excludedProjects = [':spepintegrators:grails']
+def excludedProjects = [
+	':spepintegrators',
+	':esoedelegators',
+	':esoeauthnplugins',
+	':esoessoplugins',
+	':esoeidentityplugins',
+	':spepintegrators:grails'
+]
 
 configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	usePlugin 'groovy'
@@ -31,6 +38,7 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 
 	repositories  {
 		mavenCentral()
+		mavenRepo urls:'http://download.java.net/maven/2/'
 	}
 
 	dependencies {

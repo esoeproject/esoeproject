@@ -54,6 +54,7 @@ import com.qut.middleware.saml2.schemas.assertion.NameIDType;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalRequest;
 import com.qut.middleware.saml2.schemas.esoe.delegated.RegisterPrincipalResponse;
 import com.qut.middleware.saml2.validator.SAMLValidator;
+import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
 public class AuthnProcessorImpl implements AuthnProcessor
 {

@@ -106,8 +106,10 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 		exclude '**/*.java'
 	}
 
-	eclipseCp.srcDirs += sourceSets.main.groovy.srcDirs
-	eclipseCp.testSrcDirs += sourceSets.test.groovy.srcDirs
+	afterEvaluate {
+		it.eclipseCp.srcDirs += it.sourceSets.main.groovy.srcDirs
+		it.eclipseCp.testSrcDirs += it.sourceSets.test.groovy.srcDirs
+	}
 
 	classes.dependsOn copy
 }

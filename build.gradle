@@ -32,9 +32,10 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 		}
 	}
 
-	def cobSerFile="${project.buildDir}/cobertura.ser"
-	def srcOriginal="${sourceSets.main.classesDir}"
-	def srcCopy="${srcOriginal}-copy"
+	def cobSerFile = file("${project.buildDir}/cobertura.ser")
+	def srcOriginal = file("${sourceSets.main.classesDir}")
+	def srcCopy = file("${srcOriginal}-copy")
+	def cobReportDir = file("${project.buildDir}/reports/coverage")
 
 	repositories  {
 		mavenCentral()
@@ -59,44 +60,31 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	}
 
 	test.doFirst  {
-		ant {
-			// delete data file for cobertura, otherwise coverage would be added
-			delete(file:cobSerFile, failonerror:false)
-			// delete copy of original classes
-			delete(dir: srcCopy, failonerror:false)
-			// import cobertura task, so it is available in the script
-			taskdef(resource:'tasks.properties', classpath: configurations.testRuntime.asPath)
-			// create copy (backup) of original class files
-			copy(todir: srcCopy) {
-				fileset(dir: srcOriginal)
-			}
-			// instrument the relevant classes in-place
-			'cobertura-instrument'(datafile:cobSerFile) {
-				fileset(dir: srcOriginal) {
-					include "com/qut/middleware/**/*.class"
-					exclude "**/*Specification.class"
-					exclude "**/*Test.class"
-					exclude "**/*Tests.class"
-				}
-			}
+		cobSerFile.delete()
+		srcCopy.deleteDir()
+		ant.taskdef(resource:'tasks.properties', classpath: configurations.testRuntime.asPath)
+		copy {
+			from srcOriginal
+			into srcCopy
+		}
+		ant.'cobertura-instrument'(datafile:cobSerFile) {
+			fileset dir: srcOriginal, includes: ["com/qut/middleware/**/*.class"], excludes: ["**/*Specification.class", "**/*Test.class", "**/*Tests.class"]
 		}
 	}
 
 	test {
 		options.systemProperties['net.sourceforge.cobertura.datafile']="${cobSerFile}"
+		stopAtFailuresOrErrors = false
 	}
 
-	test.doLast {                  
-		if (new File(srcCopy).exists()) {
+	test.doLast {
+		if (srcCopy.exists()) {
 			// replace instrumented classes with backup copy again
-			ant {                  
-				delete(file: srcOriginal)       
-				move(file: srcCopy,
-				tofile: srcOriginal)
-			}
-			// create cobertura reports     
-			ant.'cobertura-report'(destdir:"${project.buildDirName}/reports/coverage",
-				format:'html', srcdir:"src/main/java", datafile:cobSerFile)
+			srcOriginal.deleteDir()
+			srcCopy.renameTo(srcOriginal)
+
+			// create cobertura reports
+			ant.'cobertura-report'(destdir:cobReportDir, format:'html', srcdir:"src/main/java", datafile:cobSerFile)
 		}
 	}
 

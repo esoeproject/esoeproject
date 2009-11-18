@@ -1,3 +1,6 @@
+archiveBaseName = 'esoeauthnplugin-spnego'
+eclipseProject.projectName = archiveBaseName
+
 dependencies {
 	compile project(':esoecore')
 	compile project(':saml2java')

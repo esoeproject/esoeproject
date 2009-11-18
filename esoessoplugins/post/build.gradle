@@ -1,4 +1,5 @@
 archiveBaseName = 'esoessoplugin-post'
+eclipseProject.projectName = archiveBaseName
 
 dependencies {
 	compile project(':esoecore')

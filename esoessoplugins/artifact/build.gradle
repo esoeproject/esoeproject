@@ -1,4 +1,5 @@
 archiveBaseName = 'esoessoplugin-artifact'
+eclipseProject.projectName = archiveBaseName
 
 dependencies {
 	compile project(':esoecore')

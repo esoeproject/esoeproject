@@ -1,3 +1,6 @@
+archiveBaseName = 'esoeauthnplugin-statsgeneration'
+eclipseProject.projectName = archiveBaseName
+
 dependencies {
 	compile project(':esoecore')
 }

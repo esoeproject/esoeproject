@@ -1,4 +1,5 @@
 archiveBaseName = 'esoessoplugin-redirect'
+eclipseProject.projectName = archiveBaseName
 
 dependencies {
 	compile project(':esoecore')

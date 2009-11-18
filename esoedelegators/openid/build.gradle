@@ -1,3 +1,6 @@
+archiveBaseName = 'esoedelegator-openid'
+eclipseProject.projectName = archiveBaseName
+
 dependencies {
 	compile project(':saml2java')
 	compile project(':esoecrypto')

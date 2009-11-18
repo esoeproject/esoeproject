@@ -1,3 +1,6 @@
+archiveBaseName = 'spepintegrator-blackboard'
+eclipseProject.projectName = archiveBaseName
+
 dependencies {
 	compile project(':spepjavafilter')
 

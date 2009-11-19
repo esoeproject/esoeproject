@@ -1,20 +1,20 @@
-/* 
+/*
  * Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Bradley Beddoes
  * Creation Date: 05/12/2006
- * 
+ *
  * Purpose: Implements web services client logic
  */
 package com.qut.middleware.esoe.ws.impl;
@@ -46,7 +46,7 @@ public class WSClientImpl implements WSClient
 	private static final int BUF_SIZE = 1024;
 	private SOAPHandler soapHandler;
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
-	
+
 	/**
 	 * Constructor
 	 */
@@ -57,7 +57,7 @@ public class WSClientImpl implements WSClient
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.qut.middleware.esoe.ws.WSClient#authzCacheClear(java.lang.String, java.lang.String)
 	 */
 	public Element authzCacheClear(Element request, String endpoint) throws WSClientException
@@ -75,13 +75,13 @@ public class WSClientImpl implements WSClient
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.qut.middleware.esoe.ws.WSClient#singleLogout(java.lang.String, java.lang.String)
 	 */
 	public Element singleLogout(Element request, String endpoint) throws WSClientException
 	{
 		final String action = "singleLogout";
-		
+
 		if (request == null)
 			throw new IllegalArgumentException(Messages.getString("WSClientImpl.2")); //$NON-NLS-1$
 
@@ -90,24 +90,37 @@ public class WSClientImpl implements WSClient
 
 		return invokeWSCall(request, endpoint, action);
 	}
-	
+
 	public Element artifactResolve(Element request, String endpoint) throws WSClientException
 	{
 		final String action = "artifactResolve";
-		
+
 		if (request == null)
 			throw new IllegalArgumentException("Request element cannot be null");
-		
+
 		if (endpoint == null)
 			throw new IllegalArgumentException("Endpoint cannot be null");
-		
+
+		return invokeWSCall(request, endpoint, action);
+	}
+
+	public Element registerPrincipal(Element request, String endpoint) throws WSClientException
+	{
+		final String action = "registerPrincipal";
+
+		if (request == null)
+			throw new IllegalArgumentException(); //$NON-NLS-1$
+
+		if (endpoint == null)
+			throw new IllegalArgumentException(); //$NON-NLS-1$
+
 		return invokeWSCall(request, endpoint, action);
 	}
 
 	/*
 	 * Responsible for actual logic in converting incoming string to Axis format and translating Axis response format to
 	 * string
-	 * 
+	 *
 	 * @param request
 	 *            The SAML document to send to remote soap server
 	 * @param endpoint
@@ -127,7 +140,7 @@ public class WSClientImpl implements WSClient
 			this.logger.debug("SOAP exception occurred while trying to wrap the request document.", e);
 			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
 		}
-		
+
 		CharsetDetector detector = new CharsetDetector();
 		this.logger.trace(detector.getString(requestBytes, null));
 
@@ -138,13 +151,13 @@ public class WSClientImpl implements WSClient
 			URLConnection connection = url.openConnection();
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
-			
+
 			this.setContentType(connection);
 			connection.setRequestProperty(SOAP_ACTION, soapAction);
-			
+
 			OutputStream out = connection.getOutputStream();
 			out.write(requestBytes);
-			
+
 			InputStream in = connection.getInputStream();
 			responseStream = new ByteArrayOutputStream();
 			byte[] buf = new byte[BUF_SIZE];
@@ -164,7 +177,7 @@ public class WSClientImpl implements WSClient
 			this.logger.debug("SOAP exception occurred while trying to wrap the request document.", e);
 			throw new WSClientException("SOAP exception occurred while trying to wrap the request document. Error was: " + e.getMessage());
 		}
-		
+
 		try
 		{
 			return this.soapHandler.unwrapDocument(responseStream.toByteArray());
@@ -175,7 +188,7 @@ public class WSClientImpl implements WSClient
 			throw new WSClientException("SOAP exception occurred while trying to unwrap the response document. Error was: " + e.getMessage());
 		}
 	}
-	
+
 	private void setContentType(URLConnection connection)
 	{
 		String encoding = this.soapHandler.getDefaultEncoding();

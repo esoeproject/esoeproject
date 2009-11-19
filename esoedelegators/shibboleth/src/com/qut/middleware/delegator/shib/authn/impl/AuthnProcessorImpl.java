@@ -1,20 +1,20 @@
-/* 
+/*
  * Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Bradley Beddoes
  * Creation Date: 07/03/2007
- * 
+ *
  * Purpose: Implementation of AuthnProcessor for shibboleth 1.3 integration
  */
 package com.qut.middleware.delegator.shib.authn.impl;
@@ -29,14 +29,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.delegator.shib.ConfigurationConstants;
 import com.qut.middleware.delegator.shib.authn.AuthnProcessor;
 import com.qut.middleware.delegator.shib.authn.bean.AuthnProcessorData;
 import com.qut.middleware.delegator.shib.authn.bean.ShibAttribute;
-import com.qut.middleware.delegator.shib.ws.WSClient;
-import com.qut.middleware.delegator.shib.ws.exception.WSClientException;
+import com.qut.middleware.esoe.ws.WSClient;
+import com.qut.middleware.esoe.ws.exception.WSClientException;
 import com.qut.middleware.saml2.AttributeFormatConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
@@ -62,13 +63,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 	private SAMLValidator validator;
 	private WSClient wsClient;
-	
+
 	private IdentifierGenerator identiferGenerator;
 	private KeystoreResolver keyStoreResolver;
 	private String issuerID;
 	private String principalRegistrationEndpoint;
 	private String userIdentifier;
-	
+
 	private List<ShibAttribute> defaultSiteAttributes;
 	private List<ShibAttribute> requestedAttributes;
 
@@ -100,12 +101,12 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.qut.middleware.delegator.shib.authn.AuthnProcessor#execute(com.qut.middleware.delegator.shib.authn.bean.AuthnProcessorData)
 	 */
 	public result execute(AuthnProcessorData processorData)
 	{
-		byte[] response;
+		Element response;
 		String remoteUser;
 		RegisterPrincipalResponse responseObj;
 		List<AttributeType> esoeAttributes = new ArrayList<AttributeType>();
@@ -114,7 +115,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 		Enumeration<String> headerNames = processorData.getHttpRequest().getHeaderNames();
 		this.logger.debug("Retrieved header details from shibboleth authn, processing..");
-		
+
 		remoteUser = processorData.getHttpRequest().getRemoteUser();
 		if(remoteUser != null && remoteUser.length() > 0)
 		{
@@ -175,7 +176,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			esoeAttributes.add(esoeDefaultAttribute);
 		}
 
-		byte[] request = generateRegisterPrincipalRequest(esoeAttributes);
+		Element request = generateRegisterPrincipalRequest(esoeAttributes);
 		if (request == null)
 		{
 			this.logger.warn("Failed attempting to marshall register principal request");
@@ -213,10 +214,10 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		return result.Completed;
 	}
 
-	private byte[] generateRegisterPrincipalRequest(List<AttributeType> attributes)
+	private Element generateRegisterPrincipalRequest(List<AttributeType> attributes)
 	{
 		RegisterPrincipalRequest request = new RegisterPrincipalRequest();
-		byte[] document;
+		Element document;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.issuerID);
@@ -231,7 +232,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 		try
 		{
-			document = this.marshaller.marshallSigned(request);
+			document = this.marshaller.marshallSignedElement(request);
 		}
 		catch (MarshallerException e)
 		{
@@ -243,7 +244,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		return document;
 	}
 
-	private RegisterPrincipalResponse validateResponse(byte[] response)
+	private RegisterPrincipalResponse validateResponse(Element response)
 	{
 		try
 		{

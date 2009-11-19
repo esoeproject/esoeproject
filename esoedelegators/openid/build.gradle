@@ -12,14 +12,5 @@ dependencies {
 
 	compile 'org.openid4java:openid4java:0.9.3'
 	compile 'net.sf.click:click:1.5.3'
-	compile 'org.apache.ws.commons.axiom:axiom-api:1.2.8'
-	['adb', 'adb-codegen', 'java2wsdl', 'kernel', 'saaj', 'spring'].each {
-		compile("org.apache.axis2:axis2-${it}:1.5") {
-			exclude group:'log4j'
-		}
-	}
 
 }
-
-// Exclude Axis2 from the eclipse classpath for now - until we remove it completely.
-configurations.testRuntime.exclude group:'org.apache.axis2'

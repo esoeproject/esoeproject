@@ -63,6 +63,7 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 		cobSerFile.delete()
 		srcCopy.deleteDir()
 		ant.taskdef(resource:'tasks.properties', classpath: configurations.testRuntime.asPath)
+		if (!srcOriginal.exists()) srcOriginal.mkdirs()
 		copy {
 			from srcOriginal
 			into srcCopy

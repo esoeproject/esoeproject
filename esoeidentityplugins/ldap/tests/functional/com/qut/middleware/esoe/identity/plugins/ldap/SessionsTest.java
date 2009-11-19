@@ -27,7 +27,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,9 +58,6 @@ import com.qut.middleware.esoe.sessions.bean.impl.IdentityDataImpl;
 import com.qut.middleware.esoe.sessions.bean.impl.SessionConfigDataImpl;
 import com.qut.middleware.esoe.sessions.cache.SessionCache;
 import com.qut.middleware.esoe.sessions.cache.impl.SessionCacheImpl;
-import com.qut.middleware.esoe.sessions.exception.DataSourceException;
-import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
-import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
 import com.qut.middleware.esoe.sessions.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.sessions.identity.IdentityResolver;
 import com.qut.middleware.esoe.sessions.identity.impl.IdentityResolverImpl;

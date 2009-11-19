@@ -53,15 +53,14 @@ import com.qut.middleware.esoe.sessions.exception.SessionsDAOException;
 import com.qut.middleware.esoe.sessions.identity.pipeline.Handler;
 import com.qut.middleware.esoe.sessions.sqlmap.SessionsDAO;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
-import com.sun.xml.internal.ws.api.addressing.WSEndpointReference.Metadata;
 
 public class LDAPHandlerImplTest
 {
-	private String IDENTIFIER = "uid"; 
-	
+	private String IDENTIFIER = "uid";
+
 	private Properties props;
-	private String LDAP_SERVER; 
-	private String LDAP_SERVER_URL; 
+	private String LDAP_SERVER;
+	private String LDAP_SERVER_URL;
 	private String LDAP_BASE_DN;
 	private String CONTEXT_BASE;
 	private String SEARCH_BASE;
@@ -73,7 +72,7 @@ public class LDAPHandlerImplTest
 	private SessionsDAO sessionsDAO;
 	private MetadataProcessor metadata;
 	private SessionConfigData sessionConfigData;
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -83,7 +82,7 @@ public class LDAPHandlerImplTest
 		props = new Properties();
 		FileInputStream reader = new FileInputStream(new File("tests/testdata/functional.properties"));
 		props.load(reader);
-		
+
 		this.LDAP_SERVER = props.getProperty("ldapServer");
 		this.LDAP_SERVER_URL = props.getProperty("ldapServerURL");
 		this.LDAP_BASE_DN = props.getProperty("ldapBaseDN");
@@ -106,30 +105,30 @@ public class LDAPHandlerImplTest
 		context.setUserName(this.LDAP_USER_DN );
 		context.setPassword(this.LDAP_USER_PASSWORD);
 		context.setUrl(this.LDAP_SERVER_URL);
-		
+
 		try{
 		context.afterPropertiesSet();
 		}catch(Exception ex){throw new UnsupportedOperationException();}
 
 		LdapTemplate template = new LdapTemplate(context);
-		
+
 		try
 		{
 			File xmlConfig = new File(this.getClass().getResource("sessiondata.xml").toURI()); //$NON-NLS-1$
-			
+
 			FileInputStream attributeStream = new FileInputStream(xmlConfig);
 			byte[] attributeData = new byte[(int)xmlConfig.length()];
 			attributeStream.read(attributeData);
-			
+
 			String entityID = "http://test.service.com";
 			Integer entID = new Integer("1");
-			
+
 			this.metadata = createMock(MetadataProcessor.class);
-			
+
 			this.sessionsDAO = createMock(SessionsDAO.class);
 			expect(sessionsDAO.getEntID(entityID)).andReturn(entID);
 			expect(sessionsDAO.selectActiveAttributePolicy(entID)).andReturn(attributeData);
-			
+
 			replay(this.metadata);
 			replay(this.sessionsDAO);
 
@@ -173,11 +172,11 @@ public class LDAPHandlerImplTest
 			fail("Problem connecting to LDAP server"); //$NON-NLS-1$
 			return;
 		}
-		
+
 		Map<String,IdentityAttribute> attributes = data.getAttributes();
 		IdentityAttribute uidAttribute = attributes.get("uid"); //$NON-NLS-1$
 		List<Object> values = uidAttribute.getValues();
-		
+
 		assertTrue("Exactly one UID found for user", values.size() > 0); //$NON-NLS-1$
 		if(values.size() > 0)
 		{

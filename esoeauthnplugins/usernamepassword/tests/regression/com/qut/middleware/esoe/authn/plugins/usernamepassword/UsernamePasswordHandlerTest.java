@@ -1,27 +1,32 @@
-/* 
+/*
  * Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Bradley Beddoes
  * Creation Date: 10/10/2006
- * 
+ *
  * Purpose: Executes all paths of UsernamePasswordHandler to verify logic
- * 
+ *
  * Built using easymock objects http://www.easymock.org
  */
 package com.qut.middleware.esoe.authn.plugins.usernamepassword;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -47,12 +52,9 @@ import com.qut.middleware.esoe.authn.plugins.usernamepassword.handler.UserPassAu
 import com.qut.middleware.esoe.authn.plugins.usernamepassword.handler.UsernamePasswordHandler;
 import com.qut.middleware.esoe.sessions.Create;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
-import com.qut.middleware.esoe.sessions.exception.DataSourceException;
-import com.qut.middleware.esoe.sessions.exception.DuplicateSessionException;
 import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.saml2.AuthenticationContextConstants;
 import com.qut.middleware.saml2.identifier.IdentifierGenerator;
-import com.qut.middleware.test.Capture;
 
 @SuppressWarnings(value = { "unqualified-field-access", "nls" })
 public class UsernamePasswordHandlerTest
@@ -74,7 +76,7 @@ public class UsernamePasswordHandlerTest
 	List<AuthnIdentityAttribute> ident;
 
 	Capture<Cookie> captured;
-	
+
 	private String usernamePasswordURL = "https://esoe.url/usernamePass.html";
 	private String failNameVal = "rc=authn";
 
@@ -128,7 +130,7 @@ public class UsernamePasswordHandlerTest
 		this.redirectTarget = "http://esoe.qut.edu.au/logon/index.do";
 
 		this.failURL = "http://esoe.qut.edu.au/logon/difficulties.do";
-		
+
 		this.handler = new UsernamePasswordHandler(this.authenticator, this.sessionsProcessor,
 				this.identifierGenerator, this.ident, usernamePasswordURL, failNameVal, this.redirectTarget, this.failURL);
 	}
@@ -416,7 +418,7 @@ public class UsernamePasswordHandlerTest
 				.anyTimes();
 		expect(data.getHttpRequest().getParameter(this.FORM_RESPONSE_IDENTIFIER)).andReturn(null).anyTimes();
 		expect(sessionsProcessor.getCreate()).andReturn(create).anyTimes();
-		
+
 		try
 		{
 			create.createLocalSession(data.getSessionID(), "beddoes",  AuthenticationContextConstants.passwordProtectedTransport, this.ident);
@@ -425,7 +427,7 @@ public class UsernamePasswordHandlerTest
 		{
 			fail("Unable to create local session");
 		}
-		
+
 		setUpMock(data.getHttpRequest(), data.getHttpResponse());
 
 		setupHandler();
@@ -437,9 +439,9 @@ public class UsernamePasswordHandlerTest
 			result = handler.execute(data);
 			assertEquals("Asserts this handler returns correctly when authentication is completed as expected",
 					Handler.result.Successful, result);
-			
+
 			assertTrue("Asserts the session identifier is set", data.getSessionID().matches(".*-.*"));
-			
+
 			tearDownMock(data.getHttpRequest(), data.getHttpResponse());
 		}
 		catch (SessionCreationException sce)
@@ -470,14 +472,14 @@ public class UsernamePasswordHandlerTest
 		expect(sessionsProcessor.getCreate()).andReturn(create).anyTimes();
 		try
 		{
-			create.createLocalSession((String)anyObject(), (String)anyObject(),  (String)anyObject(), (List)anyObject());			
+			create.createLocalSession((String)anyObject(), (String)anyObject(),  (String)anyObject(), (List)anyObject());
 			expectLastCall().andThrow(new SessionCacheUpdateException("Error adding session to cache dude"));
 		}
 		catch (SessionCacheUpdateException dse)
 		{
 			// we are expecting one of these, and expecting the handler to deal with it
 		}
-		
+
 		setUpMock(data.getHttpRequest(), data.getHttpResponse());
 
 		setupHandler();

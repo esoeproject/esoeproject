@@ -11,3 +11,14 @@ dependencies {
 	compile 'commons-codec:commons-codec:1.4'
 	compile 'org.springframework:spring:2.5.6'
 }
+
+processTestResources.doFirst {
+	def ksdir = 'build/testdata'
+	def keystore = 'build/testdata/testKeystore.ks'
+	if (!file(keystore).exists()) {
+		file(ksdir).mkdirs()
+		[testcert:'certpass', testpriv:'keypass'].each { alias, keypass ->
+			ant.genkey(alias:alias, keystore:keystore, storepass:'kspass', keypass:keypass, dname:'CN=test')
+		}
+	}
+}

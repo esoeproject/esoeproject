@@ -66,7 +66,9 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 			into srcCopy
 		}
 		ant.'cobertura-instrument'(datafile:cobSerFile) {
-			fileset dir: srcOriginal, includes: ["com/qut/middleware/**/*.class"], excludes: ["**/*Specification.class", "**/*Test.class", "**/*Tests.class"]
+			fileset(dir: srcOriginal) {
+				include name: "com/qut/middleware/**/*.class"
+			}
 		}
 	}
 

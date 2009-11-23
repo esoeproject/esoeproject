@@ -55,7 +55,6 @@ public class ArtifactDaoTest
 	private String keystorePath = "build/testdata/testKeystore.ks";
 	private String keystorePassword = "kspass";
 	private String keyPassword = "keypass";
-	private String keyAlias = "testcert";
 
 	private KeystoreResolver keystoreResolver;
 
@@ -93,61 +92,5 @@ public class ArtifactDaoTest
 
 		assertEquals(audience, artifactRetrieved.getAudience());
 		assertEquals(document, artifactRetrieved.getDocument());
-	}
-
-	@Test
-	public void testSignature() throws Exception
-	{
-		String packages = Response.class.getPackage().getName();
-		String[] schemas = new String[]{SchemaConstants.samlProtocol};
-		String soapPackage = Envelope.class.getPackage().getName();
-		String[] soapSchemas = new String[]{SchemaConstants.soapv12};
-
-		Marshaller<Response> marshaller = new MarshallerImpl<Response>(packages, schemas, this.keystoreResolver);
-		Marshaller<ArtifactResponse> artifactMarshaller = (Marshaller)marshaller;
-		Unmarshaller<Response> unmarshaller = new UnmarshallerImpl<Response>(packages, schemas, this.keystoreResolver);
-		Unmarshaller<ArtifactResponse> artifactUnmarshaller = (Unmarshaller)unmarshaller;
-		Marshaller<Envelope> soapMarshaller = new MarshallerImpl<Envelope>(soapPackage, soapSchemas, this.keystoreResolver);
-		Unmarshaller<Envelope> soapUnmarshaller = new UnmarshallerImpl<Envelope>(soapPackage, soapSchemas, this.keystoreResolver);
-
-		byte[] doc = null;
-
-		{
-			Response response = new Response();
-			response.setSignature(new Signature());
-			response.setID("Abcd");
-			response.setIssueInstant(CalendarUtils.generateXMLCalendar());
-			response.setVersion(VersionConstants.saml20);
-			response.setStatus(new Status());
-			response.getStatus().setStatusMessage("message");
-			response.getStatus().setStatusCode(new StatusCode());
-			response.getStatus().getStatusCode().setValue(StatusCodeConstants.success);
-
-			Element element1 = marshaller.marshallSignedElement(response);
-
-			ArtifactResponse artifactResponse = new ArtifactResponse();
-			artifactResponse.setSignature(new Signature());
-			artifactResponse.setID("Efgh");
-			artifactResponse.setIssueInstant(CalendarUtils.generateXMLCalendar());
-			artifactResponse.setVersion(VersionConstants.saml20);
-			artifactResponse.setStatus(new Status());
-			artifactResponse.getStatus().setStatusMessage("message");
-			artifactResponse.getStatus().setStatusCode(new StatusCode());
-			artifactResponse.getStatus().getStatusCode().setValue(StatusCodeConstants.success);
-
-			artifactResponse.setAny(element1);
-
-			Element artifactResponseElement = artifactMarshaller.marshallSignedElement(artifactResponse);
-
-			Envelope envelope = new Envelope();
-			envelope.setBody(new Body());
-			envelope.getBody().getAnies().add(artifactResponseElement);
-
-			doc = soapMarshaller.marshallUnSigned(envelope);
-		}
-
-		Envelope envelope = soapUnmarshaller.unMarshallUnSigned(doc);
-		ArtifactResponse artifactResponse = artifactUnmarshaller.unMarshallUnSigned(envelope.getBody().getAnies().get(0));
-		Response response = unmarshaller.unMarshallSigned(artifactResponse.getAny());
 	}
 }

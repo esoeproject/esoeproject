@@ -45,7 +45,6 @@ import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.saml.SPEPRole;
 import com.qut.middleware.metadata.bean.saml.TrustedESOERole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
-import com.qut.middleware.saml2.schemas.protocol.Response;
 import com.qut.middleware.spep.SPEP;
 import com.qut.middleware.spep.authn.AuthnProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessorData;
@@ -286,7 +285,7 @@ public class AuthenticationServletTest
 		final LineVectorOutputStream outputStream = new LineVectorOutputStream();
 		
 		// Cause authn to fail validation
-		this.authnProcessor.processAuthnResponse((AuthnProcessorData)notNull(), (Response)notNull());
+		this.authnProcessor.processAuthnResponse((AuthnProcessorData)notNull());
 		expectLastCall().andThrow(new AuthenticationException("test exception"));
 		
 		startMock();
@@ -327,7 +326,7 @@ public class AuthenticationServletTest
 		
 		Capture<Cookie> captureCookie = new Capture<Cookie>();
 		
-		this.authnProcessor.processAuthnResponse(modify(modifyAuthnProcessorData), (Response)notNull());
+		this.authnProcessor.processAuthnResponse(modify(modifyAuthnProcessorData));
 		expectLastCall().anyTimes();
 		
 		startMock();
@@ -388,7 +387,7 @@ public class AuthenticationServletTest
 		
 		Capture<Cookie> captureCookie = new Capture<Cookie>();
 		
-		this.authnProcessor.processAuthnResponse(modify(modifyAuthnProcessorData), (Response)notNull());
+		this.authnProcessor.processAuthnResponse(modify(modifyAuthnProcessorData));
 		expectLastCall().anyTimes();
 		
 		startMock();
@@ -470,7 +469,7 @@ class ModifyAuthnProcessorData extends Modify<AuthnProcessorData>
 	{
 		object.setSessionID(this.sessionID);
 		object.setRequestURL(this.base64RequestURL);
-		//object.setRequestDocument(this.requestDocument);
+		object.setRequestDocument(this.requestDocument);
 	}
 	
 }

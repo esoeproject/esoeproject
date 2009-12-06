@@ -20,6 +20,8 @@
  */
 package com.qut.middleware.spep.authn;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 
 /** Interface for storing intermediate Authentication data while the session
@@ -38,6 +40,34 @@ public interface AuthnProcessorData
 	 */
 	public void setRequestURL(String requestURL);
 	
+	/** Get the string representation of an AuthnRequest to be used to authenticate the Principal.
+	 * 
+	 * @return The request document
+	 */
+	public byte[] getRequestDocument();
+	
+	
+	/** Set the string representation of an AuthnRequest to be used to authenticate the Principal.
+	 * 
+	 * @param requestDocument The request document.
+	 */
+	public void setRequestDocument(byte[] requestDocument);
+	
+	
+	/** Get the string representation of the SAML Response sent from the ESOE in response to an 
+	 * AuthnRequest.
+	 * 
+	 * @return The response document.
+	 */
+	public byte[] getResponseDocument();
+	
+	/** Set the string representation of the SAML Response sent from the ESOE in response to an 
+	 * AuthnRequest.
+	 * 
+	 * @param responseDocument The response document.
+	 */
+	public void setResponseDocument(byte[] responseDocument);
+	
 	/** Get the client session ID used in authenticated sessions.
 	 * 
 	 * @return The session ID.
@@ -50,23 +80,15 @@ public interface AuthnProcessorData
 	 */
 	public void setSessionID(String sessionID);
 	
-	public String getBindingIdentifier();
-	
-	public void setBindingIdentifier(String bindingIdentifier);
-	
-	public boolean isReturningRequest();
-	
-	public void setReturningRequest();
+	public HttpServletRequest getRequest();
+
+	public void setRequest(HttpServletRequest request);
+
+	public HttpServletResponse getResponse();
+
+	public void setResponse(HttpServletResponse response);
 	
 	public String getDestinationURL();
 	
 	public void setDestinationURL(String destinationURL);
-
-	public String getSSORequestServerName();
-	
-	public void setSSORequestServerName(String ssoRequestServerName);
-	
-	public String getSSORequestURI();
-	
-	public void setSSORequestURI(String ssoRequestURI);
 }

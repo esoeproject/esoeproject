@@ -70,11 +70,6 @@ import com.qut.middleware.saml2.identifier.impl.IdentifierGeneratorImpl;
 import com.qut.middleware.saml2.validator.SAMLValidator;
 import com.qut.middleware.saml2.validator.impl.SAMLValidatorImpl;
 import com.qut.middleware.spep.attribute.impl.AttributeProcessorImpl;
-import com.qut.middleware.spep.authn.bindings.AuthnBinding;
-import com.qut.middleware.spep.authn.bindings.impl.ArtifactProcessorImpl;
-import com.qut.middleware.spep.authn.bindings.impl.AuthnArtifactBindingImpl;
-import com.qut.middleware.spep.authn.bindings.impl.AuthnBindingProcessorImpl;
-import com.qut.middleware.spep.authn.bindings.impl.AuthnPostBindingImpl;
 import com.qut.middleware.spep.authn.impl.AuthnProcessorImpl;
 import com.qut.middleware.spep.exception.SPEPInitializationException;
 import com.qut.middleware.spep.impl.IdentifierCacheMonitor;
@@ -306,8 +301,6 @@ public class Initializer
 			spep.setDisableSPEPStartup(disableSPEPStartup);
 			spep.setEnableCompatibility(enableCompatibility);
 
-			spep.setNodeIndex(nodeIndex);
-
 			// IP Address list for this host
 			String ipAddresses = resolveProperty(properties, "ipAddresses", new RegexStringValidator("((\\d+\\.){3}\\d+\\s+)*(\\d+\\.){3}\\d+")); //$NON-NLS-1$
 			List<String> ipAddressList = new Vector<String>();
@@ -523,32 +516,6 @@ public class Initializer
 				throw new SPEPInitializationException(Messages.getString("Initializer.4"), e); //$NON-NLS-1$
 			}
 
-			{
-				List<AuthnBinding> bindings = new ArrayList<AuthnBinding>(2);
-				bindings.add(new AuthnArtifactBindingImpl(identifierGenerator));
-				bindings.add(new AuthnPostBindingImpl());
-
-				AuthnBindingProcessorImpl authnBindingProcessor = new AuthnBindingProcessorImpl();
-				authnBindingProcessor.setBindingHandlers(bindings);
-				authnBindingProcessor.setEsoeIdentifier(esoeIdentifier);
-				authnBindingProcessor.setMetadataProcessor(metadataProcessor);
-
-				spep.setAuthnBindingProcessor(authnBindingProcessor);
-			}
-
-			{
-				ArtifactProcessorImpl artifactProcessor = new ArtifactProcessorImpl();
-				artifactProcessor.setEntityIdentifier(spepIdentifier);
-				artifactProcessor.setIdentifierGenerator(identifierGenerator);
-				artifactProcessor.setMetadataProcessor(metadataProcessor);
-				artifactProcessor.setWSClient(wsClient);
-				artifactProcessor.setNodeIndex(nodeIndex);
-				artifactProcessor.setKeystoreResolver(keyStoreResolver);
-				artifactProcessor.afterPropertiesSet();
-
-				spep.setArtifactProcessor(artifactProcessor);
-			}
-
 			// Create the session group cache, then attempt to create the policy enforcement processor
 			spep.setSessionGroupCache(new SessionGroupCacheImpl(defaultPolicyDecision));
 			try
@@ -592,7 +559,7 @@ public class Initializer
 			// Fire off a background thread to communicate to the ESOE about starting up.
 			spep.getStartupProcessor().beginSPEPStartup();
 
-			spep.setWSProcessor(new WSProcessorImpl(spep.getPolicyEnforcementProcessor(), spep.getAuthnProcessor(), spep.getArtifactProcessor(), soapHandlers));
+			spep.setWSProcessor(new WSProcessorImpl(spep.getPolicyEnforcementProcessor(), spep.getAuthnProcessor(), soapHandlers));
 
 			return spep;
 		}

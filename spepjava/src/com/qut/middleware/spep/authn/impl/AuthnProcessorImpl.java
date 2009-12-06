@@ -222,7 +222,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 * 
 	 * @see com.qut.middleware.spep.authn.AuthnProcessor#generateAuthnRequest()
 	 */
-	public AuthnRequest generateAuthnRequest(AuthnProcessorData data) throws AuthenticationException
+	public void generateAuthnRequest(AuthnProcessorData data) throws AuthenticationException
 	{
 		if (data == null)
 		{
@@ -255,7 +255,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		
 		// Determine if the request was to the service URL or directly to the node, the former sets an
 		// AssertionConsumerIndex the later an AssertionConsumerURL
-		if(data.getSSORequestServerName().equals(serviceURL.getHost()))
+		if(data.getRequest().getServerName().equals(serviceURL.getHost()))
 		{
 			authnRequest.setAssertionConsumerServiceIndex(this.assertionConsumerServiceIndex);
 		}
@@ -263,7 +263,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		{
 			try
 			{
-				URL requestURL = new URL(data.getSSORequestURI().toString());
+				URL requestURL = new URL(data.getRequest().getRequestURL().toString());
 				
 				if(requestURL.getPort() == -1)
 					authnRequest.setAssertionConsumerServiceURL(requestURL.getProtocol() + this.PROTOCOL_SPLIT + requestURL.getHost() + this.ssoRedirect);
@@ -286,10 +286,20 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		
 		authnRequest.setDestination(data.getDestinationURL());
 
+		try
+		{
+			byte[] requestDocument = this.authnRequestMarshaller.marshallSigned(authnRequest);
+			data.setRequestDocument(requestDocument);
+		}
+		catch (MarshallerException e)
+		{
+			this.logger.warn(
+					Messages.getString("AuthnProcessorImpl.2") + e.getLocalizedMessage()); //$NON-NLS-1$
+			throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.3"), e); //$NON-NLS-1$
+		}
+
 		// Now that the request has been successfully created, we can add the unauthenticated session.
 		this.sessionCache.putUnauthenticatedSession(authnRequestSAMLID, unauthenticatedSession);
-
-		return authnRequest;
 	}
 
 	/*
@@ -297,34 +307,57 @@ public class AuthnProcessorImpl implements AuthnProcessor
 	 * 
 	 * @see com.qut.middleware.spep.authn.AuthnProcessor#processAuthnResponse(java.lang.String)
 	 */
-	public void processAuthnResponse(AuthnProcessorData data, Response response) throws AuthenticationException
+	public void processAuthnResponse(AuthnProcessorData data) throws AuthenticationException
 	{
 		if (data == null)
 		{
-			throw new AuthenticationException("Authentication processor data cannot be null");
+			this.logger.error(Messages.getString("AuthnProcessorImpl.4")); //$NON-NLS-1$
+			throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.5")); //$NON-NLS-1$
 		}
-		if (response == null)
+
+		this.logger.debug(Messages.getString("AuthnProcessorImpl.18")); //$NON-NLS-1$
+
+		Response response = null;
+
+		// Unmarshal the response
+		try
 		{
-			throw new AuthenticationException("Authn response object cannot be null");
+			response = this.responseUnmarshaller.unMarshallSigned(data.getResponseDocument());
+			this.logger.debug(MessageFormat.format(Messages.getString("AuthnProcessorImpl.19"), response.getID())); //$NON-NLS-1$
 		}
+		catch (SignatureValueException e)
+		{
+			this.logger.warn(Messages.getString("AuthnProcessorImpl.6") + e.getLocalizedMessage()); //$NON-NLS-1$
+			throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.7"), e); //$NON-NLS-1$
+		}
+		catch (ReferenceValueException e)
+		{
+			this.logger.warn(Messages.getString("AuthnProcessorImpl.8") + e.getLocalizedMessage()); //$NON-NLS-1$
+			throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.9"), e); //$NON-NLS-1$
+		}
+		catch (UnmarshallerException e)
+		{
+			this.logger.warn(Messages.getString("AuthnProcessorImpl.10") + e.getLocalizedMessage()); //$NON-NLS-1$
+			throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.11"), e); //$NON-NLS-1$
+		}
+
 		try
 		{
 			this.samlValidator.getResponseValidator().validate(response);
 		}
 		catch (InvalidSAMLResponseException e)
 		{
-			this.logger.warn("SAML response validator rejected Authn response with ID: {}  Message was: {}");
+			this.logger.warn(MessageFormat.format(Messages.getString("AuthnProcessorImpl.52"), response.getID(), e.getMessage())); //$NON-NLS-1$
 		}
 
 		// Validate destination to ensure it is for this SPEP (either to service URL or local node).
-		String serviceHost = this.serviceURL.getHost();
 		try
 		{
 			URL destination;
 			destination = new URL(response.getDestination());
-			if (!destination.getHost().equals(serviceHost) && !destination.getHost().equals(data.getSSORequestServerName()))
+			if (!destination.getHost().equals(this.serviceURL.getHost()) && !destination.getHost().equals(data.getRequest().getServerName()))
 			{
-				this.logger.error(MessageFormat.format(Messages.getString("AuthnProcessorImpl.53"), serviceHost + " or " + data.getSSORequestServerName(), destination.getHost())); //$NON-NLS-1$
+				this.logger.error(MessageFormat.format(Messages.getString("AuthnProcessorImpl.53"), this.serviceURL.getHost() + " or " + data.getRequest().getServerName(), destination.getHost())); //$NON-NLS-1$
 				throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.54")); //$NON-NLS-1$
 			}
 		}
@@ -401,10 +434,10 @@ public class AuthnProcessorImpl implements AuthnProcessor
 					{
 						URL recipientURL;
 						recipientURL = new URL(recipient);
-						if (!recipientURL.getHost().equals(serviceHost) && !recipientURL.getHost().equals(data.getSSORequestServerName()))
+						if (!recipientURL.getHost().equals(this.serviceURL.getHost()) && !recipientURL.getHost().equals(data.getRequest().getServerName()))
 						{
 							this.logger.error(Messages.getString("AuthnProcessorImpl.68")); //$NON-NLS-1$
-							this.logger.error(MessageFormat.format(Messages.getString("AuthnProcessorImpl.69"), serviceHost + " or " + data.getSSORequestServerName(), recipientURL.getHost())); //$NON-NLS-1$
+							this.logger.error(MessageFormat.format(Messages.getString("AuthnProcessorImpl.69"), this.serviceURL.getHost() + " or " + data.getRequest().getServerName(), recipientURL.getHost())); //$NON-NLS-1$
 							throw new AuthenticationException(Messages.getString("AuthnProcessorImpl.70")); //$NON-NLS-1$
 						}
 					}
@@ -721,69 +754,5 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		responseDocument = this.logoutResponseMarshaller.marshallSignedElement(new LogoutResponse(response));
 
 		return responseDocument;
-	}
-	
-	public byte[] marshalRequestToBytes(AuthnRequest request) throws AuthenticationException
-	{
-		try
-		{
-			return this.authnRequestMarshaller.marshallSigned(request);
-		}
-		catch (MarshallerException e)
-		{
-			throw new AuthenticationException("Unable to marshal AuthnRequest document. Unable to perform authentication", e);
-		}
-	}
-	
-	public Element marshalRequestToElement(AuthnRequest request) throws AuthenticationException
-	{
-		try
-		{
-			return this.authnRequestMarshaller.marshallSignedElement(request);
-		}
-		catch (MarshallerException e)
-		{
-			throw new AuthenticationException("Unable to marshal AuthnRequest element. Unable to perform authentication", e);
-		}
-	}
-	
-	public Response unmarshalResponse(byte[] responseDocument) throws AuthenticationException
-	{
-		try
-		{
-			return this.responseUnmarshaller.unMarshallSigned(responseDocument);
-		}
-		catch (SignatureValueException e)
-		{
-			throw new AuthenticationException("Unable to unmarshal authentication response document, the signature was deemed invalid", e);
-		}
-		catch (ReferenceValueException e)
-		{
-			throw new AuthenticationException("Unable to unmarshal authentication response document due to a reference value error", e);
-		}
-		catch (UnmarshallerException e)
-		{
-			throw new AuthenticationException("Unable to unmarshal authentication response document, the unmarshaller reported an error", e);
-		}
-	}
-	
-	public Response unmarshalResponse(Element responseDocument) throws AuthenticationException
-	{
-		try
-		{
-			return this.responseUnmarshaller.unMarshallSigned(responseDocument);
-		}
-		catch (SignatureValueException e)
-		{
-			throw new AuthenticationException("Unable to unmarshal authentication response document, the signature was deemed invalid", e);
-		}
-		catch (ReferenceValueException e)
-		{
-			throw new AuthenticationException("Unable to unmarshal authentication response document due to a reference value error", e);
-		}
-		catch (UnmarshallerException e)
-		{
-			throw new AuthenticationException("Unable to unmarshal authentication response document, the unmarshaller reported an error", e);
-		}
 	}
 }

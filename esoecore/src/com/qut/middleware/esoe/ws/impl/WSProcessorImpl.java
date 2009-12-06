@@ -44,7 +44,6 @@ import com.qut.middleware.esoe.spep.bean.impl.SPEPProcessorDataImpl;
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureException;
 import com.qut.middleware.esoe.spep.exception.DatabaseFailureNoSuchSPEPException;
 import com.qut.middleware.esoe.spep.exception.SPEPCacheUpdateException;
-import com.qut.middleware.esoe.ws.ArtifactResolver;
 import com.qut.middleware.esoe.ws.WSProcessor;
 import com.qut.middleware.esoe.ws.exception.WSProcessorException;
 import com.qut.middleware.saml2.exception.SOAPException;
@@ -56,7 +55,6 @@ public class WSProcessorImpl implements WSProcessor
 	private SPEPProcessor spepProcessor;
 	private AuthorizationProcessor authorizationProcessor;
 	private DelegatedAuthenticationProcessor delegAuthnProcessor;
-	private ArtifactResolver artifactResolver;
 
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(WSProcessorImpl.class.getName());
@@ -96,7 +94,6 @@ public class WSProcessorImpl implements WSProcessor
 			this.logger.error(Messages.getString("WSProcessorImpl.42")); //$NON-NLS-1$
 			throw new IllegalArgumentException(Messages.getString("WSProcessorImpl.43")); //$NON-NLS-1$
 		}
-		// Missing check for artifactResolver, on purpose. It can be null if the binding is not used.
 		if (soapHandlers == null || soapHandlers.size() == 0)
 		{
 			this.logger.error("No SOAP handlers provided. Cannot create the web service processor without any SOAP handlers.");
@@ -108,8 +105,6 @@ public class WSProcessorImpl implements WSProcessor
 		this.authorizationProcessor = authorizationProcessor;
 		this.delegAuthnProcessor = delegAuthnProcessor;
 		this.soapHandlers = soapHandlers;
-
-		this.artifactResolver = null;
 	}
 
 	/*
@@ -338,30 +333,6 @@ public class WSProcessorImpl implements WSProcessor
 		throw new WSProcessorException(Messages.getString("WSProcessorImpl.51")); //$NON-NLS-1$
 	}
 	
-	public byte[] artifactResolve(byte[] artifactResolve, String contentType) throws WSProcessorException
-	{
-		if (this.artifactResolver == null) throw new WSProcessorException("Artifact binding is not in use, or has not been started correctly.");
-		
-		SOAPHandler handler = this.getHandler(contentType);
-		this.logger.debug("Got SOAP handler of class {} for content type {}", handler.getClass(), contentType);
-
-		String requestEncoding = this.getEncoding(handler, artifactResolve);
-		Element artifactRequest = readRequest(artifactResolve, handler);
-
-		this.logger.debug("Read artifact resolve request successfully");
-
-		Element response = this.artifactResolver.execute(artifactRequest);
-
-		if (response != null)
-		{
-			this.logger.debug("Response from logic was set, generating SOAP envelope.");
-			return generateResponse(response, handler, requestEncoding);
-		}
-
-		this.logger.warn("Response document from artifact resolve logic was null. Unable to respond.");
-		throw new WSProcessorException("No response document from artifact resolver.");
-	}
-	
 	private SOAPHandler getHandler(String contentType) throws WSProcessorException
 	{
 		for (SOAPHandler handler : this.soapHandlers)
@@ -433,15 +404,5 @@ public class WSProcessorImpl implements WSProcessor
 			this.logger.debug("SOAP Exception while trying to wrap response document.", e);
 			throw new WSProcessorException("SOAP Exception while trying to wrap response document.");
 		}
-	}
-
-	public ArtifactResolver getArtifactResolver()
-	{
-		return artifactResolver;
-	}
-
-	public void setArtifactResolver(ArtifactResolver artifactResolver)
-	{
-		this.artifactResolver = artifactResolver;
 	}
 }

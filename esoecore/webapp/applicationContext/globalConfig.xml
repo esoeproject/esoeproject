@@ -4,14 +4,9 @@
 	xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<bean id="globalProperties"
-		class="org.springframework.beans.factory.config.PropertiesFactoryBean">
-		<property name="location" value="file://${esoe.data}/config/esoe.config" />
-	</bean>
-
 	<bean id="globalConfig"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="properties" ref="globalProperties" />
+		<property name="location" value="file://${esoe.data}/config/esoe.config" />
 	</bean>
 
 </beans>

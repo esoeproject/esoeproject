@@ -4,12 +4,6 @@
 	xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<bean id="ssoPluginLoader" class="com.qut.middleware.esoe.plugins.PluginLoader">
-		<constructor-arg index="0" value="Handler"/>
-		<constructor-arg index="1" value="${esoe.data}/plugins/sso"/>
-		<constructor-arg index="2" value="${ssopluginloader.activePlugins}"/>
-	</bean>
-	
 	<bean id="ssoProcessor"
 		class="com.qut.middleware.esoe.sso.impl.SSOProcessorImpl">
 		<constructor-arg index="0" ref="samlValidator" />
@@ -18,7 +12,12 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="3" ref="identifierGenerator" />
 		<constructor-arg index="4" ref="metadata" />
 		<constructor-arg index="5" ref="esoeKeyStoreResolver" />
-		<constructor-arg index="6">
+		<constructor-arg index="6" value="${sso.allowedActiveAuthSkew}" />
+		<constructor-arg index="7"
+			value="${sso.sessionRemainingLength}" />
+		<constructor-arg index="8"
+			value="${sso.acceptUnsignedAuthnRequests}" />
+		<constructor-arg index="9">
 			<map>
 				<entry>
 					<key>
@@ -62,8 +61,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 				</entry>
 			</map>
 		</constructor-arg>
-		<constructor-arg index="7" ref="ssoPluginLoader" />
-		<constructor-arg index="8" ref="globalProperties" />
+		<constructor-arg index="10" value="${sso.esoeIdentifier}" />
 	</bean>
 
 </beans>

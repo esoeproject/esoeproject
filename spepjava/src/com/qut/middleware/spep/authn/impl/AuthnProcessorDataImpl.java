@@ -19,80 +19,114 @@
  */
 package com.qut.middleware.spep.authn.impl;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.qut.middleware.spep.authn.AuthnProcessorData;
 
 /** Implements the AuthnProcessorData interface. Not thread safe. */
 public class AuthnProcessorDataImpl implements AuthnProcessorData
 {
+
+	private byte[] requestDocument;
 	private String requestURL;
+	private byte[] responseDocument;
 	private String sessionID;
-	private String bindingIdentifier;
-	private boolean returningRequest;
+	private HttpServletRequest request;
+	private HttpServletResponse response;
 	private String destinationURL;
-	private String ssoRequestServerName;
-	private String ssoRequestURI;
-	
-	public AuthnProcessorDataImpl()
+
+	public HttpServletRequest getRequest()
 	{
-		this.returningRequest = false;
+		return request;
 	}
-	
+
+	public void setRequest(HttpServletRequest request)
+	{
+		this.request = request;
+	}
+
+	public HttpServletResponse getResponse()
+	{
+		return response;
+	}
+
+	public void setResponse(HttpServletResponse response)
+	{
+		this.response = response;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#getRequestDocument()
+	 */
+	public byte[] getRequestDocument()
+	{
+		return this.requestDocument;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#getRequestURL()
+	 */
 	public String getRequestURL()
 	{
-		return requestURL;
+		return this.requestURL;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#getResponseDocument()
+	 */
+	public byte[] getResponseDocument()
+	{
+		return this.responseDocument;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#getSessionID()
+	 */
+	public String getSessionID()
+	{
+		return this.sessionID;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#setRequestDocument(java.lang.String)
+	 */
+	public void setRequestDocument(byte[] requestDocument)
+	{
+		this.requestDocument = requestDocument;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#setRequestURL(java.lang.String)
+	 */
 	public void setRequestURL(String requestURL)
 	{
 		this.requestURL = requestURL;
 	}
-	public String getSessionID()
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#setResponseDocument(java.lang.String)
+	 */
+	public void setResponseDocument(byte[] responseDocument)
 	{
-		return sessionID;
+		this.responseDocument = responseDocument;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.spep.authn.AuthnProcessorData#setSessionID(java.lang.String)
+	 */
 	public void setSessionID(String sessionID)
 	{
 		this.sessionID = sessionID;
 	}
-	public String getBindingIdentifier()
-	{
-		return bindingIdentifier;
-	}
-	public void setBindingIdentifier(String bindingIdentifier)
-	{
-		this.bindingIdentifier = bindingIdentifier;
-	}
-	public boolean isReturningRequest()
-	{
-		return returningRequest;
-	}
-	public void setReturningRequest()
-	{
-		this.returningRequest = true;
-	}
+	
 	public String getDestinationURL()
 	{
-		return destinationURL;
+		return this.destinationURL;
 	}
+	
 	public void setDestinationURL(String destinationURL)
 	{
 		this.destinationURL = destinationURL;
 	}
-	public String getSSORequestServerName()
-	{
-		return ssoRequestServerName;
-	}
-	public void setSSORequestServerName(String ssoRequestServerName)
-	{
-		this.ssoRequestServerName = ssoRequestServerName;
-	}
-	public String getSSORequestURI()
-	{
-		return ssoRequestURI;
-	}
-	public void setSSORequestURI(String ssoRequestURI)
-	{
-		this.ssoRequestURI = ssoRequestURI;
-	}
-	
-	
 }

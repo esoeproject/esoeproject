@@ -53,13 +53,4 @@ public interface WSClient
 	 * @throws WSClientException if the Web service client cannot establish the connection
 	 */
 	public Element spepStartup(Element spepStartup, String endpoint) throws WSClientException;
-	
-	/** Performs a web service artifact resolve request and returns the response.
-	 * 
-	 * @param artifactResolve The ArtifactResolve request to send
-	 * @param endpoint The endpoint to send the request to
-	 * @return The response to the request
-	 * @throws WSClientException If the web service client cannot establish the connection
-	 */
-	public Element artifactResolve(Element artifactResolve, String endpoint) throws WSClientException;
 }

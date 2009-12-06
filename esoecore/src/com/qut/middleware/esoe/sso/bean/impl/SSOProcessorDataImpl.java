@@ -20,15 +20,11 @@
 
 package com.qut.middleware.esoe.sso.bean.impl;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.qut.middleware.esoe.sessions.Principal;
-import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.saml2.schemas.protocol.AuthnRequest;
 
@@ -37,59 +33,43 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 {
 	private HttpServletRequest httpRequest;
 	private HttpServletResponse httpResponse;
-	private RequestMethod requestMethod;
-
+	
+	private String samlBinding;
 	private AuthnRequest authnRequest;
+	private String relayState;
+	private String samlEncoding;
+	private String sigAlg;
+	private String signature;
+	private String issuerID;
+	private String responseEndpoint;
+	private int responseEndpointID;
+	private String responseURL;
 	private byte[] requestDocument;
 	private byte[] responseDocument;
-	private String samlBinding;
-	private Object bindingData;
-	private String responseEndpoint;
-	private String requestEncoding;
-	private String requestCharsetName;
-	private String remoteAddress;
-	private String commonCookieValue;
-	private SSOAction currentAction;
-	private String currentHandler;
-	private String issuerID;
 	private String sessionID;
-	private Principal principal;
-	private String spepEntityID;
-	private boolean responded;
+	private String requestCharsetName;
+	private String samlDomainCookieData;
+	private String commonCookieValue;
 	private List<String> validIdentifiers;
-	private SSOProcessor ssoProcessor;
-	private String sessionIndex;
+	
+	private boolean returningRequest;
 
-	Stack<String> handlerResetStack;
-
-	public String getSessionIndex()
-	{
-		return sessionIndex;
-	}
-
-	public void setSessionIndex(String sessionIndex)
-	{
-		this.sessionIndex = sessionIndex;
-	}
-
-	public SSOProcessor getSSOProcessor()
-	{
-		return ssoProcessor;
-	}
-
-	public void setSSOProcessor(SSOProcessor processor)
-	{
-		ssoProcessor = processor;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
+	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getAuthnRequest()
 	 */
 	public AuthnRequest getAuthnRequest()
 	{
 		return this.authnRequest;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getDescriptorID()
+	 */
+	public String getIssuerID()
+	{
+		return this.issuerID;
 	}
 
 	/*
@@ -135,12 +115,67 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @seecom.qut.middleware.esoe.sso.bean.SSOProcessorData#setAuthnRequest(com.qut.middleware.saml2.schemas.protocol.
-	 * AuthnRequest)
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getResponseEndpoint()
+	 */
+	public String getResponseEndpoint()
+	{
+		return this.responseEndpoint;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getResponseEndpointID()
+	 */
+	public int getResponseEndpointID()
+	{
+		return this.responseEndpointID;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getResponseURL()
+	 */
+	public String getResponseURL()
+	{
+		return this.responseURL;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#getSessionID()
+	 */
+	public String getSessionID()
+	{
+		return this.sessionID;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#isReturningRequest()
+	 */
+	public boolean isReturningRequest()
+	{
+		return this.returningRequest;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setAuthnRequest(com.qut.middleware.saml2.schemas.protocol.AuthnRequest)
 	 */
 	public void setAuthnRequest(AuthnRequest authnRequest)
 	{
 		this.authnRequest = authnRequest;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setDescriptorID(java.lang.String)
+	 */
+	public void setIssuerID(String issuerID)
+	{
+		this.issuerID = issuerID;
 	}
 
 	/*
@@ -187,61 +222,56 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 
 	}
 
-	public String getSamlBinding()
-	{
-		return this.samlBinding;
-	}
-
-	public void setSamlBinding(String samlBinding)
-	{
-		this.samlBinding = samlBinding;
-	}
-	
-	public <T> T getBindingData(Class<T> clazz)
-	{
-		if (this.bindingData == null) return null;
-		
-		if (clazz.isAssignableFrom(this.bindingData.getClass()))
-		{
-			return clazz.cast(this.bindingData);
-		}
-		
-		return null;
-	}
-	
-	public <T> void setBindingData(T obj)
-	{
-		this.bindingData = obj;
-	}
-	
-	public RequestMethod getRequestMethod()
-	{
-		return this.requestMethod;
-	}
-	
-	public void setRequestMethod(RequestMethod requestMethod)
-	{
-		this.requestMethod = requestMethod;
-	}
-
-	public String getResponseEndpoint()
-	{
-		return responseEndpoint;
-	}
-
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setResponseEndpoint(java.lang.String)
+	 */
 	public void setResponseEndpoint(String responseEndpoint)
 	{
 		this.responseEndpoint = responseEndpoint;
+
 	}
 
-	public String getRequestEncoding()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setResponseEndpointID(java.lang.String)
+	 */
+	public void setResponseEndpointID(int responseEndpointID)
 	{
-		return requestEncoding;
+		this.responseEndpointID = responseEndpointID;
+
 	}
 
-	public void setRequestEncoding(String requestEncoding)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setResponseURL(java.lang.String)
+	 */
+	public void setResponseURL(String responseURL)
 	{
-		this.requestEncoding = requestEncoding;
+		this.responseURL = responseURL;
+
+	}
+
+	/* (non-Javadoc)
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setReturningRequest(boolean)
+	 */
+	public void setReturningRequest(boolean returningRequest)
+	{
+		this.returningRequest = returningRequest;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.qut.middleware.esoe.sso.bean.SSOProcessorData#setSessionID(java.lang.String)
+	 */
+	public void setSessionID(String sessionID)
+	{
+		this.sessionID = sessionID;
+
 	}
 
 	public String getRequestCharsetName()
@@ -254,14 +284,64 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 		this.requestCharsetName = requestCharsetName;
 	}
 
-	public void setRemoteAddress(String remoteAddress)
+	public String getRelayState()
 	{
-		this.remoteAddress = remoteAddress;
+		return relayState;
 	}
 
-	public String getRemoteAddress()
+	public void setRelayState(String relayState)
 	{
-		return remoteAddress;
+		this.relayState = relayState;
+	}
+
+	public String getSamlEncoding()
+	{
+		return samlEncoding;
+	}
+
+	public void setSamlEncoding(String samlEncoding)
+	{
+		this.samlEncoding = samlEncoding;
+	}
+
+	public String getSigAlg()
+	{
+		return sigAlg;
+	}
+
+	public void setSigAlg(String sigAlg)
+	{
+		this.sigAlg = sigAlg;
+	}
+
+	public String getSamlBinding()
+	{
+		return samlBinding;
+	}
+
+	public void setSamlBinding(String samlBinding)
+	{
+		this.samlBinding = samlBinding;
+	}
+
+	public String getSignature()
+	{
+		return signature;
+	}
+
+	public void setSignature(String signature)
+	{
+		this.signature = signature;
+	}
+
+	public String getSamlDomainCookieData()
+	{
+		return samlDomainCookieData;
+	}
+
+	public void setSamlDomainCookieData(String samlDomainCookieData)
+	{
+		this.samlDomainCookieData = samlDomainCookieData;
 	}
 
 	public String getCommonCookieValue()
@@ -274,76 +354,6 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 		this.commonCookieValue = commonCookieValue;
 	}
 
-	public SSOAction getCurrentAction()
-	{
-		return currentAction;
-	}
-
-	public void setCurrentAction(SSOAction currentAction)
-	{
-		this.currentAction = currentAction;
-	}
-
-	public String getCurrentHandler()
-	{
-		return currentHandler;
-	}
-
-	public void setCurrentHandler(String currentHandler)
-	{
-		this.currentHandler = currentHandler;
-	}
-
-	public String getIssuerID()
-	{
-		return issuerID;
-	}
-
-	public void setIssuerID(String issuerID)
-	{
-		this.issuerID = issuerID;
-	}
-
-	public String getSessionID()
-	{
-		return sessionID;
-	}
-
-	public void setSessionID(String sessionID)
-	{
-		this.sessionID = sessionID;
-	}
-
-	public Principal getPrincipal()
-	{
-		return principal;
-	}
-
-	public void setPrincipal(Principal principal)
-	{
-		this.principal = principal;
-	}
-
-	public String getSPEPEntityID()
-	{
-		return spepEntityID;
-	}
-
-	public void setSPEPEntityID(String spepEntityID)
-	{
-		this.spepEntityID = spepEntityID;
-	}
-
-	public boolean isResponded()
-	{
-		return responded;
-	}
-
-	public void setResponded(boolean responded)
-	{
-		this.responded = responded;
-	}
-
 	public List<String> getValidIdentifiers()
 	{
 		return validIdentifiers;
@@ -352,19 +362,6 @@ public class SSOProcessorDataImpl implements SSOProcessorData
 	public void setValidIdentifiers(List<String> validIdentifiers)
 	{
 		this.validIdentifiers = validIdentifiers;
-	}
-
-	public List<String> getHandlerResetHistory() {
-		return new ArrayList<String>(this.handlerResetStack);
-	}
-
-	public boolean handlerReset(String handlerName, int limit) {
-		this.handlerResetStack.push(handlerName);
-		return this.handlerResetStack.size() <= limit;
-	}
-
-	public void resetHandlerResets() {
-		this.handlerResetStack.clear();
 	}
 
 }

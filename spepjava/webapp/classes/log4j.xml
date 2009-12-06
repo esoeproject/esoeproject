@@ -54,27 +54,27 @@
 	</appender>
 
 	<logger name="com.qut.middleware.spep">
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="spep-core-logger" />
 	</logger>
 
 	<logger name="spep.authn">
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="spep-authn-logger" />
 	</logger>
 
 	<logger name="spep.authz">
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="spep-authz-logger" />
 	</logger>
 
 	<logger name="com.qut.middleware.saml2">
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="saml2-logger" />
 	</logger>
 
 	<logger name="com.qut.middleware.metadata">
-		<level value="DEBUG" />
+		<level value="INFO" />
 		<appender-ref ref="metadata-logger" />
 	</logger>
 

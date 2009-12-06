@@ -91,19 +91,6 @@ public class WSClientImpl implements WSClient
 		return invokeWSCall(request, endpoint, action);
 	}
 
-	public Element artifactResolve(Element request, String endpoint) throws WSClientException
-	{
-		final String action = "artifactResolve";
-
-		if (request == null)
-			throw new IllegalArgumentException("Request element cannot be null");
-
-		if (endpoint == null)
-			throw new IllegalArgumentException("Endpoint cannot be null");
-
-		return invokeWSCall(request, endpoint, action);
-	}
-
 	public Element registerPrincipal(Element request, String endpoint) throws WSClientException
 	{
 		final String action = "registerPrincipal";

@@ -30,8 +30,6 @@ import com.qut.middleware.spep.StartupProcessor;
 import com.qut.middleware.spep.StartupProcessor.result;
 import com.qut.middleware.spep.attribute.AttributeProcessor;
 import com.qut.middleware.spep.authn.AuthnProcessor;
-import com.qut.middleware.spep.authn.bindings.ArtifactProcessor;
-import com.qut.middleware.spep.authn.bindings.AuthnBindingProcessor;
 import com.qut.middleware.spep.pep.PolicyEnforcementProcessor;
 import com.qut.middleware.spep.pep.SessionGroupCache;
 import com.qut.middleware.spep.sessions.SessionCache;
@@ -69,9 +67,6 @@ public class SPEPImpl implements SPEP
 	private boolean disablePolicyEnforcement;
 	private boolean disableSPEPStartup;
 	private boolean enableCompatibility;
-	private int nodeIndex;
-	private AuthnBindingProcessor authnBindingProcessor;
-	private ArtifactProcessor artifactProcessor;
 
 	
 	/*
@@ -430,35 +425,5 @@ public class SPEPImpl implements SPEP
 	public void setEnableCompatibility(boolean enableCompatibility)
 	{
 		this.enableCompatibility = enableCompatibility;
-	}
-	
-	public int getNodeIndex()
-	{
-		return this.nodeIndex;
-	}
-	
-	public void setNodeIndex(int nodeIndex)
-	{
-		this.nodeIndex = nodeIndex;
-	}
-	
-	public AuthnBindingProcessor getAuthnBindingProcessor()
-	{
-		return this.authnBindingProcessor;
-	}
-	
-	public void setAuthnBindingProcessor(AuthnBindingProcessor authnBindingProcessor)
-	{
-		this.authnBindingProcessor = authnBindingProcessor;
-	}
-	
-	public ArtifactProcessor getArtifactProcessor()
-	{
-		return this.artifactProcessor;
-	}
-	
-	public void setArtifactProcessor(ArtifactProcessor artifactProcessor)
-	{
-		this.artifactProcessor = artifactProcessor;
 	}
 }

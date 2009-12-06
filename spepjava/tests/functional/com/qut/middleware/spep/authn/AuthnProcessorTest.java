@@ -122,7 +122,7 @@ public class AuthnProcessorTest
 	private String inResponseTo;
 	private String requestURL;
 	private PublicKey publicKey;
-	//private Marshaller<Response> responseMarshaller;
+	private Marshaller<Response> responseMarshaller;
 	private String[] logoutSchemas;
 	private String logoutPackages;
 	private Marshaller<LogoutRequest> logoutRequestMarshaller;
@@ -147,7 +147,7 @@ public class AuthnProcessorTest
 		this.publicKey = keyStoreResolver.getLocalPublicKey();
 		this.keyName = keyStoreResolver.getLocalKeyAlias();
 		
-		//this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, keyStoreResolver);
+		this.responseMarshaller = new MarshallerImpl<Response>(Response.class.getPackage().getName(), this.schemas, keyStoreResolver);
 		
 		this.logoutSchemas = new String[]{SchemaConstants.samlProtocol, SchemaConstants.samlAssertion};
 		this.logoutPackages = LogoutRequest.class.getPackage().getName();
@@ -236,14 +236,14 @@ public class AuthnProcessorTest
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		String samlSessionIndex = idGenerator.generateSAMLSessionID();
 		
-		//byte[] responseDocument;
+		byte[] responseDocument;
 		
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, 2);
 		
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
 		this.sessionCache.putPrincipalSession(eq(this.sessionID), capture(this.captureprincipalSession));
 		expectLastCall().atLeastOnce();
@@ -252,7 +252,7 @@ public class AuthnProcessorTest
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(samlSessionID)).andReturn(null);
 		
 		startMock();
-		this.authnProcessor.processAuthnResponse(data, response);
+		this.authnProcessor.processAuthnResponse(data);
 		
 		String returnedSessionID = data.getSessionID();
 		
@@ -283,16 +283,16 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		//byte[] responseDocument;
+		byte[] responseDocument;
 			
 		Response response = this.generateFailedAuthnResponse();
 		
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
-		this.authnProcessor.processAuthnResponse(data, response);	
+		this.authnProcessor.processAuthnResponse(data);	
 		endMock();
 	}
 
@@ -315,7 +315,7 @@ public class AuthnProcessorTest
 
 		startMock();
 		
-		//byte[] responseDocument;
+		byte[] responseDocument;
 		
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(this.identifierCache);
 		String samlSessionID = idGenerator.generateSAMLSessionID();
@@ -324,12 +324,12 @@ public class AuthnProcessorTest
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, 2);
 		response.setInResponseTo(wrongID);
 		
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
-		this.authnProcessor.processAuthnResponse(data, response);
+		this.authnProcessor.processAuthnResponse(data);
 		
 	}
 
@@ -355,17 +355,17 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		//byte[] responseDocument;	
+		byte[] responseDocument;	
 		
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, 2);
 		response.setInResponseTo(this.inResponseTo);
 		
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
-		this.authnProcessor.processAuthnResponse(data, response);
+		this.authnProcessor.processAuthnResponse(data);
 		
 	}
 	
@@ -383,14 +383,14 @@ public class AuthnProcessorTest
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		String samlSessionIndex = idGenerator.generateSAMLSessionID();
 		
-		//byte[] responseDocument;
+		byte[] responseDocument;
 		
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex, -1);
 		
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
 		this.sessionCache.putPrincipalSession(eq(this.sessionID), capture(this.captureprincipalSession));
 		expectLastCall().atLeastOnce();
@@ -400,7 +400,7 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		this.authnProcessor.processAuthnResponse(data, response);		
+		this.authnProcessor.processAuthnResponse(data);		
 		endMock();
 	}
 	
@@ -414,7 +414,7 @@ public class AuthnProcessorTest
 	public void testProcessAuthnResponse1e() throws Exception
 	{
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
-		//byte[] responseDocument;
+		byte[] responseDocument;
 		
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		
@@ -433,9 +433,9 @@ public class AuthnProcessorTest
 		/* Generate the second request, noting same samlSessionID but unique sessionIndex */
 		String samlSessionIndex2 = idGenerator.generateSAMLSessionID();
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex2, 2);
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
 		//expect(this.metadata.getSPEPAssertionConsumerLocation()).andReturn(this.assertionConsumerServiceLocation).anyTimes();
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(samlSessionID)).andReturn(principalSession);
@@ -444,7 +444,7 @@ public class AuthnProcessorTest
 		
 		
 		startMock();
-		this.authnProcessor.processAuthnResponse(data, response);
+		this.authnProcessor.processAuthnResponse(data);;
 		
 		String returnedSessionID = data.getSessionID();
 		
@@ -471,7 +471,7 @@ public class AuthnProcessorTest
 	public void testProcessAuthnResponse1f() throws Exception
 	{
 		IdentifierGenerator idGenerator = new IdentifierGeneratorImpl(new IdentifierCacheImpl());
-		//byte[] responseDocument;
+		byte[] responseDocument;
 		
 		String samlSessionID = idGenerator.generateSAMLSessionID();
 		
@@ -490,9 +490,9 @@ public class AuthnProcessorTest
 		/* Generate the second request, noting same samlSessionID but unique sessionIndex */
 		String samlSessionIndex2 = idGenerator.generateSAMLSessionID();
 		Response response = generateResponse(idGenerator, samlSessionID, samlSessionIndex2, 2);
-		//responseDocument = this.responseMarshaller.marshallSigned(response);
+		responseDocument = this.responseMarshaller.marshallSigned(response);
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
-		//data.setResponse(responseDocument);
+		data.setResponseDocument(responseDocument);
 		
 		//expect(this.metadata.getSPEPAssertionConsumerLocation()).andReturn(this.assertionConsumerServiceLocation).anyTimes();
 		expect(this.sessionCache.getPrincipalSessionByEsoeSessionID(samlSessionID)).andReturn(principalSession);
@@ -501,7 +501,7 @@ public class AuthnProcessorTest
 		
 		startMock();
 		
-		this.authnProcessor.processAuthnResponse(data, response);
+		this.authnProcessor.processAuthnResponse(data);
 		endMock();
 		
 		assertTrue( principalSession.getEsoeSessionIndex().containsKey(samlSessionIndex2) );
@@ -516,7 +516,7 @@ public class AuthnProcessorTest
 	{
 		startMock();
 		
-		this.authnProcessor.processAuthnResponse(null, null);
+		this.authnProcessor.processAuthnResponse(null);
 		
 		endMock();
 	}
@@ -575,8 +575,17 @@ public class AuthnProcessorTest
 		startMock();
 
 		AuthnProcessorData data = new AuthnProcessorDataImpl();
+		data.setRequest(this.request);
 
-		AuthnRequest authnRequest = this.authnProcessor.generateAuthnRequest(data);
+
+		this.authnProcessor.generateAuthnRequest(data);
+		byte[] requestDocument = data.getRequestDocument();
+		
+		//System.out.println(new PrettyXml("    ").makePretty(requestDocument));
+		
+		Unmarshaller<AuthnRequest> authnRequestUnmarshaller = new UnmarshallerImpl<AuthnRequest>(AuthnRequest.class.getPackage().getName(), this.schemas);
+		
+		AuthnRequest authnRequest = authnRequestUnmarshaller.unMarshallUnSigned(requestDocument);
 		
 		this.samlValidator.getRequestValidator().validate(authnRequest);
 		

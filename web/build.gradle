@@ -5,6 +5,8 @@ dependencies {
 }
 
 war {
-	webInf(dir: 'webapp/descriptors/')
-	fileSet(dir:'webapp/content/')
+	from 'webapp/content/'
+	webInf {
+		from 'webapp/descriptors/'
+	}
 }

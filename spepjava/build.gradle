@@ -31,7 +31,7 @@ task propertyFile << {
 
 task interfacesJar(type: Jar, dependsOn: classes) {
 	baseName = 'spep-interfaces'
-	fileSet(dir: compileJava.destinationDir) {
+	from(compileJava.destinationDir) {
 		include 'com/qut/middleware/spep/SPEPProxy*.class'
 		include 'com/qut/middleware/spep/ConfigurationConstants.class'
 		include 'com/qut/middleware/spep/sessions/PrincipalSession.class'
@@ -46,8 +46,10 @@ artifacts {
 jar.dependsOn propertyFile, interfacesJar
 
 task war(type:War, dependsOn:jar) {
-	classes(dir:compileJava.destinationDir)
-	classes(dir:'webapp/classes')
-	webInf(dir:'webapp/descriptors')
-	libConfigurations 'runtime'
+	classpath(dir:compileJava.destinationDir)
+	classpath(dir:'webapp/classes')
+	webInf {
+		from 'webapp/descriptors'
+	}
+	classpath configurations.runtime
 }

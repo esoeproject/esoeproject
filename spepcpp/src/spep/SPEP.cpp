@@ -35,8 +35,6 @@
 #include "spep/logging/proxy/LoggerProxy.h"
 #include "spep/ws/SOAPUtil.h"
 
-#include "spep/UnicodeStringConversion.h"
-
 // Define a "short sleep" to be 100 milliseconds.
 #define SHORT_SLEEP_NANOSECONDS (20*1000*1000)
 #define LONGER_SLEEP_NANOSECONDS (500*1000*1000)
@@ -52,45 +50,39 @@ spep::SPEP* spep::SPEP::initializeClient( int spepDaemonPort )
 
 #ifdef WIN32
 	spep->_socketPool = new spep::ipc::ClientSocketPool( spepDaemonPort, 20 );
-#else
+#else //!WIN32
+#ifdef SPEP_CLIENT_THREADS
+	spep->_socketPool = new spep::ipc::ClientSocketPool( spepDaemonPort, SPEP_CLIENT_THREADS );
+#else //!SPEP_CLIENT_THREADS
 	spep->_socketPool = new spep::ipc::ClientSocketPool( spepDaemonPort, 1 );
+#endif //SPEP_CLIENT_THREADS
 #endif //WIN32
 
 	spep->_logger = new spep::ipc::LoggerProxy(spep->_socketPool);
 
 	saml2::LocalLogger localLogger(spep->_logger, "spep::SPEP");
 
-	spep::ipc::ConfigurationProxy configurationProxy( spep->_socketPool );
-	spep->_spepConfigData = new SPEPConfigData( configurationProxy.getSPEPConfigData() );
-
 	spep->_startupProcessor = new spep::ipc::StartupProcessorProxy( spep->_socketPool );
-
-	// This will get the background thread firing to let the SPEP startup request occur.
-
-	if( !spep->_spepConfigData->disableSPEPStartup() )
-		spep->_startupProcessor->allowProcessing();
 
 	spep->_identifierCache = new spep::ipc::IdentifierCacheProxy( spep->_socketPool );
 	spep->_identifierGenerator = new saml2::IdentifierGenerator( spep->_identifierCache );
-	spep->_samlValidator = new saml2::SAMLValidator( spep->_identifierCache, spep->_spepConfigData->getAllowedTimeSkew() );
-
 	spep->_metadata = new spep::ipc::MetadataProxy( spep->_socketPool );
 
-	spep->_soapUtil = new SOAPUtil( spep->_logger, spep->_spepConfigData->getSchemaPath() );
-
-	spep->_wsClient = new WSClient( spep->_logger, spep->_spepConfigData->getCABundle(), spep->_soapUtil );
-
-	spep->_attributeProcessor = new AttributeProcessor( spep->_logger, spep->_metadata, spep->_spepConfigData->getKeyResolver(), spep->_identifierGenerator, spep->_wsClient, spep->_samlValidator, spep->_spepConfigData->getSchemaPath(), spep->_spepConfigData->getAttributeRenameMap() );
 	spep->_sessionCache = new spep::ipc::SessionCacheProxy( spep->_socketPool );
 
-	spep->_authnProcessor = new AuthnProcessor( spep->_logger, spep->_attributeProcessor, spep->_metadata, spep->_sessionCache, spep->_samlValidator, spep->_identifierGenerator, spep->_spepConfigData->getKeyResolver(), spep->_spepConfigData->getSPEPIdentifier(), spep->_spepConfigData->getSSORedirect(), spep->_spepConfigData->getServiceHost(), spep->_spepConfigData->getSchemaPath(), spep->_spepConfigData->getAttributeConsumingServiceIndex(), spep->_spepConfigData->getAssertionConsumerServiceIndex() );
-
 	spep->_sessionGroupCache = new spep::ipc::SessionGroupCacheProxy( spep->_socketPool );
-	spep->_policyEnforcementProcessor = new PolicyEnforcementProcessor( spep->_logger, spep->_wsClient, spep->_sessionGroupCache, spep->_sessionCache, spep->_metadata, spep->_identifierGenerator, spep->_samlValidator, spep->_spepConfigData->getKeyResolver(), spep->_spepConfigData->getSchemaPath() );
 
-	spep->_wsProcessor = new WSProcessor( spep->_logger, spep->_authnProcessor, spep->_policyEnforcementProcessor, spep->_soapUtil );
+	try {
+		spep->reinitializeClient();
 
-	spep->_serviceID = spep->_socketPool->getServiceID();
+		// This will get the background thread firing to let the SPEP startup request occur.
+		if( !spep->_spepConfigData->disableSPEPStartup() )
+			spep->_startupProcessor->allowProcessing();
+
+		spep->_serviceID = spep->_socketPool->getServiceID();
+	} catch (spep::ipc::SocketException& e) {
+		// There's not much we can do with it. Just stop the caller from dying.
+	}
 
 	return spep;
 }
@@ -119,6 +111,12 @@ void spep::SPEP::reinitializeClient()
 	}
 	this->_samlValidator = new saml2::SAMLValidator( this->_identifierCache, this->_spepConfigData->getAllowedTimeSkew() );
 
+	if( this->_wsClient != NULL )
+	{
+		delete this->_wsClient;
+	}
+	this->_wsClient = new WSClient( this->_logger, this->_spepConfigData->getCABundle(), this->_soapUtil );
+
 	if( this->_attributeProcessor != NULL )
 	{
 		delete this->_attributeProcessor;
@@ -136,12 +134,6 @@ void spep::SPEP::reinitializeClient()
 		delete this->_policyEnforcementProcessor;
 	}
 	this->_policyEnforcementProcessor = new PolicyEnforcementProcessor( this->_logger, this->_wsClient, this->_sessionGroupCache, this->_sessionCache, this->_metadata, this->_identifierGenerator, this->_samlValidator, this->_spepConfigData->getKeyResolver(), this->_spepConfigData->getSchemaPath() );
-
-	if( this->_wsClient != NULL )
-	{
-		delete this->_wsClient;
-	}
-	this->_wsClient = new WSClient( this->_logger, this->_spepConfigData->getCABundle(), this->_soapUtil );
 
 	if( this->_wsProcessor != NULL )
 	{
@@ -282,9 +274,12 @@ void spep::SPEP::checkConnection()
 	{
 		ScopedLock lock( _mutex );
 
-		if( _serviceID != this->_socketPool->getServiceID() )
+		if( _serviceID.length() == 0 || _serviceID != this->_socketPool->getServiceID() )
 		{
-			this->reinitializeClient();
+			try {
+				this->reinitializeClient();
+			} catch (spep::ipc::SocketException &e) {
+			}
 		}
 	}
 }
@@ -364,6 +359,7 @@ saml2::IdentifierCache *spep::SPEP::getIdentifierCache()
 bool spep::SPEP::isStarted()
 {
 	this->checkConnection();
+	if (this->_serviceID.length() == 0) return false;
 
 	if( this->_spepConfigData->disableSPEPStartup() ) return true;
 

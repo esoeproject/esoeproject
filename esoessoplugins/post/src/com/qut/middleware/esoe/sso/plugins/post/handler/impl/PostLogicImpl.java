@@ -1,20 +1,20 @@
 /* Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Shaun Mangelsdorf
  * Creation Date: 28/08/2008
- * 
- * Purpose: 
+ *
+ * Purpose:
  */
 
 package com.qut.middleware.esoe.sso.plugins.post.handler.impl;
@@ -53,7 +53,7 @@ public class PostLogicImpl implements PostLogic
 	private final String samlResponseTemplate;
 	private MessageFormat samlMessageFormat;
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
-	
+
 	public PostLogicImpl()
 	{
 		try
@@ -63,7 +63,7 @@ public class PostLogicImpl implements PostLogic
 			{
 				throw new IllegalArgumentException("Unable to construct logic class for HTTP POST binding. URL for SAML response template was null.");
 			}
-			
+
 			this.samlResponseTemplate = FileCopyUtils.copyToString(new InputStreamReader(url.openStream()));
 			this.samlMessageFormat = new MessageFormat(this.samlResponseTemplate);
 		}
@@ -75,7 +75,7 @@ public class PostLogicImpl implements PostLogic
 		{
 			throw new UnsupportedOperationException("Unable to construct logic class for HTTP POST binding. IO error occurred while trying to load the SAML response template.", e);
 		}
-		
+
 		this.logger.info("HTTP POST binding logic initialized");
 	}
 
@@ -90,13 +90,18 @@ public class PostLogicImpl implements PostLogic
 		{
 			throw new PostBindingException("SSOProcessor in data bean was null");
 		}
-		
+
 		String remoteAddress = data.getRemoteAddress();
-		
-		byte[] requestDocument = Base64.decodeBase64(bindingData.getSAMLRequestString().getBytes());
+
+		String samlRequest = bindingData.getSAMLRequestString();
+		if (samlRequest == null) {
+			throw new PostBindingException("SAML Request in binding data was null");
+		}
+
+		byte[] requestDocument = Base64.decodeBase64(samlRequest.getBytes());
 		boolean signed = true; // TODO Should this be specified somewhere, or is hard coded 'true' ok?
 		AuthnRequest authnRequest;
-		
+
 		try
 		{
 			CharsetDetector detector = new CharsetDetector();
@@ -106,7 +111,7 @@ public class PostLogicImpl implements PostLogic
 			{
 				data.setRequestCharsetName(match.getName());
 			}
-			
+
 			authnRequest = ssoProcessor.unmarshallRequest(requestDocument, signed);
 			this.logger.debug("[SSO for {}] AuthnRequest was unmarshalled successfully by the SSO Processor", remoteAddress);
 		}
@@ -137,7 +142,7 @@ public class PostLogicImpl implements PostLogic
 			this.logger.error("[SSO for {}] Unmarshalling failed while unwrapping request document. Error was: {}", new Object[]{remoteAddress, e.getMessage()});
 			throw new PostBindingException("Post binding failed due to unmarshalling error.", e);
 		}
-		
+
 		data.setAuthnRequest(authnRequest);
 		try
 		{
@@ -146,11 +151,12 @@ public class PostLogicImpl implements PostLogic
 		}
 		catch (SSOException e)
 		{
-			this.logger.error("[SSO for {}] SSOProcessor reported an error while processing the AuthnRequest. Issuer was: {}  Error was: {}", new Object[]{remoteAddress, authnRequest.getIssuer().getValue(), e.getMessage()});
+			String issuer = (authnRequest != null ? (authnRequest.getIssuer() != null ? authnRequest.getIssuer().getValue() : "null") : "unknown");
+			this.logger.error("[SSO for {}] SSOProcessor reported an error while processing the AuthnRequest. Issuer was: {}  Error was: {}", new Object[]{remoteAddress, issuer, e.getMessage()});
 			throw new PostBindingException("Post binding failed due to an error processing the AuthnRequest", e);
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.qut.middleware.esoe.sso.plugins.post.handler.impl.PostLogic#handlePostResponse(com.qut.middleware.esoe.sso.bean.SSOProcessorData, com.qut.middleware.esoe.sso.plugins.post.bean.PostBindingData)
 	 */
@@ -171,12 +177,12 @@ public class PostLogicImpl implements PostLogic
 			this.logger.error("[SSO for {}] Failed to generate Authn response document. Error was: {}", new Object[]{remoteAddress, e.getMessage()});
 			throw new PostBindingException("Failed to generate Authn response document", e);
 		}
-		
+
 		this.sendPostResponseDocument(data);
-		
+
 		this.logger.info("[SSO for {}] Generated Authn response document for session with SAML ID {}, session index is {} and response charset is {}", new Object[]{remoteAddress, data.getPrincipal().getSAMLAuthnIdentifier(), sessionIndex, requestCharsetName});
 	}
-	
+
 	private void sendPostResponseDocument(SSOProcessorData data) throws PostBindingException
 	{
 		String remoteAddress = data.getHttpRequest().getRemoteAddr();
@@ -187,7 +193,7 @@ public class PostLogicImpl implements PostLogic
 
 			response.setContentType("text/html");
 
-			/* Set cookie to allow javascript enabled browsers to auto submit, ensures navigation with the back button is not broken 
+			/* Set cookie to allow javascript enabled browsers to auto submit, ensures navigation with the back button is not broken
 			 * because auto submit is active only when this cookie exists, and the submit javascript removes it */
 			Cookie autoSubmit = new Cookie("esoeAutoSubmit", "enabled");
 			autoSubmit.setMaxAge(172800); //set expiry to be 48 hours just to make sure we still work with badly configured clocks skewed from GMT
@@ -206,7 +212,7 @@ public class PostLogicImpl implements PostLogic
 			String responseRelayState = "";// = data.getRelayState();
 			if (responseRelayState == null)
 				responseRelayState = new String("");
-			
+
 			/* Encode SAML Response in base64 */
 			byte[] samlResponseEncoded = Base64.encodeBase64(data.getResponseDocument()); //$NON-NLS-1$
 			Object[] responseArgs = new Object[] { data.getResponseEndpoint(), new String(samlResponseEncoded), responseRelayState };

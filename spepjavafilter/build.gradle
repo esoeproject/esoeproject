@@ -1,0 +1,8 @@
+dependencies {
+	compile project(path: ':spepjava', configuration: 'interfaces')
+
+	// TODO Remove this when the unit tests don't need it anymore.
+	testCompile project(path: ':spepjava')
+
+	compile "commons-codec:commons-codec:1.4"
+}

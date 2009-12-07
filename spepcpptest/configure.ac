@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([SPEPCPPTEST], 0.7)
+AC_INIT([SPEPCPPTEST], 0.8)
 AC_CONFIG_SRCDIR([src/main.cpp])
 #AC_CONFIG_HEADER([config.h])
 

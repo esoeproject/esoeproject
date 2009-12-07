@@ -1,0 +1,107 @@
+
+def excludedProjects = [
+	':spepintegrators',
+	':esoedelegators',
+	':esoeauthnplugins',
+	':esoessoplugins',
+	':esoeidentityplugins',
+	':spepintegrators:grails'
+]
+
+configure(subprojects.findAll{!(it.path in excludedProjects)}) {
+	usePlugin 'groovy'
+	usePlugin 'eclipse'
+
+	group = 'esoeproject'
+	version = '0.9.6'
+
+	sourceSets {
+		main {
+			java {
+				srcDir 'src'
+			}
+		}
+		test {
+			groovy {
+				srcDir 'tests/regression'
+				srcDir 'tests/functional'
+			}
+		}
+	}
+
+	def cobSerFile = file("${project.buildDir}/cobertura.ser")
+	def srcOriginal = file("${sourceSets.main.classesDir}")
+	def srcCopy = file("${srcOriginal}-copy")
+	def cobReportDir = file("${project.buildDir}/reports/coverage")
+
+	repositories  {
+		mavenCentral()
+		mavenRepo urls:'http://download.java.net/maven/2/'
+	}
+
+	dependencies {
+		groovy 'org.codehaus.groovy:groovy-all:1.6.5'
+
+		testRuntime 'net.sourceforge.cobertura:cobertura:1.9.3'
+		testRuntime 'cglib:cglib-nodep:2.2'
+
+		testCompile 'junit:junit:4.7'
+		testCompile 'org.spockframework:spock-core:0.3'
+	    testCompile 'org.easymock:easymock:2.5.2'
+
+		compile 'javax.servlet:servlet-api:2.5'
+
+		['api', 'log4j12'].each {
+			compile "org.slf4j:slf4j-${it}:1.5.8"
+		}
+	}
+
+	test.doFirst  {
+		cobSerFile.delete()
+		srcCopy.deleteDir()
+		ant.taskdef(resource:'tasks.properties', classpath: configurations.testRuntime.asPath)
+		if (!srcOriginal.exists()) srcOriginal.mkdirs()
+		copy {
+			from srcOriginal
+			into srcCopy
+		}
+		ant.'cobertura-instrument'(datafile:cobSerFile) {
+			fileset(dir: srcOriginal) {
+				include name: "com/qut/middleware/**/*.class"
+			}
+		}
+	}
+
+	test {
+		options.systemProperties['net.sourceforge.cobertura.datafile']="${cobSerFile}"
+		stopAtFailuresOrErrors = false
+	}
+
+	test.doLast {
+		if (srcCopy.exists()) {
+			// replace instrumented classes with backup copy again
+			srcOriginal.deleteDir()
+			srcCopy.renameTo(srcOriginal)
+
+			// create cobertura reports
+			ant.'cobertura-report'(destdir:cobReportDir, format:'html', srcdir:"src/main/java", datafile:cobSerFile)
+			ant.'cobertura-report'(destdir:cobReportDir, format:'xml', srcdir:"src/main/java", datafile:cobSerFile)
+		}
+	}
+
+	task copy(type:Copy) {
+		from 'src'
+		into compileJava.destinationDir
+		exclude '**/*.java'
+	}
+
+	afterEvaluate {
+		it.eclipseCp.srcDirs += it.sourceSets.main.groovy.srcDirs
+		it.eclipseCp.testSrcDirs += it.sourceSets.test.groovy.srcDirs
+	}
+
+	classes.dependsOn copy
+}
+
+dependsOnChildren()
+

@@ -33,20 +33,9 @@ _req( NULL )
 
 spep::apache::Cookies::Cookies( request_rec *req )
 :
-_cookieTable( this->createCookieTableFromRequest( req ) ),
 _cookieStrings(),
 _req( req )
 {
-}
-
-const char* spep::apache::Cookies::operator[]( std::string name )
-{
-	
-	if( this->_cookieTable != NULL )
-		return apr_table_get( this->_cookieTable, name.c_str() );
-	
-	return NULL;
-	
 }
 
 /* *** Begin Apache2 code section *** */
@@ -55,25 +44,42 @@ const char* spep::apache::Cookies::operator[]( std::string name )
 #include "apreq2/apreq.h"
 #include "apreq2/apreq_cookie.h"
 
-apr_table_t *spep::apache::Cookies::createCookieTableFromRequest( request_rec *req )
+void spep::apache::Cookies::getCookieValuesByName(std::vector<std::string>& out, const std::string& expectedName)
 {
-	const char *cookieString = apr_table_get( req->headers_in, "Cookie" );
-	apr_table_t *cookieTable = NULL;
-	
-	if( cookieString != NULL )
-	{
-		// Default to 10 just so we don't have to resize unless the user has
-		// a stupidly large number of cookies.
-		cookieTable = apr_table_make( req->pool, 10 );
-	
-		if( apreq_parse_cookie_header( req->pool, cookieTable, cookieString ) != APR_SUCCESS )
-		{
-			// TODO Maybe throw an exception here instead.
-			cookieTable = NULL;
+	const char *cookieHeaderValue = apr_table_get( _req->headers_in, "Cookie" );
+
+	if( cookieHeaderValue != NULL ) {
+		std::string cookieHeader(cookieHeaderValue);
+		for (std::size_t pos = 0; pos != std::string::npos; ) {
+			std::size_t start = cookieHeader.find_first_not_of("; ", pos);
+			std::size_t end = cookieHeader.find_first_of(';', start);
+
+			if (start == std::string::npos) break;
+
+			std::string current;
+			if (end == std::string::npos) {
+				current = cookieHeader.substr(start);
+				pos = end;
+			} else {
+				current = cookieHeader.substr(start, end+start);
+				pos = end+1;
+			}
+
+			std::size_t nameStart = current.find_first_not_of(' ');
+			std::size_t nameEnd = current.find_first_of(" =", nameStart);
+			if (nameEnd != std::string::npos) {
+				std::string name( current.substr( nameStart, nameEnd-nameStart ) );
+				std::size_t equals = current.find_first_of( '=', nameEnd );
+				std::size_t valueStart = current.find_first_not_of( ' ', equals+1 );
+				if( valueStart != std::string::npos ) {
+					std::size_t valueEnd = current.find_first_of( "; ", valueStart );
+					if( valueEnd != std::string::npos ) valueEnd -= valueStart;
+
+					if (expectedName == name) out.push_back(current.substr( valueStart, valueEnd ));
+				}
+			}
 		}
 	}
-	
-	return cookieTable;
 }
 
 
@@ -145,30 +151,28 @@ void spep::apache::Cookies::sendCookies( request_rec *req )
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-apr_table_t *spep::apache::Cookies::createCookieTableFromRequest( request_rec *req )
+void spep::apache::Cookies::getCookieValuesByName(std::vector<std::string>& out, const std::string& expectedName)
 {
-	ApacheCookieJar *jar = ApacheCookie_parse( req, NULL );
+	ApacheCookieJar *jar = ApacheCookie_parse( _req, NULL );
 	
 	if( jar != NULL )
 	{
 		// Default to 10 just so we don't have to resize unless the user has
 		// a stupidly large number of cookies.
-		apr_table_t *cookieTable = apr_table_make( req->pool, 10 );
-		
 		for( int i = 0; i < ApacheCookieJarItems(jar); ++i )
 		{
 			ApacheCookie *cookie = ApacheCookieJarFetch(jar, i);
 			
 			if( ApacheCookieItems( cookie ) > 0 )
 			{
-				apr_table_set( cookieTable, cookie->name, ApacheCookieFetch( cookie, 0 ) );
+				std::string name(cookie->name);
+
+				if (name == expectedName) {
+					out.push_back(std::string(ApacheCookieFetch(cookie, 0)));
+				}
 			}
 		}
-		
-		return cookieTable;
 	}
-	
-	return NULL;
 }
 
 #include <iostream>

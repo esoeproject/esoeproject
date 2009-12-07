@@ -1,0 +1,44 @@
+configurations {
+	compile
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile project(':spepjavafilter')
+}
+
+task clean << {
+	file('lib', PathValidation.DIRECTORY).listFiles()*.delete()
+}
+
+task copyDepends << {
+	file('lib').mkdirs()
+	copy {
+		from configurations.compile
+		into 'lib'
+	}
+}
+
+def grails(target) {
+	ant.exec(executable:'grails', dir:projectDir) {
+		arg value:target
+	}
+}
+
+task 'package'(dependsOn: copyDepends) << {
+	grails 'package-plugin'
+}
+
+task test(dependsOn: copyDepends) << {
+	grails 'test'
+}
+
+task build(dependsOn: copyDepends) << {
+	grails 'compile'
+}
+
+task release(dependsOn:'package')
+

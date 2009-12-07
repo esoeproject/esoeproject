@@ -1,0 +1,14 @@
+dependencies {
+	compile project(':esoecore')
+
+	['core', 'beans', 'orm', 'jdbc'].each {
+		compile "org.springframework:spring-${it}:2.5.6"
+	}
+	['ibatis', 'dao'].each {
+		compile "org.springframework:spring-${it}:2.0.8"
+	}
+	compile "org.apache.ibatis:ibatis-sqlmap:2.3.4.726"
+
+	compile "commons-dbcp:commons-dbcp:1.2.2"
+	compile "commons-pool:commons-pool:1.5.3"
+}

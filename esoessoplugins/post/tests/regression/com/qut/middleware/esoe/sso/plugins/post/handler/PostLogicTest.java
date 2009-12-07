@@ -1,20 +1,20 @@
 /* Copyright 2008, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Shaun Mangelsdorf
  * Creation Date: 05/11/2008
- * 
- * Purpose: 
+ *
+ * Purpose:
  */
 
 package com.qut.middleware.esoe.sso.plugins.post.handler;
@@ -56,15 +56,15 @@ public class PostLogicTest
 	{
 		this.mocked = new ArrayList<Object>();
 		this.authnRequest = new AuthnRequest();
-		
+
 		this.postLogic = new PostLogicImpl();
-		
+
 		this.processor = createMock(SSOProcessor.class);
 		expect(this.processor.unmarshallRequest((byte[])notNull(), anyBoolean())).andReturn(this.authnRequest).once();
 		expect(this.processor.unmarshallRequest((byte[])eq(null), anyBoolean())).andThrow(new UnmarshallerException("message", null, null)).anyTimes();
 		this.mocked.add(this.processor);
 	}
-	
+
 	public void startMock()
 	{
 		for (Object o : this.mocked)
@@ -72,7 +72,7 @@ public class PostLogicTest
 			replay(o);
 		}
 	}
-	
+
 	public void endMock()
 	{
 		for (Object o : this.mocked)
@@ -80,85 +80,85 @@ public class PostLogicTest
 			verify(o);
 		}
 	}
-	
+
 	@Test
 	public void testHandleRequest1a() throws Exception
 	{
 		SSOProcessorData data = new SSOProcessorDataImpl();
 		data.setRemoteAddress("127.0.0.1");
 		PostBindingData bindingData = new PostBindingData();
-		
+		bindingData.setSAMLRequestString("");
+
 		data.setSSOProcessor(this.processor);
-		data.setRequestDocument(new byte[0]);
-		
+
 		this.processor.processAuthnRequest(eq(data));
 		expectLastCall().once();
-		
+
 		startMock();
-		
+
 		this.postLogic.handlePostRequest(data, bindingData);
-		
+
 		endMock();
 	}
-	
+
 	@Test(expected = PostBindingException.class)
 	public void testHandleRequest1b() throws Exception
 	{
 		SSOProcessorData data = new SSOProcessorDataImpl();
 		data.setRemoteAddress("127.0.0.1");
 		PostBindingData bindingData = new PostBindingData();
-		
+		bindingData.setSAMLRequestString("");
+
 		data.setSSOProcessor(this.processor);
-		data.setRequestDocument(new byte[0]);
-		
+
 		this.processor.processAuthnRequest(eq(data));
 		expectLastCall().andThrow(new SSOException());
-		
+
 		startMock();
-		
+
 		this.postLogic.handlePostRequest(data, bindingData);
-		
+
 		endMock();
 	}
-	
+
 	@Test(expected = PostBindingException.class)
 	public void testHandleRequest2a() throws Exception
 	{
 		SSOProcessorData data = new SSOProcessorDataImpl();
 		data.setRemoteAddress("127.0.0.1");
 		PostBindingData bindingData = new PostBindingData();
-		
+		//bindingData.setSAMLRequestString("");
+
 		data.setSSOProcessor(this.processor);
-		//data.setRequestDocument(new byte[0]);
-		
+
 		this.processor.processAuthnRequest(eq(data));
 		expectLastCall().once();
-		
+
 		startMock();
-		
+
 		this.postLogic.handlePostRequest(data, bindingData);
-		
+
 		endMock();
 	}
 
-	
+
 	@Test(expected = PostBindingException.class)
 	public void testHandleRequest2b() throws Exception
 	{
 		SSOProcessorData data = new SSOProcessorDataImpl();
 		data.setRemoteAddress("127.0.0.1");
 		PostBindingData bindingData = new PostBindingData();
-		
+		bindingData.setSAMLRequestString("");
+
 		//data.setSSOProcessor(this.processor);
-		data.setRequestDocument(new byte[0]);
-		
+
 		this.processor.processAuthnRequest(eq(data));
 		expectLastCall().once();
-		
+
 		startMock();
-		
+
 		this.postLogic.handlePostRequest(data, bindingData);
-		
+
 		endMock();
 	}
 }

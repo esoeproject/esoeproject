@@ -1,0 +1,50 @@
+configurations {
+	endorsed
+}
+
+dependencies {
+	compile project(':esoecrypto')
+	compile project(':saml2java')
+	compile project(':saml2metadata')
+	compile project(':esoepdp')
+
+	['core', 'beans', 'context', 'web'].each {
+		compile "org.springframework:spring-${it}:2.5.6"
+	}
+	['ibatis', 'dao'].each {
+		compile "org.springframework:spring-${it}:2.0.8"
+	}
+	compile "commons-logging:commons-logging:1.1.1"
+	compile "org.apache.ibatis:ibatis-sqlmap:2.3.4.726"
+	compile "com.ibm.icu:icu4j:4.0.1"
+	compile "commons-codec:commons-codec:1.4"
+
+	endorsed 'com.sun.xml.bind:jaxb-impl:2.1.12'
+	endorsed 'xalan:xalan:2.7.1'
+	endorsed 'xerces:xercesImpl:2.9.1'
+}
+
+task war(type: War, dependsOn: jar) {
+	classpath(dir:compileJava.destinationDir)
+	classpath(dir:'ibatis')
+	webInf {
+		from 'webapp/applicationContext'
+		['xml','config','conf','keytab'].each {
+			include "**/*.${it}"
+		}
+	}
+	webXml = file('webapp/descriptors/esoe.xml')
+	classpath configurations.runtime
+}
+
+task release(type: Tar, dependsOn: war) {
+	into('esoecore') {
+		into('endorsed') {
+			from configurations.endorsed
+		}
+		into('war') {
+			from war.destinationDir
+			include war.archiveName
+		}
+	}
+}

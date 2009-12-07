@@ -1,20 +1,20 @@
-/* 
+/*
  * Copyright 2006, Queensland University of Technology
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
- * use this file except in compliance with the License. You may obtain a copy of 
- * the License at 
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0 
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
- * 
+ *
  * Author: Bradley Beddoes
  * Creation Date: 07/03/2007
- * 
+ *
  * Purpose: Implementation of AuthnProcessor
  */
 package com.qut.middleware.delegator.openid.authn.impl;
@@ -48,14 +48,15 @@ import org.openid4java.message.ax.FetchResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
+import org.w3c.dom.Element;
 
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.delegator.openid.ConfigurationConstants;
 import com.qut.middleware.delegator.openid.authn.AuthnProcessor;
 import com.qut.middleware.delegator.openid.authn.bean.AuthnProcessorData;
 import com.qut.middleware.delegator.openid.authn.bean.OpenIDAttribute;
-import com.qut.middleware.delegator.openid.ws.WSClient;
-import com.qut.middleware.delegator.openid.ws.exception.WSClientException;
+import com.qut.middleware.esoe.ws.WSClient;
+import com.qut.middleware.esoe.ws.exception.WSClientException;
 import com.qut.middleware.saml2.AttributeFormatConstants;
 import com.qut.middleware.saml2.VersionConstants;
 import com.qut.middleware.saml2.exception.InvalidSAMLResponseException;
@@ -220,7 +221,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			AttributeType esoeAttribute;
 			MessageDigest algorithm;
 			byte messageDigest[];
-			
+
 			authSuccess = (AuthSuccess) verification.getAuthResponse();
 
 			/*
@@ -237,7 +238,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			esoeAttribute.setName(this.userIdentifier);
 			esoeAttribute.getAttributeValues().add(new String(Hex.encodeHex(messageDigest)) + ConfigurationConstants.OPENID_NAMESPACE);
 			esoeAttributes.add(esoeAttribute);
-			
+
 			/*
 			 * Store openID identifier in attributes for use by applications
 			 */
@@ -279,12 +280,12 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.qut.middleware.delegator.openid.authn.AuthnProcessor#execute(com.qut.middleware.delegator.openid.authn.bean.AuthnProcessorData)
 	 */
 	public result execute(AuthnProcessorData processorData)
 	{
-		byte[] response;
+		Element response;
 		RegisterPrincipalResponse responseObj;
 		List<AttributeType> esoeAttributes = new ArrayList<AttributeType>();
 
@@ -345,7 +346,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			esoeAttributes.add(esoeDefaultAttribute);
 		}
 
-		byte[] request = generateRegisterPrincipalRequest(esoeAttributes);
+		Element request = generateRegisterPrincipalRequest(esoeAttributes);
 		if (request == null)
 		{
 			this.logger.warn("Failed attempting to marshall register principal request");
@@ -383,10 +384,10 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		return result.Completed;
 	}
 
-	private byte[] generateRegisterPrincipalRequest(List<AttributeType> attributes)
+	private Element generateRegisterPrincipalRequest(List<AttributeType> attributes)
 	{
 		RegisterPrincipalRequest request = new RegisterPrincipalRequest();
-		byte[] document;
+		Element document;
 
 		NameIDType issuer = new NameIDType();
 		issuer.setValue(this.issuerID);
@@ -401,7 +402,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 
 		try
 		{
-			document = this.marshaller.marshallSigned(request);
+			document = this.marshaller.marshallSignedElement(request);
 		}
 		catch (MarshallerException e)
 		{
@@ -413,7 +414,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		return document;
 	}
 
-	private RegisterPrincipalResponse validateResponse(byte[] response)
+	private RegisterPrincipalResponse validateResponse(Element response)
 	{
 		try
 		{
@@ -449,23 +450,23 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Generates an XML gregorian calendar instance based on 0 offset UTC current time.
-	 * 
+	 *
 	 * @return The created calendar for the current UTC time, else null if an error
 	 * occurs creating the calendar.
 	 */
 	private XMLGregorianCalendar generateXMLCalendar()
 	{
 		GregorianCalendar calendar;
-				
+
 		SimpleTimeZone tz = new SimpleTimeZone(0, ConfigurationConstants.timeZone);
 		calendar = new GregorianCalendar(tz);
-		
+
 		try
 		{
-			DatatypeFactory factory = DatatypeFactory.newInstance();		
+			DatatypeFactory factory = DatatypeFactory.newInstance();
 			return factory.newXMLGregorianCalendar(calendar);
 		}
 		catch(DatatypeConfigurationException e)

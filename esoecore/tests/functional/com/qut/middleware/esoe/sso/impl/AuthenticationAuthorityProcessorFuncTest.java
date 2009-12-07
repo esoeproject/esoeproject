@@ -37,6 +37,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
@@ -64,6 +65,7 @@ import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.bean.impl.SSOProcessorDataImpl;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
+import com.qut.middleware.esoe.sso.pipeline.Handler;
 import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.saml.SPEPRole;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
@@ -116,7 +118,6 @@ public class AuthenticationAuthorityProcessorFuncTest
 	private Marshaller<AuthnRequest> marshaller;
 	private Unmarshaller<Response> unmarshaller;
 
-	private PrivateKey privKey;
 	private PublicKey pk;
 	private KeystoreResolver keyStoreResolver;
 
@@ -127,6 +128,8 @@ public class AuthenticationAuthorityProcessorFuncTest
 	private List<String> defaultSupportedType;
 	private EntityData entityData;
 	private SPEPRole spepRole;
+	private Properties properties;
+	private List<Handler> handlers;
 
 	public AuthenticationAuthorityProcessorFuncTest()
 	{
@@ -261,6 +264,8 @@ public class AuthenticationAuthorityProcessorFuncTest
 	{
 		try
 		{
+			properties = new Properties();
+			handlers = new ArrayList<Handler>();
 			samlValidator = new SAMLValidatorImpl(new IdentifierCacheImpl(), 120);
 			sessionsProcessor = createMock(SessionsProcessor.class);
 			identifierGenerator = createMock(IdentifierGenerator.class);
@@ -288,7 +293,6 @@ public class AuthenticationAuthorityProcessorFuncTest
 			spepKeyPassword = "9d600hGZQV7591nWVtNcwAtU";
 
 			keyStoreResolver = new KeystoreResolverImpl(new File(keyStorePath), keyStorePassword, spepKeyAlias, spepKeyPassword);
-			privKey = keyStoreResolver.getLocalPrivateKey();
 			pk = keyStoreResolver.getLocalPublicKey();
 			identifierMap = new HashMap<String, String>();
 			identifierMap.put(NameIDFormatConstants.emailAddress, "mail");
@@ -363,8 +367,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	@Test(expected = IllegalArgumentException.class)
 	public void testExecute1() throws Exception
 	{
-		String esoeIdentifier = "esoe";
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, esoeIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		authAuthorityProcessor.execute(null);
 	}
 
@@ -381,7 +384,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		List<String> entities = new ArrayList<String>();
 		entities.add("12345-12345");
 
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, authnIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		data.setSessionID("1234567890");
@@ -456,7 +459,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		List<String> entities = new ArrayList<String>();
 		entities.add("12345-12345");
 
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, authnIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		data.setSessionID("1234567890");
@@ -523,7 +526,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		List<String> entities = new ArrayList<String>();
 		entities.add("12345-12345");
 
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, authnIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		data.setSessionID("1234567890");
@@ -582,7 +585,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	{
 		String esoeIdentifier = "esoe";
 		
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, esoeIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		data.setSessionID("1234567890");
@@ -631,7 +634,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 		List<String> entities = new ArrayList<String>();
 		entities.add("12345-12345");
 
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, authnIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		data.setSessionID("1234567890");
@@ -700,7 +703,7 @@ public class AuthenticationAuthorityProcessorFuncTest
 	{
 		String esoeIdentifier = "esoe";
 		
-		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, 120, 20, false, identifierMap, esoeIdentifier);
+		authAuthorityProcessor = new SSOProcessorImpl(samlValidator, sessionsProcessor, this.metadata, identifierGenerator, metadata, keyStoreResolver, identifierMap, handlers, properties);
 		data.setHttpRequest(request);
 		data.setHttpResponse(response);
 		data.setSessionID("1234567890");

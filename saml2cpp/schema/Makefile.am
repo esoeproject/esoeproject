@@ -1,4 +1,4 @@
-saml2datadir = $(datadir)/saml2-$(VERSION)
+saml2datadir = $(datadir)/saml2
 saml2schemadir = $(saml2datadir)/schema
 dist_saml2schema_DATA = lxacml-schema-saml-protocol.xsd \
 esoe-schema-saml-protocol.xsd \

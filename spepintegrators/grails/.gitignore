@@ -1,0 +1,4 @@
+*.zip
+web-app
+plugin.xml
+test/reports

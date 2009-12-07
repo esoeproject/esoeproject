@@ -1,0 +1,19 @@
+archiveBaseName = 'spepintegrator-blackboard'
+eclipseProject.projectName = archiveBaseName
+
+dependencies {
+	compile project(':spepjavafilter')
+
+	compile fileTree(dir:'lib', includes:['*.jar'])
+}
+
+def checkLibs = {
+	if (fileTree(dir:'lib', includes:['*.jar']).files.empty) {
+		logger.error('This project requires dependencies to be placed in the lib directory. Compilation disabled.')
+		throw new StopExecutionException()
+	}
+}
+
+compileJava.doFirst checkLibs
+jar.doFirst checkLibs
+

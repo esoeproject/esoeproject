@@ -1,0 +1,12 @@
+usePlugin 'war'
+
+dependencies {
+	compile "net.sf.click:click:1.5.3"
+}
+
+war {
+	from 'webapp/content/'
+	webInf {
+		from 'webapp/descriptors/'
+	}
+}

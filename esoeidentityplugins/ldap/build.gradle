@@ -1,0 +1,10 @@
+archiveBaseName = 'esoeidentityplugin-ldap'
+eclipseProject.projectName = archiveBaseName
+
+dependencies {
+	compile project(':esoecore')
+	compile project(':saml2java')
+	compile project(':saml2metadata')
+
+	compile 'org.springframework.ldap:spring-ldap:1.2.1'
+}

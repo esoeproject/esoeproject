@@ -1,0 +1,14 @@
+archiveBaseName = 'esoedelegator-shibboleth'
+eclipseProject.projectName = archiveBaseName
+
+dependencies {
+	compile project(':saml2java')
+	compile project(':esoecrypto')
+	compile project(':esoecore')
+
+	['core', 'context', 'context-support', 'beans', 'web'].each {
+		compile "org.springframework:spring-${it}:2.5.6"
+	}
+
+	compile 'net.sf.click:click:1.5.3'
+}

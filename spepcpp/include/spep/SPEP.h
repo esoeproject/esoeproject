@@ -20,6 +20,9 @@
 #ifndef SPEP_H_
 #define SPEP_H_
 
+// This needs to be included first on Win32
+#include "spep/UnicodeStringConversion.h"
+
 #include "spep/Util.h"
 #include "spep/config/ConfigurationReader.h"
 

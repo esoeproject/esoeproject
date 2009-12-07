@@ -1,0 +1,16 @@
+archiveBaseName = 'spepintegrator-confluencejira'
+eclipseProject.projectName = archiveBaseName
+
+repositories {
+	mavenRepo urls:'https://maven.atlassian.com/content/groups/public/'
+}
+
+dependencies {
+	compile project(':spepjavafilter')
+
+	compile 'log4j:log4j:1.2.14'
+
+	compile('com.atlassian.seraph:atlassian-seraph:2.1.1') { transitive = false }
+	compile('com.atlassian.bucket:atlassian-bucket:1.3') { transitive = false }
+	compile('com.atlassian.user:atlassian-user:2.0.2') { transitive = false }
+}

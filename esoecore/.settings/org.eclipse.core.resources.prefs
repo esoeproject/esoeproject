@@ -1,7 +1,0 @@
-#Wed Jul 30 11:38:28 EST 2008
-eclipse.preferences.version=1
-encoding//src/com/qut/middleware/esoe/authn/impl/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/authn/servlet/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/sso/impl/messages.properties=8859_1
-encoding//src/com/qut/middleware/esoe/ws/impl/messages.properties=8859_1
-instance/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true

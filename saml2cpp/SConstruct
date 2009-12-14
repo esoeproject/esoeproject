@@ -1,0 +1,41 @@
+# vim: ft=python
+
+VariantDir('build', 'src', duplicate=0)
+Repository('src')
+
+includedirs = ['./include']
+libdirs = []
+
+libdirs_arg = ARGUMENTS.get('libdirs')
+includedirs_arg = ARGUMENTS.get('includedirs')
+
+if libdirs_arg:
+	libdirs += Split(libdirs_arg)
+if includedirs_arg:
+	includedirs += Split(includedirs_arg)
+
+env = Environment(CPPPATH=includedirs, LIBPATH=libdirs)
+conf = Configure(env)
+
+boost_libs = ['program_options', 'thread', 'date_time']
+
+if False in [conf.CheckLibWithHeader('boost_'+name, 'boost/'+name+'.hpp', 'c++') for name in boost_libs]:
+	print 'Did not find Boost libraries'
+	Exit(1)
+
+
+env = conf.Finish()
+
+paths = Split("""
+	saml2/resolver/*
+	saml2/identifier/*
+	saml2/logging/*
+	saml2/validator/*
+	saml2/handlers/*
+	saml2/xsd/*
+	saml2/exceptions/*
+	saml2/bindings/*
+	saml2/namespace/*
+""")
+
+env.SharedLibrary('esoesaml2', [Glob(path) for path in paths])

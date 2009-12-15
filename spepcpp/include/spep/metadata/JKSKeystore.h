@@ -36,6 +36,9 @@ typedef UINT16 uint16_t;
 #include <map>
 #include <vector>
 #include <sys/types.h>
+extern "C" {
+#include <stdint.h>
+}
 
 namespace spep
 {

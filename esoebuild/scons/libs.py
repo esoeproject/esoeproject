@@ -44,5 +44,10 @@ class libs:
 			print 'Did not find ESOE SAML 2.0 library'
 			Exit(1)
 
+	def esoe_spep_lib(self):
+		if not conf.CheckLibWithHeader('spep', 'spep/SPEP.h', 'c++'):
+			print 'Did not find ESOE SPEP library'
+			Exit(1)
+
 obj = libs(conf)
 Return('obj')

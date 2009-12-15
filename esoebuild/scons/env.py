@@ -13,6 +13,5 @@ if includedirs_arg:
 env = Environment(CPPPATH=includedirs, LIBPATH=libdirs)
 
 env.VariantDir('build', 'src', duplicate=0)
-env.Repository('src')
 
 Return('env')

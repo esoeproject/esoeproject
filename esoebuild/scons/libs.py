@@ -13,6 +13,16 @@ class libs:
 			print 'Did not find XSD library'
 			Exit(1)
 
+	def check_xerces_lib(self):
+		if not self.conf.CheckLibWithHeader('xerces-c', 'xercesc/dom/DOMElement.hpp', 'c++'):
+			print 'Did not find Xerces library'
+			Exit(1)
+
+	def check_xml_security_lib(self):
+		if not self.conf.CheckLibWithHeader('xml-security-c', 'xsec/utils/XSECPlatformUtils.hpp', 'c++'):
+			print 'Did not find Xml-Security-C library'
+			Exit(1)
+
 	def check_boost_libs(self):
 		boost_libs = ['program_options', 'thread', 'date_time']
 

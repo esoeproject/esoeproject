@@ -6,12 +6,14 @@ Export('env')
 Export('conf')
 
 libs = SConscript('../esoebuild/scons/libs.py')
-libs.check_boost_libs()
+libs.check_xerces_lib()
+libs.check_xml_security_lib()
 libs.check_xsd_lib()
 
 env = conf.Finish()
 
-paths = Split("""
+Repository('src')
+sources = [env.Glob(path) for path in Split("""
 	saml2/resolver/*.cpp
 	saml2/identifier/*.cpp
 	saml2/logging/*.cpp
@@ -21,6 +23,6 @@ paths = Split("""
 	saml2/exceptions/*.cpp
 	saml2/namespace/*.cpp
 	saml2/bindings/*.cxx
-""")
+""")]
 
-env.SharedLibrary('esoesaml2', [Glob(path) for path in paths])
+env.SharedLibrary('esoesaml2', sources)

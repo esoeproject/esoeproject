@@ -39,6 +39,19 @@ class libs:
 			print 'Did not find Asio library'
 			Exit(1)
 
+	def apache_lib(self):
+		if not conf.CheckCHeader('apr.h'):
+			print 'Did not find APR headers (required for Apache)'
+			Exit(1)
+		if not conf.CheckCHeader('httpd.h'):
+			print 'Did not find Apache headers'
+			Exit(1)
+
+	def apreq_lib(self):
+		if not conf.CheckLibWithHeader('apreq2', 'apreq2/apreq.h', 'c'):
+			print 'Did not find libapreq2 library'
+			Exit(1)
+
 	def esoe_saml_lib(self):
 		if not conf.CheckLibWithHeader(['esoesaml2'] + [name+self.boost_suffix for name in self.boost_libraries], 'saml2/SAML2Defs.h', 'c++'):
 			print 'Did not find ESOE SAML 2.0 library'

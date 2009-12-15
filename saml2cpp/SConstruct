@@ -6,9 +6,9 @@ Export('env')
 Export('conf')
 
 libs = SConscript('../esoebuild/scons/libs.py')
-libs.check_xerces_lib()
-libs.check_xml_security_lib()
-libs.check_xsd_lib()
+libs.xerces_lib()
+libs.xml_security_lib()
+libs.xsd_lib()
 
 env = conf.Finish()
 

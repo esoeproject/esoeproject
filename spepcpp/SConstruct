@@ -1,0 +1,45 @@
+# vim: ft=python
+env = SConscript('../esoebuild/scons/env.py')
+conf = Configure(env)
+
+Export('env')
+Export('conf')
+
+libs = SConscript('../esoebuild/scons/libs.py')
+libs.curl_lib()
+libs.asio_lib()
+libs.xerces_lib()
+libs.xml_security_lib()
+libs.xsd_lib()
+libs.boost_libs()
+libs.esoe_saml_lib()
+
+env = conf.Finish()
+
+Repository('src')
+sources = [env.Glob(path) for path in Split("""
+spep/*.cpp
+spep/attribute/*.cpp
+spep/authn/*.cpp
+spep/config/*.cpp
+spep/config/impl/*.cpp
+spep/config/proxy/*.cpp
+spep/exceptions/*.cpp
+spep/identifier/proxy/*.cpp
+spep/ipc/*.cpp
+spep/logging/proxy/*.cpp
+spep/metadata/*.cpp
+spep/metadata/impl/*.cpp
+spep/metadata/proxy/*.cpp
+spep/pep/*.cpp
+spep/pep/impl/*.cpp
+spep/pep/proxy/*.cpp
+spep/sessions/*.cpp
+spep/sessions/impl/*.cpp
+spep/sessions/proxy/*.cpp
+spep/startup/impl/*.cpp
+spep/startup/proxy/*.cpp
+spep/ws/*.cpp
+""")]
+
+env.SharedLibrary('spep', sources)

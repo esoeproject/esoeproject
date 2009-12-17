@@ -53,7 +53,7 @@ class libs:
 			Exit(1)
 
 	def esoe_saml_lib(self):
-		if not conf.CheckLibWithHeader(['esoesaml2'] + [name+self.boost_suffix for name in self.boost_libraries], 'saml2/SAML2Defs.h', 'c++'):
+		if not conf.CheckLibWithHeader('esoesaml2', 'saml2/SAML2Defs.h', 'c++'):
 			print 'Did not find ESOE SAML 2.0 library'
 			Exit(1)
 

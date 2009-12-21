@@ -30,15 +30,18 @@ typedef UINT64 uint64_t;
 typedef UINT32 uint32_t;
 typedef UINT16 uint16_t;
 
+#else //WIN32
+
+extern "C" {
+#include <stdint.h>
+}
+
 #endif //WIN32
 
 #include <string>
 #include <map>
 #include <vector>
 #include <sys/types.h>
-extern "C" {
-#include <stdint.h>
-}
 
 namespace spep
 {

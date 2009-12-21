@@ -5,12 +5,15 @@ conf = Configure(env)
 Export('env')
 Export('conf')
 
+env.MergeFlags('-DBUILDING_MODSPEP')
+
 libs = SConscript('../esoebuild/scons/libs.py')
 libs.curl_lib()
 libs.asio_lib()
 libs.xerces_lib()
 libs.xml_security_lib()
 libs.xsd_lib()
+libs.icu_lib()
 libs.boost_libs()
 libs.esoe_saml_lib()
 libs.esoe_spep_lib()
@@ -22,6 +25,7 @@ env = conf.Finish()
 Repository('src')
 sources = [env.Glob(path) for path in Split("""
 	*.cpp
+	versions/*.cpp
 """)]
 
 env.LoadableModule('modspep', sources, SHLIBPREFIX='')

@@ -5,7 +5,10 @@ conf = Configure(env)
 Export('env')
 Export('conf')
 
+env.MergeFlags('-DBUILDING_SAML2')
+
 libs = SConscript('../esoebuild/scons/libs.py')
+libs.openssl_lib()
 libs.xerces_lib()
 libs.xml_security_lib()
 libs.xsd_lib()

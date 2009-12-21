@@ -2,16 +2,16 @@
 includedirs = ['include']
 libdirs = []
 
-libdirs_arg = ARGUMENTS.get('libdirs')
-if libdirs_arg:
-	libdirs += Split(libdirs_arg)
+platform = ARGUMENTS.get('OS', Platform().name)
+libdirs += Split(ARGUMENTS.get('libdirs', ''))
+includedirs += Split(ARGUMENTS.get('includedirs', ''))
 
-includedirs_arg = ARGUMENTS.get('includedirs')
-if includedirs_arg:
-	includedirs += Split(includedirs_arg)
-
-env = Environment(CPPPATH=includedirs, LIBPATH=libdirs)
-
+env = Environment(CPPPATH=includedirs, LIBPATH=libdirs, PLATFORM=platform)
+env.ParseFlags('-Optimized')
+if platform == 'win32':
+	env.MergeFlags('-DWIN32 -D_WINDOWS -D_WIN32_WINNT=0x0501')
+	env.MergeFlags({'CCFLAGS':Split('/MD /EHsc /W0 /nologo /Ox')})
+	#env.MergeFlags({'LINKFLAGS':['/FORCE:MULTIPLE']})
 env.VariantDir('build', 'src', duplicate=0)
 
 Return('env')

@@ -1,4 +1,7 @@
+Import('env')
 Import('conf')
+
+import SCons.Script.Main
 
 class libs:
 	conf
@@ -9,9 +12,38 @@ class libs:
 		self.conf = conf
 		if ARGUMENTS.get('boostsuffix'): self.boost_suffix = ARGUMENTS.get('boostsuffix')
 
+	def openssl_lib(self):
+		if env.get('PLATFORM') == 'win32':
+			if not conf.CheckLibWithHeader('libeay32', 'openssl/opensslv.h', 'c'):
+				print 'Did not find OpenSSL library'
+				Exit(1)
+			if not conf.CheckLibWithHeader('ssleay32', 'openssl/opensslv.h', 'c'):
+				print 'Did not find OpenSSL library'
+				Exit(1)
+		else:
+			if not conf.CheckLibWithHeader(['crypto'], 'openssl/opensslv.h', 'c'):
+				print 'Did not find OpenSSL library'
+				Exit(1)
+			if not conf.CheckLibWithHeader(['ssl'], 'openssl/opensslv.h', 'c'):
+				print 'Did not find OpenSSL library'
+				Exit(1)
+
 	def xsd_lib(self):
 		if not conf.CheckCXXHeader('xsd/cxx/tree/elements.hxx'):
 			print 'Did not find XSD library'
+			Exit(1)
+
+	def icu_lib(self):
+		if not conf.CheckCXXHeader('unicode/unistr.h'):
+			print 'Did not find ICU library header'
+			Exit(1)
+
+		iculibs = ['icudata', 'icui18n', 'icuio', 'icule', 'iculx', 'icutu', 'icuuc']
+		if env.get('PLATFORM') == 'win32':
+			iculibs = ['icudt', 'icuin', 'icuio', 'icule', 'iculx', 'icutu', 'icuuc']
+
+		if False in [conf.CheckLib(lib) for lib in iculibs]:
+			print 'Did not find ICU library'
 			Exit(1)
 
 	def xerces_lib(self):
@@ -25,9 +57,14 @@ class libs:
 			Exit(1)
 
 	def boost_libs(self):
-		if False in [conf.CheckLibWithHeader('boost_'+name+self.boost_suffix, 'boost/'+name+'.hpp', 'c++') for name in self.boost_libraries]:
-			print 'Did not find Boost libraries'
-			Exit(1)
+		if env.get('PLATFORM') == 'win32':
+			if False in [conf.CheckCXXHeader('boost/'+name+'.hpp') for name in self.boost_libraries]:
+				print 'Did not find Boost libraries'
+				Exit(1)
+		else:
+			if False in [conf.CheckLibWithHeader('boost_'+name+self.boost_suffix, 'boost/'+name+'.hpp', 'c++') for name in self.boost_libraries]:
+				print 'Did not find Boost libraries'
+				Exit(1)
 
 	def curl_lib(self):
 		if not conf.CheckLibWithHeader('curl', 'curl/curl.h', 'c'):
@@ -62,5 +99,15 @@ class libs:
 			print 'Did not find ESOE SPEP library'
 			Exit(1)
 
-obj = libs(conf)
+class noop_libs:
+	def __getattr__(self, name):
+		return self.do_nothing
+	def do_nothing(self):
+		pass
+
+if SCons.Script.Main.GetOption('clean'):
+	obj = noop_libs()
+else:
+	obj = libs(conf)
+
 Return('obj')

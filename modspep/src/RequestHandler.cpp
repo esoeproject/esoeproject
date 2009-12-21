@@ -17,14 +17,17 @@
  * Purpose: 
  */
 
+#include <unicode/regex.h>
+#include <unicode/parseerr.h>
+
+#include "spep/UnicodeStringConversion.h"
+#include "spep/Base64.h"
+#include "spep/exceptions/AuthnException.h"
+
 #include "RequestHandler.h"
 #include "Cookies.h"
 
 #include "spep/pep/PolicyEnforcementProcessorData.h"
-#include "spep/UnicodeStringConversion.h"
-
-#include <unicode/regex.h>
-#include <unicode/parseerr.h>
 
 #include <boost/date_time/local_time/local_time.hpp>
 

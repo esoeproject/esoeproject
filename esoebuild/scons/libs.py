@@ -83,9 +83,22 @@ class libs:
 		if not conf.CheckCHeader('httpd.h'):
 			print 'Did not find Apache headers'
 			Exit(1)
+		if env.get('PLATFORM') == 'win32':
+			if not conf.CheckLib('libhttpd'):
+				print 'Did not find Apache HTTPD library'
+				Exit(1)
+			if not conf.CheckLib('libapr') and not conf.CheckLib('libapr-1'):
+				print 'Did not find APR library (required for Apache)'
+				Exit(1)
+			if not conf.CheckLib('libaprutil') and not conf.CheckLib('libaprutil-1'):
+				print 'Did not find APR Util library (required for Apache)'
+				Exit(1)
 
 	def apreq_lib(self):
-		if not conf.CheckLibWithHeader('apreq2', 'apreq2/apreq.h', 'c'):
+		name = 'apreq2'
+		if env.get('PLATFORM') == 'win32':
+			name = 'libapreq2'
+		if not conf.CheckLibWithHeader(name, 'apreq2/apreq.h', 'c'):
 			print 'Did not find libapreq2 library'
 			Exit(1)
 

@@ -188,3 +188,13 @@ std::string spep::UnicodeStringConversion::toString( const UnicodeString &src )
 	// TODO Length?
 	return std::string( buf.get() );
 }
+
+std::wstring spep::UnicodeStringConversion::toWString( const char *src )
+{
+	return toWString( std::string(src) );
+}
+
+std::string spep::UnicodeStringConversion::toString( const wchar_t *src )
+{
+	return toString( std::wstring(src) );
+}

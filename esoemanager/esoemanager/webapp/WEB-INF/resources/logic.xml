@@ -95,8 +95,8 @@
 		<property name="organizationName" value="${organizationName}"/>
 		<property name="organizationDisplayName" value="${organizationDisplayName}"/>
 		<property name="organizationURL" value="${organizationURL}"/>
-		<property name="defaultServiceAccessPolicyLocation" value="WEB-INF/defaultAccessPolicy.xml"/>
-		<property name="defaultServiceManagementPolicyLocation" value="WEB-INF/defaultManagementPolicy.xml"/>
+		<property name="defaultServiceAccessPolicyLocation" value="${esoemanager.data}/config/defaultAccessPolicy.xml"/>
+		<property name="defaultServiceManagementPolicyLocation" value="${esoemanager.data}/config/defaultManagementPolicy.xml"/>
 		<property name="esoeManagerENTID" ref="esoeManagerEntID"/>
 	</bean>
 	

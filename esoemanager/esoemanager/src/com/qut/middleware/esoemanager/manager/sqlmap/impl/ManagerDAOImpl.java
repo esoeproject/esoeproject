@@ -740,6 +740,7 @@ public class ManagerDAOImpl extends SqlMapClientDaoSupport implements ManagerDAO
 		parameters.put(Constants.FIELD_ENDPOINT_ASSERTIONCONSUMER, assertionConsumerEndpoint);
 		parameters.put(Constants.FIELD_ENDPOINT_SINGLELOGOUT, singleLogoutEndpoint);
 		parameters.put(Constants.FIELD_ENDPOINT_CACHECLEAR, cacheClearEndpoint);
+		// TODO The ACTIVEFLAG column is hard set to 'n' in the sqlmap. Need to make it more flexible.
 
 		try
 		{

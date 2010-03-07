@@ -164,8 +164,9 @@ public class ServiceImpl implements Service
 			Integer newDescID = this.managerDAO.getNextDescID();
 
 			// Create the entity
+			// TODO Make the default active flag configurable.
 			this.managerDAO.insertEntityDescriptor(newEntID, entityID, entityHost, organizationName, organizationDisplayName,
-					organizationURL, "n");
+					organizationURL, "y");
 
 			// Create the description
 			this.managerDAO.insertServiceDescription(newEntID, serviceName, serviceURL, serviceDescription,

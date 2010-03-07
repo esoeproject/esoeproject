@@ -368,7 +368,7 @@
 	<insert id="insertServiceNode" parameterMap="serviceNodeMap"> INSERT INTO
 		SERVICE_ENDPOINTS ( DESC_ID, ENDPOINTID, NODEURL,
 		ASSERTIONCONSUMER_ENDPOINT, SINGLELOGOUT_ENDPOINT,
-		CACHECLEAR_ENDPOINT, ACTIVEFLAG) VALUES ( ?, ?, ?, ?, ?, ?, 'n' )
+		CACHECLEAR_ENDPOINT, ACTIVEFLAG) VALUES ( ?, ?, ?, ?, ?, ?, 'y' )
 	</insert>
 	<insert id="insertServiceContacts" parameterMap="serviceContactMap"> INSERT INTO
 		ENTITY_CONTACTS ( ENT_ID, CONTACTID, CONTACTTYPE, COMPANY, GIVENNAME,

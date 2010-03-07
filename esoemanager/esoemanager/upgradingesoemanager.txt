@@ -85,4 +85,6 @@ To subsequently give users admin rights over services you can use the new interf
 SVN for this project. Note ...serviceid:X refers to the value of EntID in the database for all services. New service creations have a policy created in ESOE Manager
 automatically which superusers can then modify.
 
+The defaultAccessPolicy.xml and defaultManagementPolicy.xml files need to be copied to ${esoemanager.data}/config
+
 Once the above is undertaken you should be able to restart with the new ESOE Manager instance.

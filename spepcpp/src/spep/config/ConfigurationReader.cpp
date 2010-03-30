@@ -23,6 +23,8 @@
 
 #include "saml2/exceptions/InvalidParameterException.h"
 
+#include <cstdio>
+
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif /*_MSC_VER*/

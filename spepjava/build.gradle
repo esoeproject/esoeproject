@@ -46,10 +46,12 @@ artifacts {
 jar.dependsOn propertyFile, interfacesJar
 
 task war(type:War, dependsOn:jar) {
-	classpath(dir:compileJava.destinationDir)
-	classpath(dir:'webapp/classes')
+	classpath = compileJava.destinationDir
 	webInf {
 		from 'webapp/descriptors'
+		from('webapp/classes') {
+			into 'classes'
+		}
 	}
 	classpath configurations.runtime
 }

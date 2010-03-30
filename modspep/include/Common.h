@@ -28,7 +28,7 @@
 
 #if defined(WIN32) && defined(_MSC_VER)
 
-#ifdef BUILDING_SPEP
+#ifdef BUILDING_MODSPEP
 #define MODSPEPEXPORT __declspec(dllexport)
 #define MODSPEPCONSTANT __declspec(dllexport) extern
 #else

@@ -16,7 +16,12 @@
  * 
  * Purpose: 
  */
- 
+
+#ifdef WIN32
+// For snprintf
+#include <saml2/SAML2Defs.h>
+#endif //WIN32
+
 #include "Cookies.h"
 #include "APRDefinitions.h"
 

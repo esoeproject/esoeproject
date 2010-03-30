@@ -61,16 +61,8 @@ namespace spep
 		static std::string toString( const std::wstring& src );
 		static std::wstring toWString( const std::string& src );
 		static std::string toString( const UnicodeString& src );
-
-		inline static std::wstring toWString( const char *src )
-		{
-			return toWString( std::string(src) );
-		}
-
-		inline static std::string toString( const wchar_t *src )
-		{
-			return toString( std::wstring(src) );
-		}
+		static std::wstring toWString( const char *src );
+		static std::string toString( const wchar_t *src );
 		
 		template <typename CharT, typename SizeT, typename RefCountT>
 		static UnicodeString toUnicodeString( const saml2::ManagedDocument<CharT,SizeT,RefCountT>& managedDocument )

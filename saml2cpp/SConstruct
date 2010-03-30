@@ -1,0 +1,31 @@
+# vim: ft=python
+env = SConscript('../esoebuild/scons/env.py')
+conf = Configure(env)
+
+Export('env')
+Export('conf')
+
+env.MergeFlags('-DBUILDING_SAML2')
+
+libs = SConscript('../esoebuild/scons/libs.py')
+libs.openssl_lib()
+libs.xerces_lib()
+libs.xml_security_lib()
+libs.xsd_lib()
+
+env = conf.Finish()
+
+Repository('src')
+sources = [env.Glob(path) for path in Split("""
+	saml2/resolver/*.cpp
+	saml2/identifier/*.cpp
+	saml2/logging/*.cpp
+	saml2/validator/*.cpp
+	saml2/handlers/*.cpp
+	saml2/xsd/*.cpp
+	saml2/exceptions/*.cpp
+	saml2/namespace/*.cpp
+	saml2/bindings/*.cxx
+""")]
+
+env.SharedLibrary('esoesaml2', sources)

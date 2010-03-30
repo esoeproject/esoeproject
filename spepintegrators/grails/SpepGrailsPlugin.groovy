@@ -39,9 +39,7 @@ Integrates the SPEP filter with a Grails application.
 	def doWithSpring = {
 		rationaliseConfig(application.config)
 
-		if (application.config.spep.enabled) {
-			
-			log.debug("SPEP: configuring user bean with name ${application.config.spep.beanName} of class ${application.config.spep.userClass.name}") 
+		if (application.config.spep.enabled && application.config.spep.userClass) {
 			
 			spepUserSessionBean(application.config.spep.userClass) {
 				it.scope = "session"
@@ -71,7 +69,7 @@ Integrates the SPEP filter with a Grails application.
 					'filter-name'("spep-grails-plugin-filter")
 					'init-param' {
 						'param-name'("spep-context")
-						'param-value'("/spep")
+						'param-value'(application.config.spep.contextName ?: "/spep")
 					}
 				}
 			}

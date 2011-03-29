@@ -230,7 +230,7 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 		for( authnStatementIterator = assertionIterator->AuthnStatement().begin(); authnStatementIterator != assertionIterator->AuthnStatement().end(); authnStatementIterator++ )
 		{
 			// Process it
-			std::pair<bool,std::string> resultPair = processAuthnStatement( *authnStatementIterator, *assertionIterator, data.getDisableAttributeQuery() );
+			std::pair<bool,std::string> resultPair = processAuthnStatement( *authnStatementIterator, *assertionIterator, data.getRemoteIpAddress(), data.getDisableAttributeQuery() );
 			
 			// The first of the pair is a "success" value. If it's false, something failed.
 			if (! resultPair.first)
@@ -253,10 +253,11 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 }
 
 void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data )
-{
-	_localLogger.debug() << "Going to create a new AuthnRequest";
-	
+{	
 	std::wstring authnRequestSAMLID( this->_identifierGenerator->generateSAMLAuthnID() );
+	
+	// AMCG. Was debug - changed to info
+	_localLogger.info() << "Going to create a new AuthnRequest - REMOTE_ADDR: " << data.getRemoteIpAddress() << ". Generated SAMLAuthnID: " << UnicodeStringConversion::toString(authnRequestSAMLID);
 
 	// Create the unauthenticated session
 	UnauthenticatedSession unauthenticatedSession;
@@ -315,17 +316,17 @@ void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data 
 	// Success! Insert the unauthenticated session in the cache.
 	this->_sessionCache->insertUnauthenticatedSession( unauthenticatedSession );
 	
-	_localLogger.info() << "Created unauthenticated session for new AuthnRequest. SAML ID: " << UnicodeStringConversion::toString( authnRequestSAMLID );
+	_localLogger.info() << "Created unauthenticated session for new AuthnRequest. REMOTE_ADDR: " << data.getRemoteIpAddress() << "SAML ID: " << UnicodeStringConversion::toString(authnRequestSAMLID);
 }
 
-std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const saml2::assertion::AuthnStatementType& authnStatement, const saml2::assertion::AssertionType& assertion, bool disableAttributeQuery )
+std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const saml2::assertion::AuthnStatementType& authnStatement, const saml2::assertion::AssertionType& assertion, const std::string& remoteAddress, bool disableAttributeQuery )
 {
 	bool result = false;
 	PrincipalSession principalSession;
 	
 	std::string sessionID = this->_identifierGenerator->generateSessionID();
 	
-	_localLogger.info() << "Going to process authn statement for new session. Session ID: " << sessionID;
+	_localLogger.info() << "Going to process authn statement for new session. REMOTE_ADDR: " << remoteAddress << ". Session ID: " << sessionID;
 	
 	// Get the ESOE session ID and session index out of the document.
 	saml2::assertion::SubjectType subject = assertion.Subject().get();

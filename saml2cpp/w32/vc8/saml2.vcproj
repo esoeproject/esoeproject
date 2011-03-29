@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;C:\OpenSSL\include;&quot;C:\Program Files\CodeSynthesis XSD 3.2\include&quot;;&quot;C:\Boost\include\boost-1_34_1&quot;;C:\spep\icu\include;&quot;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\include&quot;;&quot;C:\spep\xml-security-c-1.5.1\include&quot;"
+				AdditionalIncludeDirectories="..\..\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;WIN32_LEAN_AND_MEAN;BUILDING_SAML2"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\OpenSSL\lib;C:\Boost\lib;C:\spep\icu\lib;&quot;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\lib&quot;;&quot;C:\spep\xml-security-c-1.5.1\Build\Win32\VC8\Release No Xalan&quot;"
+				AdditionalLibraryDirectories="..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -116,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;C:\OpenSSL\include;&quot;C:\Program Files\CodeSynthesis XSD 3.2\include&quot;;&quot;C:\Boost\include\boost-1_34_1&quot;;&quot;C:\spep\libcurl-7.19.3-win32-ssl-msvc\include&quot;;C:\spep\icu\include;&quot;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\include&quot;;&quot;C:\spep\xml-security-c-1.5.1\include&quot;"
+				AdditionalIncludeDirectories="..\..\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;BUILDING_SAML2"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -137,7 +137,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\OpenSSL\lib;C:\Boost\lib;C:\spep\libcurl-7.19.3-win32-ssl-msvc;C:\spep\icu\lib;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\lib;C:\spep\xml-security-c-1.5.1\Build\Win32\VC8\Release No Xalan"
+				AdditionalLibraryDirectories="..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"

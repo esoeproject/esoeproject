@@ -56,7 +56,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 		{
 			// Serious problem. Inconsistent map. No ESOE session ID for the given session.
 			
-			_localLogger.error() << "Session cache has become inconsistent. No ESOE session found for principal session, even though the session ID was found successfully.";
+			_localLogger.error() << "Session cache has become inconsistent. No ESOE session found for principal session, even though the session ID '" << sessionID << "' was found successfully.";
 			throw InvalidStateException( "Session cache has become inconsistent" );
 		}
 		

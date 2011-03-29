@@ -53,11 +53,14 @@ _ssoHandler(NULL)
 	
 	_wsHandler = new WSHandler( _spep, this );
 	_ssoHandler = new SSOHandler( _spep, this );
+
+	m_localLogger = LocalLoggerPtr(new saml2::LocalLogger(_spep->getLogger(), "spep::isapi::SPEPExtension"));
 }
 
 spep::isapi::SPEPExtension::~SPEPExtension()
 {
 	delete _wsHandler;
+	delete _ssoHandler;
 }
 
 DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* request )
@@ -106,8 +109,12 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 		bool validSession = false;
 		try
 		{
+			m_localLogger->debug() << "Found session id in cookie value. Going to verify. Session ID: " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
+
 			principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 			validSession = true;
+
+			m_localLogger->info() << "Verified existing session with Session ID: " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
 		}
 		catch( std::exception &e )
 		{
@@ -161,11 +168,15 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 						// Set the REMOTE_USER
 						request->setRemoteUser( envValue );
 					}
+
+					m_localLogger->debug() << "Attribute inserted into Request Header - Name: " << envName << " Value: " << envValue;
 				}
 			}
 
 			if( this->_spep->getSPEPConfigData()->disablePolicyEnforcement() )
 			{
+				m_localLogger->debug() << "Policy enforcement disabled. Continuing request.";
+
 				// No need to perform authorization, just let them in.
 				return request->continueRequest();
 			}
@@ -186,6 +197,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 			}
 			catch( std::exception& ex )
 			{
+				m_localLogger->info() << "An error occurred when attempting to verify a session after performing authz, with Session ID: " << sessionID << ". Error: " << ex.what();
 			}
 			
 			if( validSession )
@@ -250,6 +262,8 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 				cookiePath = cookiePathString.c_str();
 			}
 			
+			m_localLogger->debug() << "Clearing cookie - Name: " << cookieNameString << " Domain: " << cookieDomainString << " Path: " << cookiePathString;
+
 			// Set the cookie to an empty value.
 			cookies.addCookie( request, cookieName, "", cookiePath, cookieDomain, false );
 		}
@@ -258,6 +272,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 	// Lazy init code.
 	if( spepConfigData->isLazyInit() )
 	{
+		m_localLogger->debug() << "Lazy init is enabled. Continuing.";
 		
 		std::string globalESOECookieName( spepConfigData->getGlobalESOECookieName() );
 		if( cookies[ globalESOECookieName ].length() == 0 )

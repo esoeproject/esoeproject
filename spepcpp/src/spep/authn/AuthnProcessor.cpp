@@ -157,7 +157,7 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 		throw AuthnException( "Unknown error occurred trying to unmarshal Authn Response. Couldn't authenticate session." );
 	}
 	
-	_localLogger.debug() << "Unmarshalled Authn Response with SAML ID: " << UnicodeStringConversion::toString( response->ID() );
+	_localLogger.info() << "Unmarshalled Authn Response with SAML ID: " << UnicodeStringConversion::toString( response->ID() );
 	
 	// Get the request ID from the "InResponseTo" value.
 	// We need to match this against an UnauthenticatedSession in the session cache, otherwise the request
@@ -238,7 +238,7 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 				throw AuthnException( "Failure occurred processing AuthnStatement. Couldn't authenticate session." );
 			}
 			
-			_localLogger.info() << "Authenticated new session. SPEP Session ID: " << resultPair.second;
+			_localLogger.info() << "Authenticated new session." << "REMOTE_ADDR: " << data.getRemoteIpAddress() << ". SPEP Session ID: " << resultPair.second << ". SAML Request ID: " << UnicodeStringConversion::toString(requestID);
 			
 			data.setSessionID( resultPair.second );
 			
@@ -257,7 +257,7 @@ void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data 
 	std::wstring authnRequestSAMLID( this->_identifierGenerator->generateSAMLAuthnID() );
 	
 	// AMCG. Was debug - changed to info
-	_localLogger.info() << "Going to create a new AuthnRequest - REMOTE_ADDR: " << data.getRemoteIpAddress() << ". Generated SAMLAuthnID: " << UnicodeStringConversion::toString(authnRequestSAMLID);
+	_localLogger.info() << "Going to create a new AuthnRequest - REMOTE_ADDR: " << data.getRemoteIpAddress() << ". Generated SAML Request AuthnID: " << UnicodeStringConversion::toString(authnRequestSAMLID);
 
 	// Create the unauthenticated session
 	UnauthenticatedSession unauthenticatedSession;
@@ -336,12 +336,12 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 	
 	if( authnStatement.SessionNotOnOrAfter().present() )
 	{
-		_localLogger.info() << "Session expiry time from ESOE is: " << boost::posix_time::to_iso_extended_string(authnStatement.SessionNotOnOrAfter().get());
+		_localLogger.info() << "Session expiry time from ESOE is: " << boost::posix_time::to_iso_extended_string(authnStatement.SessionNotOnOrAfter().get()) << " for ESOE session: " << spep::UnicodeStringConversion::toString(esoeSessionID);
 		principalSession.setSessionNotOnOrAfter( authnStatement.SessionNotOnOrAfter().get() );
 	}
 	else
 	{
-		_localLogger.error() << "Session expiry value was not presented.";
+		_localLogger.error() << "Session expiry value was not presented for ESOE session: " << spep::UnicodeStringConversion::toString(esoeSessionID);
 	}
 	
 	principalSession.setESOESessionID( esoeSessionID );
@@ -371,7 +371,7 @@ std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const 
 		this->_sessionCache->insertPrincipalSession( sessionID, principalSession );
 		result = true;
 		
-		_localLogger.info() << "Successfully inserted authenticated session (" << sessionID << ") into session cache.";
+		_localLogger.info() << "Successfully inserted authenticated session (" << sessionID << ") into session cache." << "ESOE session ID: " << spep::UnicodeStringConversion::toString(esoeSessionID);
 	}
 	catch ( std::exception &ex )
 	{

@@ -57,6 +57,7 @@ namespace spep{ namespace isapi{
 		virtual const std::string& getQueryString() = 0;
 		virtual const std::string& getScriptName() = 0;
 		virtual const std::string& getContentType() = 0;
+		virtual std::string getRemoteAddress() = 0;
 		virtual DWORD getContentLength() = 0;
 		virtual BOOL isSecureRequest() = 0;
 		virtual DWORD sendResponseHeader( const std::string& statusLine, BOOL keepConn = FALSE ) = 0;
@@ -72,6 +73,7 @@ namespace spep{ namespace isapi{
 		virtual DWORD continueRequest() = 0;
 		virtual void urlDecode( std::string& url ) = 0;
 		virtual void setRemoteUser( const std::string& username ) = 0;
+		virtual void setRemoteAddress(const std::string& ipaddress) = 0;
 	};
 	
 	class ISAPIRequestImpl : public ISAPIRequest
@@ -95,6 +97,7 @@ namespace spep{ namespace isapi{
 		std::string _scriptName;
 		std::string _contentType;
 		std::string _remoteUser;
+		std::string _remoteAddress;
 		std::string _childHeaders;
 		BOOL _isSecureRequest;
 		DWORD _contentLength;
@@ -121,6 +124,8 @@ namespace spep{ namespace isapi{
 		virtual const std::string& getScriptName();
 		
 		virtual const std::string& getContentType();
+
+		virtual std::string getRemoteAddress();
 
 		virtual DWORD getContentLength();
 
@@ -151,6 +156,8 @@ namespace spep{ namespace isapi{
 		virtual void urlDecode( std::string& url );
 		
 		virtual void setRemoteUser( const std::string& username );
+
+		virtual void setRemoteAddress(const std::string& ipaddress);
 	};
 	
 }}

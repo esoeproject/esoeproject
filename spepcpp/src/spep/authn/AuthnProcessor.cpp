@@ -407,7 +407,9 @@ spep::PrincipalSession spep::AuthnProcessor::verifySession( std::string &session
 XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2::protocol::LogoutRequestType *logoutRequest )
 {
 	PrincipalSession principalSession;
-	
+	std::string esoeSessionId;
+	esoeSessionId = spep::UnicodeStringConversion::toString(logoutRequest->NameID()->c_str());
+
 	_localLogger.debug() << "Going to log out an authenticated session. Unmarshalling request document";
 	
 	std::wstring requestSAMLID( logoutRequest->ID().c_str() );
@@ -427,17 +429,16 @@ XERCES_CPP_NAMESPACE::DOMDocument* spep::AuthnProcessor::logoutPrincipal( saml2:
 	}
 	catch (std::exception &ex)
 	{
-		_localLogger.error() << std::string("Error trying to retrieve session from the session cache. Message was: ") << ex.what();
+		_localLogger.error() << "Error trying to retrieve session from the session cache for logout. ESOE Session ID: " << esoeSessionId << ". Message was: " << ex.what();
 		
 		// Can't return null, no pointer type
 		return generateLogoutResponse( saml2::statuscode::UNKNOWN_PRINCIPAL, L"The principal specified in the logout request is not known at this node.", requestSAMLID );
 	}
 	
 	// TODO Check if only specific sessions should be terminated.
-	
 	_sessionCache->terminatePrincipalSession( principalSession.getESOESessionID() );
 	
-	_localLogger.debug() << "Successfully logged out the session requested. Returning a success response document";
+	_localLogger.info() << "Successfully logged out the ESOE Session '" << esoeSessionId << "'. Returning a success response document";
 	
 	// Generate a response to the document.
 	return generateLogoutResponse( saml2::statuscode::SUCCESS, L"Logout succeeded", requestSAMLID );

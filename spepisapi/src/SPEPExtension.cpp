@@ -33,7 +33,7 @@
 namespace spep { namespace isapi {
 } }
 
-spep::isapi::SPEPExtension::SPEPExtension( spep::ConfigurationReader &configReader, std::string log )
+spep::isapi::SPEPExtension::SPEPExtension( spep::ConfigurationReader &configReader, const std::string& log )
 :
 _spep(NULL),
 _stream( log.c_str() ),
@@ -46,7 +46,8 @@ _wsHandler(NULL),
 _ssoHandler(NULL)
 {
 	int port = configReader.getIntegerValue( CONFIGURATION_SPEPDAEMONPORT );
-	
+	_spepWebappURL = std::string(DEFAULT_URL_SPEP_WEBAPP);
+
 	_spep = spep::SPEP::initializeClient( port );
 	// Trigger a startup request.
 	_spep->isStarted();
@@ -109,7 +110,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 		bool validSession = false;
 		try
 		{
-			m_localLogger->debug() << "Found session id in cookie value. Going to verify. Session ID: " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
+			m_localLogger->info() << "Attempting to retrieve data for session with ID of " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
 
 			principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 			validSession = true;
@@ -262,7 +263,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 				cookiePath = cookiePathString.c_str();
 			}
 			
-			m_localLogger->debug() << "Clearing cookie - Name: " << cookieNameString << " Domain: " << cookieDomainString << " Path: " << cookiePathString;
+			m_localLogger->info() << "Clearing cookie - Name: " << cookieNameString << " Domain: " << cookieDomainString << " Path: " << cookiePathString << " Value: " << cookies[cookieNameString];
 
 			// Set the cookie to an empty value.
 			cookies.addCookie( request, cookieName, "", cookiePath, cookieDomain, false );

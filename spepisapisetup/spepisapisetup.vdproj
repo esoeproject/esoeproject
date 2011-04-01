@@ -1126,7 +1126,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SPEP"
         "ProductCode" = "8:{07B364EB-0925-4EEA-BE94-728E45BF8F7B}"
-        "PackageCode" = "8:{62F509CF-21B5-4349-9A4F-3833AEB593B4}"
+        "PackageCode" = "8:{0CEEB9B8-00E8-40D9-BE3B-B44AEDBB86AC}"
         "UpgradeCode" = "8:{7E367EA6-94D5-4E6F-BC98-83781AF13424}"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"

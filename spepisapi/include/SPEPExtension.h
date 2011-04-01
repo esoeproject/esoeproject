@@ -58,7 +58,7 @@ namespace spep{ namespace isapi{
 		LocalLoggerPtr m_localLogger;
 		
 		public:
-		SPEPExtension( spep::ConfigurationReader &configReader, std::string logFile );
+		SPEPExtension( spep::ConfigurationReader &configReader, const std::string& logFile );
 		~SPEPExtension();
 		
 		/**

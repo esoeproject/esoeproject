@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2.lib"
+				AdditionalDependencies="libeay32.lib ssleay32.lib xsec_1.lib xerces-c_2d.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"

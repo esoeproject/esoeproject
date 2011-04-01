@@ -64,7 +64,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="spep.lib saml2.lib icuuc.lib icudt.lib icutu.lib icule.lib iculx.lib icuin.lib advapi32.lib libcurl_imp.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\Debug;..\..\..\saml2cpp\w32\vc8\Debug;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
+				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\release;..\..\..\saml2cpp\w32\vc8\release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				ModuleDefinitionFile="$(ProjectDir)\..\spepisapi.def"
 				GenerateDebugInformation="true"
 				MapExports="false"

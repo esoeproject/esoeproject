@@ -68,7 +68,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 			return;
 		}
 		
-		_localLogger.debug() << "Session expiry: " << sessionID << " was set to expire at " << boost::posix_time::to_simple_string(principalSession.getSessionNotOnOrAfter());
+		_localLogger.info() << "Session expiry: " << sessionID << " was set to expire at " << boost::posix_time::to_simple_string(principalSession.getSessionNotOnOrAfter());
 		
 		// Expired. Terminate it.
 		this->terminatePrincipalSession( principalSession.getESOESessionID() );
@@ -167,7 +167,7 @@ void spep::SessionCacheImpl::insertPrincipalSession( std::string sessionID, spep
 void spep::SessionCacheImpl::terminatePrincipalSession(const std::wstring esoeSessionID)
 {
 	ScopedLock lock(_principalSessionsMutex);
-	
+
 	// Loop up the principal session by ESOE session ID
 	ESOESessionMap::iterator esoeIter = _esoeSessions.find(esoeSessionID);
 	if ( esoeIter != _esoeSessions.end() )
@@ -187,6 +187,8 @@ void spep::SessionCacheImpl::terminatePrincipalSession(const std::wstring esoeSe
 			}
 		}
 		
+		_localLogger.info() << "Terminating Principle Session with ESOE Session ID: " << spep::UnicodeStringConversion::toString(esoeSessionID);
+
 		// After we're done, remove the ESOE session ID from the session cache.
 		_esoeSessions.erase( esoeIter );
 	}
@@ -240,6 +242,8 @@ void spep::SessionCacheImpl::terminateUnauthenticatedSession(std::wstring reques
 
 void spep::SessionCacheImpl::terminateExpiredSessions( int sessionCacheTimeout )
 {
+	_localLogger.info() << "Terminating expired sessions.";
+
 	{
 		ScopedLock lock(_principalSessionsMutex);
 		
@@ -256,7 +260,10 @@ void spep::SessionCacheImpl::terminateExpiredSessions( int sessionCacheTimeout )
 			{
 				// This works because the iterator is incremented before the 
 				// erase() call is made, but the old value is still passed in.
-				_esoeSessions.erase( iter++ );
+				//_esoeSessions.erase( iter++ );
+				std::wstring esoeSessionId = iter->second.getESOESessionID();
+				terminatePrincipalSession(esoeSessionId);
+				iter++;
 			}
 		}
 	}

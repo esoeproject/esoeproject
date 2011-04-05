@@ -6,7 +6,8 @@ import SCons.Script.Main
 class libs:
 	conf
 	boost_suffix = ''
-	boost_libraries = ['program_options', 'thread', 'date_time', 'regex']
+	#boost_libraries = ['program_options', 'thread', 'date_time', 'regex']
+	boost_libraries = ['program_options', 'thread', 'regex']
 
 	def __init__(self, conf):
 		self.conf = conf
@@ -64,6 +65,9 @@ class libs:
 		else:
 			if False in [conf.CheckLibWithHeader('boost_'+name+self.boost_suffix, 'boost/'+name+'.hpp', 'c++') for name in self.boost_libraries]:
 				print 'Did not find Boost libraries'
+				Exit(1)
+			if not conf.CheckLib('boost_date_time'):
+				print 'Did not find boost date_time'
 				Exit(1)
 
 	def curl_lib(self):

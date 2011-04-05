@@ -6,6 +6,8 @@ build
 bin
 
 # Compiled C++ things
+*.so
+*.os
 *.o
 *.obj
 *.lo

@@ -327,7 +327,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 	boost::posix_time::time_duration timestamp = boost::posix_time::microsec_clock::local_time() - epoch;
 	boost::posix_time::time_duration::tick_type currentTimeMillis = timestamp.total_milliseconds();
 	
-	std::size_t length = this->_spep->getSPEPConfigData()->getServiceHost().length();
+	/*std::size_t length = this->_spep->getSPEPConfigData()->getServiceHost().length();
 	spep::CArray<char> serviceHostURL( length );
 	std::memcpy( serviceHostURL.get(), this->_spep->getSPEPConfigData()->getServiceHost().c_str(), length );
 	
@@ -353,11 +353,19 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 				}
 			}
 		}
+	}*/
+	const char *serviceHost = NULL;
+	std::string serviceHostURL = _spep->getSPEPConfigData()->getServiceHost();
+	size_t found = serviceHostURL.find("://");
+	if (found != std::string::npos)
+	{
+		serviceHostURL.erase(0, found + 3);
 	}
 	
 	if( serviceHost == NULL || std::strlen( serviceHost ) == 0 )
 	{
-		serviceHost = serviceHostURL.get();
+		//serviceHost = serviceHostURL.get();
+		serviceHost = serviceHostURL.c_str();
 	}
 	
 	std::string host( request->getHeader( "Host" ) );

@@ -316,7 +316,7 @@ void spep::AuthnProcessor::generateAuthnRequest( spep::AuthnProcessorData &data 
 	// Success! Insert the unauthenticated session in the cache.
 	this->_sessionCache->insertUnauthenticatedSession( unauthenticatedSession );
 	
-	_localLogger.info() << "Created unauthenticated session for new AuthnRequest. REMOTE_ADDR: " << data.getRemoteIpAddress() << "SAML ID: " << UnicodeStringConversion::toString(authnRequestSAMLID);
+	_localLogger.info() << "Created unauthenticated session for new AuthnRequest. REMOTE_ADDR: " << data.getRemoteIpAddress() << " SAML ID: " << UnicodeStringConversion::toString(authnRequestSAMLID);
 }
 
 std::pair<bool, std::string> spep::AuthnProcessor::processAuthnStatement( const saml2::assertion::AuthnStatementType& authnStatement, const saml2::assertion::AssertionType& assertion, const std::string& remoteAddress, bool disableAttributeQuery )

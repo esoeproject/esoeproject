@@ -33,7 +33,7 @@
 namespace spep { namespace isapi {
 } }
 
-spep::isapi::SPEPExtension::SPEPExtension( spep::ConfigurationReader &configReader, std::string log )
+spep::isapi::SPEPExtension::SPEPExtension( spep::ConfigurationReader &configReader, const std::string& log )
 :
 _spep(NULL),
 _stream( log.c_str() ),
@@ -46,18 +46,22 @@ _wsHandler(NULL),
 _ssoHandler(NULL)
 {
 	int port = configReader.getIntegerValue( CONFIGURATION_SPEPDAEMONPORT );
-	
+	_spepWebappURL = std::string(DEFAULT_URL_SPEP_WEBAPP);
+
 	_spep = spep::SPEP::initializeClient( port );
 	// Trigger a startup request.
 	_spep->isStarted();
 	
 	_wsHandler = new WSHandler( _spep, this );
 	_ssoHandler = new SSOHandler( _spep, this );
+
+	m_localLogger = LocalLoggerPtr(new saml2::LocalLogger(_spep->getLogger(), "spep::isapi::SPEPExtension"));
 }
 
 spep::isapi::SPEPExtension::~SPEPExtension()
 {
 	delete _wsHandler;
+	delete _ssoHandler;
 }
 
 DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* request )
@@ -106,8 +110,12 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 		bool validSession = false;
 		try
 		{
+			m_localLogger->info() << "Attempting to retrieve data for session with ID of " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
+
 			principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 			validSession = true;
+
+			m_localLogger->info() << "Verified existing session with Session ID: " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
 		}
 		catch( std::exception &e )
 		{
@@ -161,11 +169,15 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 						// Set the REMOTE_USER
 						request->setRemoteUser( envValue );
 					}
+
+					m_localLogger->debug() << "Attribute inserted into Request Header - Name: " << envName << " Value: " << envValue;
 				}
 			}
 
 			if( this->_spep->getSPEPConfigData()->disablePolicyEnforcement() )
 			{
+				m_localLogger->debug() << "Policy enforcement disabled. Continuing request.";
+
 				// No need to perform authorization, just let them in.
 				return request->continueRequest();
 			}
@@ -186,6 +198,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 			}
 			catch( std::exception& ex )
 			{
+				m_localLogger->info() << "An error occurred when attempting to verify a session after performing authz, with Session ID: " << sessionID << ". Error: " << ex.what();
 			}
 			
 			if( validSession )
@@ -250,6 +263,8 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 				cookiePath = cookiePathString.c_str();
 			}
 			
+			m_localLogger->info() << "Clearing cookie - Name: " << cookieNameString << " Domain: " << cookieDomainString << " Path: " << cookiePathString << " Value: " << cookies[cookieNameString];
+
 			// Set the cookie to an empty value.
 			cookies.addCookie( request, cookieName, "", cookiePath, cookieDomain, false );
 		}
@@ -258,6 +273,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 	// Lazy init code.
 	if( spepConfigData->isLazyInit() )
 	{
+		m_localLogger->debug() << "Lazy init is enabled. Continuing.";
 		
 		std::string globalESOECookieName( spepConfigData->getGlobalESOECookieName() );
 		if( cookies[ globalESOECookieName ].length() == 0 )
@@ -311,7 +327,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 	boost::posix_time::time_duration timestamp = boost::posix_time::microsec_clock::local_time() - epoch;
 	boost::posix_time::time_duration::tick_type currentTimeMillis = timestamp.total_milliseconds();
 	
-	std::size_t length = this->_spep->getSPEPConfigData()->getServiceHost().length();
+	/*std::size_t length = this->_spep->getSPEPConfigData()->getServiceHost().length();
 	spep::CArray<char> serviceHostURL( length );
 	std::memcpy( serviceHostURL.get(), this->_spep->getSPEPConfigData()->getServiceHost().c_str(), length );
 	
@@ -337,11 +353,19 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 				}
 			}
 		}
+	}*/
+	const char *serviceHost = NULL;
+	std::string serviceHostURL = _spep->getSPEPConfigData()->getServiceHost();
+	size_t found = serviceHostURL.find("://");
+	if (found != std::string::npos)
+	{
+		serviceHostURL.erase(0, found + 3);
 	}
 	
 	if( serviceHost == NULL || std::strlen( serviceHost ) == 0 )
 	{
-		serviceHost = serviceHostURL.get();
+		//serviceHost = serviceHostURL.get();
+		serviceHost = serviceHostURL.c_str();
 	}
 	
 	std::string host( request->getHeader( "Host" ) );

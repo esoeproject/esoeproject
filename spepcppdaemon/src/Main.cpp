@@ -362,11 +362,17 @@ void WINAPI ServiceMain( DWORD argc, LPSTR *argv )
 			{
 				std::string configFilename( rKeySPEP.queryValueString( "ConfigFile" ) );
 				logFilename = ( rKeySPEP.queryValueString( "LogFile" ) );
+				std::string logLevelStr(rKeySPEP.queryValueString("LogLevel"));
+				
+				saml2::LogLevel logLevel = saml2::INFO;
+				if (logLevelStr.length() != 0 && logLevelStr == "DEBUG")
+					logLevel = saml2::DEBUG;
 
 				if( logFilename.length() != 0 )
 				{
-					stream.reset( new std::ofstream( logFilename.c_str() ) );
-					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, saml2::INFO ) );
+					stream.reset( new std::ofstream( logFilename.c_str(), std::ios_base::out | std::ios_base::app ) );
+					logHandler.reset( new spep::daemon::StreamLogHandler( *stream, logLevel) );
+					
 					if (SPEPService::debug) {
 						debugHandler.reset( new spep::daemon::StreamLogHandler( std::cout, saml2::DEBUG ) );
 						handlers.push_back( debugHandler.get() );

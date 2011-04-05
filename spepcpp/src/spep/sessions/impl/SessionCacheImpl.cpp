@@ -40,7 +40,7 @@ _esoeSessions(),
 _unauthenticatedSessions()
 {}
 
-void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &principalSession, std::string sessionID)
+void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &principalSession, const std::string& sessionID)
 {
 	ScopedLock lock(_principalSessionsMutex);
 	
@@ -56,7 +56,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 		{
 			// Serious problem. Inconsistent map. No ESOE session ID for the given session.
 			
-			_localLogger.error() << "Session cache has become inconsistent. No ESOE session found for principal session, even though the session ID was found successfully.";
+			_localLogger.error() << "Session cache has become inconsistent. No ESOE session found for principal session, even though the session ID '" << sessionID << "' was found successfully.";
 			throw InvalidStateException( "Session cache has become inconsistent" );
 		}
 		
@@ -68,7 +68,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 			return;
 		}
 		
-		_localLogger.debug() << "Session expiry: " << sessionID << " was set to expire at " << boost::posix_time::to_simple_string(principalSession.getSessionNotOnOrAfter());
+		_localLogger.info() << "Session expiry: " << sessionID << " was set to expire at " << boost::posix_time::to_simple_string(principalSession.getSessionNotOnOrAfter());
 		
 		// Expired. Terminate it.
 		this->terminatePrincipalSession( principalSession.getESOESessionID() );
@@ -78,7 +78,7 @@ void spep::SessionCacheImpl::getPrincipalSession(spep::PrincipalSession &princip
 	throw InvalidSessionIdentifierException();
 }
 
-void spep::SessionCacheImpl::getPrincipalSessionByEsoeSessionID(spep::PrincipalSession &principalSession, std::wstring esoeSessionID)
+void spep::SessionCacheImpl::getPrincipalSessionByEsoeSessionID(spep::PrincipalSession &principalSession, const std::wstring& esoeSessionID)
 {
 	ScopedLock lock(_principalSessionsMutex);
 	
@@ -104,7 +104,7 @@ void spep::SessionCacheImpl::getPrincipalSessionByEsoeSessionID(spep::PrincipalS
 	throw InvalidSessionIdentifierException();
 }
 
-void spep::SessionCacheImpl::insertPrincipalSession( std::string sessionID, spep::PrincipalSession &principalSession )
+void spep::SessionCacheImpl::insertPrincipalSession(const std::string& sessionID, spep::PrincipalSession &principalSession)
 {
 	ScopedLock lock(_principalSessionsMutex);
 	
@@ -142,7 +142,7 @@ void spep::SessionCacheImpl::insertPrincipalSession( std::string sessionID, spep
 		
 		if( !found )
 		{
-			principalSessionIDList.push_back( sessionID );
+			principalSessionIDList.push_back(sessionID);
 		}
 	}
 	// otherwise it's a new index for a session we already know about.
@@ -164,10 +164,10 @@ void spep::SessionCacheImpl::insertPrincipalSession( std::string sessionID, spep
 		_sessionIDs.insert( std::make_pair( sessionID, principalSession.getESOESessionID() ) );
 }
 
-void spep::SessionCacheImpl::terminatePrincipalSession(const std::wstring esoeSessionID)
+void spep::SessionCacheImpl::terminatePrincipalSession(const std::wstring& esoeSessionID)
 {
 	ScopedLock lock(_principalSessionsMutex);
-	
+
 	// Loop up the principal session by ESOE session ID
 	ESOESessionMap::iterator esoeIter = _esoeSessions.find(esoeSessionID);
 	if ( esoeIter != _esoeSessions.end() )
@@ -187,12 +187,14 @@ void spep::SessionCacheImpl::terminatePrincipalSession(const std::wstring esoeSe
 			}
 		}
 		
+		_localLogger.info() << "Terminating Principle Session with ESOE Session ID: " << spep::UnicodeStringConversion::toString(esoeSessionID);
+
 		// After we're done, remove the ESOE session ID from the session cache.
 		_esoeSessions.erase( esoeIter );
 	}
 }
 
-void spep::SessionCacheImpl::getUnauthenticatedSession(spep::UnauthenticatedSession &unauthenticatedSession, std::wstring requestID)
+void spep::SessionCacheImpl::getUnauthenticatedSession(spep::UnauthenticatedSession &unauthenticatedSession, const std::wstring& requestID)
 {
 	ScopedLock lock(_unauthenticatedSessionsMutex);
 	
@@ -226,7 +228,7 @@ void spep::SessionCacheImpl::insertUnauthenticatedSession(spep::UnauthenticatedS
 	}
 }
 
-void spep::SessionCacheImpl::terminateUnauthenticatedSession(std::wstring requestID)
+void spep::SessionCacheImpl::terminateUnauthenticatedSession(const std::wstring& requestID)
 {
 	ScopedLock lock(_unauthenticatedSessionsMutex);
 	
@@ -238,8 +240,10 @@ void spep::SessionCacheImpl::terminateUnauthenticatedSession(std::wstring reques
 	}
 }
 
-void spep::SessionCacheImpl::terminateExpiredSessions( int sessionCacheTimeout )
+void spep::SessionCacheImpl::terminateExpiredSessions(int sessionCacheTimeout)
 {
+	_localLogger.info() << "Terminating expired sessions.";
+
 	{
 		ScopedLock lock(_principalSessionsMutex);
 		
@@ -256,7 +260,10 @@ void spep::SessionCacheImpl::terminateExpiredSessions( int sessionCacheTimeout )
 			{
 				// This works because the iterator is incremented before the 
 				// erase() call is made, but the old value is still passed in.
-				_esoeSessions.erase( iter++ );
+				//_esoeSessions.erase( iter++ );
+				std::wstring esoeSessionId = iter->second.getESOESessionID();
+				iter++;
+				terminatePrincipalSession(esoeSessionId);
 			}
 		}
 	}

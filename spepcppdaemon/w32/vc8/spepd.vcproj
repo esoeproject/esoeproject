@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;C:\spep\esoeproject\spepcpp\include;C:\spep\esoeproject\saml2cpp\include;C:\OpenSSL\include;C:\Program Files\CodeSynthesis XSD 3.2\include;C:\Boost\include\boost-1_34_1;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3\include;C:\spep\icu\include;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\include;C:\spep\xml-security-c-1.5.1\include;&quot;C:\spep\asio-1.4.1\include&quot;"
+				AdditionalIncludeDirectories="..\..\include;..\..\..\spepcpp\include;..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="saml2.lib spep.lib shell32.lib libcurl_imp.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\spep\esoeproject\spepcpp\w32\vc8\Debug;C:\spep\esoeproject\saml2cpp\w32\vc8\Debug;C:\OpenSSL\lib;C:\Boost\lib;&quot;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3&quot;;C:\spep\icu\lib;&quot;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\lib&quot;;&quot;C:\spep\xml-security-c-1.5.1\Build\Win32\VC8\Release No Xalan&quot;"
+				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\Debug;..\..\..\saml2cpp\w32\vc8\Debug;..\..\..\spepcppdepends\Open_SSL\lib;..\..\..\spepcppdepends\Boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -115,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;;C:\spep\esoeproject\spepcpp\include;C:\spep\esoeproject\saml2cpp\include;C:\OpenSSL\include;C:\Program Files\CodeSynthesis XSD 3.2\include;C:\Boost\include\boost-1_34_1;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3\include;C:\spep\icu\include;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\include;C:\spep\xml-security-c-1.5.1\include;&quot;C:\spep\asio-1.4.1\include&quot;"
+				AdditionalIncludeDirectories="..\..\include;..\..\..\spepcpp\include;..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -136,7 +136,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="saml2.lib spep.lib shell32.lib libcurl_imp.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\spep\esoeproject\spepcpp\w32\vc8\Release;C:\spep\esoeproject\saml2cpp\w32\vc8\Release;C:\OpenSSL\lib;C:\Boost\lib;&quot;C:\spep\libcurl-7.15.1-msvc-win32-ssl-0.9.8a-zlib-1.2.3&quot;;C:\spep\icu\lib;&quot;C:\spep\xerces-c_2_8_0-x86-windows-vc_8_0\lib&quot;;&quot;C:\spep\xml-security-c-1.5.1\Build\Win32\VC8\Release No Xalan&quot;"
+				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\release;..\..\..\saml2cpp\w32\vc8\release;..\..\..\spepcppdepends\Open_SSL\lib;..\..\..\spepcppdepends\Boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

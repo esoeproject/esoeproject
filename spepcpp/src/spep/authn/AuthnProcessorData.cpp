@@ -83,3 +83,13 @@ bool spep::AuthnProcessorData::getDisableAttributeQuery()
 {
 	return _disableAttributeQuery;
 }
+
+void spep::AuthnProcessorData::setRemoteIpAddress(const std::string &remoteIpAddress)
+{
+	_remoteIpAddress = remoteIpAddress;
+}
+
+std::string spep::AuthnProcessorData::getRemoteIpAddress() const
+{
+	return _remoteIpAddress;
+}

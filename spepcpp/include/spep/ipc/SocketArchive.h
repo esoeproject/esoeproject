@@ -419,23 +419,34 @@ namespace spep
 				std::vector<char> buffer;
 				
 				read(buffer);
-
-				CharT *buf = reinterpret_cast<CharT*>(&buffer.front());
-				std::size_t len = (buffer.size() * sizeof(char)) / sizeof(CharT);
-				if (len == 0) {
-					str = std::basic_string<CharT>();
-				} else {
+				
+				if (buffer.size() > 0)
+				{
+					CharT *buf = reinterpret_cast<CharT*>(&buffer.front());
+					std::size_t len = (buffer.size() * sizeof(char)) / sizeof(CharT);
 					str = std::basic_string<CharT>(buf, len);
+				}
+				else 
+				{
+					str = std::basic_string<CharT>();
 				}
 			}
 
 			template<class CharT>
 			void saveString(const std::basic_string<CharT> &str) {
+				
 				std::size_t len = (str.length() * sizeof(CharT)) / sizeof(char);
-
-				std::vector<char> buffer(len);
-				std::memcpy(&buffer.front(), str.c_str(), len);
-				write(buffer);
+				
+				if (len > 0)
+				{
+					std::vector<char> buffer(len);
+					std::memcpy(&buffer.front(), str.c_str(), len);
+					write(buffer);
+				}
+				else
+				{
+					write(std::vector<char>(1, '\0'));
+				}
 			}
 
 			/**

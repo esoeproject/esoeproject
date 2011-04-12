@@ -242,11 +242,12 @@ void spep::SessionCacheImpl::terminateUnauthenticatedSession(const std::wstring&
 
 void spep::SessionCacheImpl::terminateExpiredSessions(int sessionCacheTimeout)
 {
-	_localLogger.info() << "Terminating expired sessions.";
-
 	{
 		ScopedLock lock(_principalSessionsMutex);
 		
+		_localLogger.info() << "Session cache size: " << _esoeSessions.size() << ". Terminating expired sessions.";
+		int numSessionsRemoved = 0;
+
 		for( ESOESessionMap::iterator iter = _esoeSessions.begin(); iter != _esoeSessions.end(); /* increment in loop body */ )
 		{
 			// If the session hasn't expired, skip it.
@@ -264,12 +265,18 @@ void spep::SessionCacheImpl::terminateExpiredSessions(int sessionCacheTimeout)
 				std::wstring esoeSessionId = iter->second.getESOESessionID();
 				iter++;
 				terminatePrincipalSession(esoeSessionId);
+				numSessionsRemoved++;
 			}
 		}
+
+		_localLogger.info() << "Session cache cleanup removed '" << numSessionsRemoved << "' sessions.";
 	}
 	{
 		ScopedLock lock(_unauthenticatedSessionsMutex);
 		
+		_localLogger.info() << "Unauthenticated sessions cache size: " << _unauthenticatedSessions.size() << ". Terminating idle sessions.";
+		int numSessionsRemoved = 0;
+
 		for( UnauthenticatedSessionMap::iterator iter = _unauthenticatedSessions.begin(); iter != _unauthenticatedSessions.end(); /* increment in loop body */ )
 		{
 			// If the session hasn't expired, skip it.
@@ -284,7 +291,10 @@ void spep::SessionCacheImpl::terminateExpiredSessions(int sessionCacheTimeout)
 				// This works because the iterator is incremented before the 
 				// erase() call is made, but the old value is still passed in.
 				_unauthenticatedSessions.erase( iter++ );
+				numSessionsRemoved++;
 			}
 		}
+
+		_localLogger.info() << "Session cache cleanup removed '" << numSessionsRemoved << "' idle unauthenticated sessions.";
 	}
 }

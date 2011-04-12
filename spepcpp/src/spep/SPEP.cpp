@@ -41,6 +41,7 @@
 
 #define ONE_SECOND_NANOSECONDS (1000*1000*1000)
 
+
 spep::SPEP* spep::SPEP::initializeClient( int spepDaemonPort )
 {
 	spep::SPEP *spep = new spep::SPEP;

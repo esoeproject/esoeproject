@@ -238,7 +238,7 @@ void spep::AuthnProcessor::processAuthnResponse( spep::AuthnProcessorData &data 
 				throw AuthnException( "Failure occurred processing AuthnStatement. Couldn't authenticate session." );
 			}
 			
-			_localLogger.info() << "Authenticated new session." << "REMOTE_ADDR: " << data.getRemoteIpAddress() << ". SPEP Session ID: " << resultPair.second << ". SAML Request ID: " << UnicodeStringConversion::toString(requestID);
+			_localLogger.info() << "Authenticated new session. " << "REMOTE_ADDR: " << data.getRemoteIpAddress() << ". SPEP Session ID: " << resultPair.second << ". SAML Request ID: " << UnicodeStringConversion::toString(requestID);
 			
 			data.setSessionID( resultPair.second );
 			

@@ -37,6 +37,8 @@
 #define SOAP12_DOCUMENT_CONTENT_TYPE "application/soap+xml"
 /**@}*/
 
+// Make sure we create an instance of the openssl init functionality to ensure that openssl is thread safe.
+asio::ssl::detail::openssl_init<> init_;
 
 spep::WSClient::WSClient( saml2::Logger *logger, std::string caBundle, spep::SOAPUtil *soapUtil )
 :
@@ -61,7 +63,7 @@ void spep::WSClient::doSOAPRequest(spep::WSProcessorData& data, const std::strin
 	
 	// Initialize an empty response document container.
 	RawSOAPDocument responseDocument;
-	
+		
 	AutoArray<char> errorBuffer( CURL_ERROR_SIZE );
 	std::memset( errorBuffer.get(), 0, CURL_ERROR_SIZE );
 	

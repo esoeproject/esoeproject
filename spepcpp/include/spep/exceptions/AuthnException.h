@@ -35,7 +35,7 @@ namespace spep
 		std::string _message;
 	
 		public:
-		AuthnException( std::string message );
+		AuthnException(const std::string& message );
 		virtual ~AuthnException() throw();
 		virtual const char *what() const throw();
 		

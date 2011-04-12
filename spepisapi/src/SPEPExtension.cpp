@@ -115,7 +115,22 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 			principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 			validSession = true;
 
-			m_localLogger->info() << "Verified existing session with Session ID: " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress();
+			// This nasty bit of code tries to pull out the username 
+			std::string uidAttributeValue("No UID found in attribute map.");
+			const spep::PrincipalSession::AttributeMapType& attributeMap = principalSession.getAttributeMap();
+			const spep::PrincipalSession::AttributeMapType::const_iterator attrib = attributeMap.find(spep::UnicodeStringConversion::toUnicodeString(spepConfigData->getUsernameAttribute()));
+			if (attrib != attributeMap.end())
+			{
+				uidAttributeValue = "UID attribute found but value was NULL";
+				if (attrib->second.size() > 0)
+				{
+					std::string convertedAttributeString = spep::UnicodeStringConversion::toString(attrib->second.front());
+					if (convertedAttributeString.size() > 0)
+						uidAttributeValue = convertedAttributeString;
+				}
+			}
+			
+			m_localLogger->info() << "Verified existing session with Session ID: " << sessionID << " REMOTE_ADDR: " << request->getRemoteAddress() << " ESOE Session ID: " << spep::UnicodeStringConversion::toString(principalSession.getESOESessionID()) << " UID: " << uidAttributeValue;
 		}
 		catch( std::exception &e )
 		{

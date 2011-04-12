@@ -113,28 +113,28 @@ void spep::ipc::ClientSocket::reconnect( int retry )
 
 spep::ipc::ClientSocketPool::ClientSocketPool( int port, std::size_t n )
 {
-	for( std::size_t i=0; i<n; ++i )
+	for (std::size_t i = 0; i < n; ++i)
 	{
-		_free.push( new ClientSocket( this, port ) );
+		_free.push(ClientSocketPtr(new ClientSocket(this, port )));
 	}
 }
 
-spep::ipc::ClientSocket* spep::ipc::ClientSocketPool::get()
+spep::ipc::ClientSocketPtr spep::ipc::ClientSocketPool::get()
 {
-	ScopedLock lock( _mutex );
-	if( _free.empty() )
+	ScopedLock lock(_mutex);
+	if (_free.empty())
 	{
 		_condition.wait( lock );
 	}
 	
-	ClientSocket* sock = _free.front();
+	ClientSocketPtr sock = _free.front();
 	_free.pop();
 	return sock;
 }
 
-void spep::ipc::ClientSocketPool::release( spep::ipc::ClientSocket* socket )
+void spep::ipc::ClientSocketPool::release( spep::ipc::ClientSocketPtr socket )
 {
-	ScopedLock lock( _mutex );
+	ScopedLock lock(_mutex);
 	_free.push( socket );
 	_condition.notify_one();
 }
@@ -169,12 +169,12 @@ spep::ipc::ClientSocketLease::~ClientSocketLease()
 	_pool->release( _socket );
 }
 
-spep::ipc::ClientSocket* spep::ipc::ClientSocketLease::operator->()
+spep::ipc::ClientSocketPtr spep::ipc::ClientSocketLease::operator->()
 {
 	return _socket;
 }
 
-spep::ipc::ClientSocket* spep::ipc::ClientSocketLease::operator*()
+spep::ipc::ClientSocketPtr spep::ipc::ClientSocketLease::operator*()
 {
 	return _socket;
 }

@@ -283,7 +283,7 @@ namespace spep
 					}
 					// If another error occurs, we can trap it and terminate the connection.
 					// It's not ideal, but at least it stops the daemon falling over.
-					catch (std::exception e)
+					catch (std::exception& e)
 					{
 						break;
 					}

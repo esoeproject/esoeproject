@@ -439,7 +439,7 @@ XSECCryptoKey *spep::MetadataImpl::resolveKey (DSIGKeyInfoList *list)
 			// Create a XSECCryptoKey
 			return keyData.createXSECCryptoKey();
 		}
-		catch( std::exception e )
+		catch( std::exception& e )
 		{
 		}
 	}
@@ -510,7 +510,7 @@ XSECCryptoKey *spep::MetadataImpl::MetadataKeyResolver::resolveKey (DSIGKeyInfoL
 			
 			return keyData.createXSECCryptoKey();
 		}
-		catch( std::exception e )
+		catch( std::exception& e )
 		{
 		}
 	}

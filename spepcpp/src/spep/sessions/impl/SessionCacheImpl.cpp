@@ -259,10 +259,8 @@ void spep::SessionCacheImpl::terminateExpiredSessions(int sessionCacheTimeout)
 			// Otherwise, remove it.
 			else
 			{
-				// This works because the iterator is incremented before the 
-				// erase() call is made, but the old value is still passed in.
-				//_esoeSessions.erase( iter++ );
 				std::wstring esoeSessionId = iter->second.getESOESessionID();
+				_localLogger.info() << "ESOE Session ID: " << spep::UnicodeStringConversion::toString(esoeSessionId) << " Current time is: " << boost::posix_time::second_clock::universal_time() << " sessionNotOnAfter was set to: " << iter->second.getSessionNotOnOrAfter();
 				iter++;
 				terminatePrincipalSession(esoeSessionId);
 				numSessionsRemoved++;

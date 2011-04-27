@@ -198,12 +198,23 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 			}
 			
 			// Perform authorization on the URI requested.
-			spep::PolicyEnforcementProcessorData pepData;
-			pepData.setESOESessionID( principalSession.getESOESessionID() );
-			pepData.setResource( spep::UnicodeStringConversion::toUnicodeString( properURI ) );
+			spep::Decision authzDecision;
+			try
+			{
+				spep::PolicyEnforcementProcessorData pepData;
+				pepData.setESOESessionID( principalSession.getESOESessionID() );
+				pepData.setResource( spep::UnicodeStringConversion::toUnicodeString( properURI ) );
 			
-			this->_spep->getPolicyEnforcementProcessor()->makeAuthzDecision( pepData );
-			spep::Decision authzDecision( pepData.getDecision() );
+				this->_spep->getPolicyEnforcementProcessor()->makeAuthzDecision( pepData );
+				authzDecision = pepData.getDecision();
+				
+			}
+			catch (std::exception& e)
+			{
+				m_localLogger->error() << "An error occurred when making authz decision with Session ID: " << sessionID << ". Error: " << e.what();
+				return request->sendErrorDocument( HTTP_INTERNAL_SERVER_ERROR );
+			}
+
 			
 			validSession = false;
 			try
@@ -213,7 +224,7 @@ DWORD spep::isapi::SPEPExtension::processRequest( spep::isapi::ISAPIRequest* req
 			}
 			catch( std::exception& ex )
 			{
-				m_localLogger->info() << "An error occurred when attempting to verify a session after performing authz, with Session ID: " << sessionID << ". Error: " << ex.what();
+				m_localLogger->error() << "An error occurred when attempting to verify a session after performing authz, with Session ID: " << sessionID << ". Error: " << ex.what();
 			}
 			
 			if( validSession )

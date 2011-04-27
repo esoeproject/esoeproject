@@ -186,7 +186,7 @@ namespace spep
 			boost::xtime_get( &_targetTime, boost::TIME_UTC ); 
 			milliseconds += _targetTime.nsec / NANOSECONDS_PER_MILLISECOND;
 			seconds += milliseconds / MILLISECONDS_PER_SECOND;
-			_targetTime.nsec = (milliseconds % MILLISECONDS_PER_SECOND) * NANOSECONDS_PER_MILLISECOND;
+			//_targetTime.nsec = (milliseconds % MILLISECONDS_PER_SECOND) * NANOSECONDS_PER_MILLISECOND;
 			_targetTime.sec += seconds;
 		}
 		

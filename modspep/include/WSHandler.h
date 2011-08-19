@@ -40,6 +40,9 @@ namespace spep { namespace apache {
 		
 		private:
 		SPEP *_spep;
+
+		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;
+		LocalLoggerPtr m_localLogger;
 		
 		int authzCacheClear( request_rec *req );
 		int singleLogout( request_rec *req );

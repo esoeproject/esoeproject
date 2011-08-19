@@ -1,6 +1,6 @@
 Summary: SPEP and dependencies
 Name: spep
-Version: 0.8
+Version: 0.8.5
 Release: 1.el5
 Source0: saml2-%{version}.tar.gz
 Source1: spep-%{version}.tar.gz

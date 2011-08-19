@@ -40,6 +40,10 @@ namespace spep { namespace apache {
 
 		private:
 		spep::SPEP *_spep;
+
+		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;
+		LocalLoggerPtr m_localLogger;
+
 		int handleSSOGetRequest( request_rec *req );
 		int handleSSOPostRequest( request_rec *req );
 		std::string buildAuthnRequestDocument( apr_pool_t *pool, const std::string &base64RedirectURL, const std::string& baseRequestURL );

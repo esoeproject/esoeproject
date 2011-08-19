@@ -35,6 +35,7 @@ spep::apache::WSHandler::WSHandler( spep::SPEP *spep )
 :
 _spep( spep )
 {
+	m_localLogger = LocalLoggerPtr(new saml2::LocalLogger(_spep->getLogger(), "spep::apache::WSHandler"));
 }
 
 spep::SOAPDocument spep::apache::WSHandler::readRequestDocument( request_rec *req, spep::SOAPUtil::SOAPVersion *soapVersion, std::string &characterEncoding )
@@ -132,17 +133,25 @@ int spep::apache::WSHandler::authzCacheClear( request_rec *req )
 		
 		if( responseDocument.getData() == NULL || responseDocument.getLength() == 0 )
 		{
+			m_localLogger->error() << "Internal Server Error when proccessing authzCacheClear: ResponseDocument data was null or length was 0.";
 			return HTTP_INTERNAL_SERVER_ERROR;
 		}
 		
 		this->sendResponseDocument( req, responseDocument );
 	}
-	catch (spep::InvalidStateException e)
+	catch (spep::InvalidStateException& e)
 	{
+		m_localLogger->error() << "Internal Server Error when proccessing authzCacheClear: " << e.what();
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
+	catch (std::exception& e)
+	{
+		m_localLogger->error() << "Internal Server Error when proccessing authzCacheClear: " << e.what();
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 	catch (...)
 	{
+		m_localLogger->error() << "Internal Server Error when proccessing authzCacheClear.";
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 	
@@ -164,17 +173,25 @@ int spep::apache::WSHandler::singleLogout( request_rec *req )
 		
 		if( responseDocument.getData() == NULL || responseDocument.getLength() == 0 )
 		{
+			m_localLogger->error() << "Internal Server Error when proccessing singleLogout: ResponseDocument data was null or length was 0.";
 			return HTTP_INTERNAL_SERVER_ERROR;
 		}
 		
 		this->sendResponseDocument( req, responseDocument );
 	}
-	catch (spep::InvalidStateException e)
+	catch (spep::InvalidStateException& e)
 	{
+		m_localLogger->error() << "Internal Server Error when proccessing singleLogout: " << e.what();
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
+	catch (std::exception& e)
+	{
+		m_localLogger->error() << "Internal Server Error when proccessing singleLogout: " << e.what();
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 	catch (...)
 	{
+		m_localLogger->error() << "Internal Server Error when proccessing singleLogout.";
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 	
@@ -197,6 +214,7 @@ int spep::apache::WSHandler::handleRequest( request_rec *req )
 				return this->authzCacheClear( req );
 			}
 			
+			m_localLogger->error() << "Request method '" << req->method_number << "' not allowed when calling authzCacheClear - returning HTTP_METHOD_NOT_ALLOWED.";
 			return HTTP_METHOD_NOT_ALLOWED;
 		}
 		else if( path.compare( serverConfig->instance->spepSingleLogout ) == 0 )
@@ -207,13 +225,21 @@ int spep::apache::WSHandler::handleRequest( request_rec *req )
 				return this->singleLogout( req );
 			}
 			
+			m_localLogger->error() << "Request method '" << req->method_number << "' not allowed when calling singleLogout - returning HTTP_METHOD_NOT_ALLOWED.";
 			return HTTP_METHOD_NOT_ALLOWED;
 		}
 		
+		m_localLogger->info() << "Requested path '" << path << "' does not exist - returning HTTP_NOT_FOUND.";
 		return HTTP_NOT_FOUND;
+	}
+	catch (std::exception& e)
+	{
+		m_localLogger->error() << "Internal Server Error when handling WS Request: " << e.what();
+		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 	catch (...)
 	{
+		m_localLogger->error() << "Internal Server Error when handling WS Request.";
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 }

@@ -65,3 +65,16 @@ stamp-h1
 # Editor swap files
 *.sw[op]
 *~
+
+/esoebuild/msvc/vc8/saml2/Debug
+/esoebuild/msvc/vc8/saml2/Release
+/esoebuild/msvc/vc8/spep/Debug
+/esoebuild/msvc/vc8/spep/Release
+/esoebuild/msvc/vc8/spepisapi/Release
+/esoebuild/msvc/vc8/spepisapi/Debug
+/esoebuild/msvc/vc8/esoe.ncb
+/esoebuild/msvc/vc8/esoe.suo
+/esoebuild/msvc/vc8/spepisapi.vcproj.QUTAD.mcgregap.user
+/esoebuild/msvc/vc8/saml2.vcproj.QUTAD.mcgregap.user
+/esoebuild/msvc/vc8/spep.vcproj.QUTAD.mcgregap.user
+/esoebuild/msvc/vc8/spepd.vcproj.QUTAD.mcgregap.user

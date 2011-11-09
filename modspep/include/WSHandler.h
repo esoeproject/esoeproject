@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: Jul 30, 2007
  * 
- * Purpose: 
  */
 
 #ifndef WSHANDLER_H_
@@ -38,7 +37,7 @@ namespace spep { namespace apache {
 	class WSHandler
 	{
 		
-		private:
+	private:
 		SPEP *_spep;
 
 		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;

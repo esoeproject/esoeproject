@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: Jul 4, 2007
  *
- * Purpose:
  */
 
 #ifndef SSOHANDLER_H_
@@ -38,7 +37,7 @@ namespace spep { namespace apache {
 	class SSOHandler
 	{
 
-		private:
+	private:
 		spep::SPEP *_spep;
 
 		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;

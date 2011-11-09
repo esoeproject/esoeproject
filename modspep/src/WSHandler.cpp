@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: Jul 30, 2007
  * 
- * Purpose: 
  */
 
 #include "WSHandler.h"

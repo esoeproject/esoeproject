@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: 18/06/2007
  * 
- * Purpose: 
  */
 
 #include <unicode/regex.h>

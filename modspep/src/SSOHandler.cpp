@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: Jul 4, 2007
  * 
- * Purpose: 
  */
 
 #include "saml2/SAML2Defs.h"

@@ -24,6 +24,7 @@ import java.security.KeyStore;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Calendar;
 
 import com.qut.middleware.crypto.exception.CryptoException;
 import com.qut.middleware.saml2.schemas.metadata.KeyDescriptor;
@@ -39,6 +40,9 @@ public interface CryptoProcessor
 	public KeyStore generateKeyStore() throws CryptoException;
 
 	public void addPublicKey(KeyStore ks, KeyPair keyPair, String keyPairName, String keyPairSubjectDN)
+			throws CryptoException;
+
+	public void addPublicKey(KeyStore ks, KeyPair keyPair, String keyPairName, String keyPairSubjectDN, Calendar before, Calendar expiry)
 			throws CryptoException;
 
 	public KeyStore addKeyPair(KeyStore keyStore, String keyStorePassphrase, KeyPair keyPair, String keyPairName,

@@ -245,7 +245,14 @@ public class CryptoProcessorImpl implements CryptoProcessor
 			 * purposes to ensure that all systems in the authentication network can correctly validate the signed
 			 * metadata document
 			 */
-			addPublicKey(keyStore, new KeyPair(this.localResolver.getLocalPublicKey(), this.localResolver.getLocalPrivateKey()), this.localResolver.getLocalKeyAlias(), this.certIssuerDN);
+			X509Certificate localCertificate = (X509Certificate)localResolver.getLocalCertificate();
+			Calendar before = new GregorianCalendar();
+			Calendar expiry = new GregorianCalendar();
+			before.setTime(localCertificate.getNotBefore());
+			expiry.setTime(localCertificate.getNotAfter());
+			
+			addPublicKey(keyStore, new KeyPair(this.localResolver.getLocalPublicKey(), this.localResolver.getLocalPrivateKey()),
+					this.localResolver.getLocalKeyAlias(), this.certIssuerDN, before, expiry);
 
 			return keyStore;
 		}
@@ -286,6 +293,32 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		try
 		{
 			X509Certificate cert = generateV3Certificate(keyPair, keyPairSubjectDN);
+			ks.setCertificateEntry(keyPairName, cert);
+
+		}
+		catch (KeyStoreException e)
+		{
+			this.logger.error("KeyStoreException thrown, " + e.getLocalizedMessage());
+			this.logger.debug(e.toString());
+			throw new CryptoException(e.getLocalizedMessage(), e);
+		}
+	}
+
+	/**
+	 *
+	 * @param ks
+	 * @param keyPair
+	 * @param keyPairName
+	 * @param keyPairSubjectDN
+	 * @param before
+	 * @param expiry
+	 * @throws CryptoException
+	 */
+	public void addPublicKey(KeyStore ks, KeyPair keyPair, String keyPairName, String keyPairSubjectDN, Calendar before, Calendar expiry) throws CryptoException
+	{
+		try
+		{
+			X509Certificate cert = generateV3Certificate(keyPair, keyPairSubjectDN, before, expiry);
 			ks.setCertificateEntry(keyPairName, cert);
 
 		}
@@ -359,6 +392,25 @@ public class CryptoProcessorImpl implements CryptoProcessor
 	 */
 	public X509Certificate generateV3Certificate(KeyPair pair, String certSubjectDN) throws CryptoException
 	{
+		/* Set the start of valid period to now - a few seconds for time skew. */
+		Calendar before = new GregorianCalendar();
+		before.add(Calendar.DAY_OF_MONTH, -1);
+
+		/* Set the certificate expiry date to current time plus configured interval for expiry. */
+		Calendar expiry = new GregorianCalendar();
+		expiry.add(Calendar.YEAR, this.certExpiryIntervalInYears);
+
+		return generateV3Certificate(pair, certSubjectDN, before, expiry);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see com.qut.middleware.crypto.impl.CryptoProcessor#generateV3Certificate(java.security.KeyPair,
+	 *      java.lang.String)
+	 */
+	private X509Certificate generateV3Certificate(KeyPair pair, String certSubjectDN, Calendar before, Calendar expiry) throws CryptoException
+	{
 		X509V3CertificateGenerator cert = new X509V3CertificateGenerator();
 
 		/* Set the certificate serial number to a random number */
@@ -374,14 +426,10 @@ public class CryptoProcessorImpl implements CryptoProcessor
 		/* Set the certificate issuer */
 		cert.setIssuerDN(new X500Principal(this.certIssuerDN));
 
-		/* Set the start of valid period to now - a few seconds for time skew. */
-		Calendar before = new GregorianCalendar();
-		before.add(Calendar.DAY_OF_MONTH, -1);
+		/* Set the start of valid period. */
 		cert.setNotBefore(before.getTime());
 
-		/* Set the certificate expiry date to current time plus configured interval for expiry. */
-		Calendar expiry = new GregorianCalendar();
-		expiry.add(Calendar.YEAR, this.certExpiryIntervalInYears);
+		/* Set the certificate expiry date. */
 		cert.setNotAfter(expiry.getTime());
 
 		/* Set the subject */

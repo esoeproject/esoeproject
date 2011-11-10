@@ -73,8 +73,8 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	}
 
 	test {
-		options.systemProperties['net.sourceforge.cobertura.datafile']="${cobSerFile}"
-		stopAtFailuresOrErrors = false
+		//options.systemProperties['net.sourceforge.cobertura.datafile']="${cobSerFile}"
+		//stopAtFailuresOrErrors = false
 	}
 
 	test.doLast {
@@ -96,8 +96,8 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	}
 
 	afterEvaluate {
-		it.eclipseCp.srcDirs += it.sourceSets.main.groovy.srcDirs
-		it.eclipseCp.testSrcDirs += it.sourceSets.test.groovy.srcDirs
+		//it.eclipseCp.srcDirs += it.sourceSets.main.groovy.srcDirs
+		//it.eclipseCp.testSrcDirs += it.sourceSets.test.groovy.srcDirs
 	}
 
 	classes.dependsOn copy

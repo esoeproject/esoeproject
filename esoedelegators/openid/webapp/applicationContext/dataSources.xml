@@ -24,7 +24,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Purpose: Defines spring integration for
 		====================================================================== -->
 	<bean id="openidKeyStoreResolver"
-		class="com.qut.middleware.crypto.impl.KeyStoreResolverImpl">
+		class="com.qut.middleware.crypto.impl.KeystoreResolverImpl">
 		<constructor-arg index="0" type="java.io.File" value="${openidkeystoreresolver.keystorePath}" />
 		<constructor-arg index="1" value="${openidkeystoreresolver.keystorePassword}" />
 		<constructor-arg index="2" value="${openidkeystoreresolver.keyAlias}" />

@@ -24,7 +24,7 @@
 
 	<dependencies>
 		<dependency org="org.springframework" name="org.springframework.spring-library" rev="2.5.4.A" conf="compile,runtime"/>
-		<dependency org="org.openid4java" name="com.springsource.org.openid4java" rev="0.9.3" conf="compile,runtime" />
+		<dependency org="org.openid4java" name="com.springsource.org.openid4java" rev="0.9.6" conf="compile,runtime" />
 		<dependency org="sourceforge" name="click" rev="1.2A" conf="compile,runtime"/>
 		<dependency org="apache" name="axis2" rev="1.1.1A" conf="compile,runtime"/>
 		<dependency org="org.slf4j" name="com.springsource.slf4j.log4j" rev="1.5.0" conf="compile,runtime"/>

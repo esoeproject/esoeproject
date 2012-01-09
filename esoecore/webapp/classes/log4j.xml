@@ -64,17 +64,17 @@
 	</appender>		
 
 	<logger name="com.qut.middleware.esoe">
-		<level value="INFO" />
+		<level value="DEBUG" />
 		<appender-ref ref="esoe-core-logger" />
 	</logger>
 
 	<logger name="esoe.authn">
-		<level value="INFO" />
+		<level value="DEBUG" />
 		<appender-ref ref="esoe-authn-logger" />
 	</logger>
 
 	<logger name="esoe.authz">
-		<level value="INFO" />
+		<level value="DEBUG" />
 		<appender-ref ref="esoe-authz-logger" />
 	</logger>
 	

@@ -37,7 +37,8 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	repositories  {
 		mavenCentral()
 		mavenRepo urls:'http://download.java.net/maven/2/'
-		mavenRepo urls: 'http://guice-maven.googlecode.com/svn/trunk'
+		mavenRepo urls:'http://guice-maven.googlecode.com/svn/trunk'
+		mavenRepo urls:'http://maven.springframework.org/release'
 	}
 
 	dependencies {

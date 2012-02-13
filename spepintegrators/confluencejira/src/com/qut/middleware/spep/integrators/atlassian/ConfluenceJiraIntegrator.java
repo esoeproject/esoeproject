@@ -341,9 +341,6 @@ public class ConfluenceJiraIntegrator extends ConfluenceAuthenticator
 		/* If multiple email addresses are present we'll use the first */
 		emailAddresses = attributes.get(this.mailAttribute);
 
-		String fullNameStr = (String)fullName.get(0);
-		String emailAddressStr = (String)emailAddresses.get(0);
-
 		this.logger.debug("Updating user data in confluence/jira for user " + user.getName());
 
 		boolean updated = false;
@@ -364,26 +361,35 @@ public class ConfluenceJiraIntegrator extends ConfluenceAuthenticator
 		userBuilder.emailAddress(crowdUser.getEmailAddress());
 		userBuilder.name(crowdUser.getName());
 
-		if ((fullName != null) && !fullNameStr.equals(user.getFullName()))
+		if (fullName != null)
 		{
-			logger.debug("Updating user fullName to '" + fullNameStr + "'");
-			userBuilder.displayName(fullNameStr);
-			updated = true;
+			String fullNameStr = (String)fullName.get(0);
+
+			if (!fullNameStr.equals(user.getFullName()))
+			{
+				logger.debug("Updating user fullName to '" + fullNameStr + "'");
+							userBuilder.displayName(fullNameStr);
+							updated = true;
+			}
 		}
 		else
 		{
-			logger.debug("User fullName is same as old one: '" + fullNameStr + "'");
+			logger.debug("User fullName is same as old one: '" + user.getName() + "'");
 		}
 
-		if ((emailAddressStr != null) && !emailAddressStr.equals(user.getEmail()))
+		if (emailAddresses != null)
 		{
-			logger.debug("updating user emailAddress to '" + emailAddressStr + "'");
-			userBuilder.emailAddress(emailAddressStr);
-			updated = true;
+			String emailAddressStr = (String)emailAddresses.get(0);
+			if (!emailAddressStr.equals(user.getEmail()))
+			{
+				logger.debug("updating user emailAddress to '" + emailAddressStr + "'");
+							userBuilder.emailAddress(emailAddressStr);
+							updated = true;
+			}
 		}
 		else
 		{
-			logger.debug("User emailAddress is same as old one: '" + emailAddressStr + "'");
+			logger.debug("User emailAddress is same as old one: '" + crowdUser.getEmailAddress() + "'");
 		}
 
 		if (updated)

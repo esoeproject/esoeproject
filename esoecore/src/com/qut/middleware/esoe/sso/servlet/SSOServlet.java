@@ -363,7 +363,7 @@ public class SSOServlet extends HttpServlet
 	 */
 	private void clearSessionCookie(SSOProcessorData data)
 	{
-		logger.debug("Clearing session cookie " + sessionTokenName);
+		logger.debug("Clearing esoe session cookie " + sessionTokenName);
 		
 		/* Remove the value of the users session cookie at the ESOE */
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$

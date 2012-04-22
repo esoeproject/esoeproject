@@ -5,7 +5,8 @@ import org.springframework.aop.scope.ScopedProxyFactoryBean
 import org.codehaus.groovy.grails.web.servlet.WrappedResponseHolder
 
 class SpepGrailsPlugin {
-	def version = 1.0
+	def version = "1.2"
+    def grailsVersion = "1.1"   // not sure if this is correct, but the plugin doesn't work with at least 1.2 because of the jetty dependencies
 	def dependsOn = [:]
 
 	def author = "Shaun Mangelsdorf"
@@ -15,7 +16,7 @@ class SpepGrailsPlugin {
 Integrates the SPEP filter with a Grails application.
 '''
 
-	def documentation = "http://esoeproject.org/wiki/esoe/SPEP_Grails_Plugin"
+	def documentation = "http://esoeproject.qut.edu.au/wiki/esoe/SPEP_Grails_Plugin"
 
 	final static DEFAULT_CONFIG = [
 		beanName: "spepUser", 
@@ -63,7 +64,9 @@ Integrates the SPEP filter with a Grails application.
    
 	def doWithWebDescriptor = { xml ->
 		if (application.config.spep.enabled) {
-			xml.'filter' + {
+            // the order of filters in the XML file seems to matter ... and as of tomcat 7, you can't have duplicate definitions (which is what this used to create)
+            def filters = xml.'filter'
+			filters[0] + {
 				'filter' {
 					'filter-class'("com.qut.middleware.spep.filter.SPEPFilter")
 					'filter-name'("spep-grails-plugin-filter")
@@ -73,7 +76,8 @@ Integrates the SPEP filter with a Grails application.
 					}
 				}
 			}
-			xml.'filter-mapping' + {
+            def filterMappings = xml.'filter-mapping'
+			filterMappings[0] + {
 				'filter-mapping' {
 					'filter-name'("spep-grails-plugin-filter")
 					'url-pattern'("/*")

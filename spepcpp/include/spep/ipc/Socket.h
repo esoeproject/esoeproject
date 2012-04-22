@@ -34,7 +34,6 @@
 #include <queue>
 
 #include <asio.hpp>
-
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/thread/thread.hpp>
@@ -151,10 +150,15 @@ namespace spep
 
 		};
 
+		//!< 
+		typedef boost::shared_ptr<ClientSocket> ClientSocketPtr;
+
+
 		class ClientSocketPool
 		{
 			private:
-			std::queue<ClientSocket*> _free;
+				
+			std::queue<ClientSocketPtr> _free;
 			boost::condition _condition;
 			Mutex _mutex;
 			std::string _serviceID;
@@ -162,8 +166,8 @@ namespace spep
 
 			public:
 			ClientSocketPool( int port, std::size_t n );
-			ClientSocket* get();
-			void release( ClientSocket* socket );
+			ClientSocketPtr get();
+			void release( ClientSocketPtr socket );
 			const std::string& getServiceID();
 			void setServiceID( const std::string& serviceID );
 			asio::io_service& getIoService();
@@ -173,13 +177,13 @@ namespace spep
 		{
 			private:
 			ClientSocketPool *_pool;
-			ClientSocket *_socket;
+			ClientSocketPtr _socket;
 
 			public:
 			ClientSocketLease( ClientSocketPool* pool );
 			~ClientSocketLease();
-			ClientSocket* operator->();
-			ClientSocket* operator*();
+			ClientSocketPtr operator->();
+			ClientSocketPtr operator*();
 		};
 
 		/**
@@ -279,7 +283,7 @@ namespace spep
 					}
 					// If another error occurs, we can trap it and terminate the connection.
 					// It's not ideal, but at least it stops the daemon falling over.
-					catch (std::exception e)
+					catch (std::exception& e)
 					{
 						break;
 					}

@@ -39,41 +39,45 @@ spep::ipc::SessionCacheProxy::SessionCacheProxy( spep::ipc::ClientSocketPool *so
 _socketPool(socketPool)
 {}
 
-void spep::ipc::SessionCacheProxy::getPrincipalSession(spep::PrincipalSession &principalSession, std::string sessionID)
+void spep::ipc::SessionCacheProxy::getPrincipalSession(spep::PrincipalSession &principalSession, const std::string& sessionID)
 {
 	std::string dispatch(::getPrincipalSession);
 	
 	ClientSocketLease clientSocket( _socketPool );
-	principalSession = clientSocket->makeRequest<PrincipalSession, std::string>( dispatch, sessionID );
+	std::string localSessionID(sessionID);
+	principalSession = clientSocket->makeRequest<PrincipalSession, std::string>( dispatch, localSessionID );
 }
 
-void spep::ipc::SessionCacheProxy::getPrincipalSessionByEsoeSessionID(spep::PrincipalSession &principalSession, std::wstring esoeSessionIndex)
+void spep::ipc::SessionCacheProxy::getPrincipalSessionByEsoeSessionID(spep::PrincipalSession &principalSession, const std::wstring& esoeSessionIndex)
 {
 	std::string dispatch(::getPrincipalSessionByEsoeSessionID);
 	
 	ClientSocketLease clientSocket( _socketPool );
-	principalSession = clientSocket->makeRequest<PrincipalSession, std::wstring>( dispatch, esoeSessionIndex );
+	std::wstring localEsoeSessionIndex(esoeSessionIndex);
+	principalSession = clientSocket->makeRequest<PrincipalSession, std::wstring>(dispatch, localEsoeSessionIndex);
 }
 
-void spep::ipc::SessionCacheProxy::insertPrincipalSession(std::string sessionID, spep::PrincipalSession &principalSession)
+void spep::ipc::SessionCacheProxy::insertPrincipalSession(const std::string& sessionID, spep::PrincipalSession &principalSession)
 {
 	std::string dispatch(::insertPrincipalSession);
-	SessionCache_InsertClientSessionCommand command( sessionID, principalSession );
+	std::string localSessionID(sessionID);
+	SessionCache_InsertClientSessionCommand command( localSessionID, principalSession );
 	
 	ClientSocketLease clientSocket( _socketPool );
 	// Make a blocking request (even though we don't need a return value) so that we know the session has been inserted.
 	clientSocket->makeRequest<NoData, SessionCache_InsertClientSessionCommand>( dispatch, command );
 }
 
-void spep::ipc::SessionCacheProxy::terminatePrincipalSession(std::wstring sessionID)
+void spep::ipc::SessionCacheProxy::terminatePrincipalSession(const std::wstring& sessionID)
 {
 	std::string dispatch(::terminatePrincipalSession);
 	
 	ClientSocketLease clientSocket( _socketPool );
-	clientSocket->makeNonBlockingRequest( dispatch, sessionID );
+	std::wstring localSessionID(sessionID);
+	clientSocket->makeNonBlockingRequest( dispatch, localSessionID );
 }
 
-void spep::ipc::SessionCacheProxy::getUnauthenticatedSession(spep::UnauthenticatedSession &unauthenticatedSession, std::wstring requestID)
+void spep::ipc::SessionCacheProxy::getUnauthenticatedSession(spep::UnauthenticatedSession &unauthenticatedSession, const std::wstring& requestID)
 {
 	std::string dispatch(::getUnauthenticatedSession);
 	std::wstring requestIDLocal = requestID;
@@ -91,12 +95,13 @@ void spep::ipc::SessionCacheProxy::insertUnauthenticatedSession(spep::Unauthenti
 	clientSocket->makeRequest<NoData, UnauthenticatedSession>( dispatch, unauthenticatedSession );
 }
 
-void spep::ipc::SessionCacheProxy::terminateUnauthenticatedSession(std::wstring requestID)
+void spep::ipc::SessionCacheProxy::terminateUnauthenticatedSession(const std::wstring& requestID)
 {
 	std::string dispatch(::terminateUnauthenticatedSession);
 	
 	ClientSocketLease clientSocket( _socketPool );
-	clientSocket->makeNonBlockingRequest( dispatch, requestID );
+	std::wstring localRequestID(requestID);
+	clientSocket->makeNonBlockingRequest( dispatch, localRequestID );
 }
 
 void spep::ipc::SessionCacheProxy::terminateExpiredSessions( int sessionCacheTimeout )

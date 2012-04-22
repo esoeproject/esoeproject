@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="spepisapi"
-	ProjectGUID="{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}"
-	RootNamespace="spepisapi"
+	Name="spepd"
+	ProjectGUID="{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}"
+	RootNamespace="spepd"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -17,9 +17,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="Debug"
-			IntermediateDirectory="Debug"
-			ConfigurationType="2"
+			OutputDirectory="$(ProjectName)\$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -39,17 +39,15 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\..\spepcpp\include;..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501"
+				AdditionalIncludeDirectories="..\..\..\spepcppdaemon\include;..\..\..\spepcpp\include;..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0501"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				DisableLanguageExtensions="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4251;4275;4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -62,14 +60,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="spep.lib saml2.lib icuuc.lib icudt.lib icutu.lib icule.lib iculx.lib icuin.lib advapi32.lib libcurl_imp.lib"
+				AdditionalDependencies="saml2.lib spep.lib shell32.lib libcurl_imp.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\release;..\..\..\saml2cpp\w32\vc8\release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
-				ModuleDefinitionFile="$(ProjectDir)\..\spepisapi.def"
+				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\Debug;..\..\..\saml2cpp\w32\vc8\Debug;..\..\..\spepcppdepends\Open_SSL\lib;..\..\..\spepcppdepends\Boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"
-				MapExports="false"
-				SubSystem="2"
-				EntryPointSymbol=""
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -99,9 +94,9 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
-			ConfigurationType="2"
+			OutputDirectory="$(ProjectName)\$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
+			ConfigurationType="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -120,8 +115,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\..\spepcpp\include;..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501"
+				AdditionalIncludeDirectories="..\..\..\spepcppdaemon\include;..\..\..\spepcpp\include;..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;&quot;..\..\..\spepcppdepends\xml-security\include&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0501"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -139,12 +134,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="spep.lib saml2.lib icuuc.lib icudt.lib icutu.lib icule.lib iculx.lib icuin.lib advapi32.lib libcurl_imp.lib"
+				AdditionalDependencies="saml2.lib spep.lib shell32.lib libcurl_imp.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\Release;..\..\..\saml2cpp\w32\vc8\Release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
-				ModuleDefinitionFile="$(ProjectDir)\..\spepisapi.def"
+				AdditionalLibraryDirectories="..\..\..\spepcpp\w32\vc8\release;..\..\..\saml2cpp\w32\vc8\release;..\..\..\spepcppdepends\Open_SSL\lib;..\..\..\spepcppdepends\Boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;&quot;..\..\..\spepcppdepends\xml-security\lib&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -194,7 +188,7 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\spepisapi.rc"
+				RelativePath="..\..\..\spepcppdaemon\w32\vc8\spepd.rc"
 				>
 			</File>
 		</Filter>
@@ -204,35 +198,23 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\src\Cookies.cpp"
+				RelativePath="..\..\..\spepcppdaemon\src\Daemon.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\ISAPI.cpp"
+				RelativePath="..\..\..\spepcppdaemon\include\Daemon.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\ISAPIRequest.cpp"
+				RelativePath="..\..\..\spepcppdaemon\src\Main.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\RequestParameters.cpp"
+				RelativePath="..\..\..\spepcppdaemon\src\StreamLogHandler.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\src\SPEPExtension.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\spepisapi.def"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\SSOHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\src\WSHandler.cpp"
+				RelativePath="..\..\..\spepcppdaemon\include\StreamLogHandler.h"
 				>
 			</File>
 		</Filter>

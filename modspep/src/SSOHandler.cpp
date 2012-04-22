@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: Jul 4, 2007
  * 
- * Purpose: 
  */
 
 #include "saml2/SAML2Defs.h"
@@ -46,6 +45,7 @@ spep::apache::SSOHandler::SSOHandler( spep::SPEP *spep )
 :
 _spep( spep )
 {
+	m_localLogger = LocalLoggerPtr(new saml2::LocalLogger(_spep->getLogger(), "spep::apache::SSOHandler"));
 }
 
 int spep::apache::SSOHandler::handleSSOGetRequest( request_rec *req )
@@ -158,9 +158,14 @@ int spep::apache::SSOHandler::handleSSOPostRequest( request_rec *req )
 	{
 		this->_spep->getAuthnProcessor()->processAuthnResponse( data );
 	}
-	catch( ... )
+	catch (std::exception& e)
 	{
-		//std::string reason( e.what() );
+		m_localLogger->error() << "Internal Server Error when proccessing AuthnResponse: " << e.what();
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
+	catch (...)
+	{
+		m_localLogger->error() << "Internal Server Error when proccessing AuthnResponse.";
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 	
@@ -221,6 +226,7 @@ int spep::apache::SSOHandler::handleRequest( request_rec *req )
 		{
 			if( ! this->_spep->isStarted() )
 			{
+				m_localLogger->info() << "SPEP daemon is not yet started - returning HTTP_SERVICE_UNAVAILABLE.";
 				return HTTP_SERVICE_UNAVAILABLE;
 			}
 			
@@ -234,13 +240,20 @@ int spep::apache::SSOHandler::handleRequest( request_rec *req )
 				return this->handleSSOPostRequest( req );
 			}
 			
+			m_localLogger->info() << "Request was neither GET nor POST - returning HTTP_METHOD_NOT_ALLOWED.";
 			return HTTP_METHOD_NOT_ALLOWED;
 		}
 		
 		return DECLINED;
 	}
+	catch (std::exception& e)
+	{
+		m_localLogger->error() << "Internal Server Error when proccessing SSO: " << e.what();
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
 	catch (...)
 	{
+		m_localLogger->error() << "Internal Server Error when proccessing SSO.";
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 }

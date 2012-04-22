@@ -58,13 +58,14 @@ namespace spep { namespace isapi {
 	_contentLength( 0 ),
 	_headersSent(false)
 	{
-		this->_requestURL = this->getServerVariable( "URL" );
-		this->_scriptName = this->getServerVariable( "SCRIPT_NAME" );
-		this->_contentType = this->getServerVariable( "CONTENT_TYPE" );
-		this->_isSecureRequest = ( this->getServerVariable("SERVER_PORT_SECURE").compare("1") == 0 );
+		_requestURL = getServerVariable( "URL" );
+		_scriptName = getServerVariable( "SCRIPT_NAME" );
+		_contentType = getServerVariable( "CONTENT_TYPE" );
+		_remoteAddress = getServerVariable("REMOTE_ADDR");
+		_isSecureRequest = (getServerVariable("SERVER_PORT_SECURE").compare("1") == 0 );
 		try
 		{
-			this->_contentLength = boost::lexical_cast<DWORD>( this->getServerVariable("CONTENT_LENGTH") );
+			_contentLength = boost::lexical_cast<DWORD>(getServerVariable("CONTENT_LENGTH"));
 		}
 		catch( boost::bad_lexical_cast& )
 		{
@@ -204,6 +205,11 @@ namespace spep { namespace isapi {
 		return _extensionControlBlock->cbTotalBytes;
 	}
 	
+	std::string ISAPIRequestImpl::getRemoteAddress()
+	{
+		return _remoteAddress;
+	}
+
 	BOOL ISAPIRequestImpl::isSecureRequest()
 	{
 		return _isSecureRequest;
@@ -523,6 +529,11 @@ namespace spep { namespace isapi {
 	void ISAPIRequestImpl::setRemoteUser( const std::string& username )
 	{
 		_remoteUser = username;
+	}
+
+	void ISAPIRequestImpl::setRemoteAddress(const std::string& ipaddress)
+	{
+		_remoteAddress = ipaddress;
 	}
 	
 } }

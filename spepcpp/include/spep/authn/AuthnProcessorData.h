@@ -75,11 +75,18 @@ namespace spep
 		 */
 		void setDisableAttributeQuery( bool value );
 		bool getDisableAttributeQuery();
+
+		/**
+		 * Sets the remote user's IP address. 
+		 */
+		void setRemoteIpAddress(const std::string &remoteIpAddress);
+		std::string getRemoteIpAddress() const;
 		
 		private:
 		std::string _requestURL;
 		std::string _baseRequestURL;
 		std::string _sessionID;
+		std::string _remoteIpAddress;
 		saml2::SAMLDocument _requestDocument;
 		saml2::SAMLDocument _responseDocument;
 		bool _disableAttributeQuery;

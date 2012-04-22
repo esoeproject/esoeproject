@@ -14,7 +14,6 @@
  * Author: Shaun Mangelsdorf
  * Creation Date: 18/06/2007
  * 
- * Purpose: 
  */
 
 #include <unicode/regex.h>
@@ -37,6 +36,7 @@ spep::apache::RequestHandler::RequestHandler( spep::SPEP *spep )
 :
 _spep( spep )
 {
+	m_localLogger = LocalLoggerPtr(new saml2::LocalLogger(_spep->getLogger(), "spep::apache::RequestHandler"));
 }
 
 int spep::apache::RequestHandler::handleRequest( request_rec *req )
@@ -46,8 +46,14 @@ int spep::apache::RequestHandler::handleRequest( request_rec *req )
 	{
 		return this->handleRequestInner( req );
 	}
+	catch (std::exception& e)
+	{
+		m_localLogger->error() << "Internal Server Error: " << e.what();
+		return HTTP_INTERNAL_SERVER_ERROR;
+	}
 	catch(...)
 	{
+		m_localLogger->error() << "Internal Server Error"; 
 		return HTTP_INTERNAL_SERVER_ERROR;
 	}
 }
@@ -83,11 +89,32 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 			cookieValueIterator != cookieValues.end(); ++cookieValueIterator) {
 
 			sessionID = *cookieValueIterator;
-			try {
+			try
+			{
+				m_localLogger->info() << "Attempting to retrieve data for session with ID of " << sessionID;
 				principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
 				validSession = true;
+				
+				// This nasty bit of code tries to pull out the username 
+				std::string uidAttributeValue("No UID found in attribute map.");
+				const spep::PrincipalSession::AttributeMapType& attributeMap = principalSession.getAttributeMap();
+				const spep::PrincipalSession::AttributeMapType::const_iterator attrib = attributeMap.find(spep::UnicodeStringConversion::toUnicodeString(spepConfigData->getUsernameAttribute()));
+				if (attrib != attributeMap.end())
+				{
+					uidAttributeValue = "UID attribute found but value was NULL";
+					if (attrib->second.size() > 0)
+					{
+						std::string convertedAttributeString = spep::UnicodeStringConversion::toString(attrib->second.front());
+						if (convertedAttributeString.size() > 0)
+							uidAttributeValue = convertedAttributeString;
+					}
+				}
+			
+				m_localLogger->info() << "Verified existing session with Session ID: " << sessionID << " ESOE Session ID: " << spep::UnicodeStringConversion::toString(principalSession.getESOESessionID()) << " UID: " << uidAttributeValue;
 				break;
-			} catch( std::exception& e ) {
+			} 
+			catch(std::exception& e)
+			{
 			}
 		}
 		
@@ -148,25 +175,37 @@ int spep::apache::RequestHandler::handleRequestInner( request_rec *req )
 			if( this->_spep->getSPEPConfigData()->disablePolicyEnforcement() )
 			{
 				// No need to perform authorization, just let them in.
+				m_localLogger->debug() << "Policy enforcement disabled. Continuing request.";
 				return DECLINED;
 			}
 			
 			// Perform authorization on the URI requested.
-			spep::PolicyEnforcementProcessorData pepData;
-			pepData.setESOESessionID( principalSession.getESOESessionID() );
-			pepData.setResource( properURI );
+			spep::Decision authzDecision;
+			try
+			{
+				spep::PolicyEnforcementProcessorData pepData;
+				pepData.setESOESessionID( principalSession.getESOESessionID() );
+				pepData.setResource(properURI);
 			
-			this->_spep->getPolicyEnforcementProcessor()->makeAuthzDecision( pepData );
-			spep::Decision authzDecision( pepData.getDecision() );
-			
+				_spep->getPolicyEnforcementProcessor()->makeAuthzDecision( pepData );
+				authzDecision = pepData.getDecision();
+				
+			}
+			catch (std::exception& e)
+			{
+				m_localLogger->error() << "An error occurred when making authz decision with Session ID: " << sessionID << ". Error: " << e.what();
+				return HTTP_INTERNAL_SERVER_ERROR;
+			}						
+
 			validSession = false;
 			try
 			{
-				principalSession = this->_spep->getAuthnProcessor()->verifySession( sessionID );
+				principalSession = this->_spep->getAuthnProcessor()->verifySession(sessionID);
 				validSession = true;
 			}
-			catch( std::exception& e )
+			catch(std::exception& e)
 			{
+				m_localLogger->error() << "An error occurred when attempting to verify a session after performing authz, with Session ID: " << sessionID << ". Error: " << e.what();
 			}
 			
 			if( validSession )

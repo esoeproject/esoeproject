@@ -205,6 +205,7 @@ std::string SSOHandler::buildAuthnRequestDocument( ISAPIRequest *request, const 
 	AuthnProcessorData data;
 	data.setRequestURL( base64RedirectURL );
 	data.setBaseRequestURL( baseRequestURL );
+	data.setRemoteIpAddress(request->getRemoteAddress());
 	
 	this->_spep->getAuthnProcessor()->generateAuthnRequest( data );
 	

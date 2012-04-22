@@ -1,6 +1,6 @@
 
-includedirs = ['include']
-libdirs = []
+includedirs = ['include', '../saml2cpp/include', '../spepcpp/include', '/usr/include/apr-1', '/usr/include/httpd']
+libdirs = ['/usr/lib64', '../saml2cpp', '../spepcpp']
 
 platform = ARGUMENTS.get('OS', Platform().name)
 libdirs += Split(ARGUMENTS.get('libdirs', ''))

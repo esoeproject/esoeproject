@@ -25,6 +25,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <httpfilt.h>
+#include <boost/shared_ptr.hpp>
 
 #include "spep/config/ConfigurationReader.h"
 #include "spep/SPEP.h"
@@ -53,8 +54,11 @@ namespace spep{ namespace isapi{
 		WSHandler *_wsHandler;
 		SSOHandler *_ssoHandler;
 		
+		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;
+		LocalLoggerPtr m_localLogger;
+		
 		public:
-		SPEPExtension( spep::ConfigurationReader &configReader, std::string logFile );
+		SPEPExtension( spep::ConfigurationReader &configReader, const std::string& logFile );
 		~SPEPExtension();
 		
 		/**

@@ -298,28 +298,31 @@ spep::MetadataThread::RawMetadata spep::MetadataThread::getRawMetadata( std::str
 	
 	_localLogger.debug() << "Calling cURL to retrieve metadata from " << metadataURL;
 
+	CURL *pCurlHandle = curl_easy_init();
+
 	// Set the URL for curl to retrieve from
-	curl_easy_setopt(this->_curl, CURLOPT_URL, metadataURL.c_str());
+	curl_easy_setopt(pCurlHandle, CURLOPT_URL, metadataURL.c_str());
 	// Give curl something to call with its data
-	curl_easy_setopt(this->_curl, CURLOPT_WRITEFUNCTION, spep::MetadataThread::curlCallback);
-	curl_easy_setopt(this->_curl, CURLOPT_WRITEDATA, (void*)&data);
+	curl_easy_setopt(pCurlHandle, CURLOPT_WRITEFUNCTION, spep::MetadataThread::curlCallback);
+	curl_easy_setopt(pCurlHandle, CURLOPT_WRITEDATA, (void*)&data);
 	// Buffer to output an error message if the call fails
-	curl_easy_setopt(this->_curl, CURLOPT_ERRORBUFFER, errorBuffer.get());
+	curl_easy_setopt(pCurlHandle, CURLOPT_ERRORBUFFER, errorBuffer.get());
 	// Don't give us any content on a HTTP >=400 response
-	curl_easy_setopt(this->_curl, CURLOPT_FAILONERROR, 1);
+	curl_easy_setopt(pCurlHandle, CURLOPT_FAILONERROR, 1);
 	// Ignore signals
-	curl_easy_setopt(this->_curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(pCurlHandle, CURLOPT_NOSIGNAL, 1L);
 	// Debugging code
-	curl_easy_setopt(this->_curl, CURLOPT_DEBUGFUNCTION, spep::MetadataThread::debugCallback);
-	curl_easy_setopt(this->_curl, CURLOPT_DEBUGDATA, (void*)this);
-	curl_easy_setopt(this->_curl, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(pCurlHandle, CURLOPT_DEBUGFUNCTION, spep::MetadataThread::debugCallback);
+	curl_easy_setopt(pCurlHandle, CURLOPT_DEBUGDATA, (void*)this);
+	curl_easy_setopt(pCurlHandle, CURLOPT_VERBOSE, 1);
 	// Set the CA bundle, if we were given one
 	if( ! this->_caBundle.empty() )
 	{
-		curl_easy_setopt( this->_curl, CURLOPT_CAINFO, this->_caBundle.c_str() );
+		curl_easy_setopt( pCurlHandle, CURLOPT_CAINFO, this->_caBundle.c_str() );
 	}
 	// Perform the retrieve operation. This will block until complete.
-	CURLcode result = curl_easy_perform(this->_curl);
+	CURLcode result = curl_easy_perform(pCurlHandle);
+	curl_easy_cleanup(pCurlHandle);
 	
 	_localLogger.debug() << boost::lexical_cast<std::string>( result );
 
@@ -358,7 +361,6 @@ _localLogger(logger, "spep::MetadataThread"),
 _metadata(metadata),
 _interval(interval),
 _hashType( EVP_sha1() ), // Initialize to SHA1 hash
-_curl( curl_easy_init() ), // Init the cURL handle in the constructor.
 _caBundle( caBundle ),
 _metadataUnmarshaller( NULL ),
 _die(false)

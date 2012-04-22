@@ -19,7 +19,7 @@
 
 #include "spep/exceptions/AuthnException.h"
 
-spep::AuthnException::AuthnException( std::string message )
+spep::AuthnException::AuthnException(const std::string& message)
 :
 _message( message )
 {

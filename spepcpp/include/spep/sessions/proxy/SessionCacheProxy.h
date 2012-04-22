@@ -35,14 +35,14 @@ namespace spep { namespace ipc {
 		
 		/** @see spep::SessionCache */
 		/*@{*/
-		virtual void getPrincipalSession(PrincipalSession& principalSession, std::string localSessionID);
-		virtual void getPrincipalSessionByEsoeSessionID(PrincipalSession& principalSession, std::wstring esoeSessionID);
-		virtual void insertPrincipalSession(std::string sessionID, PrincipalSession &principalSession);
-		virtual void terminatePrincipalSession(std::wstring sessionID);
+		virtual void getPrincipalSession(PrincipalSession& principalSession, const std::string& localSessionID);
+		virtual void getPrincipalSessionByEsoeSessionID(PrincipalSession& principalSession, const std::wstring& esoeSessionID);
+		virtual void insertPrincipalSession(const std::string& sessionID, PrincipalSession &principalSession);
+		virtual void terminatePrincipalSession(const std::wstring& sessionID);
 		
-		virtual void getUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession, std::wstring requestID);
+		virtual void getUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession, const std::wstring& requestID);
 		virtual void insertUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession);
-		virtual void terminateUnauthenticatedSession(std::wstring requestID);
+		virtual void terminateUnauthenticatedSession(const std::wstring& requestID);
 		
 		virtual void terminateExpiredSessions( int sessionCacheTimeout );
 		/*@}*/

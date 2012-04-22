@@ -23,6 +23,9 @@
 
 #include <boost/lexical_cast.hpp>
 
+// Important openssl mutex initialization - enables libcurl to be thread safe.
+#include <asio/ssl/detail/openssl_init.hpp>
+
 // TODO These values stolen from includes/versions/Common.h from the modspep project. Find somewhere common to put them.
 /// Name of the HTTP header for content type
 #define HEADER_NAME_CONTENT_TYPE "Content-Type"
@@ -34,22 +37,23 @@
 #define SOAP12_DOCUMENT_CONTENT_TYPE "application/soap+xml"
 /**@}*/
 
+// Make sure we create an instance of the openssl init functionality to ensure that openssl is thread safe.
+asio::ssl::detail::openssl_init<> init_;
 
 spep::WSClient::WSClient( saml2::Logger *logger, std::string caBundle, spep::SOAPUtil *soapUtil )
 :
 _localLogger( logger, "spep::WSClient" ),
 _caBundle( caBundle ),
-_curl( curl_easy_init() ),
 _soapUtil( soapUtil )
 {
 }
 
 spep::WSClient::~WSClient()
 {
-	curl_easy_cleanup( _curl );
 }
 
-void spep::WSClient::doSOAPRequest( spep::WSProcessorData& data, std::string endpoint )
+/* Creates a new curl handle for each web service call, to make this thread safe for IIS. */
+void spep::WSClient::doSOAPRequest(spep::WSProcessorData& data, const std::string& endpoint)
 {
 	
 	RawSOAPDocument requestDocument;
@@ -59,36 +63,38 @@ void spep::WSClient::doSOAPRequest( spep::WSProcessorData& data, std::string end
 	
 	// Initialize an empty response document container.
 	RawSOAPDocument responseDocument;
-	
+		
 	AutoArray<char> errorBuffer( CURL_ERROR_SIZE );
 	std::memset( errorBuffer.get(), 0, CURL_ERROR_SIZE );
 	
 	_localLogger.debug() << "Calling cURL to make web service call to " << endpoint;
 	
+	CURL *pCurlHandle = curl_easy_init();
+
 	// Set the URL for curl to retrieve from
-	curl_easy_setopt( this->_curl, CURLOPT_URL, endpoint.c_str() );
+	curl_easy_setopt( pCurlHandle, CURLOPT_URL, endpoint.c_str() );
 	// Give curl something to call with its data
-	curl_easy_setopt( this->_curl, CURLOPT_WRITEFUNCTION, spep::WSClient::curlWriteCallback );
-	curl_easy_setopt( this->_curl, CURLOPT_WRITEDATA, (void*)&responseDocument );
+	curl_easy_setopt( pCurlHandle, CURLOPT_WRITEFUNCTION, spep::WSClient::curlWriteCallback );
+	curl_easy_setopt( pCurlHandle, CURLOPT_WRITEDATA, (void*)&responseDocument );
 	// Give curl the request content
-	curl_easy_setopt( this->_curl, CURLOPT_READFUNCTION, spep::WSClient::curlReadCallback );
-	curl_easy_setopt( this->_curl, CURLOPT_READDATA, (void*)&requestDocument );
+	curl_easy_setopt( pCurlHandle, CURLOPT_READFUNCTION, spep::WSClient::curlReadCallback );
+	curl_easy_setopt( pCurlHandle, CURLOPT_READDATA, (void*)&requestDocument );
 	// Tell curl we're doing a HTTP POST
-	curl_easy_setopt( this->_curl, CURLOPT_POST, 1 );
+	curl_easy_setopt( pCurlHandle, CURLOPT_POST, 1 );
 	// Buffer to output an error message if the call fails
-	curl_easy_setopt( this->_curl, CURLOPT_ERRORBUFFER, errorBuffer.get() );
+	curl_easy_setopt( pCurlHandle, CURLOPT_ERRORBUFFER, errorBuffer.get() );
 	// Don't give us any content on a HTTP >=400 response
-	curl_easy_setopt( this->_curl, CURLOPT_FAILONERROR, 1 );
+	curl_easy_setopt( pCurlHandle, CURLOPT_FAILONERROR, 1 );
 	// Ignore signals
-	curl_easy_setopt(this->_curl, CURLOPT_NOSIGNAL, 1L);
+	curl_easy_setopt(pCurlHandle, CURLOPT_NOSIGNAL, 1L);
 	// Debugging code
-	curl_easy_setopt(this->_curl, CURLOPT_DEBUGFUNCTION, spep::WSClient::debugCallback);
-	curl_easy_setopt(this->_curl, CURLOPT_DEBUGDATA, (void*)this);
-	curl_easy_setopt(this->_curl, CURLOPT_VERBOSE, 1);
+	curl_easy_setopt(pCurlHandle, CURLOPT_DEBUGFUNCTION, spep::WSClient::debugCallback);
+	curl_easy_setopt(pCurlHandle, CURLOPT_DEBUGDATA, (void*)this);
+	curl_easy_setopt(pCurlHandle, CURLOPT_VERBOSE, 1);
 	// Set the CA bundle, if we were given one
 	if( ! this->_caBundle.empty() )
 	{
-		curl_easy_setopt( this->_curl, CURLOPT_CAINFO, this->_caBundle.c_str() );
+		curl_easy_setopt( pCurlHandle, CURLOPT_CAINFO, this->_caBundle.c_str() );
 	}
 	
 	std::string contentTypeHeader( HEADER_NAME_CONTENT_TYPE );
@@ -132,12 +138,14 @@ void spep::WSClient::doSOAPRequest( spep::WSProcessorData& data, std::string end
 	headerList = curl_slist_append( headerList, contentLengthHeader.c_str() );
 	headerList = curl_slist_append( headerList, soapActionHeader.c_str() );
 	
-	curl_easy_setopt( this->_curl, CURLOPT_HTTPHEADER, headerList );
+	curl_easy_setopt( pCurlHandle, CURLOPT_HTTPHEADER, headerList );
 
 	// Perform the call. This will block until complete.
-	CURLcode result = curl_easy_perform(this->_curl);
+	CURLcode result = curl_easy_perform(pCurlHandle);
 	curl_slist_free_all( headerList );
 	
+	curl_easy_cleanup(pCurlHandle);
+
 	// If the request didn't succeed, handle the error condition.
 	if (result != CURLE_OK)
 	{

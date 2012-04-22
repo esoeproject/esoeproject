@@ -10,7 +10,17 @@ dependencies {
 
 	compile 'log4j:log4j:1.2.14'
 
-	compile('com.atlassian.seraph:atlassian-seraph:2.1.1') { transitive = false }
+	//compile('com.atlassian.seraph:atlassian-seraph:2.1.1') { transitive = false }
+	//compile('com.atlassian.bucket:atlassian-bucket:1.3') { transitive = false }
+	//compile('com.atlassian.user:atlassian-user:2.0.2') { transitive = false }
+	compile('com.atlassian.seraph:atlassian-seraph:2.5.1') { transitive = false }
 	compile('com.atlassian.bucket:atlassian-bucket:1.3') { transitive = false }
-	compile('com.atlassian.user:atlassian-user:2.0.2') { transitive = false }
+	compile('com.atlassian.user:atlassian-user:3.0') { transitive = false }
+	compile('com.atlassian.confluence:confluence:3.5.13') { transitive = false }
+	compile('com.atlassian.spring:atlassian-spring:2.0-rc6') { transitive = false }
+	compile('com.atlassian.core:atlassian-core:4.5.8') { transitive = false }
+	compile('com.atlassian.bonnie:atlassian-bonnie:4.0') { transitive = false }
+	compile('com.atlassian.crowd:embedded-crowd-api:2.3.2') { transitive = false }
+	compile('com.atlassian.crowd:embedded-crowd-core:2.3.2') { transitive = false }
+	
 }

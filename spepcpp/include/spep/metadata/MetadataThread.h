@@ -103,7 +103,6 @@ namespace spep
 		int _interval;
 		const EVP_MD *_hashType;
 		EVP_MD_CTX _hashContext;
-		CURL *_curl;
 		std::string _caBundle;
 		saml2::Unmarshaller<saml2::metadata::EntitiesDescriptorType> *_metadataUnmarshaller;
 		bool _die;

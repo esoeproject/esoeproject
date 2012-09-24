@@ -188,7 +188,6 @@ public class SSOServlet extends HttpServlet
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		/* Determine if this is a HTTP Post binding SAML AuthnRequest */
-
 		SSOProcessorData data;
 		String samlRequest;
 		String relayState;
@@ -216,7 +215,7 @@ public class SSOServlet extends HttpServlet
 		data.setHttpResponse(response);
 
 		processCookies(request, data);
-
+		
 		processRequest(request, response, data);
 	}
 
@@ -364,10 +363,14 @@ public class SSOServlet extends HttpServlet
 	 */
 	private void clearSessionCookie(SSOProcessorData data)
 	{
+		logger.debug("Clearing esoe session cookie " + sessionTokenName);
+		
 		/* Remove the value of the users session cookie at the ESOE */
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$
 		sessionCookie.setDomain(this.sessionDomain);
 		sessionCookie.setSecure(false);
+		sessionCookie.setMaxAge(0);
+		sessionCookie.setPath("/");
 		data.getHttpResponse().addCookie(sessionCookie);
 	}
 
@@ -532,12 +535,12 @@ public class SSOServlet extends HttpServlet
 					break;
 				case ForcePassiveAuthn:
 					cleanSessionState(request);
-					generateResponse(response, data);
 					this.clearSessionCookie(data);
+					generateResponse(response, data);
 					break;
 				case ForceAuthn:
-					generateForceAuthnResponse(request, response, data);
 					this.clearSessionCookie(data);
+					generateForceAuthnResponse(request, response, data);
 					break;
 			}
 		}

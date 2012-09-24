@@ -194,9 +194,14 @@ public class WSServlet extends HttpServlet
 			);
 			
 			Object result = wsMethod.invoke(this.wsProcessor, document, req.getContentType());
-			
+
 			if (result instanceof byte[])
 			{
+                // response content type should match the request content type, for SOAP compatibility.
+                resp.setContentType(req.getContentType());
+
+                this.logger.debug("Set response content-type to {}.", resp.getContentType());
+
 				byte[] response = (byte[])result;
 				resp.getOutputStream().write(response);
 				return;

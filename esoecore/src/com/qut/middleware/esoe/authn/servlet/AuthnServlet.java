@@ -359,10 +359,14 @@ public class AuthnServlet extends HttpServlet
 	 */
 	private void clearSessionCookie(AuthnProcessorData data)
 	{
+		logger.debug("Clearing esoe session cookie " + sessionTokenName);
+		
 		/* Remove the value of the users session cookie at the ESOE */
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$
 		sessionCookie.setDomain(this.sessionDomain);
 		sessionCookie.setSecure(false);
+		sessionCookie.setMaxAge(0);
+		sessionCookie.setPath("/");
 		data.getHttpResponse().addCookie(sessionCookie);
 	}
 }

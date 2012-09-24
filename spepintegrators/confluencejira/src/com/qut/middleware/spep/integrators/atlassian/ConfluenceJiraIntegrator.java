@@ -32,25 +32,34 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.log4j.Logger;
 
-import bucket.container.ContainerManager;
+//import bucket.container.ContainerManager;
 
+import com.atlassian.spring.container.ContainerManager;
 import com.atlassian.seraph.auth.AuthenticatorException;
-import com.atlassian.seraph.auth.DefaultAuthenticator;
+//import com.atlassian.seraph.auth.DefaultAuthenticator;
+import com.atlassian.confluence.user.ConfluenceAuthenticator;
+import com.atlassian.confluence.user.UserAccessor;
+import com.atlassian.confluence.user.PersonalInformationManager;
+import com.atlassian.confluence.user.PersonalInformation;
+import com.atlassian.crowd.embedded.api.CrowdService;
+import com.atlassian.crowd.embedded.impl.ImmutableUser;
 import com.atlassian.user.EntityException;
 import com.atlassian.user.Group;
 import com.atlassian.user.GroupManager;
 import com.atlassian.user.User;
-import com.atlassian.user.UserManager;
+//import com.atlassian.user.impl.DefaultUser;
+//import com.atlassian.user.UserManager;
+import com.atlassian.confluence.*;
 import com.qut.middleware.spep.filter.SPEPFilter;
 
-public class ConfluenceJiraIntegrator extends DefaultAuthenticator
+public class ConfluenceJiraIntegrator extends ConfluenceAuthenticator
 {
 	private static final long serialVersionUID = 234789254349L;
 
 	private final String DEFAULT_GROUP_NAME = "confluence-users";
 	private final String ANONYMOUS_DEFAULT_ACCOUNT = "esoe-confluence-anon";
 
-	private UserManager userManager;
+	//private UserManager userManager;
 	private GroupManager groupManager;
 	private Group defaultGroup;
 
@@ -67,18 +76,6 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 
 	public ConfluenceJiraIntegrator()
 	{
-		try
-		{
-			this.userManager = (UserManager) ContainerManager.getComponent("userManager");
-			this.groupManager = (GroupManager) ContainerManager.getComponent("groupManager");
-			this.defaultGroup = this.groupManager.getGroup(this.DEFAULT_GROUP_NAME);
-		}
-		catch (EntityException e)
-		{
-			this.logger.fatal("Could not perform initial interaction with confluence/jira");
-			throw new IllegalStateException("Could not perform initial interaction with confluence/jira", e);
-		}
-
 		InputStream propStream = ConfluenceJiraIntegrator.class.getResourceAsStream("integrator.properties");
 		
 		if(propStream == null)
@@ -150,7 +147,7 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 		try
 		{
 			this.logger.debug("Logging out user from current confluence session");
-			request.getSession().setAttribute(DefaultAuthenticator.LOGGED_IN_KEY, null);
+			request.getSession().setAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY, null);
 			request.getSession().setAttribute(LOGGED_OUT_KEY, Boolean.TRUE);
 			response.sendRedirect(this.logoutURL);
 		}
@@ -173,6 +170,27 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 	@Override
 	public Principal getUser(HttpServletRequest request, HttpServletResponse response)
 	{
+		UserAccessor userAccessor = getUserAccessor();
+
+		this.groupManager = (GroupManager) ContainerManager.getComponent("groupManager");
+
+		try
+		{
+			this.defaultGroup = this.groupManager.getGroup(this.DEFAULT_GROUP_NAME);
+		}
+		catch (Exception e)
+		{
+			this.logger.error("Attempted to get group " + this.DEFAULT_GROUP_NAME + " but the group does not exist.");
+			throw new RuntimeException("Attempted to get group " + this.DEFAULT_GROUP_NAME + " but the group does not exist.");
+		}
+
+
+		if (groupManager == null)
+		{
+			throw new RuntimeException("groupManager was not wired in ConfluenceJiraAuthenticator");
+	    }
+
+
 		HttpSession httpSession = request.getSession();
 		User user;
 		List<Object> userIdentifiers;
@@ -180,21 +198,21 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 		HashMap<String, List<Object>> attributeMap = (HashMap<String, List<Object>>) httpSession.getAttribute(SPEPFilter.ATTRIBUTES);
 		
 		/* Possible lazy init or no attributes sent from ESOE */
-		if(attributeMap == null)
+		if (attributeMap == null)
 			return null;
 
 		userIdentifiers = attributeMap.get(this.userIDAttribute);
 
 		/* Check if the principal is already logged in */
-		if (httpSession != null && httpSession.getAttribute(DefaultAuthenticator.LOGGED_IN_KEY) != null)
+		if (httpSession != null && httpSession.getAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY) != null)
 		{
-			user = (User) httpSession.getAttribute(DefaultAuthenticator.LOGGED_IN_KEY);
-			if(user != null)
+			user = (User) httpSession.getAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY);
+			if (user != null)
 				return user;
 		}
 
 		/* Either the user has not logged in or a different user is now active */
-		httpSession.removeAttribute(DefaultAuthenticator.LOGGED_IN_KEY);
+		httpSession.removeAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY);
 
 		/*
 		 * If we haven't been supplied with a user identifier attribute, map them to a default anonymous account that has
@@ -211,17 +229,17 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 		{
 			try
 			{
-				user = this.userManager.getUser((String) id);
+				user = userAccessor.getUser((String) id);
 				if (user != null)
 				{
 					this.logger.debug("Found existing user identified by " + (String) id + " establishing session for that user");
 					updateAttributes(user, attributeMap);
 					updateGroupMembership(user, attributeMap, response);
-					httpSession.setAttribute(DefaultAuthenticator.LOGGED_IN_KEY, user);
+					httpSession.setAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY, user);
 					return user;
 				}
 			}
-			catch (EntityException e)
+			catch (Throwable e)
 			{
 				this.logger.error("Unable to create new user for confluence/jira - " + e.getLocalizedMessage());
 				this.logger.debug(e);
@@ -240,11 +258,11 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 
 		updateAttributes(user, attributeMap);
 		updateGroupMembership(user, attributeMap, response);
-		httpSession.setAttribute(DefaultAuthenticator.LOGGED_IN_KEY, user);
-		httpSession.setAttribute(DefaultAuthenticator.LOGGED_OUT_KEY, null);
+		httpSession.setAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY, user);
+		httpSession.setAttribute(ConfluenceAuthenticator.LOGGED_OUT_KEY, null);
 
 		/* When we have a new user account show them the dashboard */
-		try
+		/*try
 		{
 			response.sendRedirect("/dashboard.action");
 		}
@@ -252,7 +270,7 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		
 		return user;
 	}
@@ -261,10 +279,11 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 	{
 		try
 		{
-			User user = this.userManager.getUser(this.ANONYMOUS_DEFAULT_ACCOUNT);
+			UserAccessor userAccessor = getUserAccessor();
+			User user = userAccessor.getUser(this.ANONYMOUS_DEFAULT_ACCOUNT);
 			if (user != null)
 			{
-				httpSession.setAttribute(DefaultAuthenticator.LOGGED_IN_KEY, user);
+				httpSession.setAttribute(ConfluenceAuthenticator.LOGGED_IN_KEY, user);
 				return user;
 			}
 			else
@@ -274,7 +293,7 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 				return null;
 			}
 		}
-		catch (EntityException e)
+		catch (Exception e)
 		{
 			this.logger.error("Unable to create anonymous user session - default anonymous account " + this.ANONYMOUS_DEFAULT_ACCOUNT + "is not present in confluence");
 			this.logger.debug(e);
@@ -282,9 +301,10 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 			return null;
 		}
 	}
-
+	
 	private User registerUserAccount(List<Object> userIdentifiers)
 	{
+		UserAccessor userAccessor = getUserAccessor();
 		User user;
 
 		try
@@ -292,11 +312,11 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 			/* Ensure we got a username, if not this user is essentially anonymous */
 			this.logger.info("Dynamically provisioning new account in confluence/jira for first time user identified as " + (String) userIdentifiers.get(0));
 			/* Create a new user, in the case the user presents with multiple identifiers... utilise the first */
-			user = this.userManager.createUser((String) userIdentifiers.get(0));
+			user = userAccessor.createUser((String) userIdentifiers.get(0));
 
 			return user;
 		}
-		catch (EntityException e)
+		catch (Exception e)
 		{
 			this.logger.error("Unable to create new user for confluence/jira - " + e.getLocalizedMessage());
 			this.logger.debug(e);
@@ -306,6 +326,13 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 
 	private void updateAttributes(User user, HashMap<String, List<Object>> attributes)
 	{
+		UserAccessor userAccessor = getUserAccessor();
+		if (userAccessor.isReadOnly(user))
+		{
+			logger.info("not updating user, because user is read-only");
+			return;
+		}
+
 		List<Object> fullName;
 		List<Object> emailAddresses;
 
@@ -316,11 +343,106 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 
 		this.logger.debug("Updating user data in confluence/jira for user " + user.getName());
 
+		boolean updated = false;
+
+		CrowdService crowdService = getCrowdService();
+		if (crowdService == null)
+		{
+			throw new RuntimeException("crowdService was not wired in ConfluenceJiraAuthenticator");
+		}
+
+		com.atlassian.crowd.embedded.api.User crowdUser = crowdService.getUser(user.getName());
+
+		ImmutableUser.Builder userBuilder = new ImmutableUser.Builder();
+		// clone the user before making mods
+		userBuilder.active(crowdUser.isActive());
+		userBuilder.directoryId(crowdUser.getDirectoryId());
+		userBuilder.displayName(crowdUser.getDisplayName());
+		userBuilder.emailAddress(crowdUser.getEmailAddress());
+		userBuilder.name(crowdUser.getName());
+
 		if (fullName != null)
-			user.setFullName((String) fullName.get(0));
+		{
+			String fullNameStr = (String)fullName.get(0);
+
+			if (!fullNameStr.equals(user.getFullName()))
+			{
+				logger.debug("Updating user fullName to '" + fullNameStr + "'");
+							userBuilder.displayName(fullNameStr);
+							updated = true;
+			}
+		}
+		else
+		{
+			logger.debug("User fullName is same as old one: '" + user.getName() + "'");
+		}
 
 		if (emailAddresses != null)
-			user.setEmail((String) emailAddresses.get(0));
+		{
+			String emailAddressStr = (String)emailAddresses.get(0);
+			if (!emailAddressStr.equals(user.getEmail()))
+			{
+				logger.debug("updating user emailAddress to '" + emailAddressStr + "'");
+							userBuilder.emailAddress(emailAddressStr);
+							updated = true;
+			}
+		}
+		else
+		{
+			logger.debug("User emailAddress is same as old one: '" + crowdUser.getEmailAddress() + "'");
+		}
+
+		if (updated)
+		{
+			try
+			{
+				crowdService.updateUser(userBuilder.toUser());
+			}
+			catch (Throwable t)
+			{
+				logger.error("Couldn't update user " + user.getName(), t);
+			}
+		}
+
+
+		/*PersonalInformationManager personalInformationManager = getPersonalInformationManager();
+
+		if (personalInformationManager == null)
+		{
+			throw new RuntimeException("personalInformationManager was not wired in ConfluenceJiraAuthenticator");
+	    }
+
+        PersonalInformation personalInformation = personalInformationManager.getPersonalInformation(user);
+		if (personalInformation == null)
+		{
+			this.logger.debug("personalInformation object is null. Not setting email and fullname attributes.");
+		}
+		else
+		{
+			this.logger.debug("Got personal information object. Setting email and fullname attributes.");
+			this.logger.debug(personalInformation.toString());
+			this.logger.debug(personalInformation.getFullName());
+			this.logger.debug(personalInformation.getEmail());
+
+			if (fullName != null)
+			{
+				this.logger.debug("Setting fullname to " + (String) fullName.get(0));
+				personalInformation.setFullName((String) fullName.get(0));
+			}
+
+			if (emailAddresses != null)
+			{
+				this.logger.debug("Setting email address to " + (String) emailAddresses.get(0));
+				personalInformation.setEmail((String) emailAddresses.get(0));
+			}
+
+
+			this.logger.debug("Saving personal information object.");
+			this.logger.debug(personalInformation.toString());
+			this.logger.debug(personalInformation.getFullName());
+			this.logger.debug(personalInformation.getEmail());
+			personalInformationManager.savePersonalInformation(personalInformation, null);
+		}*/
 	}
 
 	private void updateGroupMembership(User user, HashMap<String, List<Object>> attributes, HttpServletResponse response)
@@ -379,4 +501,18 @@ public class ConfluenceJiraIntegrator extends DefaultAuthenticator
 		}
 	}
 
+	public CrowdService getCrowdService()
+	{
+	    return (CrowdService)ContainerManager.getComponent("crowdService");
+	}
+
+	public GroupManager getGroupManager()
+	{
+	    return (GroupManager)ContainerManager.getComponent("groupManager");
+	}
+
+	public PersonalInformationManager getPersonalInformationManager()
+	{
+		return (PersonalInformationManager)ContainerManager.getComponent("personalInformationManager");
+	}
 }

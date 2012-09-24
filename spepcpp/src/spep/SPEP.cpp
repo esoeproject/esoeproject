@@ -41,6 +41,7 @@
 
 #define ONE_SECOND_NANOSECONDS (1000*1000*1000)
 
+
 spep::SPEP* spep::SPEP::initializeClient( int spepDaemonPort )
 {
 	spep::SPEP *spep = new spep::SPEP;
@@ -83,6 +84,10 @@ spep::SPEP* spep::SPEP::initializeClient( int spepDaemonPort )
 	} catch (spep::ipc::SocketException& e) {
 		// There's not much we can do with it. Just stop the caller from dying.
 	}
+	catch (std::runtime_error& e)
+	{
+		localLogger.error() << "Error reinitializing SPEP client. Error was: " << e.what();
+	}
 
 	return spep;
 }
@@ -92,54 +97,85 @@ void spep::SPEP::reinitializeClient()
 	// Reinitialize everything that relies on something from the config data.
 	// Things that rely only on the client socket should still work without being reinstantiated.
 
-	if( this->_spepConfigData != NULL )
+	if (_spepConfigData != NULL)
 	{
-		delete this->_spepConfigData;
+		delete _spepConfigData;
+		_spepConfigData = NULL;
 	}
-	spep::ipc::ConfigurationProxy configurationProxy( this->_socketPool );
-	this->_spepConfigData = new SPEPConfigData( configurationProxy.getSPEPConfigData() );
+	spep::ipc::ConfigurationProxy configurationProxy(_socketPool);
+	_spepConfigData = new SPEPConfigData(configurationProxy.getSPEPConfigData());
+	if (_spepConfigData == NULL)
+		throw std::runtime_error("Error creating config data.");
 
-	if( this->_soapUtil != NULL )
+	if (_soapUtil != NULL)
 	{
-		delete this->_soapUtil;
+		delete _soapUtil;
+		_soapUtil = NULL;
 	}
-	this->_soapUtil = new SOAPUtil( this->_logger, this->_spepConfigData->getSchemaPath() );
 
-	if( this->_samlValidator != NULL )
-	{
-		delete this->_samlValidator;
-	}
-	this->_samlValidator = new saml2::SAMLValidator( this->_identifierCache, this->_spepConfigData->getAllowedTimeSkew() );
+	_soapUtil = new SOAPUtil(_logger, _spepConfigData->getSchemaPath());
+	if (_soapUtil == NULL)
+		throw std::runtime_error("Error creating soap util.");
 
-	if( this->_wsClient != NULL )
+	if (_samlValidator != NULL)
 	{
-		delete this->_wsClient;
+		delete _samlValidator;
+		_samlValidator = NULL;
 	}
-	this->_wsClient = new WSClient( this->_logger, this->_spepConfigData->getCABundle(), this->_soapUtil );
 
-	if( this->_attributeProcessor != NULL )
-	{
-		delete this->_attributeProcessor;
-	}
-	this->_attributeProcessor = new AttributeProcessor( this->_logger, this->_metadata, this->_spepConfigData->getKeyResolver(), this->_identifierGenerator, this->_wsClient, this->_samlValidator, this->_spepConfigData->getSchemaPath(), this->_spepConfigData->getAttributeRenameMap() );
+	_samlValidator = new saml2::SAMLValidator(_identifierCache, _spepConfigData->getAllowedTimeSkew());
+	if (_samlValidator == NULL)
+		throw std::runtime_error("Error creating SAML Validator.");
 
-	if( this->_authnProcessor != NULL )
+	if (_wsClient != NULL)
 	{
-		delete this->_authnProcessor;
+		delete _wsClient;
+		_wsClient = NULL;
 	}
-	this->_authnProcessor = new AuthnProcessor( this->_logger, this->_attributeProcessor, this->_metadata, this->_sessionCache, this->_samlValidator, this->_identifierGenerator, this->_spepConfigData->getKeyResolver(), this->_spepConfigData->getSPEPIdentifier(), this->_spepConfigData->getSSORedirect(), this->_spepConfigData->getServiceHost(), this->_spepConfigData->getSchemaPath(), this->_spepConfigData->getAttributeConsumingServiceIndex(), this->_spepConfigData->getAssertionConsumerServiceIndex() );
 
-	if( this->_policyEnforcementProcessor != NULL )
-	{
-		delete this->_policyEnforcementProcessor;
-	}
-	this->_policyEnforcementProcessor = new PolicyEnforcementProcessor( this->_logger, this->_wsClient, this->_sessionGroupCache, this->_sessionCache, this->_metadata, this->_identifierGenerator, this->_samlValidator, this->_spepConfigData->getKeyResolver(), this->_spepConfigData->getSchemaPath() );
+	_wsClient = new WSClient(_logger, _spepConfigData->getCABundle(), _soapUtil);
+	if (_wsClient == NULL)
+		throw std::runtime_error("Error creating WS client.");
 
-	if( this->_wsProcessor != NULL )
+	if (_attributeProcessor != NULL)
 	{
-		delete this->_wsProcessor;
+		delete _attributeProcessor;
+		_attributeProcessor = NULL;
 	}
-	this->_wsProcessor = new WSProcessor( this->_logger, this->_authnProcessor, this->_policyEnforcementProcessor, this->_soapUtil );
+
+	_attributeProcessor = new AttributeProcessor(_logger, _metadata, _spepConfigData->getKeyResolver(), _identifierGenerator, _wsClient, _samlValidator, _spepConfigData->getSchemaPath(), _spepConfigData->getAttributeRenameMap());
+	if (_attributeProcessor == NULL)
+		throw std::runtime_error("Error creating Attribute Processor.");
+
+	if (_authnProcessor != NULL)
+	{
+		delete _authnProcessor;
+		_authnProcessor = NULL;
+	}
+
+	_authnProcessor = new AuthnProcessor(_logger, _attributeProcessor, _metadata, _sessionCache, _samlValidator, _identifierGenerator, _spepConfigData->getKeyResolver(), _spepConfigData->getSPEPIdentifier(), _spepConfigData->getSSORedirect(), _spepConfigData->getServiceHost(), _spepConfigData->getSchemaPath(), _spepConfigData->getAttributeConsumingServiceIndex(), _spepConfigData->getAssertionConsumerServiceIndex());
+	if (_authnProcessor == NULL)
+		throw std::runtime_error("Error creating Authn Processor.");
+
+	if (_policyEnforcementProcessor != NULL)
+	{
+		delete _policyEnforcementProcessor;
+		_policyEnforcementProcessor = NULL;
+	}
+	
+	_policyEnforcementProcessor = new PolicyEnforcementProcessor(_logger, _wsClient, _sessionGroupCache, _sessionCache, _metadata, _identifierGenerator, _samlValidator, _spepConfigData->getKeyResolver(), _spepConfigData->getSchemaPath());
+	if (_policyEnforcementProcessor == NULL)
+		throw std::runtime_error("Error creating Policy Enforcement Processor.");
+
+	if (_wsProcessor != NULL)
+	{
+		delete _wsProcessor;
+		_wsProcessor = NULL;
+	}
+
+	_wsProcessor = new WSProcessor(_logger, _authnProcessor, _policyEnforcementProcessor, _soapUtil);
+	if (_wsProcessor == NULL)
+		throw std::runtime_error("Error creating WS Processor.");
 
 	this->_serviceID = this->_socketPool->getServiceID();
 	// Can't assume we're still connected to a "started" SPEP
@@ -221,24 +257,24 @@ spep::SPEP* spep::SPEP::initializeStandalone( spep::ConfigurationReader& configR
 
 spep::SPEP::~SPEP()
 {
-	if( this->_identifierCache != NULL ) delete this->_identifierCache;
-	if( this->_identifierGenerator != NULL ) delete this->_identifierGenerator;
-	if( this->_samlValidator != NULL ) delete this->_samlValidator;
-	if( this->_socketPool != NULL ) delete this->_socketPool;
-	if( this->_authnProcessor != NULL ) delete this->_authnProcessor;
-	if( this->_attributeProcessor != NULL ) delete this->_attributeProcessor;
-	if( this->_metadata != NULL ) delete this->_metadata;
-	if( this->_policyEnforcementProcessor != NULL ) delete this->_policyEnforcementProcessor;
-	if( this->_sessionGroupCache != NULL ) delete this->_sessionGroupCache;
-	if( this->_sessionCache != NULL ) delete this->_sessionCache;
-	if( this->_sessionCacheThread != NULL ) delete this->_sessionCacheThread;
-	if( this->_startupProcessor != NULL ) delete this->_startupProcessor;
-	if( this->_logger != NULL ) delete this->_logger;
-	if( this->_configuration != NULL ) delete this->_configuration;
-	if( this->_spepConfigData != NULL ) delete this->_spepConfigData;
-	if( this->_soapUtil != NULL ) delete this->_soapUtil;
-	if( this->_wsClient != NULL ) delete this->_wsClient;
-	if( this->_wsProcessor != NULL ) delete this->_wsProcessor;
+	delete this->_identifierCache;
+	delete this->_identifierGenerator;
+	delete this->_samlValidator;
+	delete this->_socketPool;
+	delete this->_authnProcessor;
+	delete this->_attributeProcessor;
+	delete this->_metadata;
+	delete this->_policyEnforcementProcessor;
+	delete this->_sessionGroupCache;
+	delete this->_sessionCache;
+	delete this->_sessionCacheThread;
+	delete this->_startupProcessor;
+	delete this->_logger;
+	delete this->_configuration;
+	delete this->_spepConfigData;
+	delete this->_soapUtil;
+	delete this->_wsClient;
+	delete this->_wsProcessor;
 }
 
 spep::SPEP::SPEP()
@@ -279,6 +315,11 @@ void spep::SPEP::checkConnection()
 			try {
 				this->reinitializeClient();
 			} catch (spep::ipc::SocketException &e) {
+			}
+			catch (std::runtime_error& e)
+			{
+				saml2::LocalLogger localLogger(_logger, "spep::SPEP::checkConnection");
+				localLogger.error() << "Error reinitializing SPEP client. Error was: " << e.what();
 			}
 		}
 	}

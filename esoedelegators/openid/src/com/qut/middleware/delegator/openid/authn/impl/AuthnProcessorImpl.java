@@ -141,7 +141,7 @@ public class AuthnProcessorImpl implements AuthnProcessor
 		this.marshaller = new MarshallerImpl<RegisterPrincipalRequest>(this.MAR_PKGNAMES, schemas, this.keyStoreResolver);
 
 		manager = new ConsumerManager();
-		manager.setAllowNoEncHttp(false);
+		//manager.setAllowNoEncHttp(false);
 	}
 
 	private void invokeOpenIDAuthnRequest(AuthnProcessorData processorData) throws OpenIDException, ServletException, IOException

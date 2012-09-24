@@ -32,7 +32,7 @@ public interface MetadataSource
 {
 	public static int DEFAULT_PRIORITY = 0;
 	public static boolean DEFAULT_MANDATORY = true;
-	public static boolean DEFAULT_TRUSTED = false;
+	public static boolean DEFAULT_TRUSTED = true;
 	
 	/**
 	 * Location for the MetadataSource is considered to be immutable, and so every

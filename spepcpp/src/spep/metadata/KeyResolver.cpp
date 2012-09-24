@@ -255,7 +255,7 @@ XSECCryptoKey *spep::KeyResolver::resolveKey (DSIGKeyInfoList *list)
 			XSECCryptoKey* key = this->resolveKey( keyName );
 			return key;
 		}
-		catch( std::exception e )
+		catch( std::exception& e )
 		{
 		}
 	}

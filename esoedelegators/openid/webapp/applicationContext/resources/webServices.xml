@@ -24,7 +24,12 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		Purpose: Defines spring integration for
 		====================================================================== -->
 
-	<!-- shib delegated authenticator web services client connectivity -->
-	<bean name="wsClient" class="com.qut.middleware.delegator.openid.ws.impl.WSClientImpl" />
+	<!-- openid delegated authenticator web services client connectivity -->
+	
+	<bean name="soapv11Handler" class="com.qut.middleware.saml2.handler.impl.SOAPv11Handler"/>
+	
+	<bean name="wsClient" class="com.qut.middleware.esoe.ws.impl.WSClientImpl" >
+		<constructor-arg ref="soapv11Handler"/>
+	</bean>
 
 </beans>

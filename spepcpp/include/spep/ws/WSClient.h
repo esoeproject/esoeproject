@@ -63,10 +63,10 @@ namespace spep
 			
 		saml2::LocalLogger _localLogger;
 		std::string _caBundle;
-		CURL *_curl;
 		SOAPUtil *_soapUtil;
-		
-		void doSOAPRequest( WSProcessorData& data, std::string endpoint );
+		Mutex _wsClientMutex;
+
+		void doSOAPRequest(WSProcessorData& data, const std::string& endpoint);
 
 		/** 
 		 * Callback function to be called by cURL. The userp pointer MUST be a RawSOAPDocument. 
@@ -90,8 +90,9 @@ namespace spep
 		~WSClient();
 		
 		template <typename Res>
-		Res* doWSCall( std::string endpoint, DOMDocument* requestDocument, saml2::Unmarshaller<Res> *resUnmarshaller, SOAPUtil::SOAPVersion soapVersion = SOAPUtil::SOAP11 )
+		Res* doWSCall(const std::string& endpoint, DOMDocument* requestDocument, saml2::Unmarshaller<Res> *resUnmarshaller, SOAPUtil::SOAPVersion soapVersion = SOAPUtil::SOAP11)
 		{
+			//ScopedLock(_wsClientMutex);
 			WSProcessorData data;
 			
 			data.setSOAPRequestDocument( _soapUtil->wrapObjectInSOAP( requestDocument->getDocumentElement(), WSCLIENT_CHARACTER_ENCODING, soapVersion ) );

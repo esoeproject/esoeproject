@@ -69,6 +69,7 @@ void spep::SessionCacheThread::doThreadAction()
 {
 	for(;;)
 	{
+		_localLogger.info() << "Session cache thread sleeping for " << _interval << " seconds.";
 		InterruptibleSleeper( _interval, 0, 500, &_die ).sleep();
 		if( _die )
 		{

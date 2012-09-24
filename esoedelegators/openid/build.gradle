@@ -1,5 +1,6 @@
 archiveBaseName = 'esoedelegator-openid'
 eclipseProject.projectName = archiveBaseName
+apply plugin: 'war'
 
 dependencies {
 	compile project(':saml2java')
@@ -10,7 +11,16 @@ dependencies {
 		compile "org.springframework:spring-${it}:2.5.6"
 	}
 
-	compile 'org.openid4java:openid4java:0.9.3'
+	compile 'org.openid4java:openid4java:0.9.6'
 	compile 'net.sf.click:click:1.5.3'
+	compile 'net.sf.click:click-extras:1.5.3'
+}
 
+war {
+	from 'webapp/content/'
+	webInf {
+		from 'webapp/applicationContext/'
+	}
+	classpath 'webapp/classes'
+	webXml = file('webapp/descriptors/openiddeleg-dev.xml')
 }

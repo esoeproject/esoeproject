@@ -40,10 +40,15 @@ namespace spep {namespace apache{
 		
 		private:
 		spep::SPEP *_spep;
+
+		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;
+		LocalLoggerPtr m_localLogger;
+		
+
 		RequestHandler( const RequestHandler& other );
 		RequestHandler& operator=( const RequestHandler& other );
 		int handleRequestInner( request_rec *req );
-		
+
 		public:
 		RequestHandler( spep::SPEP *spep );
 		int handleRequest( request_rec *req );

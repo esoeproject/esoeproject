@@ -20,11 +20,12 @@
 #ifndef ENGINE_H_
 #define ENGINE_H_
 
+#include <asio.hpp>
+
 #include "spep/Util.h"
 #include "spep/ipc/MessageHeader.h"
 #include "spep/ipc/SocketArchive.h"
 
-#include <asio.hpp>
 
 namespace spep { namespace ipc {
 

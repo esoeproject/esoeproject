@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spep", "spep.vcproj", "{E1412FC5-012B-4D65-A12C-484005A18E01}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spepd", "spepd.vcproj", "{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spepisapi", "spepisapi.vcproj", "{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1FF20761-BC6A-41E5-8DB8-2BDCE926435F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "saml2", "saml2.vcproj", "{73A27EDA-EC4A-411B-9309-35FAB0F24A03}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E1412FC5-012B-4D65-A12C-484005A18E01}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E1412FC5-012B-4D65-A12C-484005A18E01}.Debug|Win32.Build.0 = Debug|Win32
+		{E1412FC5-012B-4D65-A12C-484005A18E01}.Release|Win32.ActiveCfg = Release|Win32
+		{E1412FC5-012B-4D65-A12C-484005A18E01}.Release|Win32.Build.0 = Release|Win32
+		{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}.Debug|Win32.Build.0 = Debug|Win32
+		{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}.Release|Win32.ActiveCfg = Release|Win32
+		{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}.Release|Win32.Build.0 = Release|Win32
+		{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}.Debug|Win32.Build.0 = Debug|Win32
+		{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}.Release|Win32.ActiveCfg = Release|Win32
+		{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}.Release|Win32.Build.0 = Release|Win32
+		{73A27EDA-EC4A-411B-9309-35FAB0F24A03}.Debug|Win32.ActiveCfg = Debug|Win32
+		{73A27EDA-EC4A-411B-9309-35FAB0F24A03}.Debug|Win32.Build.0 = Debug|Win32
+		{73A27EDA-EC4A-411B-9309-35FAB0F24A03}.Release|Win32.ActiveCfg = Release|Win32
+		{73A27EDA-EC4A-411B-9309-35FAB0F24A03}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

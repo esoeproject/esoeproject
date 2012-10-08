@@ -18,6 +18,7 @@ dependencies {
 	compile "org.apache.ibatis:ibatis-sqlmap:2.3.4.726"
 	compile "com.ibm.icu:icu4j:4.0.1"
 	compile "commons-codec:commons-codec:1.4"
+	compile "redis.clients:jedis:2.1.0"
 
 	endorsed 'com.sun.xml.bind:jaxb-impl:2.1.12'
 	endorsed 'xalan:xalan:2.7.1'

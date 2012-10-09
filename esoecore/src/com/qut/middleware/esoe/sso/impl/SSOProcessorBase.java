@@ -19,55 +19,25 @@
  */
 package com.qut.middleware.esoe.sso.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.SimpleTimeZone;
-import java.util.TimeZone;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
-
-import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3._2000._09.xmldsig_.Signature;
-
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 import com.qut.middleware.crypto.KeystoreResolver;
 import com.qut.middleware.esoe.ConfigurationConstants;
 import com.qut.middleware.esoe.sessions.Principal;
 import com.qut.middleware.esoe.sessions.SessionsProcessor;
-import com.qut.middleware.esoe.sessions.exception.InvalidDescriptorIdentifierException;
 import com.qut.middleware.esoe.sessions.exception.SessionCacheUpdateException;
 import com.qut.middleware.esoe.sso.SSOProcessor;
 import com.qut.middleware.esoe.sso.bean.SSOProcessorData;
 import com.qut.middleware.esoe.sso.exception.InvalidRequestException;
 import com.qut.middleware.esoe.sso.exception.InvalidSessionIdentifierException;
 import com.qut.middleware.esoe.util.CalendarUtils;
+import com.qut.middleware.esoe.util.FingerPrint;
 import com.qut.middleware.metadata.bean.EntityData;
 import com.qut.middleware.metadata.bean.saml.ServiceProviderRole;
 import com.qut.middleware.metadata.exception.MetadataStateException;
 import com.qut.middleware.metadata.processor.MetadataProcessor;
-import com.qut.middleware.saml2.BindingConstants;
-import com.qut.middleware.saml2.ConsentIdentifierConstants;
-import com.qut.middleware.saml2.ExternalKeyResolver;
-import com.qut.middleware.saml2.SchemaConstants;
-import com.qut.middleware.saml2.StatusCodeConstants;
-import com.qut.middleware.saml2.VersionConstants;
-import com.qut.middleware.saml2.exception.InvalidSAMLRequestException;
-import com.qut.middleware.saml2.exception.MarshallerException;
-import com.qut.middleware.saml2.exception.ReferenceValueException;
-import com.qut.middleware.saml2.exception.SignatureValueException;
-import com.qut.middleware.saml2.exception.UnmarshallerException;
+import com.qut.middleware.saml2.*;
+import com.qut.middleware.saml2.exception.*;
 import com.qut.middleware.saml2.handler.Marshaller;
 import com.qut.middleware.saml2.handler.Unmarshaller;
 import com.qut.middleware.saml2.handler.impl.MarshallerImpl;
@@ -79,6 +49,21 @@ import com.qut.middleware.saml2.schemas.protocol.Response;
 import com.qut.middleware.saml2.schemas.protocol.Status;
 import com.qut.middleware.saml2.schemas.protocol.StatusCode;
 import com.qut.middleware.saml2.validator.SAMLValidator;
+import org.apache.commons.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3._2000._09.xmldsig_.Signature;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.zip.Inflater;
+import java.util.zip.InflaterInputStream;
 
 /** Implements logic to interact with SPEP using Web Browser SSO Post Profile of SAML 2.0 specification. */
 public abstract class SSOProcessorBase implements SSOProcessor
@@ -111,12 +96,12 @@ public abstract class SSOProcessorBase implements SSOProcessor
 	/* Local logging instance */
 	private Logger logger = LoggerFactory.getLogger(SSOProcessorBase.class.getName());
 	private Logger authnLogger = LoggerFactory.getLogger(ConfigurationConstants.authnLogger);
-	
+
 	private static String IMPLEMENTED_BINDING = BindingConstants.httpPost;
 
 	/**
 	 * Implementation of the SSOProcessor interface to service the SAML AuthnRequests.
-	 * 
+	 *
 	 * @param samlValidator
 	 *            SAML document validator instance
 	 * @param sessionsProcessor
@@ -141,7 +126,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 	 * @param identifierAttributeMapping
 	 *            A mapping of keys from NameIDConstants to attributes exposed by the Attribute Authority for resolution
 	 *            of subject identifier specifiers in responses.
-	 * 
+	 *
 	 * @throws UnmarshallerException
 	 *             if the unmarshaller cannot be created.
 	 * @throws MarshallerException
@@ -203,7 +188,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 			this.logger.error("identifier attribute mapping was null");
 			throw new IllegalArgumentException("identifier attribute mapping was null");
 		}
-		
+
 		if (esoeIdentifier == null)
 		{
 			this.logger.error("ESOE identifier was null");
@@ -228,7 +213,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.qut.middleware.esoe.sso.SSOProcessor#execute(com.qut.middleware.esoe.sso.bean.SSOProcessorData)
 	 */
 	public result execute(SSOProcessorData data) throws InvalidSessionIdentifierException, InvalidRequestException
@@ -276,14 +261,14 @@ public abstract class SSOProcessorBase implements SSOProcessor
 					this.logger.debug(Messages.getString("SSOProcessor.31")); //$NON-NLS-1$
 
 					data.setIssuerID(data.getAuthnRequest().getIssuer().getValue());
-					
+
 					EntityData issuerEntity = this.metadata.getEntityData(data.getIssuerID());
 					if (issuerEntity == null)
 					{
 						this.logger.error("SSO processor could not resolve entity from metadata. Entity ID: " + data.getIssuerID());
 						throw new InvalidRequestException("SSO processor could not resolve entity from metadata. Entity ID: " + data.getIssuerID());
 					}
-					
+
 					ServiceProviderRole spRole = issuerEntity.getRoleData(ServiceProviderRole.class);
 					if (spRole == null)
 					{
@@ -338,6 +323,25 @@ public abstract class SSOProcessorBase implements SSOProcessor
 					createFailedAuthnResponse(data, StatusCodeConstants.requester, StatusCodeConstants.requestDenied, Messages.getString("SSOProcessor.19"), data.getRequestCharsetName()); //$NON-NLS-1$
 					return SSOProcessor.result.ForcePassiveAuthn;
 				}
+
+                // Insert fingerprint check to eliminate the possibility of swapped user sessions
+                HttpServletRequest userRequest = data.getHttpRequest();
+                String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent") + userRequest.getHeader("Accept-Encoding");
+                FingerPrint printChecker = new FingerPrint();
+
+                try {
+                    logger.info("{} - Checking fingerprint for session {}", userRequest.getRemoteAddr(), data.getSessionID());
+                    if(!printChecker.assertFingerprintCheck(data.getSessionID(), userAgentData) ){
+
+                        logger.warn("{} - Fingerprint check failed for session ID {}. Forcing Authn", userRequest.getRemoteAddr(), data.getSessionID());
+                        return SSOProcessor.result.ForceAuthn;
+                    } else {
+                       logger.info("{} - Fingerprint check passed. Allowing request to proceed", userRequest.getRemoteAddr());
+                    }
+                } catch (SessionCacheUpdateException e) {
+                    // allow user to login if the print can not be stored
+                    logger.error("Failed to check fingerprint for session {} - {}", data.getSessionID(), e.getMessage());
+                }
 
 				principal = this.sessionsProcessor.getQuery().queryAuthnSession(data.getSessionID());
 

@@ -363,7 +363,7 @@ public class SSOServlet extends HttpServlet
 	 */
 	private void clearSessionCookie(SSOProcessorData data)
 	{
-		logger.debug("Clearing esoe session cookie " + sessionTokenName);
+		logger.debug("{} Clearing esoe session cookie {}" , data.getHttpRequest().getRemoteAddr(), sessionTokenName);
 		
 		/* Remove the value of the users session cookie at the ESOE */
 		Cookie sessionCookie = new Cookie(this.sessionTokenName, ""); //$NON-NLS-1$
@@ -480,7 +480,7 @@ public class SSOServlet extends HttpServlet
 		cookies = request.getCookies();
 		if (cookies != null)
 		{
-			this.logger.debug(Messages.getString("SSOServlet.58")); //$NON-NLS-1$
+			this.logger.debug("{} - Processing cookies presented in the request", data.getHttpRequest().getRemoteAddr());
 			for (Cookie cookie : cookies)
 			{
 				this.logger.debug(Messages.getString("SSOServlet.59") + cookie.getName() + Messages.getString("SSOServlet.60") + cookie.getValue()); //$NON-NLS-1$ //$NON-NLS-2$

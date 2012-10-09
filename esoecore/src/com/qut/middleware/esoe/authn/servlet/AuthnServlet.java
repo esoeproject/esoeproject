@@ -318,7 +318,7 @@ public class AuthnServlet extends HttpServlet
 		Cookie[] cookies = data.getHttpRequest().getCookies();
 		if (cookies != null)
 		{
-			this.logger.debug(Messages.getString("AuthnServlet.20")); //$NON-NLS-1$
+            this.logger.debug("{} - Processing cookies presented in the request", data.getHttpRequest().getRemoteAddr());
 			for (Cookie cookie : cookies)
 			{
 				this.logger.debug(Messages.getString("AuthnServlet.21") + cookie.getName() + Messages.getString("AuthnServlet.22") + cookie.getValue()); //$NON-NLS-1$ //$NON-NLS-2$
@@ -347,6 +347,7 @@ public class AuthnServlet extends HttpServlet
 		sessionCookie.setDomain(this.sessionDomain);
 		sessionCookie.setMaxAge(-1); // negative indicates session scope cookie
 		sessionCookie.setPath("/");
+
 
 		data.getHttpResponse().addCookie(sessionCookie);
 	}

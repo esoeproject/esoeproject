@@ -1,79 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
 
-	<!-- ====================================================================== 
-		
-		Copyright 2006, Queensland University of Technology
-		Licensed under the Apache License, Version 2.0 (the "License"); you may not 
-		use this file except in compliance with the License. You may obtain a copy of 
-		the License at 
-		
-		http://www.apache.org/licenses/LICENSE-2.0 
-		
-		Unless required by applicable law or agreed to in writing, software 
-		distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
-		WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
-		License for the specific language governing permissions and limitations under 
-		the License.
-		
-		Author: Bradley Beddoes
-		Date: 20/11/2006                                                        
-		Purpose: Defines spring integration for
-		====================================================================== -->
-		
-		<bean id="sessionCachePlugin" class="com.qut.middleware.esoe.plugins.OverridePluginLoader">
-			<constructor-arg index="0" value="${esoe.data}/plugins/sessioncache" />
-			<constructor-arg index="1" value="WEB-INF/resources/sessions/defaultSessionCache.xml" />
-			<constructor-arg index="2" ref="globalConfig" />
-		</bean>
-		
-		<bean id="sessionCache" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="sessionCache" />
-		</bean>
-		
-		<!-- Session creation handler -->
-		<bean id="create" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="create" />
-		</bean>
-		
-		<!-- Session query handler -->
-		<bean id="query" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="query" />
-		</bean>
-		
-		<!-- Session termination handler -->
-		<bean id="terminate" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="terminate" />
-		</bean>
-		
-		<!-- Session updates handler -->
-		<bean id="update" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
-			<constructor-arg index="0" ref="sessionCachePlugin" />
-			<constructor-arg index="1" value="update" />
-		</bean>
-			
-		<!-- Processor responsible for all session activity in the ESOE -->
-		<bean id="sessionsProcessor" class="com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl">
-			<constructor-arg ref="create"/>
-			<constructor-arg ref="query"/>
-			<constructor-arg ref="terminate"/>
-			<constructor-arg ref="update"/>
-		</bean>
-		
-		<!--  Sessions monitor. Removes expired data from caches -->
-		<bean id="sessionsMonitorThread" class="com.qut.middleware.esoe.sessions.impl.SessionsMonitor"
-		destroy-method="shutdown">
-			<constructor-arg index="0" ref="identifierCache"/>
-			<constructor-arg index="1" ref="sessionCache"/>
-			<constructor-arg index="2" value="${sessions.cleanupInterval}"/>
-			<constructor-arg index="3" value="${sessions.timeoutInterval}"/>
-		</bean>		
-		
+    <!-- ======================================================================
+
+         Copyright 2006, Queensland University of Technology
+         Licensed under the Apache License, Version 2.0 (the "License"); you may not
+         use this file except in compliance with the License. You may obtain a copy of
+         the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+         Unless required by applicable law or agreed to in writing, software
+         distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+         WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+         License for the specific language governing permissions and limitations under
+         the License.
+
+         Author: Bradley Beddoes
+         Date: 20/11/2006
+         Purpose: Defines spring integration for
+         ====================================================================== -->
+
+    <bean id="sessionCachePlugin" class="com.qut.middleware.esoe.plugins.OverridePluginLoader">
+        <constructor-arg index="0" value="${esoe.data}/plugins/sessioncache"/>
+        <constructor-arg index="1" value="WEB-INF/resources/sessions/defaultSessionCache.xml"/>
+        <constructor-arg index="2" ref="globalConfig"/>
+    </bean>
+
+    <bean id="sessionCache" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+        <constructor-arg index="0" ref="sessionCachePlugin"/>
+        <constructor-arg index="1" value="sessionCache"/>
+    </bean>
+
+    <!-- Session creation handler -->
+    <bean id="create" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+        <constructor-arg index="0" ref="sessionCachePlugin"/>
+        <constructor-arg index="1" value="create"/>
+    </bean>
+
+    <!-- Session query handler -->
+    <bean id="query" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+        <constructor-arg index="0" ref="sessionCachePlugin"/>
+        <constructor-arg index="1" value="query"/>
+    </bean>
+
+    <!-- Session termination handler -->
+    <bean id="terminate" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+        <constructor-arg index="0" ref="sessionCachePlugin"/>
+        <constructor-arg index="1" value="terminate"/>
+    </bean>
+
+    <!-- Session updates handler -->
+    <bean id="update" class="com.qut.middleware.esoe.plugins.PluginFactoryBean">
+        <constructor-arg index="0" ref="sessionCachePlugin"/>
+        <constructor-arg index="1" value="update"/>
+    </bean>
+
+    <!-- Processor responsible for all session activity in the ESOE -->
+    <bean id="sessionsProcessor" class="com.qut.middleware.esoe.sessions.impl.SessionsProcessorImpl">
+        <constructor-arg ref="create"/>
+        <constructor-arg ref="query"/>
+        <constructor-arg ref="terminate"/>
+        <constructor-arg ref="update"/>
+    </bean>
+
+    <!--  Sessions monitor. Removes expired data from caches -->
+    <bean id="sessionsMonitorThread" class="com.qut.middleware.esoe.sessions.impl.SessionsMonitor"
+          destroy-method="shutdown">
+        <constructor-arg index="0" ref="identifierCache"/>
+        <constructor-arg index="1" ref="sessionCache"/>
+        <constructor-arg index="2" value="${sessions.cleanupInterval}"/>
+        <constructor-arg index="3" value="${sessions.timeoutInterval}"/>
+    </bean>
+
+    <bean id="fingerPrint" class="com.qut.middleware.esoe.util.FingerPrint">
+        <!-- Set first arg to the master redis server -->
+        <constructor-arg index="0" value="ivy.qut.edu.au"/>
+        <constructor-arg index="1" type="int" value="6379"/>
+        <constructor-arg index="2" type="int" value="360000"/>
+    </bean>
+
 </beans>

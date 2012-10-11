@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
 
 /**
- * Able to generate and store fingerprints in a redis data store for comparison.
+ * Able to generate and store fingerprints in a Redis data store for comparison.
  */
 
 public class FingerPrint {
@@ -23,20 +23,21 @@ public class FingerPrint {
 
     // Defaults
     private String hostname = "localhost";      // Redis server default
-    private int port =  6379;                   // Redis server default
+    private int port = 6379;                   // Redis server default
     private int expireInterval = 2592000;       // 30 days
     private String password = null;             // no auth
 
 
-    /** Use unauthenticated server defaults.
-     *
+    /**
+     * Use unauthenticated server defaults.
      */
     public FingerPrint() {
 
         pool = new JedisPool(hostname, port);
     }
 
-    /** User server defaults with given password.
+    /**
+     * User server defaults with given password.
      *
      * @param password
      */
@@ -46,7 +47,8 @@ public class FingerPrint {
         this.password = password;
     }
 
-    /** User unauthenticated server defaults with given key expiry.
+    /**
+     * User unauthenticated server defaults with given key expiry.
      *
      * @param expireInterval Expiry in seconds from key creation.
      */
@@ -56,7 +58,8 @@ public class FingerPrint {
         this.expireInterval = expireInterval;
     }
 
-    /** User unauthenticated server defaults with given key expiry.
+    /**
+     * User unauthenticated server defaults with given key expiry.
      *
      * @param expireInterval Expiry in seconds from key creation.
      */
@@ -67,10 +70,22 @@ public class FingerPrint {
         this.password = password;
     }
 
-    /** Use given server settings with authentication.
+    /**
+     * Use given server settings with no authentication and default key expiry.
      *
      * @param hostname Hostname of redis server to connect to.
-     * @param port  Port of Redis server.
+     * @param port     Port of Redis server.
+     */
+    public FingerPrint(String hostname, int port) {
+
+        pool = new JedisPool(hostname, port);
+     }
+
+    /**
+     * Use given server settings with authentication.
+     *
+     * @param hostname Hostname of redis server to connect to.
+     * @param port     Port of Redis server.
      * @param password password for Redis server.
      */
     public FingerPrint(String hostname, int port, String password) {
@@ -79,11 +94,12 @@ public class FingerPrint {
         this.password = password;
     }
 
-    /** Use all given settings.
+    /**
+     * Use all given settings.
      *
-     * @param hostname Hostname of redis server to connect to.
-     * @param port  Port of Redis server.
-     * @param password password for Redis server.
+     * @param hostname       Hostname of redis server to connect to.
+     * @param port           Port of Redis server.
+     * @param password       password for Redis server.
      * @param expireInterval Expiry in seconds from key creation.
      */
     public FingerPrint(String hostname, int port, String password, int expireInterval) {
@@ -94,10 +110,11 @@ public class FingerPrint {
     }
 
 
-    /** Use given server settings with no auth.
+    /**
+     * Use given server settings with no auth.
      *
-      *@param hostname Hostname of redis server to connect to.
-     * @param port  Port of Redis server.
+     * @param hostname       Hostname of redis server to connect to.
+     * @param port           Port of Redis server.
      * @param expireInterval Expiry in seconds from key creation.
      */
     public FingerPrint(String hostname, int port, int expireInterval) {
@@ -122,27 +139,28 @@ public class FingerPrint {
 
         if (fingerprint != null) {
 
-            Jedis printstore = pool.getResource();
+            Jedis printstore = null;
             checkAuth(printstore);
             try {
 
-                 if (!printstore.exists(sessionId)) {
+                printstore = pool.getResource();
+                if (!printstore.exists(sessionId)) {
 
                     logger.debug("No key found for {}", sessionId);
                     if (!saveFingerprint(sessionId, fingerprint)) {
                         throw new SessionCacheUpdateException("Unable to save fingerprint to fingerprint store");
                     }
                 }
+                printstore.quit();     // TODO test this
 
                 return checkFingerprint(sessionId, fingerprint);
 
             } catch (Exception e) {
 
-                logger.error("Error accessing fingerprint store {}", e.getMessage());
+                logger.error("Error accessing fingerprint store: {}", e.getMessage());
                 throw new SessionCacheUpdateException("Unable to access fingerprint store");
 
             } finally {
-
                 pool.returnResource(printstore);
             }
         }
@@ -182,7 +200,7 @@ public class FingerPrint {
     /**
      * Checks the given fingerprint against fingerprint stored against the given session key (if any)
      *
-     * @param key The ESOE session ID used as a key to store the given fingerprint
+     * @param key         The ESOE session ID used as a key to store the given fingerprint
      * @param fingerprint The fingerprint string to check
      * @return True if the key exists and the corresponding value equals the given fingerprint, else false.
      */
@@ -193,10 +211,11 @@ public class FingerPrint {
             throw new InvalidParameterException("Key and fingerprint cannot be null");
         }
 
-        Jedis printstore = pool.getResource();
+        Jedis printstore = null;
         checkAuth(printstore);
         try {
 
+            printstore = pool.getResource();
             String value = printstore.get(key);
             if (value != null) {
                 logger.debug("Fingerprint found. Checking {} against {}", value, fingerprint);
@@ -207,10 +226,9 @@ public class FingerPrint {
 
         } catch (Exception e) {
 
-            logger.error("Error accessing fingerprint store {}", e.getMessage());
+            logger.error("Error accessing fingerprint store: {}", e.getMessage());
 
         } finally {
-
             pool.returnResource(printstore);
         }
 
@@ -232,10 +250,11 @@ public class FingerPrint {
             throw new InvalidParameterException("Key and fingerprint cannot be null");
         }
 
-        Jedis printstore = pool.getResource();
+        Jedis printstore = null;
         checkAuth(printstore);
         try {
 
+            printstore = pool.getResource();
             if (!printstore.exists(key)) {
 
                 logger.debug("Saving fingerprint {} under key {}", fingerprint, key);
@@ -249,11 +268,10 @@ public class FingerPrint {
             }
         } catch (Exception e) {
 
-            logger.error("Error accessing fingerprint store {}", e.getMessage());
+            logger.error("Error accessing fingerprint store: {}", e.getMessage());
             return false;
 
         } finally {
-
             pool.returnResource(printstore);
         }
 
@@ -274,31 +292,31 @@ public class FingerPrint {
             throw new InvalidParameterException("Fingerprint key cannot be null");
         }
 
-        Jedis printStore = pool.getResource();
+        Jedis printstore = null;
         try {
 
+            printstore = pool.getResource();
             logger.info("Removing key {} from fingerprint store", key);
-            printStore.del(key);
+            printstore.del(key);
 
         } catch (Exception e) {
 
-            logger.error("Error accessing fingerprint store {}", e.getMessage());
+            logger.error("Error accessing fingerprint store: {}", e.getMessage());
             return false;
 
         } finally {
-
-            pool.returnResource(printStore);
+            pool.returnResource(printstore);
         }
 
         return true;
     }
 
-    /* See if auth has been configured, and perform auth if so.
+    /* See if auth has been configured, and perform auth if so. Requires an initialized Jedis client.
 
      */
     private void checkAuth(Jedis printstore) {
 
-        if(this.password != null) {
+        if (this.password != null) {
 
             printstore.auth(this.password);
         }
@@ -316,4 +334,5 @@ public class FingerPrint {
 
         return sb.toString();
     }
+
 }

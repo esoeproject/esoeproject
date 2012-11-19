@@ -470,7 +470,7 @@ int main( int argc, char **argv )
 	if( commandLineVariableMap.count("log-file") )
 	{
 		std::string filename( commandLineVariableMap["log-file"].as<std::string>() );
-		stream.reset( new std::ofstream( filename.c_str() ) );
+		stream.reset( new std::ofstream( filename.c_str(), std::ios_base::out | std::ios_base::app ) );
 		if( ! stream->good() )
 		{
 			std::cerr << "Couldn't open output stream for " << filename << std::endl;

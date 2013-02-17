@@ -1,5 +1,6 @@
 archiveBaseName = 'esoedelegator-shibboleth'
 eclipseProject.projectName = archiveBaseName
+apply plugin: 'war'
 
 dependencies {
 	compile project(':saml2java')
@@ -11,4 +12,17 @@ dependencies {
 	}
 
 	compile 'net.sf.click:click:1.5.3'
+}
+
+jar {
+
+}
+
+war {
+	from 'webapp/content/'
+	webInf {
+		from 'webapp/applicationContext/'
+	}
+	classpath 'webapp/classes'
+	webXml = file('webapp/descriptors/shibdeleg-dev.xml')
 }

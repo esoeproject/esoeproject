@@ -128,7 +128,7 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 	public result execute(DelegatedAuthenticationData processorData)
 	{
 		RegisterPrincipalRequest request;
-		String sessionID;
+		String sessionID = null;
 		List<AttributeType> attributes = new ArrayList<AttributeType>();
 		
 		try
@@ -168,40 +168,48 @@ public class DelegatedAuthenticationProcessorImpl implements DelegatedAuthentica
 			
 			try
 			{
-				this.sessionsProcessor.getCreate().createDelegatedSession(sessionID, request.getPrincipalAuthnIdentifier(), AuthenticationContextConstants.unspecified, attributes);
+                this.logger.debug("Creating delegated session principal with session id '" + sessionID + "'");
+
+                this.sessionsProcessor.getCreate().createDelegatedSession(sessionID, request.getPrincipalAuthnIdentifier(), AuthenticationContextConstants.unspecified, attributes);
 			
 				createSuccessfulRegisterPrincipalResponse(processorData, sessionID);
 				return result.Successful;
 			}
 			catch(SessionCacheUpdateException e)
 			{
-				createFailedRegisterPrincipalResponse(processorData);
-				
+                this.logger.error("Error creating delegated session principal with session id '" + sessionID + "'. Error was: " + e.getMessage());
+
+                createFailedRegisterPrincipalResponse(processorData);
 				return result.Failure;
 			}		
 		}
 		catch (SignatureValueException e)
 		{
+            this.logger.error("SignatureValueException exception. Error creating delegated session principal with session id '" + sessionID + "'. Error was: " + e.getMessage());
 			createFailedRegisterPrincipalResponse(processorData);
 			return result.Failure;
 		}
 		catch (ReferenceValueException e)
 		{
+            this.logger.error("ReferenceValueException exception. Error creating delegated session principal with session id '" + sessionID + "'. Error was: " + e.getMessage());
 			createFailedRegisterPrincipalResponse(processorData);
 			return result.Failure;
 		}
 		catch (UnmarshallerException e)
 		{
+            this.logger.error("UnmarshallerException exception. Error creating delegated session principal with session id '" + sessionID + "'. Error was: " + e.getMessage());
 			createFailedRegisterPrincipalResponse(processorData);
 			return result.Failure;
 		}
 		catch (InvalidSAMLRequestException e)
 		{
+            this.logger.error("InvalidSAMLRequestException exception. Error creating delegated session principal with session id '" + sessionID + "'. Error was: " + e.getMessage());
 			createFailedRegisterPrincipalResponse(processorData);
 			return result.Failure;
 		}
 		catch (InvalidResponseException e)
 		{
+            this.logger.error("InvalidResponseException exception. Error creating delegated session principal with session id '" + sessionID + "'. Error was: " + e.getMessage());
 			createFailedRegisterPrincipalResponse(processorData);
 			return result.Failure;
 		}

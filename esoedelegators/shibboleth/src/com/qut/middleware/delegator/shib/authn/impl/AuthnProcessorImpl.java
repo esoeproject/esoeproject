@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.qut.middleware.saml2.StatusCodeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig_.Signature;
@@ -203,6 +204,13 @@ public class AuthnProcessorImpl implements AuthnProcessor
 			this.logger.debug("Unable to correctly unmarshall response document from ESOE, failing principal authn attempt");
 			return result.Failure;
 		}
+
+        /* Report any saml failure statuses */
+        if (responseObj.getStatus().getStatusCode().equals(StatusCodeConstants.authnFailed))
+        {
+            this.logger.error("SAML authnFailed error code returned while try to register principal.");
+            return result.Failure;
+        }
 
 		/* Set the session identifier to whatever the ESOE says it should be */
 		this.logger.debug("Setting session identifier as: " + responseObj.getSessionIdentifier() + " as advised by ESOE");

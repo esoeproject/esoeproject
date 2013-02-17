@@ -199,8 +199,11 @@ public class ShibbolethServlet extends HttpServlet
 
 			try
 			{
-				this.logger.debug("About to do processor logic");
-				result = this.authnProcessor.execute(data);
+				this.logger.debug("About to do shibboleth authn processor logic");
+
+                result = this.authnProcessor.execute(data);
+
+                this.logger.debug("Shibboleth authentication authority processor indicated result of " + result.toString());
 
 				switch (result)
 				{

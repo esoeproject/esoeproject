@@ -319,7 +319,12 @@ public class WSProcessorImpl implements WSProcessor
 		this.logger.debug(Messages.getString("WSProcessorImpl.48") + delegAuthnRequest); //$NON-NLS-1$
 
 		data.setRequestDocument(delegAuthnRequest);
-		this.delegAuthnProcessor.execute(data);
+        DelegatedAuthenticationProcessor.result result = this.delegAuthnProcessor.execute(data);
+
+        if (result == DelegatedAuthenticationProcessor.result.Failure)
+        {
+            this.logger.error("Delegated authentication processing failure. Returning a valid SAML response, however it will not result in a valid session.");
+        }
 
 		if (data.getResponseDocument() != null)
 		{

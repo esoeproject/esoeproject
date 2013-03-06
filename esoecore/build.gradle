@@ -14,6 +14,8 @@ dependencies {
 	['ibatis', 'dao'].each {
 		compile "org.springframework:spring-${it}:2.0.8"
 	}
+
+    compile 'commons-lang:commons-lang:2.4'
 	compile "commons-logging:commons-logging:1.1.1"
 	compile "org.apache.ibatis:ibatis-sqlmap:2.3.4.726"
 	compile "com.ibm.icu:icu4j:4.0.1"
@@ -36,6 +38,17 @@ task war(type: War, dependsOn: jar) {
 	}
 	webXml = file('webapp/descriptors/esoe.xml')
 	classpath configurations.runtime
+    classpath jar.outputs.files
+
+    from('ibatis/sqlmaps') {
+        include 'esoe-sqlmap.xml'
+        into('WEB-INF/classes/sqlmaps')
+    }
+
+    from('webapp/classes') {
+        include 'log4j.xml'
+        into('WEB-INF/classes')
+    }
 }
 
 task release(type: Tar, dependsOn: war) {

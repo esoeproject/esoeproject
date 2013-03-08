@@ -9,8 +9,8 @@ def excludedProjects = [
 ]
 
 configure(subprojects.findAll{!(it.path in excludedProjects)}) {
-	usePlugin 'groovy'
-	usePlugin 'eclipse'
+	apply plugin: 'groovy'
+	apply plugin: 'eclipse'
 
 	group = 'esoeproject'
 	version = '1.0.0'
@@ -30,7 +30,7 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	}
 
 	def cobSerFile = file("${project.buildDir}/cobertura.ser")
-	def srcOriginal = file("${sourceSets.main.classesDir}")
+	def srcOriginal = file("${sourceSets.main.output.classesDir}")
 	def srcCopy = file("${srcOriginal}-copy")
 	def cobReportDir = file("${project.buildDir}/reports/coverage")
 
@@ -40,7 +40,7 @@ configure(subprojects.findAll{!(it.path in excludedProjects)}) {
 	}
 
 	dependencies {
-		groovy 'org.codehaus.groovy:groovy-all:1.6.5'
+//		groovy 'org.codehaus.groovy:groovy-all:1.6.5'
 
 		testRuntime 'net.sourceforge.cobertura:cobertura:1.9.3'
 		testRuntime 'cglib:cglib-nodep:2.2'

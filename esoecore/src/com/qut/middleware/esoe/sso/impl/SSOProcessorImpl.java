@@ -104,9 +104,9 @@ public class SSOProcessorImpl extends SSOProcessorBase
 	 * @throws MarshallerException
 	 *             if the marshaller cannot be created.
 	 */
-	public SSOProcessorImpl(SAMLValidator samlValidator, SessionsProcessor sessionsProcessor, MetadataProcessor metadata, IdentifierGenerator identifierGenerator, ExternalKeyResolver extKeyResolver, KeystoreResolver keyStoreResolver, int allowedTimeSkew, int minimalTimeRemaining, boolean acceptUnsignedAuthnRequests, Map<String, String> identifierAttributeMapping, String esoeIdentifier) throws UnmarshallerException, MarshallerException
+	public SSOProcessorImpl(SAMLValidator samlValidator, SessionsProcessor sessionsProcessor, MetadataProcessor metadata, IdentifierGenerator identifierGenerator, ExternalKeyResolver extKeyResolver, KeystoreResolver keyStoreResolver, int allowedTimeSkew, int minimalTimeRemaining, boolean acceptUnsignedAuthnRequests, Map<String, String> identifierAttributeMapping, String esoeIdentifier, String hostname, int port, String password, int expireInterval) throws UnmarshallerException, MarshallerException
 	{
-		super(samlValidator, sessionsProcessor, metadata, identifierGenerator, extKeyResolver, keyStoreResolver, allowedTimeSkew, minimalTimeRemaining, acceptUnsignedAuthnRequests, identifierAttributeMapping, esoeIdentifier);
+		super(samlValidator, sessionsProcessor, metadata, identifierGenerator, extKeyResolver, keyStoreResolver, allowedTimeSkew, minimalTimeRemaining, acceptUnsignedAuthnRequests, identifierAttributeMapping, esoeIdentifier, hostname, port, password, expireInterval);
 	}
 
 	/*

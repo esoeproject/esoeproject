@@ -14,6 +14,10 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 		<constructor-arg index="0" ref="spepProcessor" />
 		<constructor-arg index="1" ref="sessionsProcessor" />
 		<constructor-arg index="2" ref="authnPluginLoader" />
+        <constructor-arg index="3" value="${redis.redisHostname}"/>
+        <constructor-arg index="4" value="${redis.redisPort}"/>
+        <constructor-arg index="5" value="${redis.redisPassword}"/>
+        <constructor-arg index="6" value="${redis.redisExpireInterval}"/>
 	</bean>
 
 </beans>

@@ -61,7 +61,11 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 				</entry>
 			</map>
 		</constructor-arg>
-		<constructor-arg index="10" value="${sso.esoeIdentifier}" />
+		<constructor-arg index="10" value="${sso.esoeIdentifier}"/>
+        <constructor-arg index="11" value="${redis.redisHostname}"/>
+        <constructor-arg index="12" value="${redis.redisPort}"/>
+        <constructor-arg index="13" value="${redis.redisPassword}"/>
+        <constructor-arg index="14" value="${redis.redisExpireInterval}"/>
 	</bean>
 
 </beans>

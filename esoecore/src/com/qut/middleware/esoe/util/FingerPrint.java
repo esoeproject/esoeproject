@@ -140,10 +140,10 @@ public class FingerPrint {
         if (fingerprint != null) {
 
             Jedis printstore = null;
-            checkAuth(printstore);
             try {
 
                 printstore = pool.getResource();
+                checkAuth(printstore);
                 if (!printstore.exists(sessionId)) {
 
                     logger.debug("No key found for {}", sessionId);
@@ -212,10 +212,10 @@ public class FingerPrint {
         }
 
         Jedis printstore = null;
-        checkAuth(printstore);
         try {
 
             printstore = pool.getResource();
+            checkAuth(printstore);
             String value = printstore.get(key);
             if (value != null) {
                 logger.debug("Fingerprint found. Checking {} against {}", value, fingerprint);
@@ -251,10 +251,10 @@ public class FingerPrint {
         }
 
         Jedis printstore = null;
-        checkAuth(printstore);
         try {
 
             printstore = pool.getResource();
+            checkAuth(printstore);
             if (!printstore.exists(key)) {
 
                 logger.debug("Saving fingerprint {} under key {}", fingerprint, key);
@@ -296,6 +296,7 @@ public class FingerPrint {
         try {
 
             printstore = pool.getResource();
+            checkAuth(printstore);
             logger.info("Removing key {} from fingerprint store", key);
             printstore.del(key);
 

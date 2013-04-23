@@ -81,6 +81,11 @@ public abstract class SSOProcessorBase implements SSOProcessor
 	private int minimalTimeRemaining;
 	private boolean acceptUnsignedRequests = false;
 
+    private String hostname;
+    private int port;
+    private String password;
+    private int expireInterval;
+
 	protected Map<String, String> identifierAttributeMapping;
 
 	private final String UNMAR_PKGNAMES = AuthnRequest.class.getPackage().getName();
@@ -132,7 +137,16 @@ public abstract class SSOProcessorBase implements SSOProcessor
 	 * @throws MarshallerException
 	 *             if the marshaller cannot be created.
 	 */
-	public SSOProcessorBase(SAMLValidator samlValidator, SessionsProcessor sessionsProcessor, MetadataProcessor metadata, IdentifierGenerator identifierGenerator, ExternalKeyResolver extKeyResolver, KeystoreResolver keyStoreResolver, int allowedTimeSkew, int minimalTimeRemaining, boolean acceptUnsignedAuthnRequests, Map<String, String> identifierAttributeMapping, String esoeIdentifier) throws UnmarshallerException, MarshallerException
+	public SSOProcessorBase(SAMLValidator samlValidator,
+                            SessionsProcessor sessionsProcessor,
+                            MetadataProcessor metadata,
+                            IdentifierGenerator identifierGenerator,
+                            ExternalKeyResolver extKeyResolver,
+                            KeystoreResolver keyStoreResolver,
+                            int allowedTimeSkew, int minimalTimeRemaining, boolean acceptUnsignedAuthnRequests,
+                            Map<String, String> identifierAttributeMapping,
+                            String esoeIdentifier,
+                            String hostname, int port, String password, int expireInterval) throws UnmarshallerException, MarshallerException
 	{
 		/* Ensure that a stable base is created when this Processor is setup */
 		if (samlValidator == null)
@@ -209,6 +223,13 @@ public abstract class SSOProcessorBase implements SSOProcessor
 		this.minimalTimeRemaining = minimalTimeRemaining * 1000;
 		this.acceptUnsignedRequests = acceptUnsignedAuthnRequests;
 		this.identifierAttributeMapping = identifierAttributeMapping;
+
+        this.hostname = hostname;
+        this.port = port;
+        this.password = password;
+        this.expireInterval = expireInterval;
+
+        this.logger.info(MessageFormat.format("Redis connection details - Host: {0} Port: {1} Password: ******* ExpireInterval: {2}", this.hostname, this.port, this.expireInterval));
 	}
 
 	/*
@@ -327,7 +348,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
                 // Insert fingerprint check to eliminate the possibility of swapped user sessions
                 HttpServletRequest userRequest = data.getHttpRequest();
                 String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent") + userRequest.getHeader("Accept-Encoding");
-                FingerPrint printChecker = new FingerPrint();
+                FingerPrint printChecker = new FingerPrint(hostname, port, password, expireInterval);
 
                 try {
                     logger.info("{} - Checking fingerprint for session {}", userRequest.getRemoteAddr(), data.getSessionID());

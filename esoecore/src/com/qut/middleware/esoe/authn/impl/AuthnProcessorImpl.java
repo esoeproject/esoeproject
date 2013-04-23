@@ -19,6 +19,7 @@
  */
 package com.qut.middleware.esoe.authn.impl;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 import com.qut.middleware.esoe.util.FingerPrint;
@@ -44,6 +45,11 @@ public class AuthnProcessorImpl implements AuthnProcessor {
     SessionsProcessor sessionsProcessor;
     private final List<Handler> registeredHandlers;
 
+    private String hostname;
+    private int port;
+    private String password;
+    private int expireInterval;
+
     private Logger logger = LoggerFactory.getLogger(AuthnProcessorImpl.class.getName());
 
     /**
@@ -52,7 +58,7 @@ public class AuthnProcessorImpl implements AuthnProcessor {
      * @param registeredHandlers Vector of registered handlers for authn in the esoe
      * @throws HandlerRegistrationException Thrown when no handlers have been supplied
      */
-    public AuthnProcessorImpl(SPEPProcessor spepProcessor, SessionsProcessor sessionsProcessor, List<Handler> registeredHandlers) throws HandlerRegistrationException {
+    public AuthnProcessorImpl(SPEPProcessor spepProcessor, SessionsProcessor sessionsProcessor, List<Handler> registeredHandlers, String hostname, int port, String password, int expireInterval) throws HandlerRegistrationException {
         /* Ensure that a stable base is created when this Processor is setup */
         if (spepProcessor == null) {
             this.logger.error(Messages.getString("AuthnProcessorImpl.14")); //$NON-NLS-1$
@@ -75,6 +81,13 @@ public class AuthnProcessorImpl implements AuthnProcessor {
             this.logger.error(Messages.getString("AuthnProcessorImpl.5")); //$NON-NLS-1$
             throw new HandlerRegistrationException(Messages.getString("AuthnProcessorImpl.6")); //$NON-NLS-1$
         }
+
+        this.hostname = hostname;
+        this.port = port;
+        this.password = password;
+        this.expireInterval = expireInterval;
+
+        this.logger.info(MessageFormat.format("Redis connection details - Host: {0} Port: {1} Password: ******* ExpireInterval: {2}", this.hostname, this.port, this.expireInterval));
     }
 
     /*
@@ -185,7 +198,7 @@ public class AuthnProcessorImpl implements AuthnProcessor {
         // Insert fingerprint check to eliminate the possibility of swapped user sessions
         HttpServletRequest userRequest = data.getHttpRequest();
         String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent") + userRequest.getHeader("Accept-Encoding");
-        FingerPrint printChecker = new FingerPrint();
+        FingerPrint printChecker = new FingerPrint(hostname, port, password, expireInterval);
         String fingerprint = printChecker.generateFingerprint(userAgentData);
 
         if (printChecker.saveFingerprint(data.getSessionID(), fingerprint)) {

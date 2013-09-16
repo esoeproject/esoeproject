@@ -76,10 +76,7 @@ import javax.xml.validation.Validator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import com.qut.middleware.saml2.Constants;
@@ -644,6 +641,11 @@ public class MarshallerImpl<T> implements com.qut.middleware.saml2.handler.Marsh
 					this.logger.warn(Messages.getString("MarshallerImpl.68")); //$NON-NLS-1$
 					throw new MarshallerException(Messages.getString("MarshallerImpl.69")); //$NON-NLS-1$
 				}
+
+                /* set the ID attribute to be an XML ID - this broke in Java 7 update 25 */
+                Attr idAttr = signatureParent.getAttributeNode(Constants.ID_ATTRIBUTE);
+                signatureParent.setIdAttributeNode(idAttr, true);
+
 
 				this.logger.debug(Messages.getString("MarshallerImpl.54") + id); //$NON-NLS-1$
 

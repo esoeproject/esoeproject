@@ -68,20 +68,14 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import com.qut.middleware.saml2.exception.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import com.qut.middleware.saml2.Constants;
 import com.qut.middleware.saml2.ExternalKeyResolver;
-import com.qut.middleware.saml2.exception.KeyResolutionException;
-import com.qut.middleware.saml2.exception.ReferenceValueException;
-import com.qut.middleware.saml2.exception.ResourceException;
-import com.qut.middleware.saml2.exception.SignatureValueException;
-import com.qut.middleware.saml2.exception.UnmarshallerException;
 import com.qut.middleware.saml2.namespace.NamespacePrefixMapperImpl;
 import com.qut.middleware.saml2.resolver.ResourceResolver;
 import com.qut.middleware.saml2.resolver.SchemaResolver;
@@ -1117,6 +1111,16 @@ public class UnmarshallerImpl<T> implements com.qut.middleware.saml2.handler.Unm
 
 		for (int i = 0; i < nodeList.getLength(); i++)
 		{
+            /* if this element is an ID attribute, set the ID attribute flag on the node */
+            Element signatureParent = (Element) nodeList.item(i).getParentNode();
+            String id = signatureParent.getAttribute(Constants.ID_ATTRIBUTE);
+
+            if (id != null || id.length() >= 0) {
+                /* set the ID attribute to be an XML ID - this broke in Java 7 update 25 */
+                Attr idAttr = signatureParent.getAttributeNode(Constants.ID_ATTRIBUTE);
+                signatureParent.setIdAttributeNode(idAttr, true);
+            }
+
 			if (pk != null)
 				valContext = new DOMValidateContext(pk, nodeList.item(i));
 			else

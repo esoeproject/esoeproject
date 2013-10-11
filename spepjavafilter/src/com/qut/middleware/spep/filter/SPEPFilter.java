@@ -51,6 +51,7 @@ public class SPEPFilter implements Filter
 
 	private FilterConfig filterConfig;
 	private static final String SPEP_CONTEXT_PARAM_NAME = "spep-context"; //$NON-NLS-1$
+    private static final String SPEP_CONTEXT_PROPERTY_NAME = "spep.context.name"; //$NON-NLS-1$
 	private String spepContextName;
 
 	/* Local logging instance */
@@ -58,11 +59,22 @@ public class SPEPFilter implements Filter
 
 	public void init(FilterConfig filterConfig) throws ServletException
 	{
-		this.filterConfig = filterConfig;
-		this.spepContextName = filterConfig.getInitParameter(SPEP_CONTEXT_PARAM_NAME);
+        this.filterConfig = filterConfig;
 
-		if (this.spepContextName == null)
-			throw new ServletException(Messages.getString("SPEPFilter.8") + SPEP_CONTEXT_PARAM_NAME); //$NON-NLS-1$
+        // first check if spep context name is specified as a system property
+        this.spepContextName = System.getProperty(SPEP_CONTEXT_PROPERTY_NAME);
+        if (this.spepContextName != null) {
+            // system property for spep context name is being used
+            System.out.println("Using system property " + SPEP_CONTEXT_PROPERTY_NAME + " as SPEP context name: " + this.spepContextName);
+        } else {
+            // use init parameter defined in filter config
+		    this.spepContextName = filterConfig.getInitParameter(SPEP_CONTEXT_PARAM_NAME);
+
+    		if (this.spepContextName == null)
+    			throw new ServletException(Messages.getString("SPEPFilter.8") + SPEP_CONTEXT_PARAM_NAME); //$NON-NLS-1$
+
+            System.out.println("Using filter parameter " + SPEP_CONTEXT_PARAM_NAME + " as SPEP context name: " + this.spepContextName);
+        }
 	}
 
 	public void destroy()

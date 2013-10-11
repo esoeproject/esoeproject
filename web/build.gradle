@@ -1,4 +1,4 @@
-usePlugin 'war'
+apply plugin: 'war'
 
 dependencies {
 	compile "net.sf.click:click:1.5.3"

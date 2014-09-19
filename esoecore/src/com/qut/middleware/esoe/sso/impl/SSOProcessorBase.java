@@ -334,7 +334,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 
 				if (data.getSessionID() == null || data.getSessionID().length() <= 0)
 				{
-					if (data.getAuthnRequest().getNameIDPolicy().isAllowCreate().booleanValue())
+					if (data.getAuthnRequest().getNameIDPolicy().getAllowCreate().booleanValue())
 					{
 						this.logger.info(Messages.getString("SSOProcessor.34")); //$NON-NLS-1$
 						return SSOProcessor.result.ForceAuthn;
@@ -347,7 +347,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 
                 // Insert fingerprint check to eliminate the possibility of swapped user sessions
                 HttpServletRequest userRequest = data.getHttpRequest();
-                String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent") + userRequest.getHeader("Accept-Encoding");
+                String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent");
                 FingerPrint printChecker = new FingerPrint(hostname, port, password, expireInterval);
 
                 try {
@@ -368,7 +368,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 
 				if (principal == null || expiredPrincipal(principal))
 				{
-					if (data.getAuthnRequest().getNameIDPolicy().isAllowCreate().booleanValue())
+					if (data.getAuthnRequest().getNameIDPolicy().getAllowCreate().booleanValue())
 					{
 						this.logger.warn(Messages.getString("SSOProcessor.36")); //$NON-NLS-1$
 						return SSOProcessor.result.ForceAuthn;
@@ -381,7 +381,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 
 				this.logger.debug(Messages.getString("SSOProcessor.39") + data.getSessionID() + Messages.getString("SSOProcessor.40") + principal.getPrincipalAuthnIdentifier()); //$NON-NLS-1$ //$NON-NLS-2$
 
-				if (data.getAuthnRequest().isForceAuthn() != null && data.getAuthnRequest().isForceAuthn().booleanValue())
+				if (data.getAuthnRequest().getForceAuthn() != null && data.getAuthnRequest().getForceAuthn().booleanValue())
 				{
 					TimeZone utc = new SimpleTimeZone(0, ConfigurationConstants.timeZone);
 					GregorianCalendar cal = new GregorianCalendar(utc);
@@ -392,7 +392,7 @@ public abstract class SSOProcessorBase implements SSOProcessor
 					 * undertakes authn, we can't grant this so return error
 					 * 
 					 */
-					if (data.getAuthnRequest().isIsPassive().booleanValue() && (thisTime - principal.getAuthnTimestamp() > this.allowedTimeSkew))
+					if (data.getAuthnRequest().getIsPassive().booleanValue() && (thisTime - principal.getAuthnTimestamp() > this.allowedTimeSkew))
 					{
 						this.logger.debug(Messages.getString("SSOProcessor.41")); //$NON-NLS-1$
 						createFailedAuthnResponse(data, StatusCodeConstants.responder, StatusCodeConstants.noPassive, Messages.getString("SSOProcessor.20"), data.getRequestCharsetName()); //$NON-NLS-1$

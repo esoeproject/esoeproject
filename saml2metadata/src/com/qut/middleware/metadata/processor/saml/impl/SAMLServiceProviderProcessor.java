@@ -104,14 +104,14 @@ public class SAMLServiceProviderProcessor implements SAMLEntityDescriptorProcess
 					for (com.qut.middleware.saml2.schemas.metadata.AttributeConsumingService attributeConsumingService : spSSODescriptor.getAttributeConsumingServices())
 					{
 						int index = attributeConsumingService.getIndex();
-						boolean isDefault = attributeConsumingService.isIsDefault();
+						boolean isDefault = attributeConsumingService.getIsDefault();
 						List<RequestedAttribute> requestedAttributes = new ArrayList<RequestedAttribute>();
 						for (com.qut.middleware.saml2.schemas.metadata.RequestedAttribute requested : attributeConsumingService.getRequestedAttributes())
 						{
 							String name = requested.getName();
 							String nameFormat = requested.getNameFormat();
 							String friendlyName = requested.getFriendlyName();
-							boolean required = requested.isIsRequired();
+							boolean required = requested.getIsRequired();
 							
 							requestedAttributes.add(new RequestedAttributeImpl(name, nameFormat, friendlyName, required));
 						}

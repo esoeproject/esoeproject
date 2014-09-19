@@ -197,7 +197,7 @@ public class AuthnProcessorImpl implements AuthnProcessor {
 
         // Insert fingerprint check to eliminate the possibility of swapped user sessions
         HttpServletRequest userRequest = data.getHttpRequest();
-        String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent") + userRequest.getHeader("Accept-Encoding");
+        String userAgentData = userRequest.getRemoteAddr() + userRequest.getHeader("User-Agent");
         FingerPrint printChecker = new FingerPrint(hostname, port, password, expireInterval);
         String fingerprint = printChecker.generateFingerprint(userAgentData);
 

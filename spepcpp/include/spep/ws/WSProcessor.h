@@ -30,24 +30,26 @@
 namespace spep
 {
 	
-	class SPEPEXPORT WSProcessor
-	{
-		
-		public:
-		WSProcessor( saml2::Logger *logger, AuthnProcessor *authnProcessor, PolicyEnforcementProcessor *policyEnforcementProcessor, SOAPUtil *soapUtil );
-		
-		SOAPDocument authzCacheClear( SOAPDocument requestDocument, SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding );
-		SOAPDocument singleLogout( SOAPDocument requestDocument, SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding );
-		
-		private:
-		void processSOAPRequest( WSProcessorData& data );
-		void createSOAPResponse( WSProcessorData& data );
+    class SPEPEXPORT WSProcessor
+    {
 
-		saml2::LocalLogger _localLogger;
-		AuthnProcessor *_authnProcessor;
-		PolicyEnforcementProcessor *_policyEnforcementProcessor;
-		SOAPUtil *_soapUtil;
-		
-	};
-	
+    public:
+
+        WSProcessor(saml2::Logger *logger, AuthnProcessor *authnProcessor, PolicyEnforcementProcessor *policyEnforcementProcessor, SOAPUtil *soapUtil);
+
+        SOAPDocument authzCacheClear(const SOAPDocument& requestDocument, SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
+        SOAPDocument singleLogout(const SOAPDocument& requestDocument, SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
+
+    private:
+
+        void processSOAPRequest(WSProcessorData& data);
+        void createSOAPResponse(WSProcessorData& data);
+
+        saml2::LocalLogger mLocalLogger;
+        AuthnProcessor *mAuthnProcessor;
+        PolicyEnforcementProcessor *mPolicyEnforcementProcessor;
+        SOAPUtil *mSoapUtil;
+
+    };
+
 }

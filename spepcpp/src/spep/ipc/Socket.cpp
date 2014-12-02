@@ -23,32 +23,31 @@
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
 
-#include <asio.hpp>
+#include <boost/asio.hpp>
 
-using asio::ip::tcp;
 
-void spep::ipc::writeSocket(tcp::socket* socket, const std::vector<char>& buffer) {
-	asio::error_code error;
+void spep::ipc::writeSocket(boost::asio::ip::tcp::socket* socket, const std::vector<char>& buffer) {
+	boost::system::error_code error;
 
 	std::size_t len = buffer.size();
-	asio::write(*socket, asio::buffer(&len, sizeof(len)), asio::transfer_all(), error);
+	boost::asio::write(*socket, boost::asio::buffer(&len, sizeof(len)), boost::asio::transfer_all(), error);
 	if (!error) {
-		asio::write(*socket, asio::buffer(&buffer.front(), len*sizeof(char)), asio::transfer_all(), error);
+		boost::asio::write(*socket, boost::asio::buffer(&buffer.front(), len * sizeof(char)), boost::asio::transfer_all(), error);
 	}
 
 	if (error) {
 		throw SocketException(error.message());
 	}
 }
-void spep::ipc::readSocket(tcp::socket* socket, std::vector<char>& buffer) {
-	asio::error_code error;
+void spep::ipc::readSocket(boost::asio::ip::tcp::socket* socket, std::vector<char>& buffer) {
+    boost::system::error_code error;
 
 	std::size_t len;
-	asio::read(*socket, asio::buffer(&len, sizeof(len)), asio::transfer_all(), error);
+	boost::asio::read(*socket, boost::asio::buffer(&len, sizeof(len)), boost::asio::transfer_all(), error);
 
 	if (!error) {
 		buffer.resize(len);
-		asio::read(*socket, asio::buffer(&buffer.front(), len*sizeof(char)), asio::transfer_all(), error);
+		boost::asio::read(*socket, boost::asio::buffer(&buffer.front(), len * sizeof(char)), boost::asio::transfer_all(), error);
 	}
 
 	if (error) {
@@ -56,125 +55,125 @@ void spep::ipc::readSocket(tcp::socket* socket, std::vector<char>& buffer) {
 	}
 }
 
-tcp::socket* spep::ipc::ClientSocket::newSocket()
+boost::asio::ip::tcp::socket* spep::ipc::ClientSocket::newSocket()
 {
-	tcp::socket* socket = new tcp::socket(_pool->getIoService());
-	asio::error_code error;
+    // FIXME: potential leak when socket exception thrown?
+    boost::asio::ip::tcp::socket* socket = new boost::asio::ip::tcp::socket(mPool->getIoService());
+    boost::system::error_code error;
 
-	socket->connect(tcp::endpoint(asio::ip::address_v4::loopback(), _port), error);
+    socket->connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::loopback(), mPort), error);
 	if (error) {
 		throw SocketException(error.message());
 	}
 	return socket;
 }
 
-spep::ipc::ClientSocket::ClientSocket( spep::ipc::ClientSocketPool* pool, int port )
-:
-_pool( pool ),
-_socket( NULL ),
-_engine( NULL ),
-_port( port )
+spep::ipc::ClientSocket::ClientSocket(spep::ipc::ClientSocketPool* pool, int port) :
+    mPool(pool),
+    mSocket(nullptr),
+    mEngine(nullptr),
+    mPort(port)
 {
 }
 
-void spep::ipc::ClientSocket::reconnect( int retry )
+void spep::ipc::ClientSocket::reconnect(int retry)
 {
 	if (retry > 0) {
 		throw SocketException("Retry limit (0) exceeded.");
 	}
 	
-	if( _engine != NULL )
+	if (mEngine != nullptr)
 	{
 		// Unset it so we don't keep hammering a broken connection. The OS might not like that so much.
-		delete _engine;
-		_engine = NULL;
+		delete mEngine;
+		mEngine = nullptr;
 	}
 	
 	{
-		ScopedLock lock( _mutex );
+		ScopedLock lock(mMutex);
 		
 		try
 		{
-			_socket = this->newSocket();
-			_engine = new Engine( boost::bind(&spep::ipc::writeSocket, _socket, _1), boost::bind(&spep::ipc::readSocket, _socket, _1) );
+			mSocket = newSocket();
+			mEngine = new Engine(boost::bind(&spep::ipc::writeSocket, mSocket, _1), boost::bind(&spep::ipc::readSocket, mSocket, _1));
 			
 			std::string serviceID;
-			_engine->getObject( serviceID );
-			_pool->setServiceID( serviceID );
+			mEngine->getObject(serviceID);
+			mPool->setServiceID(serviceID);
 		}
-		catch( SocketException e )
+		catch (SocketException& e)
 		{
 			// Failed. We'll throw when we retry though.
-			if( _engine != NULL ) delete _engine;
-			_engine = NULL;
+			delete mEngine;
+			mEngine = nullptr;
 		}
 	}
 }
 
-spep::ipc::ClientSocketPool::ClientSocketPool( int port, std::size_t n )
+spep::ipc::ClientSocketPool::ClientSocketPool(int port, std::size_t n)
 {
 	for (std::size_t i = 0; i < n; ++i)
 	{
-		_free.push(ClientSocketPtr(new ClientSocket(this, port )));
+		mFree.push(ClientSocketPtr(new ClientSocket(this, port )));
 	}
 }
 
 spep::ipc::ClientSocketPtr spep::ipc::ClientSocketPool::get()
 {
-	ScopedLock lock(_mutex);
-	if (_free.empty())
+	ScopedLock lock(mMutex);
+	if (mFree.empty())
 	{
-		_condition.wait( lock );
+		mCondition.wait( lock );
 	}
 	
-	ClientSocketPtr sock = _free.front();
-	_free.pop();
+	ClientSocketPtr sock = mFree.front();
+	mFree.pop();
 	return sock;
 }
 
-void spep::ipc::ClientSocketPool::release( spep::ipc::ClientSocketPtr socket )
+void spep::ipc::ClientSocketPool::release(spep::ipc::ClientSocketPtr socket)
 {
-	ScopedLock lock(_mutex);
-	_free.push( socket );
-	_condition.notify_one();
+	ScopedLock lock(mMutex);
+	mFree.push(socket);
+	mCondition.notify_one();
 }
 
-const std::string& spep::ipc::ClientSocketPool::getServiceID()
+std::string spep::ipc::ClientSocketPool::getServiceID() const
 {
-	ScopedLock lock( _mutex );
+	ScopedLock lock(mMutex);
 	
-	return this->_serviceID;
+	return this->mServiceID;
 }
 
-void spep::ipc::ClientSocketPool::setServiceID( const std::string& serviceID )
+void spep::ipc::ClientSocketPool::setServiceID(const std::string& serviceID)
 {
-	ScopedLock lock( _mutex );
+	ScopedLock lock(mMutex);
 	
-	this->_serviceID = serviceID;
+	this->mServiceID = serviceID;
 }
 
-asio::io_service& spep::ipc::ClientSocketPool::getIoService() {
-	return this->_ioService;
+boost::asio::io_service& spep::ipc::ClientSocketPool::getIoService()
+{
+	return this->mIOService;
 }
 
-spep::ipc::ClientSocketLease::ClientSocketLease( spep::ipc::ClientSocketPool* pool )
-:
-_pool( pool ),
-_socket( pool->get() )
+spep::ipc::ClientSocketLease::ClientSocketLease(spep::ipc::ClientSocketPool* pool) :
+    mPool(pool),
+    mSocket(pool->get())
 {
 }
 
 spep::ipc::ClientSocketLease::~ClientSocketLease()
 {
-	_pool->release( _socket );
+	mPool->release(mSocket);
 }
 
 spep::ipc::ClientSocketPtr spep::ipc::ClientSocketLease::operator->()
 {
-	return _socket;
+	return mSocket;
 }
 
 spep::ipc::ClientSocketPtr spep::ipc::ClientSocketLease::operator*()
 {
-	return _socket;
+	return mSocket;
 }

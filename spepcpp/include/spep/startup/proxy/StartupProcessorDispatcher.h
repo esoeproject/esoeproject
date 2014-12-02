@@ -27,24 +27,25 @@
 
 namespace spep { namespace ipc {
 	
-	class SPEPEXPORT StartupProcessorDispatcher : public Dispatcher
-	{
-		
-		private:
-		spep::StartupProcessor *_startupProcessor;
-		std::string _prefix;
-		
+    class SPEPEXPORT StartupProcessorDispatcher : public Dispatcher
+    {
 #define STARTUPPROCESSOR "spep/startup/StartupProcessor/"
 #define STARTUPPROCESSOR_allowProcessing  STARTUPPROCESSOR "allowProcessing"
-		
-		public:
-		StartupProcessorDispatcher( spep::StartupProcessor *startupProcessor );
-		virtual ~StartupProcessorDispatcher();
-		
-		virtual bool dispatch( MessageHeader &header, Engine &en );
-		
-	};
-	
-} }
+
+    public:
+
+        StartupProcessorDispatcher(spep::StartupProcessor *startupProcessor);
+        virtual ~StartupProcessorDispatcher();
+
+        virtual bool dispatch(MessageHeader &header, Engine &en) override;
+
+    private:
+
+        spep::StartupProcessor *mStartupProcessor;
+        std::string mPrefix;
+    };
+
+}
+}
 
 #endif /*STARTUPPROCESSORDISPATCHER_H_*/

@@ -30,14 +30,14 @@ spep::ipc::MessageHeader spep::ipc::Engine::getRequestHeader()
 
 void spep::ipc::Engine::sendErrorResponseHeader()
 {
-	MessageHeader responseHeader( SPEPIPC_RESPONSE_ERROR, std::string() );
+	MessageHeader responseHeader(SPEPIPC_RESPONSE_ERROR, std::string());
 	
 	_archive.out() << responseHeader;
 }
 
 void spep::ipc::Engine::sendResponseHeader()
 {
-	MessageHeader responseHeader( SPEPIPC_RESPONSE, std::string() );
+	MessageHeader responseHeader(SPEPIPC_RESPONSE, std::string());
 	
 	_archive.out() << responseHeader;
 }

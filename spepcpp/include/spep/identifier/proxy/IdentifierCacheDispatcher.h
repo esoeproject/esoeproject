@@ -35,16 +35,17 @@ namespace spep { namespace ipc {
 	
 	class SPEPEXPORT IdentifierCacheDispatcher : public Dispatcher
 	{
-		
-		private:
-		std::string _prefix;
-		saml2::IdentifierCache *_identifierCache;
-		
-		public:
-		IdentifierCacheDispatcher( saml2::IdentifierCache *identifierCache );
-		virtual bool dispatch( MessageHeader &header, Engine &en );
-		virtual ~IdentifierCacheDispatcher();
-		
+	public:
+
+		IdentifierCacheDispatcher(saml2::IdentifierCache *identifierCache);
+        virtual ~IdentifierCacheDispatcher();
+
+		virtual bool dispatch(MessageHeader &header, Engine &en) override;
+	
+    private:
+
+        std::string mPrefix;
+        saml2::IdentifierCache *mIdentifierCache;
 	};
 	
 } }

@@ -29,43 +29,36 @@
 namespace spep
 {
 	
-	class SPEPEXPORT WSProcessorData
-	{
-		
-		private:
-		spep::SOAPDocument _requestSOAPDocument;
-			
-		spep::SOAPDocument _responseSOAPDocument;
-		
-		saml2::SAMLDocument _requestSAMLDocument;
-		
-		saml2::SAMLDocument _responseSAMLDocument;
-		
-		std::string _characterEncoding;
-		
-		SOAPUtil::SOAPVersion _soapVersion;
-		
-		public:
-		WSProcessorData();
-		
-		const spep::SOAPDocument& getSOAPRequestDocument();
-		void setSOAPRequestDocument( const spep::SOAPDocument& requestDocument );
-		
-		void setSAMLRequestDocument( const saml2::SAMLDocument& requestDocument );
-		const saml2::SAMLDocument& getSAMLRequestDocument();
-		
-		const spep::SOAPDocument& getSOAPResponseDocument();
-		void setSOAPResponseDocument( const spep::SOAPDocument& responseDocument );
-		
-		void setSAMLResponseDocument( const saml2::SAMLDocument& responseDocument );
-		const saml2::SAMLDocument& getSAMLResponseDocument();
-		
-		std::string getCharacterEncoding();
-		void setCharacterEncoding( std::string characterEncoding );
-		
-		SOAPUtil::SOAPVersion getSOAPVersion();
-		void setSOAPVersion( SOAPUtil::SOAPVersion soapVersion );
-		
+    class SPEPEXPORT WSProcessorData
+    {
+    public:
+        WSProcessorData();
+
+        const spep::SOAPDocument& getSOAPRequestDocument();
+        void setSOAPRequestDocument(const spep::SOAPDocument& requestDocument);
+
+        void setSAMLRequestDocument(const saml2::SAMLDocument& requestDocument);
+        const saml2::SAMLDocument& getSAMLRequestDocument();
+
+        const spep::SOAPDocument& getSOAPResponseDocument();
+        void setSOAPResponseDocument(const spep::SOAPDocument& responseDocument);
+
+        void setSAMLResponseDocument(const saml2::SAMLDocument& responseDocument);
+        const saml2::SAMLDocument& getSAMLResponseDocument();
+
+        std::string getCharacterEncoding() const;
+        void setCharacterEncoding(std::string characterEncoding);
+
+        SOAPUtil::SOAPVersion getSOAPVersion() const;
+        void setSOAPVersion(SOAPUtil::SOAPVersion soapVersion);
+	
+    private:
+        spep::SOAPDocument mRequestSOAPDocument;
+        spep::SOAPDocument mResponseSOAPDocument;
+        saml2::SAMLDocument mRequestSAMLDocument;
+        saml2::SAMLDocument mResponseSAMLDocument;
+        std::string mCharacterEncoding;
+        SOAPUtil::SOAPVersion mSoapVersion;
 	};
 	
 }

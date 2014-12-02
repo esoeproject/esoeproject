@@ -20,11 +20,10 @@
 #include "spep/startup/proxy/StartupProcessorProxy.h"
 #include "spep/startup/proxy/StartupProcessorDispatcher.h"
 
-static const char *allowProcessing = STARTUPPROCESSOR_allowProcessing;
+static const std::string ALLOW_PROCESSING = STARTUPPROCESSOR_allowProcessing;
 
-spep::ipc::StartupProcessorProxy::StartupProcessorProxy( spep::ipc::ClientSocketPool *socketPool )
-:
-_socketPool( socketPool )
+spep::ipc::StartupProcessorProxy::StartupProcessorProxy(spep::ipc::ClientSocketPool *socketPool) :
+    mSocketPool(socketPool)
 {
 }
 
@@ -34,14 +33,13 @@ spep::ipc::StartupProcessorProxy::~StartupProcessorProxy()
 
 spep::StartupResult spep::ipc::StartupProcessorProxy::allowProcessing()
 {
-	std::string dispatch( ::allowProcessing );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return static_cast<spep::StartupResult>( clientSocket->makeRequest< unsigned int >( dispatch, noData ) );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return static_cast<spep::StartupResult>(clientSocket->makeRequest<unsigned int>(ALLOW_PROCESSING, noData));
 }
 
 void spep::ipc::StartupProcessorProxy::beginSPEPStart()
 {
-	// Actually, this call is anticipated by the dispatcher and made transparently. So we can ignore it.
+    // Actually, this call is anticipated by the dispatcher and made transparently. So we can ignore it.
 }

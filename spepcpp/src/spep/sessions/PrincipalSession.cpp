@@ -23,72 +23,71 @@ spep::PrincipalSession::PrincipalSession()
 {
 }
 
-spep::PrincipalSession::PrincipalSession( const spep::PrincipalSession& other )
-:
-_esoeSessionID( other._esoeSessionID ),
-_sessionNotOnOrAfter( other._sessionNotOnOrAfter ),
-_sessionIDList( other._sessionIDList ),
-_attributeMap( other._attributeMap ),
-_esoeSessionIndexMap( other._esoeSessionIndexMap )
+spep::PrincipalSession::PrincipalSession(const spep::PrincipalSession& other) :
+    mEsoeSessionID(other.mEsoeSessionID),
+    mSessionNotOnOrAfter(other.mSessionNotOnOrAfter),
+    mSessionIDList(other.mSessionIDList),
+    mAttributeMap(other.mAttributeMap),
+    mEsoeSessionIndexMap(other.mEsoeSessionIndexMap)
 {
 }
 
-spep::PrincipalSession& spep::PrincipalSession::operator=( const spep::PrincipalSession& other )
+spep::PrincipalSession& spep::PrincipalSession::operator=(const spep::PrincipalSession& other)
 {
-	this->_esoeSessionID = other._esoeSessionID;
-	this->_sessionNotOnOrAfter = other._sessionNotOnOrAfter;
-	this->_sessionIDList = other._sessionIDList;
-	this->_attributeMap = other._attributeMap;
-	this->_esoeSessionIndexMap = other._esoeSessionIndexMap;
-	
-	return *this;
+    mEsoeSessionID = other.mEsoeSessionID;
+    mSessionNotOnOrAfter = other.mSessionNotOnOrAfter;
+    mSessionIDList = other.mSessionIDList;
+    mAttributeMap = other.mAttributeMap;
+    mEsoeSessionIndexMap = other.mEsoeSessionIndexMap;
+
+    return *this;
 }
 
-void spep::PrincipalSession::setESOESessionID( std::wstring &esoeSessionID )
+void spep::PrincipalSession::setESOESessionID(const std::wstring& esoeSessionID)
 {
-	this->_esoeSessionID = esoeSessionID;
+    mEsoeSessionID = esoeSessionID;
 }
 
-std::wstring &spep::PrincipalSession::getESOESessionID()
+std::wstring spep::PrincipalSession::getESOESessionID() const
 {
-	return this->_esoeSessionID;
+    return mEsoeSessionID;
 }
 
-void spep::PrincipalSession::setSessionNotOnOrAfter( spep::PrincipalSession::TimeType sessionNotOnOrAfter )
+void spep::PrincipalSession::setSessionNotOnOrAfter(spep::PrincipalSession::TimeType sessionNotOnOrAfter)
 {
-	this->_sessionNotOnOrAfter = sessionNotOnOrAfter;
+    mSessionNotOnOrAfter = sessionNotOnOrAfter;
 }
 
-spep::PrincipalSession::TimeType spep::PrincipalSession::getSessionNotOnOrAfter()
+spep::PrincipalSession::TimeType spep::PrincipalSession::getSessionNotOnOrAfter() const
 {
-	return this->_sessionNotOnOrAfter;
+    return mSessionNotOnOrAfter;
 }
 
-void spep::PrincipalSession::addESOESessionIndexAndLocalSessionID( std::wstring &esoeSessionIndex, std::string &localSessionID )
+void spep::PrincipalSession::addESOESessionIndexAndLocalSessionID(const std::wstring& esoeSessionIndex, const std::string& localSessionID)
 {
-	ESOESessionIndexMapType::iterator esoeSessionIndexIterator = this->_esoeSessionIndexMap.lower_bound( esoeSessionIndex );
-	
-	if( esoeSessionIndexIterator != this->_esoeSessionIndexMap.end() && esoeSessionIndex == esoeSessionIndexIterator->first )
-	{
-		// TODO Error condition? Key already exists
-		throw std::exception();
-	}
-	
-	// Insert the esoe session index and local session identifier into the map.
-	this->_esoeSessionIndexMap.insert( esoeSessionIndexIterator, std::make_pair( esoeSessionIndex, localSessionID ) );
+    auto esoeSessionIndexIterator = mEsoeSessionIndexMap.lower_bound(esoeSessionIndex);
+
+    if (esoeSessionIndexIterator != mEsoeSessionIndexMap.end() && esoeSessionIndex == esoeSessionIndexIterator->first)
+    {
+        // TODO Error condition? Key already exists
+        throw std::exception();
+    }
+
+    // Insert the esoe session index and local session identifier into the map.
+    mEsoeSessionIndexMap.insert(esoeSessionIndexIterator, std::make_pair(esoeSessionIndex, localSessionID));
 }
 
 spep::PrincipalSession::ESOESessionIndexMapType &spep::PrincipalSession::getESOESessionIndexMap()
 {
-	return this->_esoeSessionIndexMap;
+    return mEsoeSessionIndexMap;
 }
 
 spep::PrincipalSession::SessionIDListType &spep::PrincipalSession::getSessionIDList()
 {
-	return this->_sessionIDList;
+    return mSessionIDList;
 }
 
 spep::PrincipalSession::AttributeMapType &spep::PrincipalSession::getAttributeMap()
 {
-	return this->_attributeMap;
+    return mAttributeMap;
 }

@@ -48,13 +48,13 @@ namespace spep { namespace ipc {
 		virtual const std::string getAttributeServiceEndpoint() const;
 		virtual const std::string getAuthzServiceEndpoint() const;
 		virtual const std::string getSPEPStartupServiceEndpoint() const;
-		virtual XSECCryptoKey* resolveKey (DSIGKeyInfoList *lst);
-		virtual saml2::KeyData resolveKey (std::string keyName);
-		virtual XSECKeyInfoResolver* clone() const;
+		virtual XSECCryptoKey* resolveKey(DSIGKeyInfoList *lst);
+		virtual saml2::KeyData resolveKey(const std::string& keyName) override;
+		virtual XSECKeyInfoResolver* clone() const override;
 				
 		private:
-		spep::ipc::ClientSocketPool *_socketPool;
-		CryptoKeyPointerList _cryptoKeyList;
+		spep::ipc::ClientSocketPool *mSocketPool;
+		CryptoKeyPointerList mCryptoKeyList;
 		
 	};
 	

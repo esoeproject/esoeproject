@@ -48,77 +48,75 @@
 namespace spep
 {
 
-	class SPEPEXPORT SPEP
-	{
+    class SPEPEXPORT SPEP
+    {
+        enum SPEPMode
+        {
+            SPEP_MODE_SERVER,
+            SPEP_MODE_CLIENT,
+            SPEP_MODE_STANDALONE
+        };
 
-		enum SPEPMode
-		{
-			SPEP_MODE_SERVER,
-			SPEP_MODE_CLIENT,
-			SPEP_MODE_STANDALONE
-		};
+    public:
 
-		public:
+        SPEP();
+        ~SPEP();
 
-		SPEP();
-		~SPEP();
+        static SPEP* initializeClient(int spepDaemonPort);
+        static SPEP* initializeServer(ConfigurationReader &configuration, const std::vector<saml2::Handler*>& handlers);
+        static SPEP* initializeStandalone(ConfigurationReader &configuration, const std::vector<saml2::Handler*>& handlers);
 
-		static SPEP* initializeClient( int spepDaemonPort );
-		static SPEP* initializeServer( ConfigurationReader &configuration, std::vector<saml2::Handler*> handlers );
-		static SPEP* initializeStandalone( ConfigurationReader &configuration, std::vector<saml2::Handler*> handlers );
+        AuthnProcessor *getAuthnProcessor();
+        AttributeProcessor *getAttributeProcessor();
+        Metadata *getMetadata();
+        PolicyEnforcementProcessor *getPolicyEnforcementProcessor();
+        SessionGroupCache *getSessionGroupCache();
+        SessionCache *getSessionCache();
+        StartupProcessor *getStartupProcessor();
+        saml2::Logger *getLogger();
+        Configuration *getConfiguration();
+        SPEPConfigData *getSPEPConfigData();
+        WSProcessor *getWSProcessor();
+        saml2::IdentifierCache *getIdentifierCache();
 
-		AuthnProcessor *getAuthnProcessor();
-		AttributeProcessor *getAttributeProcessor();
-		Metadata *getMetadata();
-		PolicyEnforcementProcessor *getPolicyEnforcementProcessor();
-		SessionGroupCache *getSessionGroupCache();
-		SessionCache *getSessionCache();
-		StartupProcessor *getStartupProcessor();
-		saml2::Logger *getLogger();
-		Configuration *getConfiguration();
-		SPEPConfigData *getSPEPConfigData();
-		WSProcessor *getWSProcessor();
-		saml2::IdentifierCache *getIdentifierCache();
+        bool isStarted();
 
-		bool isStarted();
+    private:
 
-		private:
+        SPEP(SPEP& other);
+        SPEP& operator=(SPEP& other);
 
-		SPEP( SPEP& other );
-		SPEP& operator=( SPEP& other );
+        void destroy();
+        void reinitializeClient();
+        void checkConnection();
 
-		void destroy();
-		void reinitializeClient();
-		void checkConnection();
+        SPEPMode mMode;
+        bool mIsStarted;
+        std::string mServiceID;
 
-		SPEPMode _mode;
-		bool _isStarted;
-		std::string _serviceID;
+        Mutex mMutex;
 
-		Mutex _mutex;
+        saml2::IdentifierCache *mIdentifierCache;
+        saml2::IdentifierGenerator *mIdentifierGenerator;
+        saml2::SAMLValidator *mSamlValidator;
 
-		saml2::IdentifierCache *_identifierCache;
-		saml2::IdentifierGenerator *_identifierGenerator;
-		saml2::SAMLValidator *_samlValidator;
+        AuthnProcessor *mAuthnProcessor;
+        AttributeProcessor *mAttributeProcessor;
+        Metadata *mMetadata;
+        PolicyEnforcementProcessor *mPolicyEnforcementProcessor;
+        SessionGroupCache *mSessionGroupCache;
+        SessionCache *mSessionCache;
+        SessionCacheThread *mSessionCacheThread;
+        StartupProcessor *mStartupProcessor;
 
-		spep::ipc::ClientSocketPool *_socketPool;
-
-		AuthnProcessor *_authnProcessor;
-		AttributeProcessor *_attributeProcessor;
-		Metadata *_metadata;
-		PolicyEnforcementProcessor *_policyEnforcementProcessor;
-		SessionGroupCache *_sessionGroupCache;
-		SessionCache *_sessionCache;
-		SessionCacheThread *_sessionCacheThread;
-		StartupProcessor *_startupProcessor;
-		saml2::Logger *_logger;
-		Configuration *_configuration;
-		SPEPConfigData *_spepConfigData;
-		SOAPUtil *_soapUtil;
-		WSClient *_wsClient;
-		WSProcessor *_wsProcessor;
-
-	};
+        saml2::Logger *mLogger;
+        Configuration *mConfiguration;
+        SPEPConfigData *mSpepConfigData;
+        SOAPUtil *mSoapUtil;
+        WSClient *mWSClient;
+        WSProcessor *mWSProcessor;
+        spep::ipc::ClientSocketPool *mSocketPool;
+    };
 
 }
 

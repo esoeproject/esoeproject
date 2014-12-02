@@ -21,18 +21,18 @@
 
 spep::ipc::MessageHeader::MessageHeader(){}
 
-spep::ipc::MessageHeader::MessageHeader( spep::ipc::MessageType messageType, std::string dispatch )
+spep::ipc::MessageHeader::MessageHeader(spep::ipc::MessageType messageType, const std::string& dispatch)
 :
 _messageType(messageType),
 _dispatch(dispatch)
 {}
 
-spep::ipc::MessageType spep::ipc::MessageHeader::getType()
+spep::ipc::MessageType spep::ipc::MessageHeader::getType() const
 {
 	return _messageType;
 }
 
-std::string &spep::ipc::MessageHeader::getDispatch()
+std::string spep::ipc::MessageHeader::getDispatch() const
 {
 	return _dispatch;
 }

@@ -183,7 +183,7 @@ namespace spep
 		_interval( pollIntervalMilliseconds * NANOSECONDS_PER_MILLISECOND ),
 		_die( die )
 		{
-			boost::xtime_get( &_targetTime, boost::TIME_UTC ); 
+			boost::xtime_get( &_targetTime, boost::TIME_UTC_ ); 
 			milliseconds += _targetTime.nsec / NANOSECONDS_PER_MILLISECOND;
 			seconds += milliseconds / MILLISECONDS_PER_SECOND;
 			//_targetTime.nsec = (milliseconds % MILLISECONDS_PER_SECOND) * NANOSECONDS_PER_MILLISECOND;
@@ -207,7 +207,7 @@ namespace spep
 				
 				// Get the current time.
 				boost::xtime nextUpdate;
-				boost::xtime_get( &nextUpdate, boost::TIME_UTC );
+				boost::xtime_get( &nextUpdate, boost::TIME_UTC_ );
 				
 				// Calculate when the next update should occur.
 				nextUpdate.nsec += _interval;

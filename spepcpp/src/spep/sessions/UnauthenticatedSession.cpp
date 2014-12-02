@@ -21,56 +21,54 @@
 
 #include "time.h"
 
-spep::UnauthenticatedSession::UnauthenticatedSession()
-:
-_authnRequestSAMLID(),
-_requestURL(),
-_timestamp( boost::posix_time::second_clock::local_time() )
+spep::UnauthenticatedSession::UnauthenticatedSession() :
+    mAuthnRequestSAMLID(),
+    mRequestURL(),
+    mTimestamp(boost::posix_time::second_clock::local_time())
 {}
 
-spep::UnauthenticatedSession::UnauthenticatedSession(const spep::UnauthenticatedSession &rhs)
-:
-_authnRequestSAMLID(rhs._authnRequestSAMLID),
-_requestURL(rhs._requestURL),
-_timestamp(rhs._timestamp)
+spep::UnauthenticatedSession::UnauthenticatedSession(const spep::UnauthenticatedSession &rhs) :
+    mAuthnRequestSAMLID(rhs.mAuthnRequestSAMLID),
+    mRequestURL(rhs.mRequestURL),
+    mTimestamp(rhs.mTimestamp)
 {}
 
-std::wstring spep::UnauthenticatedSession::getAuthnRequestSAMLID()
+spep::UnauthenticatedSession &spep::UnauthenticatedSession::operator=(const spep::UnauthenticatedSession &rhs)
 {
-	return this->_authnRequestSAMLID;
+    mAuthnRequestSAMLID = rhs.mAuthnRequestSAMLID;
+    mRequestURL = rhs.mRequestURL;
+    mTimestamp = rhs.mTimestamp;
+
+    return *this;
 }
 
-void spep::UnauthenticatedSession::setAuthnRequestSAMLID(std::wstring authnRequestSAMLID)
+std::wstring spep::UnauthenticatedSession::getAuthnRequestSAMLID() const
 {
-	this->_authnRequestSAMLID = authnRequestSAMLID;
+    return mAuthnRequestSAMLID;
 }
 
-std::string spep::UnauthenticatedSession::getRequestURL()
+void spep::UnauthenticatedSession::setAuthnRequestSAMLID(const std::wstring& authnRequestSAMLID)
 {
-	return this->_requestURL;
+    mAuthnRequestSAMLID = authnRequestSAMLID;
 }
 
-void spep::UnauthenticatedSession::setRequestURL(std::string requestURL)
+std::string spep::UnauthenticatedSession::getRequestURL() const
 {
-	this->_requestURL = requestURL;
+    return mRequestURL;
 }
 
-long spep::UnauthenticatedSession::getIdleTime()
+void spep::UnauthenticatedSession::setRequestURL(const std::string& requestURL)
 {
-	boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
-	return boost::posix_time::time_period( this->_timestamp, currentTime ).length().total_seconds();
+    mRequestURL = requestURL;
 }
 
 void spep::UnauthenticatedSession::updateTime()
 {
-	this->_timestamp = boost::posix_time::second_clock::local_time();
+    mTimestamp = boost::posix_time::second_clock::local_time();
 }
 
-spep::UnauthenticatedSession &spep::UnauthenticatedSession::operator=( const spep::UnauthenticatedSession &rhs )
+long spep::UnauthenticatedSession::getIdleTime() const
 {
-	this->_authnRequestSAMLID = rhs._authnRequestSAMLID;
-	this->_requestURL = rhs._requestURL;
-	this->_timestamp = rhs._timestamp;
-	
-	return *this;
+    boost::posix_time::ptime currentTime = boost::posix_time::second_clock::local_time();
+    return boost::posix_time::time_period(mTimestamp, currentTime).length().total_seconds();
 }

@@ -27,30 +27,31 @@
 
 namespace spep { namespace ipc {
 	
-	class SPEPEXPORT SessionCacheProxy : public spep::SessionCache
-	{
-		
-		public:
-		SessionCacheProxy( spep::ipc::ClientSocketPool *socketPool );
-		
-		/** @see spep::SessionCache */
-		/*@{*/
-		virtual void getPrincipalSession(PrincipalSession& principalSession, const std::string& localSessionID);
-		virtual void getPrincipalSessionByEsoeSessionID(PrincipalSession& principalSession, const std::wstring& esoeSessionID);
-		virtual void insertPrincipalSession(const std::string& sessionID, PrincipalSession &principalSession);
-		virtual void terminatePrincipalSession(const std::wstring& sessionID);
-		
-		virtual void getUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession, const std::wstring& requestID);
-		virtual void insertUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession);
-		virtual void terminateUnauthenticatedSession(const std::wstring& requestID);
-		
-		virtual void terminateExpiredSessions( int sessionCacheTimeout );
-		/*@}*/
+    class SPEPEXPORT SessionCacheProxy : public spep::SessionCache
+    {
 
-		private:
-		// Defined mutable because even for const methods we still need to make an RPC call.
-		mutable spep::ipc::ClientSocketPool *_socketPool;
-		
+    public:
+        SessionCacheProxy(spep::ipc::ClientSocketPool *socketPool);
+        virtual ~SessionCacheProxy(){}
+
+        /** @see spep::SessionCache */
+        /*@{*/
+        virtual void getPrincipalSession(PrincipalSession& principalSession, const std::string& localSessionID) override;
+        virtual void getPrincipalSessionByEsoeSessionID(PrincipalSession& principalSession, const std::wstring& esoeSessionID) override;
+        virtual void insertPrincipalSession(const std::string& sessionID, PrincipalSession &principalSession) override;
+        virtual void terminatePrincipalSession(const std::wstring& sessionID) override;
+
+        virtual void getUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession, const std::wstring& requestID) override;
+        virtual void insertUnauthenticatedSession(UnauthenticatedSession &unauthenticatedSession) override;
+        virtual void terminateUnauthenticatedSession(const std::wstring& requestID) override;
+
+        virtual void terminateExpiredSessions(int sessionCacheTimeout) override;
+        /*@}*/
+
+    private:
+        // Defined mutable because even for const methods we still need to make an RPC call.
+        mutable spep::ipc::ClientSocketPool *mSocketPool;
+
 	};
 	
 } }

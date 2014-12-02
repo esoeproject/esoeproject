@@ -1,0 +1,472 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\attribute">
+      <UniqueIdentifier>{66450a2c-45d4-4d57-8408-1c5bf174156f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\authn">
+      <UniqueIdentifier>{deb3bd03-38ce-41a4-84b0-5b72a37f01f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\config">
+      <UniqueIdentifier>{636fed6f-9390-4471-92e4-7d4a2f226ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\config\impl">
+      <UniqueIdentifier>{8a6e45c3-5b34-4d19-bca7-d4707ec6c6a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\config\proxy">
+      <UniqueIdentifier>{66a0c099-2a49-46d8-acd6-f04cda4efafb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\exceptions">
+      <UniqueIdentifier>{db8d8d8e-422a-42ae-98b4-439bec4768cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\identifier">
+      <UniqueIdentifier>{2e7bd666-3ddf-4f5b-ab21-da107d948c42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\identifier\proxy">
+      <UniqueIdentifier>{d4e5ac72-55ba-423f-b9c8-968871e0dddc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ipc">
+      <UniqueIdentifier>{27e9b88e-34d4-4cdc-88d0-f946261ae981}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\logging">
+      <UniqueIdentifier>{fa2d98bf-5b0d-4c5e-9e64-b2e33667380e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\logging\proxy">
+      <UniqueIdentifier>{7ded0fab-3f28-4a73-ad64-2f60d744a8f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\metadata">
+      <UniqueIdentifier>{ded9d6c8-0f52-4eec-92d8-c6f5aa202ff7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\metadata\impl">
+      <UniqueIdentifier>{75d61bef-45b6-4509-a196-930bcb9886e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\metadata\proxy">
+      <UniqueIdentifier>{1902db6a-3f81-46ad-b945-f9d461515eb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pep">
+      <UniqueIdentifier>{7c19c9b2-b342-4223-a998-7a0779be806a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pep\impl">
+      <UniqueIdentifier>{dd9b03c1-a569-401f-a93b-e835af5b7d3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pep\proxy">
+      <UniqueIdentifier>{13240891-2300-40fc-b007-9eb062e2371f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sessions">
+      <UniqueIdentifier>{61d50807-2159-4051-bd95-3dd89602b981}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sessions\impl">
+      <UniqueIdentifier>{1e33c0e5-ac54-443c-b5ae-652cab2300c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sessions\proxy">
+      <UniqueIdentifier>{55bb7442-530e-44b7-9129-835b4944dd57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\startup">
+      <UniqueIdentifier>{f2aa4de7-d3b0-4cd4-8c2f-17dcadb3c834}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\startup\impl">
+      <UniqueIdentifier>{ef9ba140-a9fd-412f-b0f6-b3243cdbf750}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\startup\proxy">
+      <UniqueIdentifier>{f50f8dbd-98bb-445d-ba98-5adefb990cd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ws">
+      <UniqueIdentifier>{e52f6ca6-c05a-4fa6-8872-1662ef7e2d06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{754e7132-4965-4d18-b718-0a5bccf98688}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\Base64.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\SPEP.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\UnicodeStringConversion.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\util.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\attribute\AttributeProcessor.h">
+      <Filter>Source Files\attribute</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\attribute\AttributeProcessorData.h">
+      <Filter>Source Files\attribute</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\authn\authnprocessor.h">
+      <Filter>Source Files\authn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\authn\AuthnProcessorData.h">
+      <Filter>Source Files\authn</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\Configuration.h">
+      <Filter>Source Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\ConfigurationReader.h">
+      <Filter>Source Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\SPEPConfigData.h">
+      <Filter>Source Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\impl\ConfigurationImpl.h">
+      <Filter>Source Files\config\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\proxy\ConfigurationDispatcher.h">
+      <Filter>Source Files\config\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\proxy\ConfigurationProxy.h">
+      <Filter>Source Files\config\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\AttributeException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\AuthnException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidRequestException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidResponseException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidSessionIdentifierException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidStateException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\KeyResolverException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\KeystoreException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\MetadataException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\PEPException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\SPEPStartupException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\WSException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\identifier\proxy\IdentifierCacheDispatcher.h">
+      <Filter>Source Files\identifier\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\identifier\proxy\IdentifierCacheProxy.h">
+      <Filter>Source Files\identifier\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Dispatcher.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\engine.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Exceptions.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\MessageHeader.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Serialization.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Socket.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\socketarchive.h">
+      <Filter>Source Files\ipc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\logging\proxy\LoggerDispatcher.h">
+      <Filter>Source Files\logging\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\logging\proxy\LoggerProxy.h">
+      <Filter>Source Files\logging\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\JKSKeystore.h">
+      <Filter>Source Files\metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\KeyResolver.h">
+      <Filter>Source Files\metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\Metadata.h">
+      <Filter>Source Files\metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\MetadataThread.h">
+      <Filter>Source Files\metadata</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\impl\MetadataImpl.h">
+      <Filter>Source Files\metadata\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\proxy\MetadataDispatcher.h">
+      <Filter>Source Files\metadata\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\proxy\MetadataProxy.h">
+      <Filter>Source Files\metadata\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\Decision.h">
+      <Filter>Source Files\pep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\PolicyEnforcementProcessor.h">
+      <Filter>Source Files\pep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\PolicyEnforcementProcessorData.h">
+      <Filter>Source Files\pep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\SessionGroupCache.h">
+      <Filter>Source Files\pep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\impl\SessionGroupCacheImpl.h">
+      <Filter>Source Files\pep\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\proxy\SessionGroupCacheDispatcher.h">
+      <Filter>Source Files\pep\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\proxy\SessionGroupCacheProxy.h">
+      <Filter>Source Files\pep\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\PrincipalSession.h">
+      <Filter>Source Files\sessions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\sessioncache.h">
+      <Filter>Source Files\sessions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\SessionCacheThread.h">
+      <Filter>Source Files\sessions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\UnauthenticatedSession.h">
+      <Filter>Source Files\sessions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\impl\sessioncacheimpl.h">
+      <Filter>Source Files\sessions\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\proxy\SessionCacheDispatcher.h">
+      <Filter>Source Files\sessions\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\proxy\sessioncacheproxy.h">
+      <Filter>Source Files\sessions\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\StartupProcessor.h">
+      <Filter>Source Files\startup</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\impl\StartupProcessorImpl.h">
+      <Filter>Source Files\startup\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\proxy\StartupProcessorDispatcher.h">
+      <Filter>Source Files\startup\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\proxy\StartupProcessorProxy.h">
+      <Filter>Source Files\startup\proxy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\SOAPUtil.h">
+      <Filter>Source Files\ws</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\WSClient.h">
+      <Filter>Source Files\ws</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\wsprocessor.h">
+      <Filter>Source Files\ws</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\WSProcessorData.h">
+      <Filter>Source Files\ws</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\Base64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\SPEP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\UnicodeStringConversion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\attribute\AttributeProcessor.cpp">
+      <Filter>Source Files\attribute</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\attribute\AttributeProcessorData.cpp">
+      <Filter>Source Files\attribute</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\authn\AuthnProcessor.cpp">
+      <Filter>Source Files\authn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\authn\AuthnProcessorData.cpp">
+      <Filter>Source Files\authn</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\ConfigurationReader.cpp">
+      <Filter>Source Files\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\SPEPConfigData.cpp">
+      <Filter>Source Files\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\impl\ConfigurationImpl.cpp">
+      <Filter>Source Files\config\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\proxy\ConfigurationDispatcher.cpp">
+      <Filter>Source Files\config\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\proxy\ConfigurationProxy.cpp">
+      <Filter>Source Files\config\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\AttributeException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\AuthnException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidRequestException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidResponseException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidSessionIdentifierException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidStateException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\KeyResolverException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\KeystoreException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\MetadataException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\PEPException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\SPEPStartupException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\WSException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\identifier\proxy\IdentifierCacheDispatcher.cpp">
+      <Filter>Source Files\identifier\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\identifier\proxy\IdentifierCacheProxy.cpp">
+      <Filter>Source Files\identifier\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\Dispatcher.cpp">
+      <Filter>Source Files\ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\Engine.cpp">
+      <Filter>Source Files\ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\MessageHeader.cpp">
+      <Filter>Source Files\ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\Socket.cpp">
+      <Filter>Source Files\ipc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\logging\proxy\LoggerDispatcher.cpp">
+      <Filter>Source Files\logging\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\logging\proxy\LoggerProxy.cpp">
+      <Filter>Source Files\logging\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\JKSKeystore.cpp">
+      <Filter>Source Files\metadata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\KeyResolver.cpp">
+      <Filter>Source Files\metadata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\MetadataThread.cpp">
+      <Filter>Source Files\metadata</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\impl\MetadataImpl.cpp">
+      <Filter>Source Files\metadata\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\proxy\MetadataDispatcher.cpp">
+      <Filter>Source Files\metadata\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\proxy\MetadataProxy.cpp">
+      <Filter>Source Files\metadata\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\Decision.cpp">
+      <Filter>Source Files\pep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\PolicyEnforcementProcessor.cpp">
+      <Filter>Source Files\pep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\PolicyEnforcementProcessorData.cpp">
+      <Filter>Source Files\pep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\impl\SessionGroupCacheImpl.cpp">
+      <Filter>Source Files\pep\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\proxy\SessionGroupCacheDispatcher.cpp">
+      <Filter>Source Files\pep\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\proxy\SessionGroupCacheProxy.cpp">
+      <Filter>Source Files\pep\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\PrincipalSession.cpp">
+      <Filter>Source Files\sessions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\SessionCacheThread.cpp">
+      <Filter>Source Files\sessions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\UnauthenticatedSession.cpp">
+      <Filter>Source Files\sessions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\impl\SessionCacheImpl.cpp">
+      <Filter>Source Files\sessions\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\proxy\SessionCacheDispatcher.cpp">
+      <Filter>Source Files\sessions\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\proxy\SessionCacheProxy.cpp">
+      <Filter>Source Files\sessions\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\startup\impl\StartupProcessorImpl.cpp">
+      <Filter>Source Files\startup\impl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\startup\proxy\StartupProcessorDispatcher.cpp">
+      <Filter>Source Files\startup\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\startup\proxy\StartupProcessorProxy.cpp">
+      <Filter>Source Files\startup\proxy</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\SOAPUtil.cpp">
+      <Filter>Source Files\ws</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\WSClient.cpp">
+      <Filter>Source Files\ws</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\WSProcessor.cpp">
+      <Filter>Source Files\ws</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\WSProcessorData.cpp">
+      <Filter>Source Files\ws</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\spepcpp\w32\vc8\spep.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

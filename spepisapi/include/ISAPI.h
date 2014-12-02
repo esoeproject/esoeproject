@@ -28,7 +28,7 @@
 #include <httpext.h>
 
 
-#define 	SPEP_ISAPI_EXTENSION_DESCRIPTION  "SPEP ISAPI v0.1"
+#define 	SPEP_ISAPI_EXTENSION_DESCRIPTION  "SPEP ISAPI v1.0"
 
 #define 	REGISTRY_KEY_SOFTWARE 		"Software"
 #define 	REGISTRY_KEY_ESOEPROJECT 	"ESOE Project"

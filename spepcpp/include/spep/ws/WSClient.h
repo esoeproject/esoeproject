@@ -39,75 +39,70 @@
 namespace spep
 {
 	
-	class SPEPEXPORT WSClient
-	{
-		
-		private:
-			
-		class RawSOAPDocument
-		{
-			
-			public:
-			RawSOAPDocument();
-			RawSOAPDocument( const RawSOAPDocument& other );
-			
-			~RawSOAPDocument();
-			
-			RawSOAPDocument& operator=( const RawSOAPDocument& other );
-			
-			unsigned char *data;
-			long len;
-			long pos;
-			
-		};
-			
-		saml2::LocalLogger _localLogger;
-		std::string _caBundle;
-		SOAPUtil *_soapUtil;
-		Mutex _wsClientMutex;
+    class SPEPEXPORT WSClient
+    {
+    public:
+        /**
+         * Constructs a new WSClient object.
+         *
+         * While this method by itself is thread safe, care must be taken to ensure that
+         * if another thread will be initializing a cURL handle at the same time,
+         * the curl_global_init function has been called prior to constructing this object.
+         *
+         * See http://curl.haxx.se/libcurl/c/curl_easy_init.html for details.
+         */
+        WSClient(saml2::Logger *logger, const std::string& caBundle, SOAPUtil *soapUtil);
+        ~WSClient();
 
-		void doSOAPRequest(WSProcessorData& data, const std::string& endpoint);
+        template <typename Res>
+        Res* doWSCall(const std::string& endpoint, DOMDocument* requestDocument, saml2::Unmarshaller<Res> *resUnmarshaller, SOAPUtil::SOAPVersion soapVersion = SOAPUtil::SOAP11)
+        {
+            //ScopedLock(_wsClientMutex);
+            WSProcessorData data;
 
-		/** 
-		 * Callback function to be called by cURL. The userp pointer MUST be a RawSOAPDocument. 
-		 * See cURL documentation for more info. 
-		 */
-		static std::size_t curlWriteCallback( void *buffer, std::size_t size, std::size_t nmemb, void *userp );
-		static std::size_t curlReadCallback( void *buffer, std::size_t size, std::size_t nmemb, void *userp );
-		static int debugCallback( CURL *curl, curl_infotype info, char *msg, std::size_t len, void *userp );
-		
-		public:
-		/**
-		 * Constructs a new WSClient object.
-		 * 
-		 * While this method by itself is thread safe, care must be taken to ensure that
-		 * if another thread will be initializing a cURL handle at the same time,
-		 * the curl_global_init function has been called prior to constructing this object.
-		 * 
-		 * See http://curl.haxx.se/libcurl/c/curl_easy_init.html for details.
-		 */
-		WSClient( saml2::Logger *logger, std::string caBundle, SOAPUtil *soapUtil );
-		~WSClient();
-		
-		template <typename Res>
-		Res* doWSCall(const std::string& endpoint, DOMDocument* requestDocument, saml2::Unmarshaller<Res> *resUnmarshaller, SOAPUtil::SOAPVersion soapVersion = SOAPUtil::SOAP11)
-		{
-			//ScopedLock(_wsClientMutex);
-			WSProcessorData data;
-			
-			data.setSOAPRequestDocument( _soapUtil->wrapObjectInSOAP( requestDocument->getDocumentElement(), WSCLIENT_CHARACTER_ENCODING, soapVersion ) );
-			_localLogger.debug() << "Created SOAP request bound for endpoint " << endpoint << ". About to perform SOAP action.";
-			_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPRequestDocument() ) );
-			
-			data.setCharacterEncoding( "UTF-16" );
-			this->doSOAPRequest( data, endpoint );
-			
-			_localLogger.debug() << "Performed SOAP action at " << endpoint << ". About to process response.";
-			_localLogger.trace() << UnicodeStringConversion::toString( UnicodeStringConversion::toUnicodeString( data.getSOAPResponseDocument() ) );
-			return( _soapUtil->unwrapObjectFromSOAP( resUnmarshaller, data.getSOAPResponseDocument(), soapVersion ) );
-		}
-		
-	};
+            data.setSOAPRequestDocument(mSoapUtil->wrapObjectInSOAP(requestDocument->getDocumentElement(), WSCLIENT_CHARACTER_ENCODING, soapVersion));
+            mLocalLogger.debug() << "Created SOAP request bound for endpoint " << endpoint << ". About to perform SOAP action.";
+            mLocalLogger.trace() << UnicodeStringConversion::toString(UnicodeStringConversion::toUnicodeString(data.getSOAPRequestDocument()));
+
+            data.setCharacterEncoding("UTF-16");
+            doSOAPRequest(data, endpoint);
+
+            mLocalLogger.debug() << "Performed SOAP action at " << endpoint << ". About to process response.";
+            mLocalLogger.trace() << UnicodeStringConversion::toString(UnicodeStringConversion::toUnicodeString(data.getSOAPResponseDocument()));
+            return(mSoapUtil->unwrapObjectFromSOAP(resUnmarshaller, data.getSOAPResponseDocument(), soapVersion));
+        }
+
+    private:
+
+        class RawSOAPDocument
+        {
+        public:
+            RawSOAPDocument();
+            RawSOAPDocument(const RawSOAPDocument& other);
+            ~RawSOAPDocument();
+
+            RawSOAPDocument& operator=(const RawSOAPDocument& other);
+
+            unsigned char *data;
+            size_t len;
+            size_t pos;
+        };
+
+        saml2::LocalLogger mLocalLogger;
+        std::string mCABundle;
+        SOAPUtil *mSoapUtil;
+        Mutex mWSClientMutex;
+
+        void doSOAPRequest(WSProcessorData& data, const std::string& endpoint);
+
+        /**
+        * Callback function to be called by cURL. The userp pointer MUST be a RawSOAPDocument.
+        * See cURL documentation for more info.
+        */
+        static std::size_t curlWriteCallback(void *buffer, std::size_t size, std::size_t nmemb, void *userp);
+        static std::size_t curlReadCallback(void *buffer, std::size_t size, std::size_t nmemb, void *userp);
+        static int debugCallback(CURL *curl, curl_infotype info, char *msg, std::size_t len, void *userp);
+    };
 	
 }
 

@@ -108,7 +108,7 @@ void spep::SessionCacheImpl::insertPrincipalSession(const std::string& sessionID
 {
 	ScopedLock lock(_principalSessionsMutex);
 	
-	if (principalSession.getESOESessionID().length() == 0)
+	if (principalSession.getESOESessionID().empty())
 	{
 		SAML2LIB_INVPARAM_EX( "Principal session had no ESOE session identifier" );
 	}
@@ -214,7 +214,7 @@ void spep::SessionCacheImpl::insertUnauthenticatedSession(spep::UnauthenticatedS
 {
 	ScopedLock lock(_unauthenticatedSessionsMutex);
 	
-	if (unauthenticatedSession.getAuthnRequestSAMLID().length() == 0)
+	if (unauthenticatedSession.getAuthnRequestSAMLID().empty())
 	{
 		SAML2LIB_INVPARAM_EX( "Unauthenticated session had no AuthnRequest SAML ID associated with it." );
 	}

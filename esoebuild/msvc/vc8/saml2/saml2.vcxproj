@@ -1,0 +1,325 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\openssl.1.0.1.25\build\native\openssl.props" Condition="Exists('..\packages\openssl.1.0.1.25\build\native\openssl.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{73A27EDA-EC4A-411B-9309-35FAB0F24A03}</ProjectGuid>
+    <RootNamespace>saml2</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+    <NuGetPackageImportStamp>6e2ddd66</NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <Linkage-openssl>dynamic</Linkage-openssl>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <Linkage-openssl>dynamic</Linkage-openssl>
+    <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;WIN32_LEAN_AND_MEAN;BUILDING_SAML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>xsec_1.lib;xerces-c_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Xdcmake>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Xdcmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\saml2cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;WIN32_LEAN_AND_MEAN;BUILDING_SAML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>xsec_1.lib;xerces-c_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Xdcmake>
+      <SuppressStartupBanner>false</SuppressStartupBanner>
+    </Xdcmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;BUILDING_SAML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libeay32.lib;ssleay32.lib;xsec_1.lib;xerces-c_2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\saml2cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SAML2_EXPORTS;BUILDING_SAML2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <StringPooling>true</StringPooling>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>xsec_1.lib;xerces-c_3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\attributeconfig-schema.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\cacheclear-schema-saml-metadata.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\delegated-schema-saml-protocol.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\esoe-schema-saml-protocol.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-context.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-grouptarget.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-metadata.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-saml-assertion.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-saml-protocol.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\saml-schema-assertion-2.0.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\saml-schema-metadata-2.0.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\saml-schema-protocol-2.0.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\sessiondata-schema.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\soap-1.1-envelope.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\soap-1.2-envelope.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\spepstartup-schema-saml-metadata.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\xenc-schema.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\xml.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\xmldsig-core-schema.hxx" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\AttributeFormatConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\AuthenticationContextConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\BindingConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\ConfirmationMethodConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\ConsentIdentifierConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\NameIDFormatConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\ProtocolConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\StatusCodeConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\VersionConstants.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\IdentifierCacheException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\IdentifierException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidParameterException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLAssertionException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLAuthnRequestException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLRequestException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLResponseException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\MarshallerException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\UnmarshallerException.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\impl\MarshallerImpl.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\impl\UnmarshallerImpl.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\Marshaller.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\MetadataOutput.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\SAML2ErrorHandler.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\SAMLDocument.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\Unmarshaller.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\identifier\IdentifierCache.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\identifier\IdentifierGenerator.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\api.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\Handler.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\LocalLogger.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\Logger.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\LogLevel.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\LogStreamMimic.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\namespace\NamespacePrefixMapper.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\resolver\ExternalKeyResolver.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\resolver\ResourceResolver.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\SAML2Defs.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLAssertionValidator.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLAuthnRequestValidator.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLRequestValidator.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLResponseValidator.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLValidator.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\xsd\xml-schema-custom-attributevaluetype.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\xsd\xml-schema-custom.h" />
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\xsd\xml-schema.hxx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\attributeconfig-schema.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\cacheclear-schema-saml-metadata.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\delegated-schema-saml-protocol.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\esoe-schema-saml-protocol.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-context.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-grouptarget.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-metadata.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-saml-assertion.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-saml-protocol.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\saml-schema-assertion-2.0.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\saml-schema-metadata-2.0.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\saml-schema-protocol-2.0.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\sessiondata-schema.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\soap-1.1-envelope.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\soap-1.2-envelope.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\spepstartup-schema-saml-metadata.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\xenc-schema.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\xml.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\xmldsig-core-schema.cxx" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\IdentifierCacheException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\IdentifierException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidParameterException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLAssertionException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLAuthnRequestException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLRequestException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLResponseException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\MarshallerException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\UnmarshallerException.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\impl\UnmarshallerImpl.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\MetadataOutput.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\SAML2ErrorHandler.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\identifier\IdentifierCache.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\identifier\IdentifierGenerator.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\api.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\LocalLogger.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\Logger.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\LogLevel.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\LogStreamMimic.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\namespace\NamespacePrefixMapper.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\resolver\ExternalKeyResolver.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\resolver\ResourceResolver.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLAssertionValidator.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLAuthnRequestValidator.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLRequestValidator.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLResponseValidator.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLValidator.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\xsd\xml-schema-custom-attributevaluetype.cpp" />
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\xsd\xml-schema-custom.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\packages\boost.1.56.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" />
+    <Import Project="..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets" Condition="Exists('..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets')" />
+    <Import Project="..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets" Condition="Exists('..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets')" />
+    <Import Project="..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets" Condition="Exists('..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets')" />
+    <Import Project="..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets" Condition="Exists('..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets')" />
+    <Import Project="..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets" Condition="Exists('..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets')" />
+    <Import Project="..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
+    <Import Project="..\packages\zlib.1.2.8.7\build\native\zlib.targets" Condition="Exists('..\packages\zlib.1.2.8.7\build\native\zlib.targets')" />
+    <Import Project="..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
+    <Import Project="..\packages\openssl.1.0.1.25\build\native\openssl.targets" Condition="Exists('..\packages\openssl.1.0.1.25\build\native\openssl.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.56.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib.1.2.8.7\build\native\zlib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib.1.2.8.7\build\native\zlib.targets'))" />
+    <Error Condition="!Exists('..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\openssl.1.0.1.25\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1.25\build\native\openssl.props'))" />
+    <Error Condition="!Exists('..\packages\openssl.1.0.1.25\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1.25\build\native\openssl.targets'))" />
+  </Target>
+</Project>

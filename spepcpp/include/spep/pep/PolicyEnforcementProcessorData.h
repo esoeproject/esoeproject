@@ -32,53 +32,53 @@
 namespace spep
 {
 	
-	class SPEPEXPORT PolicyEnforcementProcessorData
-	{
-		
-		public:
-		/**
-		 * Sets the SAML request document. The meaning of this document is context dependant, and
-		 * may also be used to return a SAML request document from a method.
-		 */ 
-		void setRequestDocument( const saml2::SAMLDocument& requestDocument );
-		const saml2::SAMLDocument& getRequestDocument();
-		
-		/**
-		 * Sets the SAML response document. The meaning of this document is context dependant, and
-		 * may also be used to return a SAML response document from a method.
-		 */ 
-		void setResponseDocument( const saml2::SAMLDocument& responseDocument );
-		const saml2::SAMLDocument& getResponseDocument();
-		
-		/**
-		 * Sets the ESOE session identifier to be used when making the authorization decision.
-		 * This is effectively the Subject of the authorization request
-		 */
-		void setESOESessionID( std::wstring esoeSessionID );
-		std::wstring getESOESessionID();
-		
-		/**
-		 * Sets the resource being accessed, and therefore the resource on which the 
-		 * authorization decision should be made.
-		 */
-		void setResource( UnicodeString resource );
-		UnicodeString getResource();
-		
-		/**
-		 * Sets the decision that was reached by the PEP.
-		 */
-		void setDecision( Decision decision );
-		Decision getDecision();
-		
-		private:
-		saml2::SAMLDocument _requestDocument;
-		saml2::SAMLDocument _responseDocument;
-		std::wstring _esoeSessionID;
-		UnicodeString _resource;
-		Decision _decision;
+    class SPEPEXPORT PolicyEnforcementProcessorData
+    {
 
-	};
-	
+    public:
+        /**
+         * Sets the SAML request document. The meaning of this document is context dependant, and
+         * may also be used to return a SAML request document from a method.
+         */
+        void setRequestDocument(const saml2::SAMLDocument& requestDocument);
+        const saml2::SAMLDocument& getRequestDocument() const;
+
+        /**
+         * Sets the SAML response document. The meaning of this document is context dependant, and
+         * may also be used to return a SAML response document from a method.
+         */
+        void setResponseDocument(const saml2::SAMLDocument& responseDocument);
+        const saml2::SAMLDocument& getResponseDocument() const;
+
+        /**
+         * Sets the ESOE session identifier to be used when making the authorization decision.
+         * This is effectively the Subject of the authorization request
+         */
+        void setESOESessionID(const std::wstring& esoeSessionID);
+        std::wstring getESOESessionID() const;
+
+        /**
+         * Sets the resource being accessed, and therefore the resource on which the
+         * authorization decision should be made.
+         */
+        void setResource(const UnicodeString& resource);
+        UnicodeString getResource() const;
+
+        /**
+         * Sets the decision that was reached by the PEP.
+         */
+        void setDecision(Decision decision);
+        Decision getDecision() const;
+
+    private:
+        saml2::SAMLDocument mRequestDocument;
+        saml2::SAMLDocument mResponseDocument;
+        std::wstring mEsoeSessionID;
+        UnicodeString mResource;
+        Decision mDecision;
+
+    };
+
 }
 
 #endif /*POLICYENFORCEMENTPROCESSORDATA_H_*/

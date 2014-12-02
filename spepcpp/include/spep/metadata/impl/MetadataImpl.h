@@ -41,110 +41,106 @@
 namespace spep
 {
 	
-	class SPEPEXPORT MetadataImpl : public Metadata
-	{
-		
-		friend class MetadataThread;
-		friend class MetadataThread::ThreadHandler;
-		
-		typedef std::map<std::string, saml2::KeyData> KeyMap;
-		
-		class MetadataCache
-		{
-			public:
-			std::vector<std::string> singleSignOnEndpoints;
-			std::vector<std::string> singleLogoutEndpoints;
-			std::vector<std::string> attributeServiceEndpoints;
-			std::vector<std::string> authzServiceEndpoints;
-			std::vector<std::string> spepStartupServiceEndpoints;
-			KeyMap keyMap;
-		};
-		
-		class MetadataKeyResolver : public XSECKeyInfoResolver
-		{
-		
-			private:
-			saml2::Logger *_logger;
-			saml2::LocalLogger _localLogger;
-			KeyMap _map;
-			
-			public:
-			MetadataKeyResolver( saml2::Logger *logger, const KeyMap& map );
-			virtual ~MetadataKeyResolver();
-			virtual XSECCryptoKey *resolveKey (DSIGKeyInfoList *list);
-			virtual saml2::KeyData resolveKey (std::string keyName);
-			virtual XSECKeyInfoResolver* clone() const;
-			
-		};
-		
-		private:
-		mutable Mutex _metadataMutex;
-		mutable saml2::Logger *_logger;
-		mutable saml2::LocalLogger _localLogger;
-		std::wstring _spepIdentifier;
-		std::wstring _esoeIdentifier;
-		std::string _metadataURL;
-		std::string _schemaPath;
-		KeyResolver *_keyResolver;
-		int _assertionConsumerIndex;
-		int _interval;
-		mutable int _balancingIndex;
-		mutable Mutex _indexMutex;
-		
-		saml2::Unmarshaller<middleware::spepStartupServiceSchema::SPEPStartupServiceType> *_spepStartupServiceUnmarshaller;
-		
-		std::string _currentRevision;
-		bool _error;
-		bool _hasData;
-		MetadataCache *_cache;
-		
-		std::string _caBundle;
-		MetadataThread *_thread;
-		boost::thread_group _threadGroup;
-		
-		/**
-		 * Rebuilds the metadata cache from an XSD object
-		 * @param entitiesDescriptor The XSD object for the root of the metadata document
-		 * @param hashValue The hash value of the document (algorithm doesn't matter, just needs to be the same each time)
-		 * @param keyMap The map of key data returned from the unmarshaller
-		 */
-		void rebuildCache( saml2::metadata::EntitiesDescriptorType &entitiesDescriptor, std::string hashValue, KeyMap &keyMap );
-		
-		/**
-		 * Recursive call for rebuilding cache data.
-		 * @see rebuildCache
-		 */
-		void buildCacheRecurse( saml2::metadata::EntitiesDescriptorType &entitiesDescriptor, MetadataCache &cache );
-		
-		/**
-		 * Initializes the metadata
-		 */
-		virtual void init();
-		
-		int nextBalancingIndex( int modulus ) const;
-		
-		void waitForData() const;
-		
-		public:
-		MetadataImpl( saml2::Logger *logger, std::string schemaPath, std::wstring spepIdentifier, std::wstring esoeIdentifier, std::string metadataURL, std::string caBundle, KeyResolver *keyResolver, int assertionConsumerIndex, int interval );
-		virtual ~MetadataImpl();
-		
-		virtual const std::wstring getSPEPIdentifier() const;
-		virtual const std::wstring getESOEIdentifier() const;
-		virtual const std::string getSingleSignOnEndpoint() const;
-		virtual const std::string getSingleLogoutEndpoint() const;
-		virtual const std::string getAttributeServiceEndpoint() const;
-		virtual const std::string getAuthzServiceEndpoint() const;
-		virtual const std::string getSPEPStartupServiceEndpoint() const;
-		virtual XSECCryptoKey *resolveKey (DSIGKeyInfoList *list);
-		virtual saml2::KeyData resolveKey (std::string keyName);
-		
-		/**
-		 * This method should never be called on the MetadataImpl.
-		 */
-		virtual XSECKeyInfoResolver* clone() const;
-		
-	};
+    class SPEPEXPORT MetadataImpl : public Metadata
+    {
+
+        friend class MetadataThread;
+        friend class MetadataThread::ThreadHandler;
+
+        typedef std::map<std::string, saml2::KeyData> KeyMap; // todo check to see if this should be an unordered_map
+
+        class MetadataCache
+        {
+        public:
+            std::vector<std::string> singleSignOnEndpoints;
+            std::vector<std::string> singleLogoutEndpoints;
+            std::vector<std::string> attributeServiceEndpoints;
+            std::vector<std::string> authzServiceEndpoints;
+            std::vector<std::string> spepStartupServiceEndpoints;
+            KeyMap mKeys;
+        };
+
+        class MetadataKeyResolver : public XSECKeyInfoResolver
+        {
+        public:
+            MetadataKeyResolver(saml2::Logger *logger, const KeyMap& map);
+            virtual ~MetadataKeyResolver();
+            virtual XSECCryptoKey *resolveKey(DSIGKeyInfoList *list) override;
+            virtual saml2::KeyData resolveKey(const std::string& keyName);
+            virtual XSECKeyInfoResolver* clone() const;
+
+        private:
+            saml2::Logger *mLogger;
+            saml2::LocalLogger mLocalLogger;
+            KeyMap mKeys;
+        };
+
+    public:
+        MetadataImpl(saml2::Logger *logger, const std::string& schemaPath, const std::wstring& spepIdentifier, const std::wstring& esoeIdentifier, const std::string& metadataURL, const std::string& caBundle, KeyResolver *keyResolver, int assertionConsumerIndex, int interval);
+        virtual ~MetadataImpl();
+
+        virtual const std::wstring getSPEPIdentifier() const override;
+        virtual const std::wstring getESOEIdentifier() const override;
+        virtual const std::string getSingleSignOnEndpoint() const override;
+        virtual const std::string getSingleLogoutEndpoint() const override;
+        virtual const std::string getAttributeServiceEndpoint() const override;
+        virtual const std::string getAuthzServiceEndpoint() const override;
+        virtual const std::string getSPEPStartupServiceEndpoint() const override;
+        virtual XSECCryptoKey *resolveKey(DSIGKeyInfoList *list) override;
+        virtual saml2::KeyData resolveKey(const std::string& keyName) override;
+
+        /**
+         * This method should never be called on the MetadataImpl.
+         */
+        virtual XSECKeyInfoResolver* clone() const override;
+
+    private:
+
+        /**
+        * Rebuilds the metadata cache from an XSD object
+        * @param entitiesDescriptor The XSD object for the root of the metadata document
+        * @param hashValue The hash value of the document (algorithm doesn't matter, just needs to be the same each time)
+        * @param keyMap The map of key data returned from the unmarshaller
+        */
+        void rebuildCache(saml2::metadata::EntitiesDescriptorType &entitiesDescriptor, const std::string& hashValue, KeyMap &keyMap);
+
+        /**
+        * Recursive call for rebuilding cache data.
+        * @see rebuildCache
+        */
+        void buildCacheRecurse(saml2::metadata::EntitiesDescriptorType &entitiesDescriptor, MetadataCache &cache);
+
+        /**
+        * Initializes the metadata
+        */
+        virtual void init();
+        int nextBalancingIndex(int modulus) const;
+        void waitForData() const;
+
+        mutable Mutex mMetadataMutex;
+        mutable saml2::Logger *mLogger;
+        mutable saml2::LocalLogger mLocalLogger;
+        std::wstring mSpepIdentifier;
+        std::wstring mEsoeIdentifier;
+        std::string mMetadataURL;
+        std::string mSchemaPath;
+        KeyResolver *mKeyResolver;
+        int mAssertionConsumerIndex;
+        int mInterval;
+        mutable int mBalancingIndex;
+        mutable Mutex mIndexMutex;
+
+        std::unique_ptr<saml2::Unmarshaller<middleware::spepStartupServiceSchema::SPEPStartupServiceType>> mSpepStartupServiceUnmarshaller;
+
+        std::string mCurrentRevision;
+        bool mError;
+        bool mHasData;
+        MetadataCache *mCache;  // TODO: should this be a unique_ptr?
+
+        std::string mCABundle;
+        std::unique_ptr<MetadataThread> mThread;
+        boost::thread_group mThreadGroup;
+    };
 	
 }
 

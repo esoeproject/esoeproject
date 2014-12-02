@@ -21,6 +21,13 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+// These definitions are required here because of the way that the template classes are used across dll boundaries.
+// It's not nice to do this, but it's preventing multiply defined strings
+#include <string>
+template class __declspec(dllexport) std::basic_string<char, std::char_traits<char>, std::allocator<char>>;
+template class __declspec(dllexport) std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>;
+
+
 /* TODO: Make this different for unix / windows */
 #ifdef WIN32
 #define FILE_SEPERATOR "\\"

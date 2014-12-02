@@ -24,27 +24,29 @@
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/date_time/posix_time/posix_time_io.hpp>
 
-saml2::Logger::Logger() : _handlers() {}
-
-saml2::Logger::Logger( std::vector<saml2::Handler*> handlers ) : _handlers( handlers ) {}
-
-saml2::Logger::~Logger() {}
-
-void saml2::Logger::registerHandler( saml2::Handler* handler )
+saml2::Logger::Logger() 
 {
-	_handlers.push_back( handler );
 }
 
-void saml2::Logger::log( saml2::LogLevel level, const std::string& name, const std::string& msg )
+saml2::Logger::Logger(const std::vector<saml2::Handler*>& handlers) : mHandlers(handlers) 
 {
+}
 
-	// Loop through each handler in the vector
-	for( std::vector<saml2::Handler*>::iterator iter = _handlers.begin(); iter != _handlers.end(); ++iter )
-	{
-		// .. and log to it.
-		(*iter)->log( level, name, msg );
-	}
+saml2::Logger::~Logger() 
+{
+}
 
+void saml2::Logger::registerHandler(saml2::Handler* handler)
+{
+	mHandlers.push_back(handler);
+}
+
+void saml2::Logger::log(saml2::LogLevel level, const std::string& name, const std::string& msg)
+{
+    for (const auto handler: mHandlers)
+    {
+        handler->log(level, name, msg);
+    }
 }
 
 std::string saml2::Logger::timestamp()
@@ -55,8 +57,8 @@ std::string saml2::Logger::timestamp()
 	std::string format("%Y-%m-%d %H:%M:%S");
 
 	// stupid std::stringstream... wants to delete the facet itself instead of letting it be cleaned up by going out of scope.
-	boost::posix_time::time_facet *output_facet = new boost::posix_time::time_facet( format.c_str() );
-	ss.imbue( std::locale( std::locale::classic(), output_facet ) );
+	boost::posix_time::time_facet *output_facet = new boost::posix_time::time_facet(format.c_str());
+	ss.imbue(std::locale( std::locale::classic(), output_facet));
 
 	ss << now;
 	return ss.str();

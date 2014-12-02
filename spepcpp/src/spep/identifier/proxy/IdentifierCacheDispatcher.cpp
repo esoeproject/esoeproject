@@ -23,66 +23,68 @@ static const char *registerIdentifier = IDENTIFIERCACHE_registerIdentifier;
 static const char *containsIdentifier = IDENTIFIERCACHE_containsIdentifier;
 static const char *cleanCache = IDENTIFIERCACHE_cleanCache;
 
-spep::ipc::IdentifierCacheDispatcher::IdentifierCacheDispatcher( saml2::IdentifierCache *identifierCache )
-:
-_prefix( IDENTIFIERCACHE ),
-_identifierCache( identifierCache )
+spep::ipc::IdentifierCacheDispatcher::IdentifierCacheDispatcher(saml2::IdentifierCache *identifierCache) :
+mPrefix(IDENTIFIERCACHE),
+mIdentifierCache(identifierCache)
 {
 }
 
-bool spep::ipc::IdentifierCacheDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
+spep::ipc::IdentifierCacheDispatcher::~IdentifierCacheDispatcher()
+{
+}
+
+bool spep::ipc::IdentifierCacheDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &en)
 {
 	std::string dispatch = header.getDispatch();
 	
 	// Make sure the prefix matches the expected prefix for this dispatcher.
-	if ( dispatch.compare( 0, strlen( IDENTIFIERCACHE ), _prefix ) != 0 )
+	if (dispatch.compare(0, strlen(IDENTIFIERCACHE), mPrefix) != 0)
 		return false;
 	
-	if ( dispatch.compare( registerIdentifier ) == 0 )
+	if (dispatch.compare(registerIdentifier) == 0)
 	{
 		std::string identifier;
-		en.getObject( identifier );
+		en.getObject(identifier);
 		
-		_identifierCache->registerIdentifier( identifier );
+		mIdentifierCache->registerIdentifier(identifier);
 		
-		if ( header.getType() == SPEPIPC_REQUEST )
+		if (header.getType() == SPEPIPC_REQUEST)
 		{
-			throw InvocationTargetException( "No return type from this method" );
+			throw InvocationTargetException("No return type from this method");
 		}
 		
 		return true;
 	}
 	
-	if ( dispatch.compare( containsIdentifier ) == 0 )
+	if (dispatch.compare(containsIdentifier) == 0)
 	{
 		std::string identifier;
-		en.getObject( identifier );
+		en.getObject(identifier);
 		
-		bool result = _identifierCache->containsIdentifier( identifier );
+		bool result = mIdentifierCache->containsIdentifier(identifier);
 		
-		if ( header.getType() == SPEPIPC_REQUEST )
+		if (header.getType() == SPEPIPC_REQUEST)
 		{
 			// Return the value
 			en.sendResponseHeader();
-			en.sendObject( result );
+			en.sendObject(result);
 		}
 		
 		return true;
 	}
 	
-	if ( dispatch.compare( cleanCache ) == 0 )
+	if (dispatch.compare(cleanCache) == 0)
 	{
 		long age;
-		en.getObject( age );
+		en.getObject(age);
 		
-		int result = _identifierCache->cleanCache( age );
+		int result = mIdentifierCache->cleanCache(age);
 		
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
+		if (header.getType() == SPEPIPC_REQUEST)
 		{
 			// Return the value
 			en.sendResponseHeader();
-			en.sendObject( result );
+			en.sendObject(result);
 		}
 		
 		return true;
@@ -91,6 +93,3 @@ bool spep::ipc::IdentifierCacheDispatcher::dispatch( spep::ipc::MessageHeader &h
 	return false;
 }
 
-spep::ipc::IdentifierCacheDispatcher::~IdentifierCacheDispatcher()
-{
-}

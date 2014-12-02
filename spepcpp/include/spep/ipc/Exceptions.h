@@ -32,60 +32,66 @@ namespace spep { namespace ipc {
 	 */
 	class SPEPEXPORT IPCException : public std::exception
 	{
-		friend class spep::ipc::access;
-		
-		public:
-		IPCException(){}
-		IPCException(std::string message):_message(message){}
-		~IPCException()throw(){}
+        friend class spep::ipc::access;
 
-		/** Returns the message provided when constructed */		
-		const std::string &message() { return _message; }
-		
-		/** Returns C string version of message */
-		const char *what() throw()
-		{ return _message.c_str(); }
-		
-		/** Assignment operator. Copies the message */
-		IPCException &operator=( const IPCException &rhs )
-		{ _message = rhs._message; return *this; }
-		
-		private:
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int version )
-		{ ar & _message; }
-		
-		std::string _message;
+    public:
+        IPCException(){}
+        IPCException(const std::string& message) : mMessage(message){}
+        ~IPCException()throw(){}
+
+        /** Returns the message provided when constructed */
+        std::string message() const { return mMessage; }
+
+        /** Returns C string version of message */
+        const char *what() throw()
+        {
+            return mMessage.c_str();
+        }
+
+        /** Assignment operator. Copies the message */
+        IPCException &operator=(const IPCException &rhs)
+        {
+            mMessage = rhs.mMessage; return *this;
+        }
+
+    private:
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int version)
+        {
+            ar & mMessage;
+        }
+
+        std::string mMessage;
 	};
 	
-	/**
-	 * Thrown to indicate that the socket archive was in an invalid state.
-	 * Means that invalid data was received in a message header.
-	 */
-	class SPEPEXPORT InvalidArchiveStateException : public IPCException
-	{
-		public:
-		InvalidArchiveStateException(std::string message):IPCException(message){}
-	};
-	
-	/**
-	 * Thrown to indicate that an exception was thrown by the target of invocation.
-	 * Would be thrown by the dispatcher.
-	 */
-	class SPEPEXPORT InvocationTargetException : public IPCException
-	{
-		public:
-		InvocationTargetException(std::string message):IPCException(message){}
-	};
-	
-	/**
-	 * Exception thrown when some error occurs in a socket operation
-	 */
-	class SPEPEXPORT SocketException : public IPCException
-	{
-		public:
-		SocketException (std::string message):IPCException(message){}
-	};	
+    /**
+     * Thrown to indicate that the socket archive was in an invalid state.
+     * Means that invalid data was received in a message header.
+     */
+    class SPEPEXPORT InvalidArchiveStateException : public IPCException
+    {
+    public:
+        InvalidArchiveStateException(std::string message) : IPCException(message){}
+    };
+
+    /**
+     * Thrown to indicate that an exception was thrown by the target of invocation.
+     * Would be thrown by the dispatcher.
+     */
+    class SPEPEXPORT InvocationTargetException : public IPCException
+    {
+    public:
+        InvocationTargetException(std::string message) : IPCException(message){}
+    };
+
+    /**
+     * Exception thrown when some error occurs in a socket operation
+     */
+    class SPEPEXPORT SocketException : public IPCException
+    {
+    public:
+        SocketException(std::string message) : IPCException(message){}
+    };
 } }
 
 #endif /*IPC_H_*/

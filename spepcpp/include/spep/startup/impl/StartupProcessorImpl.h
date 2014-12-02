@@ -41,97 +41,95 @@
 
 namespace spep
 {
-	
-	/**
-	 * Handles operations related to SPEP startup, and ensuring that the SPEP has started
-	 */
-	class SPEPEXPORT StartupProcessorImpl : public StartupProcessor
-	{
-	
-		private:
-		
-		StartupProcessorImpl( const StartupProcessorImpl& other );
-		StartupProcessorImpl& operator=( const StartupProcessorImpl& other );
-		
-		class StartupProcessorThread
-		{
-			private:
-			saml2::Logger *_logger;
-			saml2::LocalLogger _localLogger;
-			StartupProcessorImpl *_startupProcessor;
-			int _startupRetryInterval;
-			
-			public:
-			StartupProcessorThread( saml2::Logger *logger, StartupProcessorImpl *startupProcessor, int startupRetryInterval );
-			StartupProcessorThread( const StartupProcessorThread& other );
-			void operator()();
-			//StartupProcessorThread& operator=( const StartupProcessorThread& other );
-		};
-		
-		saml2::LocalLogger _localLogger;
-		saml2::Logger *_logger;
-		
-		WSClient *_wsClient;
-		Metadata *_metadata;
-		KeyResolver *_keyResolver;
-		
-		saml2::SAMLValidator *_samlValidator;
-			
-		mutable Mutex _startupResultMutex;
-		spep::StartupResult _startupResult;
-		
-		std::wstring _spepIdentifier;
-		std::vector<std::wstring> _ipAddresses;
-		std::string _nodeID;
-		int _authzCacheIndex;
-		int _startupRetryInterval;
-		
-		saml2::Marshaller<middleware::ESOEProtocolSchema::ValidateInitializationRequestType> *_validateInitializationRequestMarshaller;
-		saml2::Unmarshaller<middleware::ESOEProtocolSchema::ValidateInitializationResponseType> *_validateInitializationResponseUnmarshaller;
-		saml2::IdentifierGenerator *_identifierGenerator;
-		
-		boost::thread_group _threadGroup;
-		
-		/**
-		 * Builds a ValidateInitializationRequest document to be sent to the ESOE when requesting startup
-		 */
-		DOMDocument* buildRequest( const std::wstring &samlID );
-		
-		/**
-		 * Processes a ValidateInitializationResponse document and stores the decision made by the ESOE
-		 */
-		void processResponse( middleware::ESOEProtocolSchema::ValidateInitializationResponseType* response, const std::wstring &expectedSAMLID );
-		
-		public:
-		
-		StartupProcessorImpl( saml2::Logger *logger, WSClient *wsClient, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, std::string schemaPath, std::wstring spepIdentifier, const std::vector<std::wstring>& ipAddresses, std::string nodeID, int authzCacheIndex, int startupRetryInterval );
-		
-		virtual ~StartupProcessorImpl();
-		
-		/**
-		 * Returns a result indicating whether the SPEP should be allowed to process requests
-		 */
-		virtual StartupResult allowProcessing();
-		
-		/**
-		 * Sets the result of SPEP startup in the startup processor.
-		 */
-		void setStartupResult( StartupResult startupResult );
-		
-		/**
-		 * Instructs the startup processor to begin the startup request. This method will return after creating
-		 * a thread, and there is no guarantee that any other action has occurred upon returning.
-		 */
-		virtual void beginSPEPStart();
-		
-		/**
-		 * Performs the startup action. This method will block until it has complete. Should never be called
-		 * directly, except by beginSPEPStart()
-		 */
-		void doStartup();
-		
-	};
-	
+
+    /**
+     * Handles operations related to SPEP startup, and ensuring that the SPEP has started
+     */
+    class SPEPEXPORT StartupProcessorImpl : public StartupProcessor
+    {
+    public:
+
+        StartupProcessorImpl(saml2::Logger *logger, WSClient *wsClient, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, const std::string& schemaPath, const std::wstring& spepIdentifier, const std::vector<std::wstring>& ipAddresses, const std::string& nodeID, int authzCacheIndex, int startupRetryInterval);
+        virtual ~StartupProcessorImpl();
+
+        /**
+         * Returns a result indicating whether the SPEP should be allowed to process requests
+         */
+        virtual StartupResult allowProcessing() override;
+
+        /**
+         * Sets the result of SPEP startup in the startup processor.
+         */
+        void setStartupResult(StartupResult startupResult);
+
+        /**
+         * Instructs the startup processor to begin the startup request. This method will return after creating
+         * a thread, and there is no guarantee that any other action has occurred upon returning.
+         */
+        virtual void beginSPEPStart() override;
+
+        /**
+         * Performs the startup action. This method will block until it has complete. Should never be called
+         * directly, except by beginSPEPStart()
+         */
+        void doStartup();
+
+    private:
+
+        StartupProcessorImpl(const StartupProcessorImpl& other);
+        StartupProcessorImpl& operator=(const StartupProcessorImpl& other);
+
+        class StartupProcessorThread
+        {
+        public:
+            StartupProcessorThread(saml2::Logger *logger, StartupProcessorImpl *startupProcessor, int startupRetryInterval);
+            StartupProcessorThread(const StartupProcessorThread& other);
+            void operator()();
+            //StartupProcessorThread& operator=( const StartupProcessorThread& other );
+
+        private:
+            saml2::Logger *mLogger;
+            saml2::LocalLogger mLocalLogger;
+            StartupProcessorImpl *mStartupProcessor;
+            int mStartupRetryInterval;
+
+        };
+
+        /**
+        * Builds a ValidateInitializationRequest document to be sent to the ESOE when requesting startup
+        */
+        DOMDocument* buildRequest(const std::wstring& samlID);
+
+        /**
+        * Processes a ValidateInitializationResponse document and stores the decision made by the ESOE
+        */
+        void processResponse(middleware::ESOEProtocolSchema::ValidateInitializationResponseType* response, const std::wstring& expectedSAMLID);
+
+        saml2::LocalLogger mLocalLogger;
+        saml2::Logger *mLogger;
+
+        WSClient *mWSClient;
+        Metadata *mMetadata;
+        KeyResolver *mKeyResolver;
+
+        saml2::SAMLValidator *mSamlValidator;
+
+        mutable Mutex mStartupResultMutex;
+        spep::StartupResult mStartupResult;
+
+        std::wstring mSpepIdentifier;
+        std::vector<std::wstring> mIPAddresses;
+        std::string mNodeID;
+        int mAuthzCacheIndex;
+        int mStartupRetryInterval;
+
+        std::unique_ptr<saml2::Marshaller<middleware::ESOEProtocolSchema::ValidateInitializationRequestType>> mValidateInitializationRequestMarshaller;
+        std::unique_ptr<saml2::Unmarshaller<middleware::ESOEProtocolSchema::ValidateInitializationResponseType>> mValidateInitializationResponseUnmarshaller;
+        saml2::IdentifierGenerator *mIdentifierGenerator;
+
+        boost::thread_group mThreadGroup;
+    };
+
 }
 
 #endif /* STARTUPPROCESSORIMPL_H_ */

@@ -20,6 +20,7 @@
 
 /* STL */
 #include <string>
+#include <iostream>
 
 /* Xerces */
 #include <xercesc/util/XMLString.hpp>
@@ -35,10 +36,12 @@ XERCES_CPP_NAMESPACE_USE
 
 namespace saml2
 {
-	ResourceResolver::ResourceResolver(std::string baseSchemaPath)
+	ResourceResolver::ResourceResolver(const std::string& schemaPath)
 	{
-		baseSchemaPath.append(FILE_SEPERATOR);
-		this->baseSchemaPath = XMLString::transcode( baseSchemaPath.c_str() );
+        std::string path = schemaPath;
+        std::cout << path << std::endl;
+        path.append(FILE_SEPERATOR);
+		baseSchemaPath = XMLString::transcode(path.c_str());
 	}
 
 	ResourceResolver::~ResourceResolver()
@@ -49,14 +52,25 @@ namespace saml2
 	/* TODO: Introduce caching here so disk reads only happen once */
 	LocalFileInputSource* ResourceResolver::loadSchema(const XMLCh* location)
 	{
-		return new LocalFileInputSource(this->baseSchemaPath, location);
+        char* temp = XMLString::transcode(baseSchemaPath);
+        std::string path(temp);
+        XMLString::release(&temp);
+
+         char* temp2 = XMLString::transcode(location);
+         std::string locazion(temp2);
+         XMLString::release(&temp2);
+
+        std::cout << " dodgy path: " << path << std::endl;
+        std::cout << " dodgy location: " << locazion << std::endl;
+
+		return new LocalFileInputSource(baseSchemaPath, location);
 	}
 
-	DOMInputSource* ResourceResolver::resolveEntity (const XMLCh *const publicId, const XMLCh *const systemId, const XMLCh *const baseURI)
+    InputSource* ResourceResolver::resolveEntity(const XMLCh *const publicId, const XMLCh *const systemId)
 	{
 		if(systemId != NULL)
 		{
-			return new Wrapper4InputSource( loadSchema(systemId) );
+            return loadSchema(systemId);
 		}
 
 		return NULL;

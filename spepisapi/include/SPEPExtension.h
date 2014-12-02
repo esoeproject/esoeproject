@@ -25,49 +25,50 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <httpfilt.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "spep/config/ConfigurationReader.h"
 #include "spep/SPEP.h"
 
 #include "ISAPIRequest.h"
 
-namespace spep{ namespace isapi{
+namespace spep{
+    namespace isapi{
 
-	class WSHandler;
-	class SSOHandler;
-	
-	class SPEPExtension
-	{
-	
-		friend class WSHandler;
-		friend class SSOHandler;
-		
-		private:
-		spep::SPEP *_spep;
-		std::ofstream _stream;
-		std::string _spepWebappURL;
-		std::string _spepSSOURL;
-		std::string _spepWebServicesURL;
-		std::string _spepAuthzCacheClearURL;
-		std::string _spepSingleLogoutURL;
-		WSHandler *_wsHandler;
-		SSOHandler *_ssoHandler;
-		
-		typedef boost::shared_ptr<saml2::LocalLogger> LocalLoggerPtr;
-		LocalLoggerPtr m_localLogger;
-		
-		public:
-		SPEPExtension( spep::ConfigurationReader &configReader, const std::string& logFile );
-		~SPEPExtension();
-		
-		/**
-		 * Performs the SPEP extension logic.
-		 */
-		DWORD processRequest( ISAPIRequest* request );
-		
-	};
-	
-}}
+        class WSHandler;
+        class SSOHandler;
+
+        class SPEPExtension
+        {
+            friend class WSHandler;
+            friend class SSOHandler;
+
+        public:
+
+            SPEPExtension(spep::ConfigurationReader &configReader, const std::string& logFile);
+            ~SPEPExtension();
+
+            /**
+             * Performs the SPEP extension logic.
+             */
+            DWORD processRequest(ISAPIRequest* request);
+
+        private:
+
+            spep::SPEP *mSpep;
+            std::ofstream mStream;
+            std::string mSpepWebappURL;
+            std::string mSpepSSOURL;
+            std::string mSpepWebServicesURL;
+            std::string mSpepAuthzCacheClearURL;
+            std::string mSpepSingleLogoutURL;
+            WSHandler *mWSHandler;
+            SSOHandler *mSSOHandler;
+
+            std::shared_ptr<saml2::LocalLogger> mLocalLogger;
+        };
+
+    }
+}
 
 #endif /*SPEPEXTENSION_H_*/

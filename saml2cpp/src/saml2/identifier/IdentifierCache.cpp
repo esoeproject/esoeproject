@@ -38,30 +38,29 @@ namespace saml2
 		IdentifierCache::IdentifierCache()
 		{
 		}
-		
-		IdentifierCache::~IdentifierCache()
-		{
-		}
-		
-		void IdentifierCache::registerIdentifier(std::string identifier)
+        IdentifierCache::~IdentifierCache()
+        {
+        }
+				
+		void IdentifierCache::registerIdentifier(const std::string& identifier)
 		{
 			/* Lock automatically released when it goes out of scope */
 			boost::recursive_mutex::scoped_lock lock (mutex);				
 
-			if(this->containsIdentifier(identifier))
+			if (containsIdentifier(identifier))
 				SAML2LIB_IDC_EX("Attempt to register identifier that already exists");
 				
 			time_t rawtime;
-			time ( &rawtime );
+			time(&rawtime);
 			
-			this->cacheData.insert( std::make_pair ( identifier, rawtime ) );
+			cacheData.insert(std::make_pair(identifier, rawtime));
 		}
 	
-		bool IdentifierCache::containsIdentifier(std::string identifier)
+		bool IdentifierCache::containsIdentifier(const std::string& identifier)
 		{
 			/* Lock automatically released when it goes out of scope */
-			boost::recursive_mutex::scoped_lock lock (mutex);
-			std::map<std::string, long>::iterator i = this->cacheData.find(identifier);
+			boost::recursive_mutex::scoped_lock lock(mutex);
+			std::map<std::string, long>::iterator i = cacheData.find(identifier);
 			if(i != this->cacheData.end())
 				return true;
 				
@@ -73,13 +72,13 @@ namespace saml2
 			time_t rawtime;
 			long expire;
 			int count = 0;
-			time ( &rawtime );
+			time(&rawtime);
 			
 			/* Lock automatically released when it goes out of scope */
-			boost::recursive_mutex::scoped_lock lock (mutex);
-			std::map<std::string, long>::iterator i = this->cacheData.begin();
+			boost::recursive_mutex::scoped_lock lock(mutex);
+			std::map<std::string, long>::iterator i = cacheData.begin();
 			
-			while ( i != this->cacheData.end() )
+			while (i != cacheData.end())
 			{
 				expire = i->second + age;
 				
@@ -87,9 +86,9 @@ namespace saml2
 				 * incremented *before* the erase() call is made, but the old value is
 				 * still passed into the function.
 				 */
-				if(expire < rawtime)
+				if (expire < rawtime)
 				{
-					this->cacheData.erase(i++);
+					cacheData.erase(i++);
 					count ++;
 				}
 				else

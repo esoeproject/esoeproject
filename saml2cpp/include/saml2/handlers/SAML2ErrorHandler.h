@@ -35,6 +35,7 @@ namespace saml2
 	{
 		public:
 			
+            virtual ~SAML2ErrorHandler(){}
 			/*
 			 * Called when error state encountered in parsing operations
 			 * 

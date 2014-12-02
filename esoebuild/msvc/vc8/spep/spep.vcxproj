@@ -1,0 +1,331 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\openssl.1.0.1.25\build\native\openssl.props" Condition="Exists('..\packages\openssl.1.0.1.25\build\native\openssl.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{E1412FC5-012B-4D65-A12C-484005A18E01}</ProjectGuid>
+    <RootNamespace>spep</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+    <NuGetPackageImportStamp>53eaafa0</NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\..\spepcppdepends\open_ssl\include;..\..\..\..\spepcppdepends\xsd\include;..\..\..\..\spepcppdepends\asio\include;..\..\..\..\spepcppdepends\boost\include;..\..\..\..\spepcppdepends\curl\include;..\..\..\..\spepcppdepends\icu\include;..\..\..\..\spepcppdepends\xerces\include;..\..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;BUILDING_SPEP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1d.lib;saml2.lib;ws2_32.lib;xerces-c_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputPath);..\..\..\..\spepcppdepends\open_ssl\lib;..\..\..\..\spepcppdepends\boost\lib;..\..\..\..\spepcppdepends\curl\lib;..\..\..\..\spepcppdepends\icu\lib;..\..\..\..\spepcppdepends\xerces\lib;..\..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\..\spepcppdepends\open_ssl\include;..\..\..\..\spepcppdepends\xsd\include;..\..\..\..\spepcppdepends\asio\include;..\..\..\..\spepcppdepends\boost\include;..\..\..\..\spepcppdepends\curl\include;..\..\..\..\spepcppdepends\icu\include;..\..\..\..\spepcppdepends\xerces\include;..\..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;BUILDING_SPEP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libcurld.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1d.lib;saml2.lib;xerces-c_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\..\spepcppdepends\open_ssl\include;..\..\..\..\spepcppdepends\xsd\include;..\..\..\..\spepcppdepends\asio\include;..\..\..\..\spepcppdepends\boost\include;..\..\..\..\spepcppdepends\curl\include;..\..\..\..\spepcppdepends\icu\include;..\..\..\..\spepcppdepends\xerces\include;..\..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;BUILDING_SPEP;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libcurl_imp.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;libeay32.lib;ssleay32.lib;xsec_1.lib;xerces-c_2.lib;saml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\saml2cpp\w32\vc8\Release;..\..\..\..\spepcppdepends\open_ssl\lib;..\..\..\..\spepcppdepends\boost\lib;..\..\..\..\spepcppdepends\curl\lib;..\..\..\..\spepcppdepends\icu\lib;..\..\..\..\spepcppdepends\xerces\lib;..\..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\..\spepcppdepends\open_ssl\include;..\..\..\..\spepcppdepends\xsd\include;..\..\..\..\spepcppdepends\asio\include;..\..\..\..\spepcppdepends\boost\include;..\..\..\..\spepcppdepends\curl\include;..\..\..\..\spepcppdepends\icu\include;..\..\..\..\spepcppdepends\xerces\include;..\..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEP_EXPORTS;BUILDING_SPEP;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <StringPooling>true</StringPooling>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libcurl.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1.lib;xerces-c_3.lib;saml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\attribute\AttributeProcessor.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\attribute\AttributeProcessorData.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\authn\authnprocessor.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\authn\AuthnProcessorData.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\Base64.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\Configuration.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\ConfigurationReader.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\impl\ConfigurationImpl.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\proxy\ConfigurationDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\proxy\ConfigurationProxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\config\SPEPConfigData.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\AttributeException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\AuthnException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidRequestException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidResponseException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidSessionIdentifierException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\InvalidStateException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\KeyResolverException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\KeystoreException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\MetadataException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\PEPException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\SPEPStartupException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\exceptions\WSException.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\identifier\proxy\IdentifierCacheDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\identifier\proxy\IdentifierCacheProxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Dispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\engine.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Exceptions.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\MessageHeader.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Serialization.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\Socket.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ipc\socketarchive.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\logging\proxy\LoggerDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\logging\proxy\LoggerProxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\impl\MetadataImpl.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\JKSKeystore.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\KeyResolver.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\Metadata.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\MetadataThread.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\proxy\MetadataDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\metadata\proxy\MetadataProxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\Decision.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\impl\SessionGroupCacheImpl.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\PolicyEnforcementProcessor.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\PolicyEnforcementProcessorData.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\proxy\SessionGroupCacheDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\proxy\SessionGroupCacheProxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\pep\SessionGroupCache.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\impl\sessioncacheimpl.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\PrincipalSession.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\proxy\SessionCacheDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\proxy\sessioncacheproxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\sessioncache.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\SessionCacheThread.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\sessions\UnauthenticatedSession.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\SPEP.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\impl\StartupProcessorImpl.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\proxy\StartupProcessorDispatcher.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\proxy\StartupProcessorProxy.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\startup\StartupProcessor.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\UnicodeStringConversion.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\util.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\SOAPUtil.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\WSClient.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\wsprocessor.h" />
+    <ClInclude Include="..\..\..\..\spepcpp\include\spep\ws\WSProcessorData.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\attribute\AttributeProcessor.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\attribute\AttributeProcessorData.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\authn\AuthnProcessor.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\authn\AuthnProcessorData.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\Base64.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\ConfigurationReader.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\impl\ConfigurationImpl.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\proxy\ConfigurationDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\proxy\ConfigurationProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\config\SPEPConfigData.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\AttributeException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\AuthnException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidRequestException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidResponseException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidSessionIdentifierException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\InvalidStateException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\KeyResolverException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\KeystoreException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\MetadataException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\PEPException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\SPEPStartupException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\exceptions\WSException.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\identifier\proxy\IdentifierCacheDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\identifier\proxy\IdentifierCacheProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\Dispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\Engine.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\MessageHeader.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ipc\Socket.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\logging\proxy\LoggerDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\logging\proxy\LoggerProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\impl\MetadataImpl.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\JKSKeystore.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\KeyResolver.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\MetadataThread.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\proxy\MetadataDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\metadata\proxy\MetadataProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\Decision.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\impl\SessionGroupCacheImpl.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\PolicyEnforcementProcessor.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\PolicyEnforcementProcessorData.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\proxy\SessionGroupCacheDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\pep\proxy\SessionGroupCacheProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\impl\SessionCacheImpl.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\PrincipalSession.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\proxy\SessionCacheDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\proxy\SessionCacheProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\SessionCacheThread.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\sessions\UnauthenticatedSession.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\SPEP.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\startup\impl\StartupProcessorImpl.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\startup\proxy\StartupProcessorDispatcher.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\startup\proxy\StartupProcessorProxy.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\UnicodeStringConversion.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\SOAPUtil.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\WSClient.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\WSProcessor.cpp" />
+    <ClCompile Include="..\..\..\..\spepcpp\src\spep\ws\WSProcessorData.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\spepcpp\w32\vc8\spep.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\packages\boost.1.56.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" />
+    <Import Project="..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets" Condition="Exists('..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets')" />
+    <Import Project="..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets" Condition="Exists('..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets')" />
+    <Import Project="..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets" Condition="Exists('..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets')" />
+    <Import Project="..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets" Condition="Exists('..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets')" />
+    <Import Project="..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets" Condition="Exists('..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets')" />
+    <Import Project="..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets" Condition="Exists('..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets')" />
+    <Import Project="..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
+    <Import Project="..\packages\zlib.1.2.8.7\build\native\zlib.targets" Condition="Exists('..\packages\zlib.1.2.8.7\build\native\zlib.targets')" />
+    <Import Project="..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
+    <Import Project="..\packages\openssl.1.0.1.25\build\native\openssl.targets" Condition="Exists('..\packages\openssl.1.0.1.25\build\native\openssl.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.56.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib.1.2.8.7\build\native\zlib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib.1.2.8.7\build\native\zlib.targets'))" />
+    <Error Condition="!Exists('..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\openssl.1.0.1.25\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1.25\build\native\openssl.props'))" />
+    <Error Condition="!Exists('..\packages\openssl.1.0.1.25\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1.25\build\native\openssl.targets'))" />
+  </Target>
+</Project>

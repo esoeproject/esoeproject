@@ -19,72 +19,71 @@
 
 #include "spep/ws/WSProcessorData.h"
 
-spep::WSProcessorData::WSProcessorData()
-:
-_requestSOAPDocument(),
-_responseSOAPDocument(),
-_requestSAMLDocument(),
-_responseSAMLDocument(),
-_soapVersion( SOAPUtil::UNINITIALIZED )
+spep::WSProcessorData::WSProcessorData() :
+    mRequestSOAPDocument(),
+    mResponseSOAPDocument(),
+    mRequestSAMLDocument(),
+    mResponseSAMLDocument(),
+    mSoapVersion(SOAPUtil::UNINITIALIZED)
 {
 }
 
 const spep::SOAPDocument& spep::WSProcessorData::getSOAPRequestDocument()
 {
-	return this->_requestSOAPDocument;
+    return mRequestSOAPDocument;
 }
 
-void spep::WSProcessorData::setSOAPRequestDocument( const spep::SOAPDocument& document )
+void spep::WSProcessorData::setSOAPRequestDocument(const spep::SOAPDocument& document)
 {
-	this->_requestSOAPDocument = document;
+    mRequestSOAPDocument = document;
 }
 
 const saml2::SAMLDocument& spep::WSProcessorData::getSAMLRequestDocument()
 {
-	return this->_requestSAMLDocument;
+    return mRequestSAMLDocument;
 }
 
-void spep::WSProcessorData::setSAMLRequestDocument( const saml2::SAMLDocument& document )
+void spep::WSProcessorData::setSAMLRequestDocument(const saml2::SAMLDocument& document)
 {
-	this->_requestSAMLDocument = document;
+    mRequestSAMLDocument = document;
 }
 
 const spep::SOAPDocument& spep::WSProcessorData::getSOAPResponseDocument()
 {
-	return this->_responseSOAPDocument;
+    return mResponseSOAPDocument;
 }
 
-void spep::WSProcessorData::setSOAPResponseDocument( const spep::SOAPDocument& document )
+void spep::WSProcessorData::setSOAPResponseDocument(const spep::SOAPDocument& document)
 {
-	this->_responseSOAPDocument = document;
+    mResponseSOAPDocument = document;
 }
 
 const saml2::SAMLDocument& spep::WSProcessorData::getSAMLResponseDocument()
 {
-	return this->_responseSAMLDocument;
+    return mResponseSAMLDocument;
 }
 
-void spep::WSProcessorData::setSAMLResponseDocument( const saml2::SAMLDocument& document )
+void spep::WSProcessorData::setSAMLResponseDocument(const saml2::SAMLDocument& document)
 {
-	this->_responseSAMLDocument = document;
+    mResponseSAMLDocument = document;
 }
 
-std::string spep::WSProcessorData::getCharacterEncoding()
+std::string spep::WSProcessorData::getCharacterEncoding() const
 {
-	return this->_characterEncoding;
+    return mCharacterEncoding;
 }
 
-void spep::WSProcessorData::setCharacterEncoding( std::string characterEncoding )
+void spep::WSProcessorData::setCharacterEncoding(std::string characterEncoding)
 {
-	this->_characterEncoding = characterEncoding;
+    mCharacterEncoding = characterEncoding;
 }
 
-spep::SOAPUtil::SOAPVersion spep::WSProcessorData::getSOAPVersion()
+spep::SOAPUtil::SOAPVersion spep::WSProcessorData::getSOAPVersion() const
 {
-	return this->_soapVersion;
+    return mSoapVersion;
 }
 
-void spep::WSProcessorData::setSOAPVersion( spep::SOAPUtil::SOAPVersion soapVersion )
+void spep::WSProcessorData::setSOAPVersion(spep::SOAPUtil::SOAPVersion soapVersion)
 {
-	this->_soapVersion = soapVersion;
+    mSoapVersion = soapVersion;
 }

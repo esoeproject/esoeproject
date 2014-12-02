@@ -34,52 +34,52 @@
 namespace spep
 {
 	
-	class SPEPEXPORT UnauthenticatedSession
-	{
-		friend class spep::ipc::access;
-		
-		private:
-		std::wstring _authnRequestSAMLID;
-		std::string _requestURL;
-		boost::posix_time::ptime _timestamp;
-		
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int &version )
-		{
-			ar & _authnRequestSAMLID & _requestURL & _timestamp;
-		}
-		
-		public:
-		UnauthenticatedSession();
-		UnauthenticatedSession(const UnauthenticatedSession &rhs);
-		
-		/**
-		 * Sets the AuthnRequest SAML identifier for this session
-		 */
-		void setAuthnRequestSAMLID(std::wstring authnRequestSAMLID);
-		std::wstring getAuthnRequestSAMLID();
-		
-		/**
-		 * Sets the original request URL for this session. This would be the URL
-		 * that caused the SPEP to request authentication.
-		 */
-		void setRequestURL(std::string requestURL);
-		std::string getRequestURL();
-		
-		/**
-		 * Updates the timestamp on this session to record that the session has not
-		 * been idle.
-		 */
-		void updateTime();
-		/**
-		 * Gets the amount of time since updateTime() was last called.
-		 */
-		long getIdleTime();
-		
-		UnauthenticatedSession &operator=( const UnauthenticatedSession &rhs );
+    class SPEPEXPORT UnauthenticatedSession
+    {
+        friend class spep::ipc::access;
 
-	};
-	
+    public:
+
+        UnauthenticatedSession();
+        UnauthenticatedSession(const UnauthenticatedSession &rhs);
+
+        UnauthenticatedSession &operator=(const UnauthenticatedSession &rhs);
+
+        /**
+         * Sets the AuthnRequest SAML identifier for this session
+         */
+        void setAuthnRequestSAMLID(const std::wstring& authnRequestSAMLID);
+        std::wstring getAuthnRequestSAMLID() const;
+
+        /**
+         * Sets the original request URL for this session. This would be the URL
+         * that caused the SPEP to request authentication.
+         */
+        void setRequestURL(const std::string& requestURL);
+        std::string getRequestURL() const;
+
+        /**
+         * Updates the timestamp on this session to record that the session has not
+         * been idle.
+         */
+        void updateTime();
+        /**
+         * Gets the amount of time since updateTime() was last called.
+         */
+        long getIdleTime() const;
+
+    private:
+        std::wstring mAuthnRequestSAMLID;
+        std::string mRequestURL;
+        boost::posix_time::ptime mTimestamp;
+
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int &version)
+        {
+            ar & mAuthnRequestSAMLID & mRequestURL & mTimestamp;
+        }
+    };
+
 }
 
 #endif /* UNAUTHENTICATEDSESSION_H_ */

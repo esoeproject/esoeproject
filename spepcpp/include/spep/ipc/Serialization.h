@@ -27,24 +27,29 @@ namespace spep
 	namespace ipc
 	{
 		
-		class SPEPEXPORT access
-		{
-			
-			public:
-			/**
-			 * Emulate the same structure as the boost serialization library.
-			 * @param t Object to serialize
-			 * @param ar Archive to serialize out to
-			 * @param version Version number. Unused at the moment.
-			 */
-			template <class T, class Archive>
-			static void serialize( T &t, Archive &ar, const unsigned int version )
-			{
-				t.serialize( ar, version );
-			}
-			
-		};
-		
+        class SPEPEXPORT access
+        {
+        public:
+            /**
+             * Emulate the same structure as the boost serialization library.
+             * @param t Object to serialize
+             * @param ar Archive to serialize out to
+             * @param version Version number. Unused at the moment.
+             */
+            template <class T, class Archive>
+            static void serialize(T &t, Archive &ar, const unsigned int version)
+            {
+                t.serialize(ar, version);
+            }
+
+            template <class T, class Archive>
+            static void serialize(const T &t, Archive &ar, const unsigned int version)
+            {
+                t.serialize(ar, version);
+            }
+
+        };
+
 	}
 }
 

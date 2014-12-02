@@ -19,14 +19,13 @@
 
 #include "spep/pep/proxy/SessionGroupCacheDispatcher.h"
 
-static const char *updateCache = SESSIONGROUPCACHE_updateCache;
-static const char *clearCache = SESSIONGROUPCACHE_clearCache;
-static const char *makeCachedAuthzDecision = SESSIONGROUPCACHE_makeCachedAuthzDecision;
+static const std::string UPDATE_CACHE = SESSIONGROUPCACHE_updateCache;
+static const std::string CLEAR_CACHE = SESSIONGROUPCACHE_clearCache;
+static const std::string MAKE_CACHE_AUTHZ_DECISION = SESSIONGROUPCACHE_makeCachedAuthzDecision;
 
-spep::ipc::SessionGroupCacheDispatcher::SessionGroupCacheDispatcher(spep::SessionGroupCache *sessionGroupCache)
-:
-_sessionGroupCache(sessionGroupCache),
-_prefix(SESSIONGROUPCACHE)
+spep::ipc::SessionGroupCacheDispatcher::SessionGroupCacheDispatcher(spep::SessionGroupCache *sessionGroupCache) :
+mSessionGroupCache(sessionGroupCache),
+mPrefix(SESSIONGROUPCACHE)
 {
 }
 
@@ -34,69 +33,69 @@ spep::ipc::SessionGroupCacheDispatcher::~SessionGroupCacheDispatcher()
 {
 }
 
-bool spep::ipc::SessionGroupCacheDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
+bool spep::ipc::SessionGroupCacheDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &en)
 {
-	std::string dispatch = header.getDispatch();
-	
-	if ( dispatch.compare( 0, strlen(SESSIONGROUPCACHE), _prefix ) != 0 )
-		return false;
-	
-	if ( dispatch.compare( updateCache ) == 0 )
-	{
-		// Destination method is:
-		//virtual void updateCache( std::string &sessionID, UnicodeString groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision );
-		
-		SessionGroupCache_UpdateCacheCommand command;
-		en.getObject( command );
-		
-		_sessionGroupCache->updateCache( command.sessionID, command.groupTarget, command.authzTargets, command.decision );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			throw InvocationTargetException( "No return type from this method" );
-		}
-		
-		return true;
-	}
-	
-	if ( dispatch.compare( clearCache ) == 0 )
-	{
-		// Destination method is:
-		//virtual void clearCache( std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets );
-		
-		std::map< UnicodeString, std::vector<UnicodeString> > groupTargets;
-		en.getObject( groupTargets );
-		
-		// Try to clear the cache
-		_sessionGroupCache->clearCache( groupTargets );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			throw InvocationTargetException( "No return type from this method" );
-		}
-		
-		return true;
-	}
-	
-	if ( dispatch.compare( makeCachedAuthzDecision ) == 0 )
-	{
-		// Destination method is:
-		//virtual Decision makeCachedAuthzDecision( std::string &sessionID, UnicodeString resource );
-		
-		SessionGroupCache_MakeCachedAuthzDecisionCommand command;
-		en.getObject( command );
-		
-		// Try to get the authz decision
-		Decision decision( _sessionGroupCache->makeCachedAuthzDecision( command.sessionID, command.resource ) );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			en.sendResponseHeader();
-			en.sendObject( decision );
-		}
-		
-		return true;
-	}
-	
-	return false;
+    const std::string dispatch = header.getDispatch();
+
+    if (dispatch.compare(0, strlen(SESSIONGROUPCACHE), mPrefix) != 0)
+        return false;
+
+    if (dispatch == UPDATE_CACHE)
+    {
+        // Destination method is:
+        //virtual void updateCache( std::string &sessionID, UnicodeString groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision );
+
+        SessionGroupCache_UpdateCacheCommand command;
+        en.getObject(command);
+
+        mSessionGroupCache->updateCache(command.sessionID, command.groupTarget, command.authzTargets, command.decision);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            throw InvocationTargetException("No return type from this method");
+        }
+
+        return true;
+    }
+
+    if (dispatch == CLEAR_CACHE)
+    {
+        // Destination method is:
+        //virtual void clearCache( std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets );
+
+        std::map< UnicodeString, std::vector<UnicodeString> > groupTargets;
+        en.getObject(groupTargets);
+
+        // Try to clear the cache
+        mSessionGroupCache->clearCache(groupTargets);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            throw InvocationTargetException("No return type from this method");
+        }
+
+        return true;
+    }
+
+    if (dispatch == MAKE_CACHE_AUTHZ_DECISION)
+    {
+        // Destination method is:
+        //virtual Decision makeCachedAuthzDecision( std::string &sessionID, UnicodeString resource );
+
+        SessionGroupCache_MakeCachedAuthzDecisionCommand command;
+        en.getObject(command);
+
+        // Try to get the authz decision
+        Decision decision(mSessionGroupCache->makeCachedAuthzDecision(command.sessionID, command.resource));
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            en.sendResponseHeader();
+            en.sendObject(decision);
+        }
+
+        return true;
+    }
+
+    return false;
 }

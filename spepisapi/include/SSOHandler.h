@@ -28,27 +28,30 @@
 
 #include "spep/SPEP.h"
 
-namespace spep { namespace isapi {
+namespace spep {
+    namespace isapi {
 
-	class SSOHandler
-	{
-		private:
-		spep::SPEP *_spep;
-		SPEPExtension *_spepExtension;
-		
-		DWORD handleSSOGetRequest( ISAPIRequest *request );
-		DWORD handleSSOPostRequest( ISAPIRequest *request );
-		std::string buildAuthnRequestDocument( ISAPIRequest *request, const std::string &base64RedirectURL, const std::string& baseRequestURL );
-		BOOL parseGetRequestQueryString( ISAPIRequest *request );
-		
-		SSOHandler( const SSOHandler& other );
-		SSOHandler& operator=( const SSOHandler& other );
-		
-		public:
-		SSOHandler( spep::SPEP *spep, SPEPExtension *spepExtension );
-		DWORD handleRequest( ISAPIRequest *request );
-	};
+        class SSOHandler
+        {
+        public:
+            SSOHandler(spep::SPEP* spep, SPEPExtension* spepExtension);
+            DWORD handleRequest(ISAPIRequest* request);
 
-} }
+        private:
+
+            SSOHandler(const SSOHandler& other);
+            SSOHandler& operator=(const SSOHandler& other);
+
+            DWORD handleSSOGetRequest(ISAPIRequest* request);
+            DWORD handleSSOPostRequest(ISAPIRequest* request);
+            std::string buildAuthnRequestDocument(ISAPIRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL);
+            BOOL parseGetRequestQueryString(ISAPIRequest* request);
+            
+            spep::SPEP *mSpep;
+            SPEPExtension *mSpepExtension;
+        };
+
+    }
+}
 
 #endif /*SSOHANDLER_H_*/

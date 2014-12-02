@@ -30,254 +30,243 @@
 #include <xsec/dsig/DSIGKeyInfo.hpp>
 #include <xsec/dsig/DSIGKeyInfoName.hpp>
 
-spep::KeyResolver::KeyResolver()
-:
-_spepPublicKey(NULL),
-_spepPublicKeyB64(),
-_spepPrivateKey(NULL),
-_spepPrivateKeyB64(),
-_trustedCerts()
+spep::KeyResolver::KeyResolver() :
+    mSpepPublicKey(nullptr),
+    mSpepPublicKeyB64(),
+    mSpepPrivateKey(nullptr),
+    mSpepPrivateKeyB64(),
+    mTrustedCerts()
 {
 }
 
 spep::KeyResolver::~KeyResolver()
 {
-	this->deleteKeys();
+    deleteKeys();
 }
 
-spep::KeyResolver::KeyResolver( const spep::KeyResolver &other )
-:
-_spepPublicKey(NULL),
-_spepPublicKeyB64( other._spepPublicKeyB64 ),
-_spepPrivateKey(NULL),
-_spepPrivateKeyB64( other._spepPrivateKeyB64 ),
-_spepKeyAlias( other._spepKeyAlias ),
-_trustedCerts( other._trustedCerts )
+spep::KeyResolver::KeyResolver(const spep::KeyResolver &other) :
+    mSpepPublicKey(nullptr),
+    mSpepPublicKeyB64(other.mSpepPublicKeyB64),
+    mSpepPrivateKey(nullptr),
+    mSpepPrivateKeyB64(other.mSpepPrivateKeyB64),
+    mSpepKeyAlias(other.mSpepKeyAlias),
+    mTrustedCerts(other.mTrustedCerts)
 {
-	if( other._spepPublicKey != NULL )
-	{
-		_spepPublicKey = other._spepPublicKey->clone();
-	}
-	
-	if( other._spepPrivateKey != NULL )
-	{
-		_spepPrivateKey = other._spepPrivateKey->clone();
-	}
+    if (other.mSpepPublicKey != nullptr)
+    {
+        mSpepPublicKey = other.mSpepPublicKey->clone();
+    }
+
+    if (other.mSpepPrivateKey != nullptr)
+    {
+        mSpepPrivateKey = other.mSpepPrivateKey->clone();
+    }
 }
 
-spep::KeyResolver& spep::KeyResolver::operator=( const spep::KeyResolver &other )
+spep::KeyResolver& spep::KeyResolver::operator=(const spep::KeyResolver &other)
 {
-	this->deleteKeys();
+    deleteKeys();
 
-	if( other._spepPublicKey != NULL )
-	{
-		_spepPublicKey = other._spepPublicKey->clone();
-	}
+    if (other.mSpepPublicKey != nullptr)
+    {
+        mSpepPublicKey = other.mSpepPublicKey->clone();
+    }
 
-	_spepPublicKeyB64 = other._spepPublicKeyB64;
-	
-	if( other._spepPrivateKey != NULL )
-	{
-		_spepPrivateKey = other._spepPrivateKey->clone();
-	}
+    mSpepPublicKeyB64 = other.mSpepPublicKeyB64;
 
-	_spepPrivateKeyB64 = other._spepPrivateKeyB64;
-	
-	if( other._spepPublicKey != NULL )
-	{
-		_spepPublicKey = other._spepPublicKey->clone();
-	}
-	else
-	{
-		_spepPublicKey = NULL;
-	}
-	
-	if( other._spepPrivateKey != NULL )
-	{
-		_spepPrivateKey = other._spepPrivateKey->clone();
-	}
-	else
-	{
-		_spepPrivateKey = NULL;
-	}
-	
-	_spepKeyAlias = other._spepKeyAlias;
+    if (other.mSpepPrivateKey != nullptr)
+    {
+        mSpepPrivateKey = other.mSpepPrivateKey->clone();
+    }
 
-	_trustedCerts = other._trustedCerts;
-	
-	return *this;
+    mSpepPrivateKeyB64 = other.mSpepPrivateKeyB64;
+
+    if (other.mSpepPublicKey != nullptr)
+    {
+        mSpepPublicKey = other.mSpepPublicKey->clone();
+    }
+    else
+    {
+        mSpepPublicKey = nullptr;
+    }
+
+    if (other.mSpepPrivateKey != nullptr)
+    {
+        mSpepPrivateKey = other.mSpepPrivateKey->clone();
+    }
+    else
+    {
+        mSpepPrivateKey = nullptr;
+    }
+
+    mSpepKeyAlias = other.mSpepKeyAlias;
+    mTrustedCerts = other.mTrustedCerts;
+
+    return *this;
 }
 
-spep::KeyResolver::KeyResolver( std::string keystorePath, std::string keystorePassword, std::string spepKeyAlias, std::string spepKeyPassword )
-:
-_spepPublicKey(NULL),
-_spepPublicKeyB64(),
-_spepPrivateKey(NULL),
-_spepPrivateKeyB64(),
-_spepKeyAlias(spepKeyAlias),
-_trustedCerts()
+spep::KeyResolver::KeyResolver(const std::string& keystorePath, const std::string& keystorePassword, const std::string& spepKeyAlias, const std::string& spepKeyPassword) :
+    mSpepPublicKey(nullptr),
+    mSpepPublicKeyB64(),
+    mSpepPrivateKey(nullptr),
+    mSpepPrivateKeyB64(),
+    mSpepKeyAlias(spepKeyAlias),
+    mTrustedCerts()
 {
-	JKSKeystore keystore( keystorePath, keystorePassword, spepKeyPassword );
-	
-	const JKSPrivateKeyData *spepPkeyData = keystore.getKeyData( spepKeyAlias );
-	const JKSTrustedCertData *spepCertData = &(keystore.getCertificateChain( spepKeyAlias ).at(0));
-	
-	{
-		Base64Encoder encoder;
-		encoder.push( reinterpret_cast<const char*>(spepCertData->data), spepCertData->len );
-		encoder.close();
-		Base64Document cert = encoder.getResult();
-		
-		_spepPublicKeyB64.assign(cert.getData(), cert.getLength());
-	}
+    JKSKeystore keystore(keystorePath, keystorePassword, spepKeyPassword);
 
-	{
-		Base64Encoder encoder;
-		encoder.push( reinterpret_cast<const char*>(spepPkeyData->data), spepPkeyData->len );
-		encoder.close();
-		Base64Document key = encoder.getResult();
+    const JKSPrivateKeyData *spepPkeyData = keystore.getKeyData(spepKeyAlias);
+    const JKSTrustedCertData *spepCertData = &(keystore.getCertificateChain(spepKeyAlias).at(0));
 
-		_spepPrivateKeyB64.assign(key.getData(), key.getLength());
-	}
-	std::vector<std::string> trustedCertAliases( keystore.getCertificateAliases() );
-	for( std::vector<std::string>::iterator iter = trustedCertAliases.begin();
-		iter != trustedCertAliases.end(); ++iter )
-	{
-		std::string keyAlias(*iter);
-		const JKSTrustedCertData *certData = keystore.getCertificateData( keyAlias );
+    {
+        Base64Encoder encoder;
+        encoder.push(reinterpret_cast<const char*>(spepCertData->data), spepCertData->len);
+        encoder.close();
+        Base64Document cert = encoder.getResult();
 
-		Base64Encoder encoder;
-		encoder.push( reinterpret_cast<const char*>(certData->data), certData->len );
-		encoder.close();
-		Base64Document cert = encoder.getResult();
+        mSpepPublicKeyB64.assign(cert.getData(), cert.getLength());
+    }
 
-		std::string encodedCert( cert.getData(), cert.getLength() );
+    {
+        Base64Encoder encoder;
+        encoder.push(reinterpret_cast<const char*>(spepPkeyData->data), spepPkeyData->len);
+        encoder.close();
+        Base64Document key = encoder.getResult();
 
-		_trustedCerts[keyAlias] = encodedCert;
-	}
+        mSpepPrivateKeyB64.assign(key.getData(), key.getLength());
+    }
+
+    std::vector<std::string> trustedCertAliases(keystore.getCertificateAliases());
+    
+    for (auto iter = trustedCertAliases.begin(); iter != trustedCertAliases.end(); ++iter)
+    {
+        std::string keyAlias(*iter);
+        const JKSTrustedCertData *certData = keystore.getCertificateData(keyAlias);
+
+        Base64Encoder encoder;
+        encoder.push(reinterpret_cast<const char*>(certData->data), certData->len);
+        encoder.close();
+        Base64Document cert = encoder.getResult();
+
+        std::string encodedCert(cert.getData(), cert.getLength());
+
+        mTrustedCerts[keyAlias] = encodedCert;
+    }
 }
 
 void spep::KeyResolver::deleteKeys()
 {
-	if( _spepPublicKey != NULL )
-	{
-		delete _spepPublicKey;
-	}
-	
-	if( _spepPrivateKey != NULL )
-	{
-		delete _spepPrivateKey;
-	}
+    delete mSpepPublicKey;
+    mSpepPublicKey = nullptr;
+    delete mSpepPrivateKey;
+    mSpepPrivateKey = nullptr;
 }
 
 void spep::KeyResolver::loadSPEPPublicKey()
 {
-	if( _spepPublicKey != NULL )
-	{
-		delete _spepPublicKey;
-	}
-	
-	// OpenSSLCryptoX509 object to hold the key until it is cloned.
-	std::auto_ptr<OpenSSLCryptoX509> x509( new OpenSSLCryptoX509() );
-	x509->loadX509Base64Bin( _spepPublicKeyB64.c_str(), _spepPublicKeyB64.length() );
-	
-	_spepPublicKey = x509->clonePublicKey();
+    delete mSpepPublicKey;
+    mSpepPublicKey = nullptr;
+
+    // OpenSSLCryptoX509 object to hold the key until it is cloned.
+    // FIXME: should this be a unique_ptr?
+    std::auto_ptr<OpenSSLCryptoX509> x509(new OpenSSLCryptoX509());
+    x509->loadX509Base64Bin(mSpepPublicKeyB64.c_str(), mSpepPublicKeyB64.length());
+
+    mSpepPublicKey = x509->clonePublicKey();
 }
 
 void spep::KeyResolver::loadSPEPPrivateKey()
-{	
-	if( _spepPrivateKey != NULL )
-	{
-		delete _spepPrivateKey;
-	}
+{
+    delete mSpepPrivateKey;
+    mSpepPrivateKey = nullptr;
 
-	Base64Decoder decoder;
-	decoder.push( _spepPrivateKeyB64.c_str(), _spepPrivateKeyB64.length() );
-	decoder.close();
-	Base64Document pkey = decoder.getResult();
-	
-	// Read the key data into an OpenSSL RSA key.
-	BIO* bioMem = BIO_new_mem_buf( const_cast<char*>(pkey.getData()), pkey.getLength() );
-	
-	PKCS8_PRIV_KEY_INFO *pkeyInfo = NULL;
-	// TODO This line leaks 4 blocks. (2918 bytes)
-	d2i_PKCS8_PRIV_KEY_INFO_bio( bioMem, &pkeyInfo );
-	
-	if( pkeyInfo == NULL )
-	{
-		throw std::exception();
-	}
-	
-	EVP_PKEY* rawkey = EVP_PKCS82PKEY( pkeyInfo );
-	_spepPrivateKey = new OpenSSLCryptoKeyRSA( rawkey );
-	
-	BIO_free( bioMem );
+    Base64Decoder decoder;
+    decoder.push(mSpepPrivateKeyB64.c_str(), mSpepPrivateKeyB64.length());
+    decoder.close();
+    Base64Document pkey = decoder.getResult();
+
+    // Read the key data into an OpenSSL RSA key.
+    BIO* bioMem = BIO_new_mem_buf(const_cast<char*>(pkey.getData()), pkey.getLength());
+
+    PKCS8_PRIV_KEY_INFO *pkeyInfo = NULL;
+    // TODO This line leaks 4 blocks. (2918 bytes)
+    d2i_PKCS8_PRIV_KEY_INFO_bio(bioMem, &pkeyInfo);
+
+    if (pkeyInfo == NULL)
+    {
+        throw std::exception();
+    }
+
+    EVP_PKEY* rawkey = EVP_PKCS82PKEY(pkeyInfo);
+    mSpepPrivateKey = new OpenSSLCryptoKeyRSA(rawkey);
+
+    BIO_free(bioMem);
 }
 
 XSECCryptoKey* spep::KeyResolver::getSPEPPublicKey()
 {
-	if( !_spepPublicKey )
-		loadSPEPPublicKey();
-	return _spepPublicKey;
+    if (!mSpepPublicKey)
+        loadSPEPPublicKey();
+    return mSpepPublicKey;
 }
 
 XSECCryptoKey* spep::KeyResolver::getSPEPPrivateKey()
 {
-	if( !_spepPrivateKey )
-		loadSPEPPrivateKey();
-	return _spepPrivateKey;
+    if (!mSpepPrivateKey)
+        loadSPEPPrivateKey();
+    return mSpepPrivateKey;
 }
 
-std::string spep::KeyResolver::getSPEPKeyAlias()
+std::string spep::KeyResolver::getSPEPKeyAlias() const
 {
-	return _spepKeyAlias;
+    return mSpepKeyAlias;
 }
 
-XSECCryptoKey *spep::KeyResolver::resolveKey (DSIGKeyInfoList *list)
+XSECCryptoKey *spep::KeyResolver::resolveKey(DSIGKeyInfoList *list)
 {
-	if( list->isEmpty() )
-		return NULL;
+    if (list->isEmpty())
+        return NULL;
 
-	// Loop through the key info list and look for a name.
-	for( DSIGKeyInfoList::size_type i = 0; i < list->getSize(); ++i )
-	{
-		DSIGKeyInfo *keyInfo = list->item(i);
-		if( keyInfo->getKeyInfoType() != DSIGKeyInfo::KEYINFO_NAME ) continue;
+    // Loop through the key info list and look for a name.
+    for (DSIGKeyInfoList::size_type i = 0; i < list->getSize(); ++i)
+    {
+        DSIGKeyInfo *keyInfo = list->item(i);
+        if (keyInfo->getKeyInfoType() != DSIGKeyInfo::KEYINFO_NAME) continue;
 
-		// This keyInfo is a key name, so cast it and grab the name as a Xerces char*
-		DSIGKeyInfoName* keyInfoName = reinterpret_cast<DSIGKeyInfoName*>( keyInfo );
-		std::auto_ptr<XercesCharStringAdapter> keyNameChars( new XercesCharStringAdapter( XMLString::transcode( keyInfoName->getKeyName() ) ) );
+        // This keyInfo is a key name, so cast it and grab the name as a Xerces char*
+        DSIGKeyInfoName* keyInfoName = reinterpret_cast<DSIGKeyInfoName*>(keyInfo);
+        std::auto_ptr<XercesCharStringAdapter> keyNameChars(new XercesCharStringAdapter(XMLString::transcode(keyInfoName->getKeyName())));
 
-		std::string keyName( keyNameChars->get() );
+        std::string keyName(keyNameChars->get());
 
-		try
-		{
-			XSECCryptoKey* key = this->resolveKey( keyName );
-			return key;
-		}
-		catch( std::exception& e )
-		{
-		}
-	}
+        try
+        {
+            XSECCryptoKey* key = this->resolveKey(keyName);
+            return key;
+        }
+        catch (std::exception& e)
+        {
+        }
+    }
 
-	// No key data found/returned. Return null now.
-	return NULL;
+    // No key data found/returned. Return null now.
+    return NULL;
 }
 
-XSECCryptoKey* spep::KeyResolver::resolveKey(std::string keyName)
+XSECCryptoKey* spep::KeyResolver::resolveKey(const std::string& keyName)
 {
-	std::map<std::string,std::string>::iterator iter =  _trustedCerts.find(keyName);
-	if (iter == _trustedCerts.end()) return NULL;
+    auto iter = mTrustedCerts.find(keyName);
+    if (iter == mTrustedCerts.end()) return NULL;
 
-	std::auto_ptr<OpenSSLCryptoX509> x509( new OpenSSLCryptoX509() );
-	x509->loadX509Base64Bin( reinterpret_cast<const char*>(iter->second.c_str()), iter->second.length() );
+    std::auto_ptr<OpenSSLCryptoX509> x509(new OpenSSLCryptoX509());
+    x509->loadX509Base64Bin(reinterpret_cast<const char*>(iter->second.c_str()), iter->second.length());
 
-	XSECCryptoKey *key = x509->clonePublicKey();
-	return key;
+    XSECCryptoKey *key = x509->clonePublicKey();
+    return key;
 }
 
 XSECKeyInfoResolver* spep::KeyResolver::clone() const
 {
-	return new spep::KeyResolver(*this);
+    return new spep::KeyResolver(*this);
 }
 

@@ -28,7 +28,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#include <map>
+#include <unordered_map>
 
 #include "spep/Util.h"
 #include "spep/ipc/Serialization.h"
@@ -40,70 +40,70 @@
 namespace spep
 {
 	
-	class SPEPEXPORT KeyResolver : public saml2::ExternalKeyResolver
-	{
-	
-		friend class spep::ipc::access;
-		
-		public:
-		
-		KeyResolver();
-		virtual ~KeyResolver();
-		
-		KeyResolver( const KeyResolver &other );
-		KeyResolver& operator=( const KeyResolver &other );
-		
-		KeyResolver( std::string keystorePath, std::string keystorePassword, std::string spepKeyAlias, std::string spepKeyPassword );
-		/**
-		 * Returns the SPEP public key
-		 */
-		XSECCryptoKey* getSPEPPublicKey();
-		/**
-		 * Returns the SPEP private key
-		 */
-		XSECCryptoKey* getSPEPPrivateKey();
-		/**
-		 * Returns the key pair name for the SPEP key.
-		 */
-		std::string getSPEPKeyAlias();
+    class SPEPEXPORT KeyResolver : public saml2::ExternalKeyResolver
+    {
 
-		virtual XSECCryptoKey* resolveKey( DSIGKeyInfoList *list );
-		virtual XSECKeyInfoResolver* clone() const;
-		XSECCryptoKey* resolveKey(std::string keyName);
-		
-		private:
-		/**
-		 * Loads the SPEP public key from the data stored internally - usually called after deserialization
-		 */
-		void loadSPEPPublicKey();
-		/**
-		 * Loads the SPEP private key from the data stored internally - usually called after deserialization
-		 */
-		void loadSPEPPrivateKey();
-		
-		void deleteKeys();
-		
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int version )
-		{
-			ar & _spepKeyAlias;
-			ar & _spepPublicKeyB64;
-			ar & _spepPrivateKeyB64;
-		}
-		
-		XSECCryptoKey* _spepPublicKey;
-		// for serialization
-		std::string _spepPublicKeyB64;
-		
-		XSECCryptoKey* _spepPrivateKey;
-		// for serialization
-		std::string _spepPrivateKeyB64;
-		
-		std::string _spepKeyAlias;
+        friend class spep::ipc::access;
 
-		std::map<std::string,std::string> _trustedCerts;
-		
-	};
+    public:
+
+        KeyResolver();
+        virtual ~KeyResolver();
+
+        KeyResolver(const KeyResolver &other);
+        KeyResolver& operator=(const KeyResolver &other);
+
+        KeyResolver(const std::string& keystorePath, const std::string& keystorePassword, const std::string& spepKeyAlias, const std::string& spepKeyPassword);
+        /**
+         * Returns the SPEP public key
+         */
+        XSECCryptoKey* getSPEPPublicKey();
+        /**
+         * Returns the SPEP private key
+         */
+        XSECCryptoKey* getSPEPPrivateKey();
+        /**
+         * Returns the key pair name for the SPEP key.
+         */
+        std::string getSPEPKeyAlias() const;
+
+        virtual XSECCryptoKey* resolveKey(DSIGKeyInfoList *list) override;
+        virtual XSECKeyInfoResolver* clone() const override;
+        XSECCryptoKey* resolveKey(const std::string& keyName);
+
+    private:
+        /**
+         * Loads the SPEP public key from the data stored internally - usually called after deserialization
+         */
+        void loadSPEPPublicKey();
+        /**
+         * Loads the SPEP private key from the data stored internally - usually called after deserialization
+         */
+        void loadSPEPPrivateKey();
+
+        void deleteKeys();
+
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int version)
+        {
+            ar & mSpepKeyAlias;
+            ar & mSpepPublicKeyB64;
+            ar & mSpepPrivateKeyB64;
+        }
+
+        XSECCryptoKey* mSpepPublicKey;
+        // for serialization
+        std::string mSpepPublicKeyB64;
+
+        XSECCryptoKey* mSpepPrivateKey;
+        // for serialization
+        std::string mSpepPrivateKeyB64;
+
+        std::string mSpepKeyAlias;
+
+        std::unordered_map<std::string, std::string> mTrustedCerts;
+
+    };
 	
 }
 

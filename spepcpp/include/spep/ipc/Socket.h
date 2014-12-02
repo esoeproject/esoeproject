@@ -21,6 +21,17 @@
 #ifndef SOCKET_H_
 #define SOCKET_H_
 
+#include <vector>
+#include <iostream>
+#include <map>
+#include <queue>
+
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/condition.hpp>
+
 #include "saml2/identifier/IdentifierGenerator.h"
 
 #include "spep/Util.h"
@@ -28,278 +39,270 @@
 #include "spep/ipc/Dispatcher.h"
 #include "spep/ipc/Exceptions.h"
 
-#include <vector>
-#include <iostream>
-#include <map>
-#include <queue>
-
-#include <asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/condition.hpp>
 
 namespace spep
 {
 	namespace ipc
 	{
-		using asio::ip::tcp;
-		using namespace boost;
-
 		// To solve cyclic dependency
 		class ClientSocketPool;
 
-		void SPEPEXPORT writeSocket(tcp::socket* socket, const std::vector<char>& buffer);
-		void SPEPEXPORT readSocket(tcp::socket* socket, std::vector<char>& buffer);
+		void SPEPEXPORT writeSocket(boost::asio::ip::tcp::socket* socket, const std::vector<char>& buffer);
+        void SPEPEXPORT readSocket(boost::asio::ip::tcp::socket* socket, std::vector<char>& buffer);
 
 		/**
 		 * IPC client socket. Connects to a loopback address, makes requests
 		 * and (optionally) awaits and returns a reply.
 		 */
-		class SPEPEXPORT ClientSocket
-		{
+        class SPEPEXPORT ClientSocket
+        {
 
-			private:
-			tcp::socket* newSocket();
+        public:
+            ClientSocket(ClientSocketPool* pool, int port);
 
-			void reconnect( int retry );
+            /**
+             * Makes a request and awaits a reply
+             * @param dispatch The string describing where to dispatch the request
+             * @param req The request object
+             * @return The response object
+             */
+            template <class Res, class Req>
+            Res makeRequest(const std::string &dispatch, Req &req)
+            {
+                ScopedLock lock(mMutex);
 
-			ClientSocketPool* _pool;
-			tcp::socket* _socket;
-			Engine *_engine;
-			int _port;
-			Mutex _mutex;
+                int retry = 0;
 
-			public:
-			ClientSocket( ClientSocketPool* pool, int port );
-			int getSocketID();
+                for (;;)
+                {
+                    try
+                    {
+                        if (mEngine != NULL)
+                        {
+                            return mEngine->makeRequest<Res, Req>(dispatch, req);
+                        }
+                    }
+                    catch (SocketException& e)
+                    {
+                        boost::system::error_code error;
+                        mSocket->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+                        mSocket->close(error);
 
-			/**
-			 * Makes a request and awaits a reply
-			 * @param dispatch The string describing where to dispatch the request
-			 * @param req The request object
-			 * @return The response object
-			 */
-			template <class Res, class Req>
-			Res makeRequest( std::string &dispatch, Req &req )
-			{
-				ScopedLock lock( _mutex );
+                        delete mEngine;
+                        mEngine = NULL;
+                    }
 
-				int retry = 0;
+                    // Connection died. Get a new one.
+                    reconnect(retry++);
+                }
+            }
 
-				for(;;)
-				{
-					try
-					{
-						if( _engine != NULL )
-						{
-							return _engine->makeRequest<Res,Req>( dispatch, req );
-						}
-					}
-					catch( SocketException e )
-					{
-						asio::error_code error;
-						_socket->shutdown(tcp::socket::shutdown_both, error);
-						_socket->close(error);
+            /**
+             * Makes a request and returns immediately, expecting no reply.
+             * @param dispatch The string describing where to dispatch the request
+             * @param req The request object
+             */
+            template <class Req>
+            void makeNonBlockingRequest(const std::string &dispatch, Req &req)
+            {
+                ScopedLock lock(mMutex);
 
-						delete _engine;
-						_engine = NULL;
-					}
+                for (;;)
+                {
+                    int retry = 0;
 
-					// Connection died. Get a new one.
-					reconnect( retry++ );
-				}
-			}
+                    try
+                    {
+                        if (mEngine != NULL)
+                        {
+                            mEngine->makeNonBlockingRequest(dispatch, req);
+                            return;
+                        }
+                    }
+                    catch (SocketException& e)
+                    {
+                        boost::system::error_code error;
+                        mSocket->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+                        mSocket->close(error);
 
-			/**
-			 * Makes a request and returns immediately, expecting no reply.
-			 * @param dispatch The string describing where to dispatch the request
-			 * @param req The request object
-			 */
-			template <class Req>
-			void makeNonBlockingRequest( std::string &dispatch, Req &req )
-			{
-				ScopedLock lock( _mutex );
+                        delete mEngine;
+                        mEngine = NULL;
+                    }
 
-				for(;;)
-				{
-					int retry = 0;
+                    // Connection died. Get a new one.
+                    reconnect(retry++);
+                }
+            }
 
-					try
-					{
-						if( _engine != NULL )
-						{
-							_engine->makeNonBlockingRequest( dispatch, req );
-							return;
-						}
-					}
-					catch( SocketException e )
-					{
-						asio::error_code error;
-						_socket->shutdown(tcp::socket::shutdown_both, error);
-						_socket->close(error);
+        private:
 
-						delete _engine;
-						_engine = NULL;
-					}
+            boost::asio::ip::tcp::socket* newSocket();
+            void reconnect(int retry);
 
-					// Connection died. Get a new one.
-					reconnect( retry++ );
-				}
-			}
+            ClientSocketPool* mPool;
+            boost::asio::ip::tcp::socket* mSocket;
+            Engine *mEngine;
+            int mPort;
+            mutable Mutex mMutex;
+        };
 
-		};
-
-		//!< 
-		typedef boost::shared_ptr<ClientSocket> ClientSocketPtr;
+        //!< 
+        typedef std::shared_ptr<ClientSocket> ClientSocketPtr;
 
 
-		class ClientSocketPool
-		{
-			private:
-				
-			std::queue<ClientSocketPtr> _free;
-			boost::condition _condition;
-			Mutex _mutex;
-			std::string _serviceID;
-			asio::io_service _ioService;
+        class ClientSocketPool
+        {
+        public:
 
-			public:
-			ClientSocketPool( int port, std::size_t n );
-			ClientSocketPtr get();
-			void release( ClientSocketPtr socket );
-			const std::string& getServiceID();
-			void setServiceID( const std::string& serviceID );
-			asio::io_service& getIoService();
-		};
+            ClientSocketPool(int port, std::size_t n);
 
-		class ClientSocketLease
-		{
-			private:
-			ClientSocketPool *_pool;
-			ClientSocketPtr _socket;
+            ClientSocketPtr get();
+            void release(ClientSocketPtr socket);
+            std::string getServiceID() const;
+            void setServiceID(const std::string& serviceID);
+            boost::asio::io_service& getIoService();
 
-			public:
-			ClientSocketLease( ClientSocketPool* pool );
-			~ClientSocketLease();
-			ClientSocketPtr operator->();
-			ClientSocketPtr operator*();
-		};
+        private:
 
-		/**
-		 * IPC server socket. Listens on a loopback address, receives and dispatches
-		 * and sends replies where expected.
-		 */
-		template <class Dispatcher>
-		class ServerSocket
-		{
-			private:
-			saml2::LocalLogger log;
-			Dispatcher* dispatcher;
-			asio::io_service ioService;
-			asio::ip::tcp::acceptor acceptor;
-			std::string id;
+            std::queue<ClientSocketPtr> mFree;
+            boost::condition mCondition;
+            mutable Mutex mMutex;
+            std::string mServiceID;
+            boost::asio::io_service mIOService;
+        };
 
-			public:
+        class ClientSocketLease
+        {
+        public:
 
-			/**
-			 * Constructor.
-			 * @param dispatcher The dispatcher to use when a request is received.
-			 * @param port The port on which to listen for incoming connections.
-			 */
-			ServerSocket(saml2::Logger *logger, Dispatcher *disp, int port)
-			:
-			log(logger, "spep::ipc::ServerSocket"),
-			dispatcher(disp),
-			ioService(),
-			acceptor(ioService)
-			{
-				saml2::IdentifierCache identifierCache;
-				saml2::IdentifierGenerator identifierGenerator( &identifierCache );
+            ClientSocketLease(ClientSocketPool* pool);
+            ~ClientSocketLease();
 
-				id = identifierGenerator.generateSessionID();
+            ClientSocketPtr operator->();
+            ClientSocketPtr operator*();
 
-				tcp::endpoint endpoint(asio::ip::address_v4::loopback(), port);
-				asio::error_code error;
-				// The truth value of the return indicates an error, so this piece of code doesn't read particularly nicely, but works.
-				if (acceptor.open(endpoint.protocol(), error) ||
-					acceptor.set_option(tcp::acceptor::reuse_address(true), error) ||
-					acceptor.bind(endpoint, error) ||
-					acceptor.listen(asio::socket_base::max_connections, error)) {
+        private:
 
-					log.error() << "An error occurred while opening the server socket: " << error.message();
-				}
-			}
+            ClientSocketPool *mPool;
+            ClientSocketPtr mSocket;
+        };
 
-			/**
-			 * Body of listen method. Blocks indefinitely.
-			 */
-			void listen(bool *running)
-			{
-				while(*running) {
-					try {
-						tcp::socket* socket = new tcp::socket(ioService);
-						acceptor.accept(*socket);
+        /**
+         * IPC server socket. Listens on a loopback address, receives and dispatches
+         * and sends replies where expected.
+         */
+        template <class Dispatcher>
+        class ServerSocket
+        {
+        public:
 
-						function<void()> threadFunction( bind(&ServerSocket::run, this, socket) );
+            /**
+             * Constructor.
+             * @param dispatcher The dispatcher to use when a request is received.
+             * @param port The port on which to listen for incoming connections.
+             */
+            ServerSocket(saml2::Logger *logger, Dispatcher *disp, int port) :
+                mLogger(logger, "spep::ipc::ServerSocket"),
+                mDispatcher(disp),
+                mIOService(),
+                mAcceptor(mIOService)
+            {
+                saml2::IdentifierCache identifierCache;
+                saml2::IdentifierGenerator identifierGenerator(&identifierCache);
 
-						/* What's happening here?
-						 * According to the boost thread api docs, the constructor for
-						 * the thread object fires off the thread in the background and
-						 * the destructor detaches the thread so that it cleans itself
-						 * up with it's done. That's the exact behaviour we want.
-						 */
-						delete ( new thread( threadFunction ) );
-					} catch (std::exception &e) {
-					}
-				}
-			}
+                mID = identifierGenerator.generateSessionID();
 
-			/**
-			 * Connection processing method. Not intended to be invoked directly.
-			 * @param socket The connected socket to use for
-			 */
-			void run(tcp::socket* socket_)
-			{
-				std::auto_ptr<tcp::socket> socket(socket_);
+                boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address_v4::loopback(), port);
+                boost::system::error_code error;
 
-				Engine engine( bind(spep::ipc::writeSocket, socket_, _1), bind(spep::ipc::readSocket, socket_, _1) );
-				engine.sendObject( id );
-				for(;;)
-				{
-					try
-					{
-						MessageHeader messageHeader = engine.getRequestHeader();
-						if ( !dispatcher->dispatch( messageHeader, engine ) )
-						{
-							engine.sendErrorResponseHeader();
-							InvocationTargetException exception( "No dispatcher was available to handle the requested call." );
-							engine.sendObject(exception);
-						}
-					}
-					catch (SocketException s)
-					{
-						break;
-					}
-					// If another error occurs, we can trap it and terminate the connection.
-					// It's not ideal, but at least it stops the daemon falling over.
-					catch (std::exception& e)
-					{
-						break;
-					}
-				}
+                // The truth value of the return indicates an error, so this piece of code doesn't read particularly nicely, but works.
+                if (mAcceptor.open(endpoint.protocol(), error) ||
+                    mAcceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true), error) ||
+                    mAcceptor.bind(endpoint, error) ||
+                    mAcceptor.listen(boost::asio::socket_base::max_connections, error)) {
 
-				asio::error_code error;
-				if (socket->shutdown(tcp::socket::shutdown_both, error)
-					|| socket->close(error)) {
+                    mLogger.error() << "An error occurred while opening the server socket: " << error.message();
+                }
+            }
 
-					log.error() << "Error closing socket: " << error.message();
-				}
-			}
+            /**
+             * Body of listen method. Blocks indefinitely.
+             */
+            void listen(bool *running)
+            {
+                while (*running) {
+                    try {
+                        boost::asio::ip::tcp::socket* socket = new boost::asio::ip::tcp::socket(mIOService);
+                        mAcceptor.accept(*socket);
 
-		};
+                        boost::function<void()> threadFunction(boost::bind(&ServerSocket::run, this, socket));
 
-	}
+                        /* What's happening here?
+                         * According to the boost thread api docs, the constructor for
+                         * the thread object fires off the thread in the background and
+                         * the destructor detaches the thread so that it cleans itself
+                         * up when it's done. That's the exact behaviour we want.
+                         */
+                        delete (new boost::thread(threadFunction));
+                    }
+                    catch (std::exception &e) {
+                    }
+                }
+            }
+
+            /**
+             * Connection processing method. Not intended to be invoked directly.
+             * @param socket The connected socket to use for
+             */
+            void run(boost::asio::ip::tcp::socket* socket_)
+            {
+                std::auto_ptr<boost::asio::ip::tcp::socket> socket(socket_);
+
+                Engine engine(boost::bind(spep::ipc::writeSocket, socket_, _1), boost::bind(spep::ipc::readSocket, socket_, _1));
+                engine.sendObject(mID);
+
+                for (;;)
+                {
+                    try
+                    {
+                        MessageHeader messageHeader = engine.getRequestHeader();
+                        if (!mDispatcher->dispatch(messageHeader, engine))
+                        {
+                            engine.sendErrorResponseHeader();
+                            InvocationTargetException exception("No dispatcher was available to handle the requested call.");
+                            engine.sendObject(exception);
+                        }
+                    }
+                    catch (SocketException& s)
+                    {
+                        break;
+                    }
+                    // If another error occurs, we can trap it and terminate the connection.
+                    // It's not ideal, but at least it stops the daemon falling over.
+                    catch (std::exception& e)
+                    {
+                        break;
+                    }
+                }
+
+                boost::system::error_code error;
+                if (socket->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error)
+                    || socket->close(error)) {
+
+                    mLogger.error() << "Error closing socket: " << error.message();
+                }
+            }
+
+        private:
+
+            saml2::LocalLogger mLogger;
+            Dispatcher* mDispatcher;
+            boost::asio::io_service mIOService;
+            boost::asio::ip::tcp::acceptor mAcceptor;
+            std::string mID;
+        };
+
+    }
 }
 
 #endif /*SOCKET_H_*/

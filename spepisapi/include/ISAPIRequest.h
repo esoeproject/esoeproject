@@ -43,123 +43,101 @@
 
 #include "FilterConstants.h"
 
-namespace spep{ namespace isapi{
-	
-	class ISAPIRequest
-	{
-		public:
-		virtual ~ISAPIRequest(){}
-		virtual std::string getHeader( const std::string &name ) = 0;
-		virtual void setHeader( const std::string& headerValue ) = 0;
-		virtual std::string getServerVariable( const std::string& name ) = 0;
-		virtual const std::string& getRequestURL() = 0;
-		virtual const std::string& getRequestMethod() = 0;
-		virtual const std::string& getQueryString() = 0;
-		virtual const std::string& getScriptName() = 0;
-		virtual const std::string& getContentType() = 0;
-		virtual std::string getRemoteAddress() = 0;
-		virtual DWORD getContentLength() = 0;
-		virtual BOOL isSecureRequest() = 0;
-		virtual DWORD sendResponseHeader( const std::string& statusLine, BOOL keepConn = FALSE ) = 0;
-		virtual DWORD sendResponseDocument( const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType ) = 0;
-		virtual DWORD sendErrorDocument( int errorCode, int minorCode = 0 ) = 0;
-		virtual DWORD sendRedirectResponse( const std::string& location ) = 0;
-		virtual BOOL readRequestDocument( spep::CArray<char> &buffer, DWORD &size ) = 0;
-		virtual VOID* allocMem( DWORD size ) = 0;
-		virtual char* istrndup( const char *str, size_t len ) = 0;
-		virtual char *isprintf( const char *fmt, ... ) = 0;
-		virtual LPEXTENSION_CONTROL_BLOCK getExtensionControlBlock() = 0;
-		virtual void addRequestHeader( const std::string& name, const std::string& value ) = 0;
-		virtual DWORD continueRequest() = 0;
-		virtual void urlDecode( std::string& url ) = 0;
-		virtual void setRemoteUser( const std::string& username ) = 0;
-		virtual void setRemoteAddress(const std::string& ipaddress) = 0;
-	};
-	
-	class ISAPIRequestImpl : public ISAPIRequest
-	{
-	    typedef BOOL (WINAPI * ISAPIServerSupportFunction) ( HCONN, DWORD, LPVOID, LPDWORD, LPDWORD );
-	    typedef BOOL (WINAPI * ISAPIWriteClientFunction) ( HCONN, LPVOID, LPDWORD, DWORD );
-	    typedef BOOL (WINAPI * ISAPIReadClientFunction) ( HCONN, LPVOID, LPDWORD );
-	    typedef BOOL (WINAPI * ISAPIGetServerVariableFunction) ( HCONN, LPSTR, LPVOID, LPDWORD );
-	    
-		private:
-		LPEXTENSION_CONTROL_BLOCK _extensionControlBlock;
-		ISAPIServerSupportFunction _serverSupportFunction;
-		ISAPIWriteClientFunction _writeClient;
-		ISAPIReadClientFunction _readClient;
-		ISAPIGetServerVariableFunction _getServerVariable;
-		std::vector<LPVOID> _freeList;
-		std::vector<std::string> _responseHeaders;
-		std::string _requestURL;
-		std::string _requestMethod;
-		std::string _queryString;
-		std::string _scriptName;
-		std::string _contentType;
-		std::string _remoteUser;
-		std::string _remoteAddress;
-		std::string _childHeaders;
-		BOOL _isSecureRequest;
-		DWORD _contentLength;
-		
-		bool _headersSent;
-		
-		public:
-		ISAPIRequestImpl( LPEXTENSION_CONTROL_BLOCK extensionControlBlock );
-		
-		virtual ~ISAPIRequestImpl();
-		
-		virtual std::string getHeader( const std::string &name );
-		
-		virtual void setHeader( const std::string& headerValue );
-		
-		virtual std::string getServerVariable( const std::string& name );
-		
-		virtual const std::string& getRequestURL();
-		
-		virtual const std::string& getRequestMethod();
+namespace spep{
+    namespace isapi{
 
-		virtual const std::string& getQueryString();
-		
-		virtual const std::string& getScriptName();
-		
-		virtual const std::string& getContentType();
+        class ISAPIRequest
+        {
+        public:
+            virtual ~ISAPIRequest(){}
+            virtual std::string getHeader(const std::string &name) = 0;
+            virtual void setHeader(const std::string& headerValue) = 0;
+            virtual std::string getServerVariable(const std::string& name) = 0;
+            virtual std::string getRequestMethod() const = 0;
+            virtual std::string getQueryString() const = 0;
+            virtual std::string getScriptName() const = 0;
+            virtual std::string getRequestURL() const = 0;
+            virtual std::string getContentType() const = 0;
+            virtual std::string getRemoteAddress() const = 0;
+            virtual DWORD getContentLength() const = 0;
+            virtual BOOL isSecureRequest() const = 0;
+            virtual DWORD sendResponseHeader(const std::string& statusLine, BOOL keepConn = FALSE) = 0;
+            virtual DWORD sendResponseDocument(const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType) = 0;
+            virtual DWORD sendErrorDocument(int errorCode, int minorCode = 0) = 0;
+            virtual DWORD sendRedirectResponse(const std::string& location) = 0;
+            virtual BOOL readRequestDocument(spep::CArray<char> &buffer, DWORD &size) = 0;
+            virtual VOID* allocMem(DWORD size) = 0;
+            virtual char* istrndup(const char *str, size_t len) = 0;
+            virtual char *isprintf(const char *fmt, ...) = 0;
+            virtual LPEXTENSION_CONTROL_BLOCK getExtensionControlBlock() = 0;
+            virtual void addRequestHeader(const std::string& name, const std::string& value) = 0;
+            virtual DWORD continueRequest() = 0;
+            virtual void urlDecode(std::string& url) = 0;
+            virtual void setRemoteUser(const std::string& username) = 0;
+            virtual void setRemoteAddress(const std::string& ipaddress) = 0;
+        };
 
-		virtual std::string getRemoteAddress();
+        class ISAPIRequestImpl : public ISAPIRequest
+        {
+            typedef BOOL(WINAPI * ISAPIServerSupportFunction) (HCONN, DWORD, LPVOID, LPDWORD, LPDWORD);
+            typedef BOOL(WINAPI * ISAPIWriteClientFunction) (HCONN, LPVOID, LPDWORD, DWORD);
+            typedef BOOL(WINAPI * ISAPIReadClientFunction) (HCONN, LPVOID, LPDWORD);
+            typedef BOOL(WINAPI * ISAPIGetServerVariableFunction) (HCONN, LPSTR, LPVOID, LPDWORD);
 
-		virtual DWORD getContentLength();
+        public:
+            ISAPIRequestImpl(LPEXTENSION_CONTROL_BLOCK extensionControlBlock);
 
-		virtual BOOL isSecureRequest();
+            virtual ~ISAPIRequestImpl();
 
-		virtual DWORD sendResponseHeader( const std::string& statusLine, BOOL keepConn = FALSE );
+            virtual std::string getHeader(const std::string &name) override;
+            virtual void setHeader(const std::string& headerValue) override;
+            virtual std::string getServerVariable(const std::string& name) override;
+            virtual std::string getRequestURL() const override;
+            virtual std::string getRequestMethod() const override;
+            virtual std::string getQueryString() const override;
+            virtual std::string getScriptName() const override;
+            virtual std::string getContentType() const override;
+            virtual std::string getRemoteAddress() const override;
+            virtual DWORD getContentLength() const override;
+            virtual BOOL isSecureRequest() const override;
+            virtual DWORD sendResponseHeader(const std::string& statusLine, BOOL keepConn = FALSE) override;
+            virtual DWORD sendResponseDocument(const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType) override;
+            virtual DWORD sendErrorDocument(int errorCode, int minorCode = 0) override;
+            virtual DWORD sendRedirectResponse(const std::string& location) override;
+            virtual BOOL readRequestDocument(spep::CArray<char> &buffer, DWORD &size) override;
+            virtual VOID* allocMem(DWORD size) override;
+            virtual char* istrndup(const char *str, size_t len) override;
+            virtual char *isprintf(const char *fmt, ...) override;
+            virtual LPEXTENSION_CONTROL_BLOCK getExtensionControlBlock() override;
+            virtual void addRequestHeader(const std::string& name, const std::string& value) override;
+            virtual DWORD continueRequest() override;
+            virtual void urlDecode(std::string& url) override;
+            virtual void setRemoteUser(const std::string& username) override;
+            virtual void setRemoteAddress(const std::string& ipaddress) override;
 
-		virtual DWORD sendResponseDocument( const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType );
+        private:
+            LPEXTENSION_CONTROL_BLOCK mExtensionControlBlock;
+            ISAPIServerSupportFunction mServerSupportFunction;
+            ISAPIWriteClientFunction mWriteClient;
+            ISAPIReadClientFunction mReadClient;
+            ISAPIGetServerVariableFunction mGetServerVariable;
+            std::vector<LPVOID> mFreeList;
+            std::vector<std::string> mResponseHeaders;
+            std::string mRequestURL;
+            std::string mRequestMethod;
+            std::string mQueryString;
+            std::string mScriptName;
+            std::string mContentType;
+            std::string mRemoteUser;
+            std::string mRemoteAddress;
+            std::string mChildHeaders;
+            BOOL mIsSecureRequest;
+            DWORD mContentLength;
 
-		virtual DWORD sendErrorDocument( int errorCode, int minorCode = 0 );
-		
-		virtual DWORD sendRedirectResponse( const std::string& location );
+            bool mHeadersSent;
+        };
 
-		virtual BOOL readRequestDocument( spep::CArray<char> &buffer, DWORD &size );
-
-		virtual VOID* allocMem( DWORD size );
-		
-		virtual char* istrndup( const char *str, size_t len );
-		
-		virtual char *isprintf( const char *fmt, ... );
-		
-		virtual LPEXTENSION_CONTROL_BLOCK getExtensionControlBlock();
-		
-		virtual void addRequestHeader( const std::string& name, const std::string& value );
-		
-		virtual DWORD continueRequest();
-		
-		virtual void urlDecode( std::string& url );
-		
-		virtual void setRemoteUser( const std::string& username );
-
-		virtual void setRemoteAddress(const std::string& ipaddress);
-	};
-	
-}}
+    }
+}
 
 #endif /*ISAPIREQUEST_H_*/

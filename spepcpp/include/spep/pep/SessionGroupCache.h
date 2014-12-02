@@ -31,30 +31,30 @@ namespace spep
 	/**
 	 * Caches authorization decisions made by the PDP.
 	 */
-	class SPEPEXPORT SessionGroupCache
-	{
-		public:
-		virtual ~SessionGroupCache(){}
-		/**
-		 * Updates the group cache for the given session ID.
-		 * @param esoeSessionID The session ID to update the group cache for.
-		 * @param groupTarget The group target match to update
-		 * @param authzTargets The authorization targets to update
-		 * @param decision The decision to cache against the authorization targets
-		 */
-		virtual void updateCache( std::wstring &esoeSessionID, UnicodeString groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision ) = 0;
-		
-		/**
-		 * Clears the authorization cache completely.
-		 * @param groupTargets The new list of group targets to use for caching.
-		 */
-		virtual void clearCache( std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets ) = 0;
-		
-		/**
-		 * Uses the cache to make an authorization decision.
-		 */
-		virtual Decision makeCachedAuthzDecision( std::wstring esoeSessionID, UnicodeString resource ) = 0;
-	};
+    class SPEPEXPORT SessionGroupCache
+    {
+    public:
+        virtual ~SessionGroupCache(){}
+        /**
+         * Updates the group cache for the given session ID.
+         * @param esoeSessionID The session ID to update the group cache for.
+         * @param groupTarget The group target match to update
+         * @param authzTargets The authorization targets to update
+         * @param decision The decision to cache against the authorization targets
+         */
+        virtual void updateCache(const std::wstring &esoeSessionID, const UnicodeString& groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision) = 0;
+
+        /**
+         * Clears the authorization cache completely.
+         * @param groupTargets The new list of group targets to use for caching.
+         */
+        virtual void clearCache(std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets) = 0;
+
+        /**
+         * Uses the cache to make an authorization decision.
+         */
+        virtual Decision makeCachedAuthzDecision(const std::wstring& esoeSessionID, const UnicodeString& resource) = 0;
+    };
 	
 
 

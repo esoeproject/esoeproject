@@ -20,64 +20,58 @@
 #include "spep/sessions/SessionCacheThread.h"
 #include "spep/Util.h"
 
-spep::SessionCacheThread::SessionCacheThread( saml2::Logger *logger, spep::SessionCache *sessionCache, int timeout, int interval )
-:
-_localLogger( logger, "spep::SessionCacheThread" ),
-_sessionCache( sessionCache ),
-_threadGroup(),
-_timeout( timeout ),
-_interval( interval ),
-_die( false )
+spep::SessionCacheThread::SessionCacheThread(saml2::Logger *logger, spep::SessionCache *sessionCache, int timeout, int interval) :
+    mLocalLogger(logger, "spep::SessionCacheThread"),
+    mSessionCache(sessionCache),
+    mThreadGroup(),
+    mTimeout(timeout),
+    mInterval(interval),
+    mDie(false)
 {
-	_localLogger.info() << "Session cache thread starting..";
-	
-	_threadGroup.create_thread( ThreadHandler( this ) );
+    mLocalLogger.info() << "Session cache thread starting..";
+    mThreadGroup.create_thread(ThreadHandler(this));
 }
 
 spep::SessionCacheThread::~SessionCacheThread()
 {
-	_die = true;
-	
-	_threadGroup.join_all();
+    mDie = true;
+    mThreadGroup.join_all();
 }
 
-spep::SessionCacheThread::ThreadHandler::ThreadHandler( spep::SessionCacheThread *sessionCacheThread )
-:
-_sessionCacheThread( sessionCacheThread )
+spep::SessionCacheThread::ThreadHandler::ThreadHandler(spep::SessionCacheThread *sessionCacheThread) :
+    mSessionCacheThread(sessionCacheThread)
 {
 }
 
-spep::SessionCacheThread::ThreadHandler::ThreadHandler( const spep::SessionCacheThread::ThreadHandler &other )
-:
-_sessionCacheThread( other._sessionCacheThread )
+spep::SessionCacheThread::ThreadHandler::ThreadHandler(const spep::SessionCacheThread::ThreadHandler &other) :
+    mSessionCacheThread(other.mSessionCacheThread)
 {
 }
 
-spep::SessionCacheThread::ThreadHandler& spep::SessionCacheThread::ThreadHandler::operator=( const spep::SessionCacheThread::ThreadHandler &other )
+spep::SessionCacheThread::ThreadHandler& spep::SessionCacheThread::ThreadHandler::operator=(const spep::SessionCacheThread::ThreadHandler &other)
 {
-	_sessionCacheThread = other._sessionCacheThread;
-	
-	return *this;
+    mSessionCacheThread = other.mSessionCacheThread;
+    return *this;
 }
 
 void spep::SessionCacheThread::ThreadHandler::operator()()
 {
-	_sessionCacheThread->doThreadAction();
+    mSessionCacheThread->doThreadAction();
 }
 
 void spep::SessionCacheThread::doThreadAction()
 {
-	for(;;)
-	{
-		_localLogger.info() << "Session cache thread sleeping for " << _interval << " seconds.";
-		InterruptibleSleeper( _interval, 0, 500, &_die ).sleep();
-		if( _die )
-		{
-			_localLogger.info() << "Session cache thread shutting down.";
-			return;
-		}
-		
-		_localLogger.info() << "Going to check expiry times on session cache.";
-		_sessionCache->terminateExpiredSessions( _timeout );
-	}
+    for (;;)
+    {
+        mLocalLogger.info() << "Session cache thread sleeping for " << mInterval << " seconds.";
+        InterruptibleSleeper(mInterval, 0, 500, &mDie).sleep();
+        if (mDie)
+        {
+            mLocalLogger.info() << "Session cache thread shutting down.";
+            return;
+        }
+
+        mLocalLogger.info() << "Going to check expiry times on session cache.";
+        mSessionCache->terminateExpiredSessions(mTimeout);
+    }
 }

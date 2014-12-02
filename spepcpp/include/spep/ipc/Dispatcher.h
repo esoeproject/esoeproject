@@ -33,9 +33,8 @@ namespace spep { namespace ipc {
 	 * Pure virtual base class for dispatchers
 	 */
 	class SPEPEXPORT Dispatcher
-	{
-		
-		public:
+	{	
+	public:
 		virtual ~Dispatcher(){}
 		
 		/**
@@ -48,8 +47,7 @@ namespace spep { namespace ipc {
 		 * @param en The engine used for the IPC.
 		 * @return true if this dispatcher handled the call
 		 */
-		virtual bool dispatch( MessageHeader &header, Engine &en ) = 0;
-		
+		virtual bool dispatch(MessageHeader &header, Engine &en) = 0;
 	};
 	
 	/**
@@ -57,19 +55,18 @@ namespace spep { namespace ipc {
 	 */
 	class SPEPEXPORT MultifacetedDispatcher : public Dispatcher
 	{
-		
 		typedef std::vector<Dispatcher*>::iterator DispatcherIterator;
 		
-		public:
+	public:
 		
-		MultifacetedDispatcher( saml2::Logger *logger, std::vector<Dispatcher*> dispatchers );
-		
+		MultifacetedDispatcher(saml2::Logger *logger, const std::vector<Dispatcher*>& dispatchers);
 		virtual ~MultifacetedDispatcher();
-		virtual bool dispatch( MessageHeader &header, Engine &en );
+
+		virtual bool dispatch(MessageHeader &header, Engine &en) override;
 		
-		private:
-		saml2::LocalLogger _localLogger;
-		std::vector<Dispatcher*> _dispatchers;
+	private:
+		saml2::LocalLogger mLocalLogger;
+		std::vector<Dispatcher*> mDispatchers;
 		
 	};
 	
@@ -78,16 +75,17 @@ namespace spep { namespace ipc {
 	 */
 	class SPEPEXPORT ExceptionCatchingDispatcher : public Dispatcher
 	{
-		
-		public:
-		ExceptionCatchingDispatcher( saml2::Logger *logger, Dispatcher* nextDispatcher );
-		
+	public:
+
+		ExceptionCatchingDispatcher(saml2::Logger *logger, Dispatcher* nextDispatcher);
 		virtual ~ExceptionCatchingDispatcher();
-		virtual bool dispatch( MessageHeader &header, Engine &en );
+
+		virtual bool dispatch(MessageHeader &header, Engine &en) override;
 		
-		private:
-		saml2::LocalLogger _localLogger;
-		Dispatcher *_nextDispatcher;
+	private:
+
+		saml2::LocalLogger mLocalLogger;
+		Dispatcher *mNextDispatcher;
 		
 	};
 	

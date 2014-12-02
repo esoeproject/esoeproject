@@ -20,40 +20,34 @@
 #include "spep/identifier/proxy/IdentifierCacheProxy.h"
 #include "spep/identifier/proxy/IdentifierCacheDispatcher.h"
 
-static const char *registerIdentifier = IDENTIFIERCACHE_registerIdentifier;
-static const char *containsIdentifier = IDENTIFIERCACHE_containsIdentifier;
-static const char *cleanCache = IDENTIFIERCACHE_cleanCache;
+static const std::string REGISTER_IDENTIFIER = IDENTIFIERCACHE_registerIdentifier;
+static const std::string CONTAINS_IDENTIFIER = IDENTIFIERCACHE_containsIdentifier;
+static const std::string CLEAN_CACHE = IDENTIFIERCACHE_cleanCache;
 
-spep::ipc::IdentifierCacheProxy::IdentifierCacheProxy( spep::ipc::ClientSocketPool *socketPool )
-:
-_socketPool( socketPool )
+spep::ipc::IdentifierCacheProxy::IdentifierCacheProxy(spep::ipc::ClientSocketPool *socketPool) :
+mSocketPool(socketPool)
 {
-}
-
-void spep::ipc::IdentifierCacheProxy::registerIdentifier(std::string identifier)
-{
-	std::string dispatch( ::registerIdentifier );
-	
-	ClientSocketLease clientSocket( _socketPool );
-	clientSocket->makeNonBlockingRequest( dispatch, identifier );
-}
-
-bool spep::ipc::IdentifierCacheProxy::containsIdentifier(std::string identifier)
-{
-	std::string dispatch( ::containsIdentifier );
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest<bool>( dispatch, identifier );
-}
-
-int spep::ipc::IdentifierCacheProxy::cleanCache(long age)
-{
-	std::string dispatch( ::cleanCache );
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest<int>( dispatch, age );
 }
 
 spep::ipc::IdentifierCacheProxy::~IdentifierCacheProxy()
 {
 }
+
+void spep::ipc::IdentifierCacheProxy::registerIdentifier(const std::string& identifier)
+{	
+	ClientSocketLease clientSocket(mSocketPool);
+    clientSocket->makeNonBlockingRequest(REGISTER_IDENTIFIER, identifier);
+}
+
+bool spep::ipc::IdentifierCacheProxy::containsIdentifier(const std::string& identifier)
+{
+	ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<bool>(CONTAINS_IDENTIFIER, identifier);
+}
+
+int spep::ipc::IdentifierCacheProxy::cleanCache(long age)
+{
+	ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<int>(CLEAN_CACHE, age);
+}
+

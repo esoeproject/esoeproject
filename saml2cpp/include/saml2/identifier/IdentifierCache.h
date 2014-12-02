@@ -39,14 +39,15 @@ namespace saml2
 	{
 		public:
 			IdentifierCache();
-			
+            virtual ~IdentifierCache();
+
 			/*
 			 * Registers newly generated identifiers into the session cache
 			 * @param identifier The identifier to register
 			 * 
 			 * @exception IdentifierCacheException if some error state is encountered
 			 */
-			virtual void registerIdentifier(std::string identifier);
+			virtual void registerIdentifier(const std::string& identifier);
 		
 			/*
 			 * Determines if a session identifier is already present in the cache
@@ -54,7 +55,7 @@ namespace saml2
 			 * 
 			 * @exception IdentifierCacheException if some error state is encountered
 			 */
-			virtual bool containsIdentifier(std::string identifier);
+			virtual bool containsIdentifier(const std::string& identifier);
 		
 			/*
 			 * Removes all cache entries whose timestamps are further in the past from the present time then age allows for
@@ -63,11 +64,6 @@ namespace saml2
 			 * @exception IdentifierCacheException if some error state is encountered
 			 */
 			virtual int cleanCache(long age);
-			
-			/*
-			 * Virtual destructor.
-			 */
-			virtual ~IdentifierCache();
 		
 		private:
 			/*

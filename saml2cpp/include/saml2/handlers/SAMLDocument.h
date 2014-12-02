@@ -257,7 +257,8 @@ namespace saml2
 		
 	};
 	
-	typedef ManagedDocument<SAMLByte, long> SAMLDocument;
+	//typedef ManagedDocument<SAMLByte, XMLSize_t> SAMLDocument;
+    typedef ManagedDocument<SAMLByte, long> SAMLDocument;
 	
 }
 

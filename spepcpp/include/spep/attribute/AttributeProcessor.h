@@ -51,15 +51,14 @@ namespace spep
 	 */
 	class SPEPEXPORT AttributeProcessor
 	{
-		
-		public:
+	public:
 		
 		typedef std::vector<saml2::assertion::AttributeStatementType*> AttributeStatementPointerList;
 		
 		/**
 		 * Constructor
 		 */
-		AttributeProcessor( saml2::Logger *logger, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, spep::WSClient *wsClient, saml2::SAMLValidator *samlValidator, std::string schemaPath, const std::map<std::string,std::string>& attributeRenameMap );
+		AttributeProcessor(saml2::Logger *logger, Metadata *metadata, KeyResolver *keyResolver, saml2::IdentifierGenerator *identifierGenerator, spep::WSClient *wsClient, saml2::SAMLValidator *samlValidator, const std::string& schemaPath, const std::map<std::string,std::string>& attributeRenameMap);
 		
 		/**
 		 * Destructor
@@ -71,13 +70,13 @@ namespace spep
 		 * with the attribute data.
 		 * @param principalSession The principal session that has already been authenticated.
 		 */
-		void doAttributeProcessing( PrincipalSession &principalSession );
+		void doAttributeProcessing(PrincipalSession &principalSession);
 		
 		/**
 		 * Internal method for building an attribute query for a particular principal session.
 		 * The SAML ID provided will be the ID attribute for the AttributeQuery element.
 		 */
-		DOMDocument* buildAttributeQuery( PrincipalSession &principalSession, const std::wstring &samlID );
+		DOMDocument* buildAttributeQuery(PrincipalSession &principalSession, const std::wstring &samlID);
 		
 		/**
 		 * Processes an attribute response and populates the session with attribute data.
@@ -87,7 +86,7 @@ namespace spep
 		 * be generated. If the InResponseTo value of the Response does not match this, an
 		 * exception will be thrown.
 		 */
-		void processAttributeResponse( saml2::protocol::ResponseType *response, PrincipalSession &principalSession, const std::wstring &samlID );
+		void processAttributeResponse(saml2::protocol::ResponseType *response, PrincipalSession &principalSession, const std::wstring &samlID);
 		
 		/**
 		 * Processes a list of attribute statements and adds attribute data to the session.
@@ -96,24 +95,24 @@ namespace spep
 		 * This is being done explicitly in a separate method so that we can easily support
 		 * the push model for attribute processing later if need be.
 		 */
-		void processAttributeStatements( AttributeStatementPointerList &attributeStatements, PrincipalSession &principalSession );
+		void processAttributeStatements(AttributeStatementPointerList &attributeStatements, PrincipalSession &principalSession);
 		
-		private:
+	private:
 		
 		/// Disable copy constructor by declaring it privately.
-		AttributeProcessor( const AttributeProcessor& other );
+		AttributeProcessor(const AttributeProcessor& other);
 		/// Disable assignment by declaring operator= privately.
-		AttributeProcessor& operator=( const AttributeProcessor& other );
+		AttributeProcessor& operator=(const AttributeProcessor& other);
 
-		saml2::LocalLogger _localLogger;
-		Metadata *_metadata;
-		KeyResolver *_keyResolver;
-		saml2::IdentifierGenerator *_identifierGenerator;
-		WSClient *_wsClient;
-		saml2::SAMLValidator *_samlValidator;
-		saml2::Marshaller<saml2::protocol::AttributeQueryType> *_attributeQueryMarshaller;
-		saml2::Unmarshaller<saml2::protocol::ResponseType> *_responseUnmarshaller;
-		std::map<UnicodeString,UnicodeString> _attributeRenameMap;
+		saml2::LocalLogger mLocalLogger;
+		Metadata *mMetadata;
+		KeyResolver *mKeyResolver;
+		saml2::IdentifierGenerator *mIdentifierGenerator;
+		WSClient *mWSClient;
+		saml2::SAMLValidator *mSamlValidator;
+		std::unique_ptr<saml2::Marshaller<saml2::protocol::AttributeQueryType>> mAttributeQueryMarshaller;
+		std::unique_ptr<saml2::Unmarshaller<saml2::protocol::ResponseType>> mResponseUnmarshaller;
+		std::map<UnicodeString, UnicodeString> mAttributeRenameMap;
 		
 	};
 	

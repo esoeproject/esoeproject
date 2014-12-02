@@ -31,22 +31,22 @@ namespace spep { namespace ipc {
 
 	class SPEPEXPORT IdentifierCacheProxy : public saml2::IdentifierCache
 	{
+	public:
 
-		private:
-		ClientSocketPool *_socketPool;
-
-		public:
-		IdentifierCacheProxy( ClientSocketPool *socketPool );
+		IdentifierCacheProxy(ClientSocketPool *socketPool);
+        virtual ~IdentifierCacheProxy();
 
 		/// @see saml2::IdentifierCache
 		/**@{*/
-		virtual void registerIdentifier(std::string identifier);
-		virtual bool containsIdentifier(std::string identifier);
-		virtual int cleanCache(long age);
+		virtual void registerIdentifier(const std::string& identifier) override;
+		virtual bool containsIdentifier(const std::string& identifier) override;
+		virtual int cleanCache(long age) override;
 		/**@}*/
-		virtual ~IdentifierCacheProxy();
+	
+    private:
 
-	};
+        ClientSocketPool *mSocketPool;
+    };
 
 } }
 

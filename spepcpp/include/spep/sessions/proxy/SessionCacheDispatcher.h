@@ -43,42 +43,47 @@ namespace spep { namespace ipc {
 #define SESSIONCACHE_terminateAllPrincipalSessions SESSIONCACHEPREFIX "terminateAllPrincipalSessions"
 #define SESSIONCACHE_terminateExpiredSessions SESSIONCACHEPREFIX "terminateExpiredSessions"
 
-	/** Serializable object for the parameters to SessionCache::insertClientSession */
-	class SessionCache_InsertClientSessionCommand
-	{
-		
-		friend class spep::ipc::access;
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int version )
-		{ ar & sessionID & principalSession; }
-		
-		public:
-		SessionCache_InsertClientSessionCommand() : sessionID(), principalSession() {}
-		SessionCache_InsertClientSessionCommand( std::string &sID, PrincipalSession &prSession )
-		: sessionID(sID), principalSession(prSession) {}
-		
-		std::string sessionID;
-		PrincipalSession principalSession;
-		
-	};
+    /** Serializable object for the parameters to SessionCache::insertClientSession */
+    class SessionCache_InsertClientSessionCommand
+    {
+        friend class spep::ipc::access;
 
-	/**
-	 * Dispatcher implementation for the session cache.
-	 */
-	class SPEPEXPORT SessionCacheDispatcher : public Dispatcher
-	{
-		
-		SessionCache* _sessionCache;
-		std::string _prefix;
-		
-		public:
-		SessionCacheDispatcher(SessionCache *sessionCache);
-		virtual ~SessionCacheDispatcher();
-		
-		virtual bool dispatch( MessageHeader &header, Engine &en );
-		
-	};
-	
-} }
+    public:
+        SessionCache_InsertClientSessionCommand() : mSessionID(), mPrincipalSession() {}
+        SessionCache_InsertClientSessionCommand(const std::string &sID, PrincipalSession &prSession)
+            : mSessionID(sID), mPrincipalSession(prSession) {}
+
+        std::string mSessionID;
+        PrincipalSession mPrincipalSession;
+
+    private:
+
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int version)
+        {
+            ar & mSessionID & mPrincipalSession;
+        }
+    };
+
+    /**
+     * Dispatcher implementation for the session cache.
+     */
+    class SPEPEXPORT SessionCacheDispatcher : public Dispatcher
+    {
+
+    public:
+        SessionCacheDispatcher(SessionCache *sessionCache);
+        virtual ~SessionCacheDispatcher();
+
+        virtual bool dispatch(MessageHeader &header, Engine &en) override;
+
+    private:
+
+        SessionCache* mSessionCache;
+        std::string mPrefix;
+    };
+
+}
+}
 
 #endif /*SESSIONCACHEDISPATCHER_H_*/

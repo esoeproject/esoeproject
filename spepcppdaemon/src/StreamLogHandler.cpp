@@ -23,24 +23,24 @@
 
 #include <iostream>
 
-spep::daemon::StreamLogHandler::StreamLogHandler( std::ostream &out, saml2::LogLevel level )
-:
-_out(out),
-_level( level )
+spep::daemon::StreamLogHandler::StreamLogHandler(std::ostream &out, saml2::LogLevel level)
+    :
+    _out(out),
+    _level(level)
 {
 }
 
-void spep::daemon::StreamLogHandler::log( saml2::LogLevel level, const std::string& name, const std::string& msg )
+void spep::daemon::StreamLogHandler::log(saml2::LogLevel level, const std::string& name, const std::string& msg)
 {
-	if( level >= this->_level )
-	{
-		_out << ::saml2::Logger::timestamp() << " [" << level << "] " << name << " - " << msg << std::endl << std::flush;
-	}
+    if (level >= this->_level)
+    {
+        _out << ::saml2::Logger::timestamp() << " [" << level << "] " << name << " - " << msg << std::endl << std::flush;
+    }
 }
 
 saml2::LogLevel spep::daemon::StreamLogHandler::minimumLevel()
 {
-	return this->_level;
+    return this->_level;
 }
 
 spep::daemon::StreamLogHandler::~StreamLogHandler()

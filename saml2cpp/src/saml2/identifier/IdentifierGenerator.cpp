@@ -166,7 +166,7 @@ namespace saml2
 			
 			/* Convert random bytes to Hex to meet xs:ID requirements */
 			for(std::size_t i = 0; i < numBytes; i++) 
-				snprintf(&hexBytes[(i * 2)], 3, HEX_FORMAT, randBytes[i]);
+                snprintf(&hexBytes[(i * 2)], 3, HEX_FORMAT, randBytes[i]);
 					
 			return std::string((char *)hexBytes, numChars);		
 		}

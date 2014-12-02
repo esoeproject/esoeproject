@@ -33,16 +33,16 @@ namespace spep
 		STARTUP_FAIL
 	};
 	
-	class SPEPEXPORT StartupProcessor
-	{
-	
-		public:
-		virtual ~StartupProcessor(){};
-		
-		virtual StartupResult allowProcessing() = 0;
-		virtual void beginSPEPStart() = 0;
-		
-	};
+    class SPEPEXPORT StartupProcessor
+    {
+
+    public:
+        virtual ~StartupProcessor(){};
+
+        virtual StartupResult allowProcessing() = 0;
+        virtual void beginSPEPStart() = 0;
+
+    };
 	
 }
 

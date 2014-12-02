@@ -30,49 +30,45 @@
 namespace spep
 {
 	
-	class SPEPEXPORT SessionCacheThread
-	{
-	
-		private:
-		saml2::LocalLogger _localLogger;
-		SessionCache *_sessionCache;
-		boost::thread_group _threadGroup;
-		int _timeout;
-		int _interval;
-		bool _die;
-		
-		class ThreadHandler
-		{
-		
-			private:
-			SessionCacheThread *_sessionCacheThread;
-			
-			public:
-			ThreadHandler( SessionCacheThread *sessionCacheThread );
-			ThreadHandler( const ThreadHandler& other );
-			ThreadHandler& operator=( const ThreadHandler& other );
-			
-			/**
-			 * Thread target method.
-			 */
-			void operator()();
-		};
-		
-		/**
-		 * Thread method body.
-		 */
-		void doThreadAction();
+    class SPEPEXPORT SessionCacheThread
+    {
+    public:
+        /**
+         * Instantiates the thread object and starts the thread running.
+         */
+        SessionCacheThread(saml2::Logger *logger, SessionCache *sessionCache, int timeout, int interval);
+        ~SessionCacheThread();
 
-		public:
-		/**
-		 * Instantiates the thread object and starts the thread running.
-		 */
-		SessionCacheThread( saml2::Logger *logger, SessionCache *sessionCache, int timeout, int interval );
-		~SessionCacheThread();
-		
-		
-	};
-	
+    private:
+        saml2::LocalLogger mLocalLogger;
+        SessionCache *mSessionCache;
+        boost::thread_group mThreadGroup;
+        int mTimeout;
+        int mInterval;
+        bool mDie;
+
+        class ThreadHandler
+        {
+        public:
+            ThreadHandler(SessionCacheThread *sessionCacheThread);
+            ThreadHandler(const ThreadHandler& other);
+            ThreadHandler& operator=(const ThreadHandler& other);
+
+            /**
+            * Thread target method.
+            */
+            void operator()();
+
+        private:
+            SessionCacheThread *mSessionCacheThread;
+        };
+
+        /**
+        * Thread method body.
+        */
+        void doThreadAction();
+    };
+
 }
 
 #endif /*SESSIONCACHETHREAD_H_*/

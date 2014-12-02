@@ -19,52 +19,52 @@
 
 #include "spep/pep/PolicyEnforcementProcessorData.h"
 
-void spep::PolicyEnforcementProcessorData::setRequestDocument( const saml2::SAMLDocument& document )
+void spep::PolicyEnforcementProcessorData::setRequestDocument(const saml2::SAMLDocument& document)
 {
-	_requestDocument = document;
+    mRequestDocument = document;
 }
 
-const saml2::SAMLDocument& spep::PolicyEnforcementProcessorData::getRequestDocument()
+const saml2::SAMLDocument& spep::PolicyEnforcementProcessorData::getRequestDocument()const 
 {
-	return _requestDocument;
+    return mRequestDocument;
 }
 
-void spep::PolicyEnforcementProcessorData::setResponseDocument( const saml2::SAMLDocument& document )
+void spep::PolicyEnforcementProcessorData::setResponseDocument(const saml2::SAMLDocument& document)
 {
-	_responseDocument = document;
+    mResponseDocument = document;
 }
 
-const saml2::SAMLDocument& spep::PolicyEnforcementProcessorData::getResponseDocument()
+const saml2::SAMLDocument& spep::PolicyEnforcementProcessorData::getResponseDocument() const
 {
-	return _responseDocument;
+    return mResponseDocument;
 }
 
-void spep::PolicyEnforcementProcessorData::setESOESessionID( std::wstring esoeSessionID )
+void spep::PolicyEnforcementProcessorData::setESOESessionID(const std::wstring& esoeSessionID)
 {
-	_esoeSessionID = esoeSessionID;
+    mEsoeSessionID = esoeSessionID;
 }
 
-std::wstring spep::PolicyEnforcementProcessorData::getESOESessionID()
+std::wstring spep::PolicyEnforcementProcessorData::getESOESessionID() const
 {
-	return _esoeSessionID;
+    return mEsoeSessionID;
 }
 
-void spep::PolicyEnforcementProcessorData::setResource( UnicodeString resource )
+void spep::PolicyEnforcementProcessorData::setResource(const UnicodeString& resource)
 {
-	_resource.setTo( resource );
+    mResource.setTo(resource);
 }
 
-UnicodeString spep::PolicyEnforcementProcessorData::getResource()
+UnicodeString spep::PolicyEnforcementProcessorData::getResource() const
 {
-	return _resource;
+    return mResource;
 }
 
-void spep::PolicyEnforcementProcessorData::setDecision( spep::Decision decision )
+void spep::PolicyEnforcementProcessorData::setDecision(spep::Decision decision)
 {
-	_decision = decision;
+    mDecision = decision;
 }
 
-spep::Decision spep::PolicyEnforcementProcessorData::getDecision()
+spep::Decision spep::PolicyEnforcementProcessorData::getDecision() const
 {
-	return _decision;
+    return mDecision;
 }

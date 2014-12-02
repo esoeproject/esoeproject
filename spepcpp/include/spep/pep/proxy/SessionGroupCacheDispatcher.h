@@ -35,64 +35,70 @@ namespace spep{ namespace ipc{
 #define SESSIONGROUPCACHE_clearCache SESSIONGROUPCACHE "clearCache"
 #define SESSIONGROUPCACHE_makeCachedAuthzDecision SESSIONGROUPCACHE "makeCachedAuthzDecision"
 	
-	/**
-	 * Serializable object for the parameters to SessionGroupCache::makeCachedAuthzDecision
-	 */
-	class SPEPEXPORT SessionGroupCache_MakeCachedAuthzDecisionCommand
-	{
-		
-		public:
-		SessionGroupCache_MakeCachedAuthzDecisionCommand(){}
-		SessionGroupCache_MakeCachedAuthzDecisionCommand( std::wstring sID, UnicodeString r )
-		: sessionID(sID), resource(r) {}
-		std::wstring sessionID;
-		UnicodeString resource;
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int version )
-		{ ar & sessionID & resource; }
-		
-	};
-	
-	/**
-	 * Serializable object for the parameters to SessionGroupCache::updateCache
-	 */
-	class SPEPEXPORT SessionGroupCache_UpdateCacheCommand
-	{
-		
-		public:
-		SessionGroupCache_UpdateCacheCommand(){}
-		SessionGroupCache_UpdateCacheCommand( std::wstring sID, UnicodeString gT, std::vector<UnicodeString> aT, spep::Decision d )
-		: sessionID(sID), groupTarget(gT), authzTargets(aT), decision(d) {}
-		std::wstring sessionID;
-		UnicodeString groupTarget;
-		std::vector<UnicodeString> authzTargets;
-		spep::Decision decision;
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int version )
-		{ ar & sessionID & groupTarget & authzTargets & decision; }
-		
-	};
-	
-	/**
-	 * Dispatcher implementation for the session group cache.
-	 */
-	class SPEPEXPORT SessionGroupCacheDispatcher : public Dispatcher
-	{
-		
-		SessionGroupCache *_sessionGroupCache;
-		std::string _prefix;
-		
-		public:
-		/**
-		 * Constructor
-		 * @param sessionGroupCache The session group cache to use when dispatching.
-		 */
-		SessionGroupCacheDispatcher(SessionGroupCache *sessionGroupCache);
-		virtual ~SessionGroupCacheDispatcher();
-		virtual bool dispatch( MessageHeader &header, Engine &en );
-		
-	};
-	
-} }
+    /**
+     * Serializable object for the parameters to SessionGroupCache::makeCachedAuthzDecision
+     */
+    class SPEPEXPORT SessionGroupCache_MakeCachedAuthzDecisionCommand
+    {
+
+    public:
+        SessionGroupCache_MakeCachedAuthzDecisionCommand(){}
+        SessionGroupCache_MakeCachedAuthzDecisionCommand(const std::wstring& sID, const UnicodeString& r)
+            : sessionID(sID), resource(r) {}
+        std::wstring sessionID;
+        UnicodeString resource;
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int version)
+        {
+            ar & sessionID & resource;
+        }
+
+    };
+
+    /**
+     * Serializable object for the parameters to SessionGroupCache::updateCache
+     */
+    class SPEPEXPORT SessionGroupCache_UpdateCacheCommand
+    {
+
+    public:
+        SessionGroupCache_UpdateCacheCommand(){}
+        SessionGroupCache_UpdateCacheCommand(const std::wstring& sID, const UnicodeString& gT, const std::vector<UnicodeString>& aT, spep::Decision d)
+            : sessionID(sID), groupTarget(gT), authzTargets(aT), decision(d) {}
+        std::wstring sessionID;
+        UnicodeString groupTarget;
+        std::vector<UnicodeString> authzTargets;
+        spep::Decision decision;
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int version)
+        {
+            ar & sessionID & groupTarget & authzTargets & decision;
+        }
+
+    };
+
+    /**
+     * Dispatcher implementation for the session group cache.
+     */
+    class SPEPEXPORT SessionGroupCacheDispatcher : public Dispatcher
+    {
+    public:
+        /**
+         * Constructor
+         * @param sessionGroupCache The session group cache to use when dispatching.
+         */
+        SessionGroupCacheDispatcher(SessionGroupCache *sessionGroupCache);
+        virtual ~SessionGroupCacheDispatcher();
+        virtual bool dispatch(MessageHeader &header, Engine &en) override;
+
+    private:
+
+        SessionGroupCache *mSessionGroupCache;
+        std::string mPrefix;
+
+    };
+
+}
+}
 
 #endif /*SESSIONGROUPCACHEDISPATCHER_H_*/

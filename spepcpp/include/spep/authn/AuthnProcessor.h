@@ -57,7 +57,7 @@ namespace spep
 		 * Constructor
 		 * @param schemaPath A std::string representation of the absolute path to schema files on the file system
 		 */
-		AuthnProcessor( saml2::Logger *logger, AttributeProcessor *attributeProcessor, Metadata *metadata, SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyStoreResolver, std::wstring spepIdentifier, std::string ssoRedirect, std::string serviceHost, std::string schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex );
+		AuthnProcessor(saml2::Logger *logger, AttributeProcessor *attributeProcessor, Metadata *metadata, SessionCache *sessionCache, saml2::SAMLValidator *samlValidator, saml2::IdentifierGenerator *identifierGenerator, KeyResolver *keyStoreResolver, const std::wstring& spepIdentifier, const std::string& ssoRedirect, const std::string& serviceHost, const std::string& schemaPath, int attributeConsumingServiceIndex, int assertionConsumerServiceIndex);
 		
 		/**
 		 * Destructor
@@ -68,7 +68,7 @@ namespace spep
 		 * Processes an SAML response document, searching for valid AuthnStatements contained within
 		 * @param data The data object containing a SAML response document
 		 */
-		void processAuthnResponse( AuthnProcessorData &data );
+		void processAuthnResponse(AuthnProcessorData &data);
 		
 		/**
 		 * Generates a SAML AuthnRequest document to be used in establishing a session. An unauthenticated
@@ -77,20 +77,20 @@ namespace spep
 		 * authentication is finished.
 		 * @param data The data object to contain the SAML request document.
 		 */
-		void generateAuthnRequest( AuthnProcessorData &data );
+		void generateAuthnRequest(AuthnProcessorData &data);
 		
 		/**
 		 * Verifies that the session identifier corresponds to an active, valid, authenticated session.
 		 * @param sessionID The local session identifier to search for.
 		 * @return The session object for the local session identifier.
 		 */
-		PrincipalSession verifySession( std::string &sessionID );
+		PrincipalSession verifySession(const std::string &sessionID);
 		
 		/**
 		 * Processes a SAML request document an attempts to perform a logout operation from the document.
 		 * @param data The data object containing a SAML request document
 		 */
-		DOMDocument* logoutPrincipal( saml2::protocol::LogoutRequestType *logoutRequest );
+		DOMDocument* logoutPrincipal(saml2::protocol::LogoutRequestType *logoutRequest);
 		
 		private:
 		
@@ -98,28 +98,28 @@ namespace spep
 		 * Processes an AuthnStatement. If valid, the unauthenticated session is terminated and an 
 		 * authenticated session (PrincipalSession) created.
 		 */
-		std::pair<bool, std::string> processAuthnStatement( const saml2::assertion::AuthnStatementType&, const saml2::assertion::AssertionType&, const std::string& remoteAddress, bool disableAttributeQuery );
-		DOMDocument* generateLogoutResponse( const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo = L"" );
-		static std::string hostnameFromURL( std::string url );
+		std::pair<bool, std::string> processAuthnStatement(const saml2::assertion::AuthnStatementType&, const saml2::assertion::AssertionType&, const std::string& remoteAddress, bool disableAttributeQuery);
+		DOMDocument* generateLogoutResponse(const std::wstring &statusCodeValue, const std::wstring &statusMessage, const std::wstring &inResponseTo = L"");
+		static std::string hostnameFromURL(const std::string& url);
 		
-		saml2::LocalLogger _localLogger;
-		AttributeProcessor *_attributeProcessor;
-		Metadata *_metadata;
-		SessionCache *_sessionCache;
-		saml2::SAMLValidator *_samlValidator;
-		saml2::IdentifierGenerator *_identifierGenerator;
-		KeyResolver *_keyResolver;
-		std::wstring _spepIdentifier;
-		std::string _ssoRedirect;
-		std::string _serviceHost;
-		int _attributeConsumingServiceIndex;
-		int _assertionConsumerServiceIndex;
+		saml2::LocalLogger mLocalLogger;
+		AttributeProcessor *mAttributeProcessor;
+		Metadata *mMetadata;
+		SessionCache *mSessionCache;
+		saml2::SAMLValidator *mSamlValidator;
+		saml2::IdentifierGenerator *mIdentifierGenerator;
+		KeyResolver *mKeyResolver;
+		std::wstring mSpepIdentifier;
+		std::string mSSORedirect;
+		std::string mServiceHost;
+		int mAttributeConsumingServiceIndex;
+		int mAssertionConsumerServiceIndex;
 		
-		saml2::Marshaller<saml2::protocol::AuthnRequestType> *_authnRequestMarshaller;
-		saml2::Unmarshaller<saml2::protocol::ResponseType> *_responseUnmarshaller;
+		std::unique_ptr<saml2::Marshaller<saml2::protocol::AuthnRequestType>> mAuthnRequestMarshaller;
+		std::unique_ptr<saml2::Unmarshaller<saml2::protocol::ResponseType>> mResponseUnmarshaller;
 		
-		saml2::Marshaller<saml2::protocol::ResponseType> *_logoutResponseMarshaller;
-		saml2::Unmarshaller<saml2::protocol::LogoutRequestType> *_logoutRequestUnmarshaller;
+		std::unique_ptr<saml2::Marshaller<saml2::protocol::ResponseType>> mLogoutResponseMarshaller;
+		std::unique_ptr<saml2::Unmarshaller<saml2::protocol::LogoutRequestType>> mLogoutRequestUnmarshaller;
 		
 	};
 	

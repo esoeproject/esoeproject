@@ -19,12 +19,11 @@
 
 #include "spep/startup/proxy/StartupProcessorDispatcher.h"
 
-static const char *allowProcessing = STARTUPPROCESSOR_allowProcessing;
+static const std::string ALLOW_PROCESSING = STARTUPPROCESSOR_allowProcessing;
 
-spep::ipc::StartupProcessorDispatcher::StartupProcessorDispatcher( spep::StartupProcessor *startupProcessor )
-:
-_startupProcessor( startupProcessor ),
-_prefix( STARTUPPROCESSOR )
+spep::ipc::StartupProcessorDispatcher::StartupProcessorDispatcher(spep::StartupProcessor *startupProcessor) :
+    mStartupProcessor(startupProcessor),
+    mPrefix(STARTUPPROCESSOR)
 {
 }
 
@@ -32,40 +31,39 @@ spep::ipc::StartupProcessorDispatcher::~StartupProcessorDispatcher()
 {
 }
 
-bool spep::ipc::StartupProcessorDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
+bool spep::ipc::StartupProcessorDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &en)
 {
-	
-	std::string dispatch = header.getDispatch();
-	
-	// Make sure the prefix matches the expected prefix for this dispatcher.
-	if ( dispatch.compare( 0, strlen( STARTUPPROCESSOR ), _prefix ) != 0 )
-		return false;
-		
-	if ( dispatch.compare( allowProcessing ) == 0 )
-	{
-		
-		unsigned int result;
-		
-		spep::StartupResult startupResult = this->_startupProcessor->allowProcessing();
-		
-		// Because we anticipate the beginSPEPStart() call, we can take it out of the equation by doing it here.
-		if( startupResult == spep::STARTUP_NONE )
-		{
-			this->_startupProcessor->beginSPEPStart();
-			startupResult = spep::STARTUP_WAIT;
-		}
-		
-		result = static_cast<unsigned int>( startupResult );
-		
-		if( header.getType() == SPEPIPC_REQUEST )
-		{
-			en.sendResponseHeader();
-			en.sendObject( result );
-		}
-		
-		return true;
-	}
-	
-	return false;
-	
+    const std::string dispatch = header.getDispatch();
+
+    // Make sure the prefix matches the expected prefix for this dispatcher.
+    if (dispatch.compare(0, strlen(STARTUPPROCESSOR), mPrefix) != 0)
+        return false;
+
+    if (dispatch == ALLOW_PROCESSING)
+    {
+
+        unsigned int result;
+
+        spep::StartupResult startupResult = mStartupProcessor->allowProcessing();
+
+        // Because we anticipate the beginSPEPStart() call, we can take it out of the equation by doing it here.
+        if (startupResult == spep::STARTUP_NONE)
+        {
+            mStartupProcessor->beginSPEPStart();
+            startupResult = spep::STARTUP_WAIT;
+        }
+
+        result = static_cast<unsigned int>(startupResult);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            en.sendResponseHeader();
+            en.sendObject(result);
+        }
+
+        return true;
+    }
+
+    return false;
+
 }

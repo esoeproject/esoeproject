@@ -1,0 +1,395 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\bindings">
+      <UniqueIdentifier>{7e531634-fe92-4cb2-87db-9c0eb4d69215}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\exceptions">
+      <UniqueIdentifier>{a65a89da-c77e-4924-843c-366868204b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\handlers">
+      <UniqueIdentifier>{3a01078e-bacb-4ad9-b31b-c2e807097468}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\handlers\impl">
+      <UniqueIdentifier>{ab35d828-79b3-48e3-bf61-3bc86a57e0b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\identifier">
+      <UniqueIdentifier>{11ed5fd3-e9f9-4cf3-9e07-b6dbb8abb5b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\logging">
+      <UniqueIdentifier>{621e4393-0eac-467a-9693-2744ff159d2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\namespace">
+      <UniqueIdentifier>{b1341a84-37bf-4718-8fac-45950ddf5fcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\resolver">
+      <UniqueIdentifier>{674437f7-88c8-48e0-80f8-72b902b251c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\validator">
+      <UniqueIdentifier>{165f9da4-1e5c-47c4-9981-04422e5df0f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\xsd">
+      <UniqueIdentifier>{cac3a160-8d8b-43f5-b685-357db0db6d0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\constants">
+      <UniqueIdentifier>{3c91beb9-4ad6-457f-8642-3c114c0be823}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\SAML2Defs.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\attributeconfig-schema.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\cacheclear-schema-saml-metadata.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\delegated-schema-saml-protocol.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\esoe-schema-saml-protocol.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-context.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-grouptarget.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-metadata.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-saml-assertion.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema-saml-protocol.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\lxacml-schema.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\saml-schema-assertion-2.0.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\saml-schema-metadata-2.0.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\saml-schema-protocol-2.0.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\sessiondata-schema.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\soap-1.1-envelope.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\soap-1.2-envelope.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\spepstartup-schema-saml-metadata.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\xenc-schema.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\xml.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\bindings\xmldsig-core-schema.hxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\IdentifierCacheException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\IdentifierException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidParameterException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLAssertionException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLAuthnRequestException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLRequestException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\InvalidSAMLResponseException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\MarshallerException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\exceptions\UnmarshallerException.h">
+      <Filter>Source Files\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\Marshaller.h">
+      <Filter>Source Files\handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\MetadataOutput.h">
+      <Filter>Source Files\handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\SAML2ErrorHandler.h">
+      <Filter>Source Files\handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\SAMLDocument.h">
+      <Filter>Source Files\handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\Unmarshaller.h">
+      <Filter>Source Files\handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\impl\MarshallerImpl.h">
+      <Filter>Source Files\handlers\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\handlers\impl\UnmarshallerImpl.h">
+      <Filter>Source Files\handlers\impl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\identifier\IdentifierCache.h">
+      <Filter>Source Files\identifier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\identifier\IdentifierGenerator.h">
+      <Filter>Source Files\identifier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\api.h">
+      <Filter>Source Files\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\Handler.h">
+      <Filter>Source Files\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\LocalLogger.h">
+      <Filter>Source Files\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\Logger.h">
+      <Filter>Source Files\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\LogLevel.h">
+      <Filter>Source Files\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\logging\LogStreamMimic.h">
+      <Filter>Source Files\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\namespace\NamespacePrefixMapper.h">
+      <Filter>Source Files\namespace</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\resolver\ExternalKeyResolver.h">
+      <Filter>Source Files\resolver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\resolver\ResourceResolver.h">
+      <Filter>Source Files\resolver</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLAssertionValidator.h">
+      <Filter>Source Files\validator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLAuthnRequestValidator.h">
+      <Filter>Source Files\validator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLRequestValidator.h">
+      <Filter>Source Files\validator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLResponseValidator.h">
+      <Filter>Source Files\validator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\validator\SAMLValidator.h">
+      <Filter>Source Files\validator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\xsd\xml-schema-custom-attributevaluetype.h">
+      <Filter>Source Files\xsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\xsd\xml-schema-custom.h">
+      <Filter>Source Files\xsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\xsd\xml-schema.hxx">
+      <Filter>Source Files\xsd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\AttributeFormatConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\AuthenticationContextConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\BindingConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\ConfirmationMethodConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\ConsentIdentifierConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\NameIDFormatConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\ProtocolConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\StatusCodeConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\saml2cpp\include\saml2\constants\VersionConstants.h">
+      <Filter>Source Files\constants</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\attributeconfig-schema.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\cacheclear-schema-saml-metadata.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\delegated-schema-saml-protocol.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\esoe-schema-saml-protocol.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-context.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-grouptarget.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-metadata.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-saml-assertion.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema-saml-protocol.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\lxacml-schema.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\saml-schema-assertion-2.0.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\saml-schema-metadata-2.0.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\saml-schema-protocol-2.0.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\sessiondata-schema.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\soap-1.1-envelope.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\soap-1.2-envelope.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\spepstartup-schema-saml-metadata.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\xenc-schema.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\xml.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\bindings\xmldsig-core-schema.cxx">
+      <Filter>Source Files\bindings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\IdentifierCacheException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\IdentifierException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidParameterException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLAssertionException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLAuthnRequestException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLRequestException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLResponseException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\MarshallerException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\UnmarshallerException.cpp">
+      <Filter>Source Files\exceptions</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\MetadataOutput.cpp">
+      <Filter>Source Files\handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\SAML2ErrorHandler.cpp">
+      <Filter>Source Files\handlers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\identifier\IdentifierCache.cpp">
+      <Filter>Source Files\identifier</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\identifier\IdentifierGenerator.cpp">
+      <Filter>Source Files\identifier</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\api.cpp">
+      <Filter>Source Files\logging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\LocalLogger.cpp">
+      <Filter>Source Files\logging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\Logger.cpp">
+      <Filter>Source Files\logging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\LogLevel.cpp">
+      <Filter>Source Files\logging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\logging\LogStreamMimic.cpp">
+      <Filter>Source Files\logging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\namespace\NamespacePrefixMapper.cpp">
+      <Filter>Source Files\namespace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\resolver\ExternalKeyResolver.cpp">
+      <Filter>Source Files\resolver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\resolver\ResourceResolver.cpp">
+      <Filter>Source Files\resolver</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLAssertionValidator.cpp">
+      <Filter>Source Files\validator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLAuthnRequestValidator.cpp">
+      <Filter>Source Files\validator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLRequestValidator.cpp">
+      <Filter>Source Files\validator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLResponseValidator.cpp">
+      <Filter>Source Files\validator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\validator\SAMLValidator.cpp">
+      <Filter>Source Files\validator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\xsd\xml-schema-custom-attributevaluetype.cpp">
+      <Filter>Source Files\xsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\xsd\xml-schema-custom.cpp">
+      <Filter>Source Files\xsd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\impl\UnmarshallerImpl.cpp">
+      <Filter>Source Files\handlers\impl</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

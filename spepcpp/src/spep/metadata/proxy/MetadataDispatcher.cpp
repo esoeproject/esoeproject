@@ -19,19 +19,19 @@
 
 #include "spep/metadata/proxy/MetadataDispatcher.h"
 
-static const char *getSPEPIdentifier = METADATA_getSPEPIdentifier;
-static const char *getESOEIdentifier = METADATA_getESOEIdentifier;
-static const char *getSingleSignOnEndpoint = METADATA_getSingleSignOnEndpoint;
-static const char *getSingleLogoutEndpoint = METADATA_getSingleLogoutEndpoint;
-static const char *getAttributeServiceEndpoint = METADATA_getAttributeServiceEndpoint;
-static const char *getAuthzServiceEndpoint = METADATA_getAuthzServiceEndpoint;
-static const char *getSPEPStartupServiceEndpoint = METADATA_getSPEPStartupServiceEndpoint;
-static const char *resolveKey = METADATA_resolveKey;
+static const std::string GET_SPEP_IDENTIFIER = METADATA_getSPEPIdentifier; // this should be wstring?
+static const std::string GET_ESOE_IDENTIFIER = METADATA_getESOEIdentifier; // this should be wstring?
+static const std::string GET_SINGLE_SIGNON_ENDPOINT = METADATA_getSingleSignOnEndpoint;
+static const std::string GET_SINGLE_LOGOUT_ENDPOINT = METADATA_getSingleLogoutEndpoint;
+static const std::string GET_ATTRIBUTE_SERVICE_ENDPOINT = METADATA_getAttributeServiceEndpoint;
+static const std::string GET_AUTHZ_SERVICE_ENDPOINT = METADATA_getAuthzServiceEndpoint;
+static const std::string GET_SPEP_STARTUP_SERVICE_ENDPOINT = METADATA_getSPEPStartupServiceEndpoint;
+static const std::string RESOLVE_KEY = METADATA_resolveKey;
 
-spep::ipc::MetadataDispatcher::MetadataDispatcher( spep::Metadata *metadata )
-:
-_prefix( METADATA ),
-_metadata( metadata )
+
+spep::ipc::MetadataDispatcher::MetadataDispatcher(spep::Metadata *metadata) :
+    mPrefix(METADATA),
+    mMetadata(metadata)
 {
 }
 
@@ -39,129 +39,129 @@ spep::ipc::MetadataDispatcher::~MetadataDispatcher()
 {
 }
 
-bool spep::ipc::MetadataDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
-{	
-	std::string dispatch = header.getDispatch();
-	
-	// Make sure the prefix matches the expected prefix for this dispatcher.
-	if ( dispatch.compare( 0, strlen( METADATA ), _prefix ) != 0 )
-		return false;
-	
-	if ( dispatch.compare( getSPEPIdentifier ) == 0 )
-	{
-		std::wstring spepIdentifier( _metadata->getSPEPIdentifier() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( spepIdentifier );
-		}
-		
-		return true;
-		
-	}
-	
-	if ( dispatch.compare( getESOEIdentifier ) == 0 )
-	{
-		std::wstring esoeIdentifier( _metadata->getESOEIdentifier() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( esoeIdentifier );
-		}
-		
-		return true;
-	}
+bool spep::ipc::MetadataDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &en)
+{
+    const std::string dispatch = header.getDispatch();
 
-	if ( dispatch.compare( getSingleSignOnEndpoint ) == 0 )
-	{
-		std::string singleSignOnEndpoint( _metadata->getSingleSignOnEndpoint() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( singleSignOnEndpoint );
-		}
-		
-		return true;
-	}
+    // Make sure the prefix matches the expected prefix for this dispatcher.
+    if (dispatch.compare(0, strlen(METADATA), mPrefix) != 0)
+        return false;
 
-	if ( dispatch.compare( getSingleLogoutEndpoint ) == 0 )
-	{
-		std::string singleLogoutEndpoint( _metadata->getSingleLogoutEndpoint() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( singleLogoutEndpoint );
-		}
-		
-		return true;
-	}
+    if (dispatch == GET_SPEP_IDENTIFIER)
+    {
+        const std::wstring spepIdentifier(mMetadata->getSPEPIdentifier());
 
-	if ( dispatch.compare( getAttributeServiceEndpoint ) == 0 )
-	{
-		std::string attributeServiceEndpoint( _metadata->getAttributeServiceEndpoint() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( attributeServiceEndpoint );
-		}
-		
-		return true;
-	}
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(spepIdentifier);
+        }
 
-	if ( dispatch.compare( getAuthzServiceEndpoint ) == 0 )
-	{
-		std::string authzServiceEndpoint( _metadata->getAuthzServiceEndpoint() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( authzServiceEndpoint );
-		}
-		
-		return true;
-	}
+        return true;
 
-	if ( dispatch.compare( getSPEPStartupServiceEndpoint ) == 0 )
-	{
-		std::string spepStartupServiceEndpoint( _metadata->getSPEPStartupServiceEndpoint() );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( spepStartupServiceEndpoint );
-		}
-		
-		return true;
-	}
+    }
 
-	if ( dispatch.compare( resolveKey ) == 0 )
-	{
-		std::string keyName;
-		en.getObject( keyName );
-		
-		saml2::KeyData keyData( _metadata->resolveKey( keyName ) );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// Return the value
-			en.sendResponseHeader();
-			en.sendObject( keyData );
-		}
-		
-		return true;
-	}
+    if (dispatch == GET_ESOE_IDENTIFIER)
+    {
+        const std::wstring esoeIdentifier(mMetadata->getESOEIdentifier());
 
-	return false;
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(esoeIdentifier);
+        }
+
+        return true;
+    }
+
+    if (dispatch == GET_SINGLE_SIGNON_ENDPOINT)
+    {
+        const std::string singleSignOnEndpoint(mMetadata->getSingleSignOnEndpoint());
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(singleSignOnEndpoint);
+        }
+
+        return true;
+    }
+
+    if (dispatch == GET_SINGLE_LOGOUT_ENDPOINT)
+    {
+        const std::string singleLogoutEndpoint(mMetadata->getSingleLogoutEndpoint());
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(singleLogoutEndpoint);
+        }
+
+        return true;
+    }
+
+    if (dispatch == GET_ATTRIBUTE_SERVICE_ENDPOINT)
+    {
+        const std::string attributeServiceEndpoint(mMetadata->getAttributeServiceEndpoint());
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(attributeServiceEndpoint);
+        }
+
+        return true;
+    }
+
+    if (dispatch == GET_AUTHZ_SERVICE_ENDPOINT)
+    {
+        const std::string authzServiceEndpoint(mMetadata->getAuthzServiceEndpoint());
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(authzServiceEndpoint);
+        }
+
+        return true;
+    }
+
+    if (dispatch == GET_SPEP_STARTUP_SERVICE_ENDPOINT)
+    {
+        const std::string spepStartupServiceEndpoint(mMetadata->getSPEPStartupServiceEndpoint());
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(spepStartupServiceEndpoint);
+        }
+
+        return true;
+    }
+
+    if (dispatch == RESOLVE_KEY)
+    {
+        std::string keyName;
+        en.getObject(keyName);
+
+        saml2::KeyData keyData(mMetadata->resolveKey(keyName));
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // Return the value
+            en.sendResponseHeader();
+            en.sendObject(keyData);
+        }
+
+        return true;
+    }
+
+    return false;
 }

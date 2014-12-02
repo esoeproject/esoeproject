@@ -48,8 +48,8 @@ namespace spep
 		virtual const std::string getAttributeServiceEndpoint() const = 0;
 		virtual const std::string getAuthzServiceEndpoint() const = 0;
 		virtual const std::string getSPEPStartupServiceEndpoint() const = 0;
-		virtual XSECCryptoKey *resolveKey (DSIGKeyInfoList *lst) = 0;
-		virtual saml2::KeyData resolveKey (std::string keyName) = 0;
+		virtual XSECCryptoKey *resolveKey(DSIGKeyInfoList *lst) = 0;
+		virtual saml2::KeyData resolveKey(const std::string& keyName) = 0;
 		
 	};
 	

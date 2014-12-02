@@ -20,7 +20,7 @@
 #ifndef ENGINE_H_
 #define ENGINE_H_
 
-#include <asio.hpp>
+#include <boost/asio.hpp>
 
 #include "spep/Util.h"
 #include "spep/ipc/MessageHeader.h"
@@ -29,13 +29,13 @@
 
 namespace spep { namespace ipc {
 
-	using namespace boost;
-	using asio::ip::tcp;
+	//using namespace boost;
+	//using boost::asio::ip::tcp;
 
 	class SPEPEXPORT Engine
 	{
 		public:
-		Engine(function<void(const std::vector<char>&)> writeCallback, function<void(std::vector<char>&)> readCallback)
+		Engine(std::function<void(const std::vector<char>&)> writeCallback, std::function<void(std::vector<char>&)> readCallback)
 		: _archive(writeCallback, readCallback) {}
 		
 		/**
@@ -45,7 +45,7 @@ namespace spep { namespace ipc {
 		 * @return A result object
 		 */
 		template <class Res, class Req>
-		Res makeRequest( std::string &dispatch, Req &req );
+		Res makeRequest(const std::string &dispatch, Req &req);
 		
 		/**
 		 * Sends a request with the dispatch string provided but does not await any response.
@@ -54,7 +54,7 @@ namespace spep { namespace ipc {
 		 * @param req The request object
 		 */
 		template <class Req>
-		void makeNonBlockingRequest( std::string &dispatch, Req &req );
+		void makeNonBlockingRequest(const std::string &dispatch, Req &req);
 		
 		/**
 		 * Deserializes an object from the connection stream.
@@ -91,10 +91,10 @@ namespace spep { namespace ipc {
 	
 	
 	template <class Res, class Req>
-	Res Engine::makeRequest( std::string &dispatch, Req &req )
+	Res Engine::makeRequest(const std::string &dispatch, Req &req )
 	{
 		// Create a request header with the given dispatch string
-		MessageHeader requestHeader( SPEPIPC_REQUEST, dispatch );
+		MessageHeader requestHeader(SPEPIPC_REQUEST, dispatch);
 		
 		// Send the request header first, then the request object
 		_archive.out() << requestHeader; 
@@ -120,14 +120,14 @@ namespace spep { namespace ipc {
 			throw e;
 		}
 		
-		throw InvalidArchiveStateException( "Expected RESPONSE object but got different type" );
+		throw InvalidArchiveStateException("Expected RESPONSE object but got different type");
 	}
 	
 	template <class Req>
-	void Engine::makeNonBlockingRequest( std::string &dispatch, Req &req )
+	void Engine::makeNonBlockingRequest(const std::string &dispatch, Req &req)
 	{
 		// Create the request header.
-		MessageHeader requestHeader( SPEPIPC_NONBLOCKING, dispatch );
+		MessageHeader requestHeader(SPEPIPC_NONBLOCKING, dispatch);
 		
 		// Send request header, then request object. No response is expected for SPEPIPC_NONBLOCKING
 		_archive.out() << requestHeader << req;

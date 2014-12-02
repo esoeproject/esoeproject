@@ -55,71 +55,70 @@
 namespace spep
 {
 	
-	class SPEPEXPORT PolicyEnforcementProcessor
-	{
-		friend class WSProcessor;
-		
-		public:
-		
-		PolicyEnforcementProcessor( saml2::Logger *logger, WSClient *wsClient, SessionGroupCache *sessionGroupCache, SessionCache *sessionCache, Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, KeyResolver *keyResolver, std::string schemaPath );
-		
-		~PolicyEnforcementProcessor();
-		
-		/**
-		 * Makes an authorization decision for the given session to access the given
-		 * resource. This method will attempt to use a local cache to make the decision
-		 * before generating a request and asking the PDP to make a decision.
-		 * 
-		 * Cache updates are performed automatically by this method.
-		 */
-		void makeAuthzDecision( PolicyEnforcementProcessorData &data );
-		
-		/**
-		 * Performs a clear on the authorization cache. All cached data for all sessions
-		 * is immediately flushed.
-		 */
-		DOMDocument* authzCacheClear( middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType *request );
-		
-		/**
-		 * Generates a SAML document to perform an authorization query to the ESOE
-		 */
-		DOMDocument* generateAuthzDecisionQuery( PolicyEnforcementProcessorData &data );
-		
-		/**
-		 * Processes a SAML response and returns an authorization decision from the ESOE
-		 */
-		void processAuthzDecisionStatement( PolicyEnforcementProcessorData &data, saml2::protocol::ResponseType *response );
-		
-		/**
-		 * Processes a set of Obligations from the ESOE and performs cache updates.
-		 */
-		void processObligations( PolicyEnforcementProcessorData &data, middleware::lxacmlSchema::ObligationsType &obligations );
+    class SPEPEXPORT PolicyEnforcementProcessor
+    {
+        friend class WSProcessor;
 
-		/**
-		 * Generates a response to a ClearAuthzCacheRequest, with the given data.
-		 */		
-		DOMDocument* generateClearAuthzCacheResponse( std::wstring &inResponseTo, std::wstring &statusMessage, std::wstring &statusCodeValue );
-		
-		
-		private:
-		
-		saml2::LocalLogger _localLogger;
-		SessionGroupCache *_sessionGroupCache;
-		SessionCache *_sessionCache;
-		Metadata *_metadata;
-		saml2::IdentifierGenerator *_identifierGenerator;
-		saml2::SAMLValidator *_samlValidator;
-		WSClient *_wsClient;
-		
-		saml2::Marshaller<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType> *_lxacmlAuthzDecisionQueryMarshaller;
-		saml2::Unmarshaller<saml2::protocol::ResponseType> *_responseUnmarshaller;
-		saml2::Unmarshaller<middleware::lxacmlSAMLAssertionSchema::LXACMLAuthzDecisionStatementType> *_lxacmlAuthzDecisionStatementUnmarshaller;
-		saml2::Unmarshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType> *_clearAuthzCacheRequestUnmarshaller;
-		saml2::Marshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType> *_clearAuthzCacheResponseMarshaller;
-		saml2::Unmarshaller<middleware::lxacmlGroupTargetSchema::GroupTargetType> *_groupTargetUnmarshaller;
-		
-	};
-	
+    public:
+
+        PolicyEnforcementProcessor(saml2::Logger *logger, WSClient *wsClient, SessionGroupCache *sessionGroupCache, SessionCache *sessionCache, Metadata *metadata, saml2::IdentifierGenerator *identifierGenerator, saml2::SAMLValidator *samlValidator, KeyResolver *keyResolver, const std::string& schemaPath);
+        ~PolicyEnforcementProcessor();
+
+        /**
+         * Makes an authorization decision for the given session to access the given
+         * resource. This method will attempt to use a local cache to make the decision
+         * before generating a request and asking the PDP to make a decision.
+         *
+         * Cache updates are performed automatically by this method.
+         */
+        void makeAuthzDecision(PolicyEnforcementProcessorData &data);
+
+        /**
+         * Performs a clear on the authorization cache. All cached data for all sessions
+         * is immediately flushed.
+         */
+        DOMDocument* authzCacheClear(middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType *request);
+
+        /**
+         * Generates a SAML document to perform an authorization query to the ESOE
+         */
+        DOMDocument* generateAuthzDecisionQuery(PolicyEnforcementProcessorData &data);
+
+        /**
+         * Processes a SAML response and returns an authorization decision from the ESOE
+         */
+        void processAuthzDecisionStatement(PolicyEnforcementProcessorData &data, saml2::protocol::ResponseType *response);
+
+        /**
+         * Processes a set of Obligations from the ESOE and performs cache updates.
+         */
+        void processObligations(PolicyEnforcementProcessorData &data, middleware::lxacmlSchema::ObligationsType &obligations);
+
+        /**
+         * Generates a response to a ClearAuthzCacheRequest, with the given data.
+         */
+        DOMDocument* generateClearAuthzCacheResponse(const std::wstring &inResponseTo, const std::wstring &statusMessage, const std::wstring &statusCodeValue);
+
+
+    private:
+
+        saml2::LocalLogger mLocalLogger;
+        SessionGroupCache *mSessionGroupCache;
+        SessionCache *mSessionCache;
+        Metadata *mMetadata;
+        saml2::IdentifierGenerator *mIdentifierGenerator;
+        saml2::SAMLValidator *mSamlValidator;
+        WSClient *mWSClient;
+
+        std::unique_ptr<saml2::Marshaller<middleware::lxacmlSAMLProtocolSchema::LXACMLAuthzDecisionQueryType>> mLxacmlAuthzDecisionQueryMarshaller;
+        std::unique_ptr<saml2::Unmarshaller<saml2::protocol::ResponseType>> mResponseUnmarshaller;
+        std::unique_ptr<saml2::Unmarshaller<middleware::lxacmlSAMLAssertionSchema::LXACMLAuthzDecisionStatementType>> mLxacmlAuthzDecisionStatementUnmarshaller;
+        std::unique_ptr<saml2::Unmarshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheRequestType>> mClearAuthzCacheRequestUnmarshaller;
+        std::unique_ptr<saml2::Marshaller<middleware::ESOEProtocolSchema::ClearAuthzCacheResponseType>> mClearAuthzCacheResponseMarshaller;
+        std::unique_ptr<saml2::Unmarshaller<middleware::lxacmlGroupTargetSchema::GroupTargetType>> mGroupTargetUnmarshaller;
+
+    };
+
 }
 
 #endif /*POLICYENFORCEMENTPROCESSOR_H_*/

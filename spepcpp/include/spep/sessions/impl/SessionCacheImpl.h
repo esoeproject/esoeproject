@@ -41,6 +41,7 @@ namespace spep {
 		
 		public:
 		SessionCacheImpl( saml2::Logger *logger );
+        virtual ~SessionCacheImpl(){}
 		
 		/** @see spep::SessionCache */
 		/*@{*/

@@ -31,33 +31,32 @@
 #include <winsock2.h>
 #include <windows.h>
 
-namespace spep { namespace isapi {
+namespace spep {
+    namespace isapi {
 
-	class SPEPExtension;
-	
-	class WSHandler
-	{
-		
-		private:
-		SPEP *_spep;
-		SPEPExtension *_spepExtension;
-		
-		spep::SOAPDocument readRequestDocument( ISAPIRequest *request, spep::SOAPUtil::SOAPVersion *soapVersion, std::string &characterEncoding );
-		DWORD sendResponseDocument( ISAPIRequest *request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, std::string &characterEncoding );
-		
-		public:
-		WSHandler( SPEP *spep, SPEPExtension *extension );
-		
-		/**
-		 * Performs the WS processing logic.
-		 */
-		DWORD processRequest( ISAPIRequest* request );
-		DWORD authzCacheClear( ISAPIRequest* request );
-		DWORD singleLogout( ISAPIRequest* request );
-		
-		
-	};
+        class SPEPExtension;
 
-} }
+        class WSHandler
+        {
+        public:
+            WSHandler(SPEP *spep, SPEPExtension *extension);
+
+            /**
+             * Performs the WS processing logic.
+             */
+            DWORD processRequest(ISAPIRequest* request);
+            DWORD authzCacheClear(ISAPIRequest* request);
+            DWORD singleLogout(ISAPIRequest* request);
+
+        private:
+            SPEP *mSpep;
+            SPEPExtension *mSpepExtension;
+
+            spep::SOAPDocument readRequestDocument(ISAPIRequest* request, spep::SOAPUtil::SOAPVersion* soapVersion, std::string& characterEncoding);
+            DWORD sendResponseDocument(ISAPIRequest* request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
+        };
+
+    }
+}
 
 #endif /*WSHANDLER_H_*/

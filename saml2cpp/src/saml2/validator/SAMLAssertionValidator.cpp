@@ -137,7 +137,7 @@ namespace saml2
 		}
 		catch (IdentifierCacheException &exc)
 		{
-			SAML2LIB_ASSERTION_EX("Assertion ID has already been used. Possible replay attack");
+			SAML2LIB_ASSERTION_EX("Assertion ID has already been used. Possible replay attack.");
 		}
 	}
 }

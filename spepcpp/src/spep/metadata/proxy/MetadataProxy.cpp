@@ -22,136 +22,125 @@
 
 #include "saml2/exceptions/InvalidParameterException.h"
 
-static const char *getSPEPIdentifier = METADATA_getSPEPIdentifier;
-static const char *getESOEIdentifier = METADATA_getESOEIdentifier;
-static const char *getSingleSignOnEndpoint = METADATA_getSingleSignOnEndpoint;
-static const char *getSingleLogoutEndpoint = METADATA_getSingleLogoutEndpoint;
-static const char *getAttributeServiceEndpoint = METADATA_getAttributeServiceEndpoint;
-static const char *getAuthzServiceEndpoint = METADATA_getAuthzServiceEndpoint;
-static const char *getSPEPStartupServiceEndpoint = METADATA_getSPEPStartupServiceEndpoint;
-static const char *resolveKey = METADATA_resolveKey;
+static const std::string GET_SPEP_IDENTIFIER = METADATA_getSPEPIdentifier; // this should be wstring?
+static const std::string GET_ESOE_IDENTIFIER = METADATA_getESOEIdentifier; // this should be wstring?
+static const std::string GET_SINGLE_SIGNON_ENDPOINT = METADATA_getSingleSignOnEndpoint;
+static const std::string GET_SINGLE_LOGOUT_ENDPOINT = METADATA_getSingleLogoutEndpoint;
+static const std::string GET_ATTRIBUTE_SERVICE_ENDPOINT = METADATA_getAttributeServiceEndpoint;
+static const std::string GET_AUTHZ_SERVICE_ENDPOINT = METADATA_getAuthzServiceEndpoint;
+static const std::string GET_SPEP_STARTUP_SERVICE_ENDPOINT = METADATA_getSPEPStartupServiceEndpoint;
+static const std::string RESOLVE_KEY = METADATA_resolveKey;
 
-spep::ipc::MetadataProxy::MetadataProxy( spep::ipc::ClientSocketPool *socketPool )
-:
-_socketPool( socketPool )
+spep::ipc::MetadataProxy::MetadataProxy(spep::ipc::ClientSocketPool *socketPool) :
+    mSocketPool(socketPool)
 {
 }
 
 spep::ipc::MetadataProxy::~MetadataProxy()
 {
-	CryptoKeyPointerList::iterator iter;
-	for( iter = _cryptoKeyList.begin(); iter != _cryptoKeyList.end(); ++iter )
-	{
-		// TODO Investigate if we need to delete keys here.
-		//XSECCryptoKey *key = *iter;
-		// They shouldn't be in the list if they're NULL.
-		//if( key != NULL )
-		//	delete key;
-	}
+    CryptoKeyPointerList::iterator iter;
+    for (iter = mCryptoKeyList.begin(); iter != mCryptoKeyList.end(); ++iter)
+    {
+        // TODO Investigate if we need to delete keys here.
+        //XSECCryptoKey *key = *iter;
+        // They shouldn't be in the list if they're NULL.
+        //if( key != NULL )
+        //	delete key;
+    }
 }
 
 const std::wstring spep::ipc::MetadataProxy::getSPEPIdentifier() const
 {
-	std::string dispatch( ::getSPEPIdentifier );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::wstring >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::wstring>(GET_SPEP_IDENTIFIER, noData);
 }
 
 const std::wstring spep::ipc::MetadataProxy::getESOEIdentifier() const
 {
-	std::string dispatch( ::getESOEIdentifier );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::wstring >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::wstring>(GET_ESOE_IDENTIFIER, noData);
 }
 
 const std::string spep::ipc::MetadataProxy::getSingleSignOnEndpoint() const
 {
-	std::string dispatch( ::getSingleSignOnEndpoint );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::string >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::string>(GET_SINGLE_SIGNON_ENDPOINT, noData);
 }
 
 const std::string spep::ipc::MetadataProxy::getSingleLogoutEndpoint() const
 {
-	std::string dispatch( ::getSingleLogoutEndpoint );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::string >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::string>(GET_SINGLE_LOGOUT_ENDPOINT, noData);
 }
 
 const std::string spep::ipc::MetadataProxy::getAttributeServiceEndpoint() const
 {
-	std::string dispatch( ::getAttributeServiceEndpoint );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::string >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::string>(GET_ATTRIBUTE_SERVICE_ENDPOINT, noData);
 }
 
 const std::string spep::ipc::MetadataProxy::getAuthzServiceEndpoint() const
 {
-	std::string dispatch( ::getAuthzServiceEndpoint );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::string >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::string>(GET_AUTHZ_SERVICE_ENDPOINT, noData);
 }
 
 const std::string spep::ipc::MetadataProxy::getSPEPStartupServiceEndpoint() const
 {
-	std::string dispatch( ::getSPEPStartupServiceEndpoint );
-	spep::ipc::NoData noData;
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< std::string >( dispatch, noData );
+    spep::ipc::NoData noData;
+
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest<std::string>(GET_SPEP_STARTUP_SERVICE_ENDPOINT, noData);
 }
 
-XSECCryptoKey *spep::ipc::MetadataProxy::resolveKey (DSIGKeyInfoList *lst)
+XSECCryptoKey *spep::ipc::MetadataProxy::resolveKey(DSIGKeyInfoList *lst)
 {
-	
-	if ( lst->getSize() < 1 )
-	{
-		SAML2LIB_INVPARAM_EX( "List did not have at least one keyinfo" );
-	}
-	
-	DSIGKeyInfo *keyInfo = lst->item(0);
-	const XMLCh *keyNameXMLString = keyInfo->getKeyName();
-	std::auto_ptr< XercesCharStringAdapter > keyNameChars( new XercesCharStringAdapter( XMLString::transcode( keyNameXMLString ) ) );
-	
-	std::string keyName( keyNameChars->get(), XMLString::stringLen( keyNameXMLString ) );
-	
-	saml2::KeyData keyData( this->resolveKey( keyName ) );
-	
-	// TODO Memory leak here?
-	// This XSECCryptoKey must be deleted in this class, since xml-security-c won't.
-	XSECCryptoKey *cryptoKey = keyData.createXSECCryptoKey();
-	// Store the pointer in a list to be destructed when this class goes out of scope.
-	
-	if( cryptoKey != NULL )
-	{
-		_cryptoKeyList.push_back( cryptoKey );
-	}
-	
-	return cryptoKey;
-	
+    if (lst->getSize() < 1)
+    {
+        SAML2LIB_INVPARAM_EX("List did not have at least one keyinfo");
+    }
+
+    DSIGKeyInfo *keyInfo = lst->item(0);
+    const XMLCh *keyNameXMLString = keyInfo->getKeyName();
+    std::auto_ptr< XercesCharStringAdapter > keyNameChars(new XercesCharStringAdapter(XMLString::transcode(keyNameXMLString)));
+
+    std::string keyName(keyNameChars->get(), XMLString::stringLen(keyNameXMLString));
+
+    saml2::KeyData keyData(resolveKey(keyName));
+
+    // TODO Memory leak here?
+    // This XSECCryptoKey must be deleted in this class, since xml-security-c won't.
+    XSECCryptoKey *cryptoKey = keyData.createXSECCryptoKey();
+    // Store the pointer in a list to be destructed when this class goes out of scope.
+
+    if (cryptoKey != NULL)
+    {
+        mCryptoKeyList.push_back(cryptoKey);
+    }
+
+    return cryptoKey;
+
 }
 
-saml2::KeyData spep::ipc::MetadataProxy::resolveKey (std::string keyName)
+saml2::KeyData spep::ipc::MetadataProxy::resolveKey(const std::string& keyName)
 {
-	std::string dispatch( ::resolveKey );
-	
-	ClientSocketLease clientSocket( _socketPool );
-	return clientSocket->makeRequest< saml2::KeyData >( dispatch, keyName );
+    ClientSocketLease clientSocket(mSocketPool);
+    return clientSocket->makeRequest< saml2::KeyData >(RESOLVE_KEY, keyName);
 }
 
 XSECKeyInfoResolver* spep::ipc::MetadataProxy::clone() const
 {
-	return new MetadataProxy( this->_socketPool );
+    return new MetadataProxy(mSocketPool);
 }

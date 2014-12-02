@@ -27,20 +27,19 @@
 
 namespace spep{ namespace ipc{
 	
-	class SPEPEXPORT SessionGroupCacheProxy : public spep::SessionGroupCache
-	{
-		
-		public:
-		SessionGroupCacheProxy( spep::ipc::ClientSocketPool *socketPool );
-		virtual ~SessionGroupCacheProxy();
-		virtual void updateCache( std::wstring &sessionID, UnicodeString groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision );
-		virtual void clearCache( std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets );
-		virtual Decision makeCachedAuthzDecision( std::wstring sessionID, UnicodeString resource );
-		
-		private:
-		spep::ipc::ClientSocketPool *_socketPool;
-		
-	};
+    class SPEPEXPORT SessionGroupCacheProxy : public spep::SessionGroupCache
+    {
+    public:
+        SessionGroupCacheProxy(spep::ipc::ClientSocketPool *socketPool);
+        virtual ~SessionGroupCacheProxy();
+        virtual void updateCache(const std::wstring &sessionID, const UnicodeString& groupTarget, std::vector<UnicodeString> &authzTargets, Decision decision) override;
+        virtual void clearCache(std::map< UnicodeString, std::vector<UnicodeString> > &groupTargets) override;
+        virtual Decision makeCachedAuthzDecision(const std::wstring& sessionID, const UnicodeString& resource) override;
+
+    private:
+        spep::ipc::ClientSocketPool *mSocketPool;
+
+    };
 	
 }}
 

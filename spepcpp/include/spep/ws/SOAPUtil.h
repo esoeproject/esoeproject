@@ -39,197 +39,196 @@
 
 namespace spep
 {
-	
-	typedef saml2::SAMLDocument SOAPDocument;
-	
-	class SPEPEXPORT SOAPUtil
-	{
-		
 
-		private:
-		
-		/**
-		 * Class definition for SOAP 1.1 handler.
-		 */
-		class SOAP11Handler
-		{
-			private:
-			saml2::LocalLogger _localLogger;
-			saml2::Unmarshaller< soap::v11::Envelope > *_envelopeUnmarshaller;
-			saml2::Marshaller< soap::v11::Envelope > *_envelopeMarshaller;
-			saml2::Unmarshaller< soap::v11::Body > *_bodyUnmarshaller;
-			saml2::Marshaller< soap::v11::Body > *_bodyMarshaller;
-			XMLCh* _implFlags;
-			DOMImplementation* _domImpl;
-			
-			SOAP11Handler( const SOAP11Handler& other );
-			SOAP11Handler& operator=( const SOAP11Handler& other );
-				
-			public:
-			SOAP11Handler( saml2::Logger *logger, std::string schemaPath );
-			~SOAP11Handler();
-			template <typename T>
-			T* unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument );
-			SOAPDocument wrap( DOMElement *objectElement, std::string characterEncoding );
-		};
-		
-		/**
-		 * Class definition for SOAP 1.2 handler.
-		 */
-		class SOAP12Handler
-		{
-			private:
-			saml2::LocalLogger _localLogger;
-			saml2::Unmarshaller< soap::v12::Envelope > *_envelopeUnmarshaller;
-			saml2::Marshaller< soap::v12::Envelope > *_envelopeMarshaller;
-			XMLCh* _implFlags;
-			DOMImplementation* _domImpl;
-			
-			SOAP12Handler( const SOAP12Handler& other );
-			SOAP12Handler& operator=( const SOAP12Handler& other );
+    typedef saml2::SAMLDocument SOAPDocument;
 
-			public:
-			SOAP12Handler( saml2::Logger *logger, std::string schemaPath );
-			~SOAP12Handler();
-			template <typename T>
-			T* unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument );
-			SOAPDocument wrap( DOMElement *objectElement, std::string characterEncoding );
-		};
-		
-		saml2::LocalLogger _localLogger;
-		SOAP11Handler *_soap11Handler;
-		SOAP12Handler *_soap12Handler;
-		
-		SOAPUtil( const SOAPUtil& other );
-		SOAPUtil& operator=( const SOAPUtil& other );
+    class SPEPEXPORT SOAPUtil
+    {
+    public:
 
-		public:
-		
-		enum SOAPVersion
-		{
-			UNINITIALIZED,
-			SOAP11,
-			SOAP12
-		};
-		
+        enum SOAPVersion
+        {
+            UNINITIALIZED,
+            SOAP11,
+            SOAP12
+        };
 
-		SOAPUtil( saml2::Logger *logger, std::string schemaPath );
-		~SOAPUtil();
-		
-		/**
-		 * Wraps a given SAML object and marshalls into a SOAP document ready for a web service request/response.
-		 */
-		SOAPDocument wrapObjectInSOAP( DOMElement *objectElement, const std::string& characterEncoding, SOAPVersion soapVersion );
-		
-		/**
-		 * Unwraps a SAML object and unmarshalls into an expected SAML object from a web service request/response.
-		 */
-		template<typename T>
-		T* unwrapObjectFromSOAP( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument, SOAPVersion soapVersion )
-		{
-			switch( soapVersion )
-			{
-				case SOAP12:
-				_localLogger.debug() << "Going to unwrap SOAP/1.2 envelope.";
-				return this->_soap12Handler->unwrap<T>( unmarshaller, soapDocument );
+        SOAPUtil(saml2::Logger *logger, const std::string& schemaPath);
+        ~SOAPUtil();
 
-				// Default to SOAP/1.1 processing
-				case SOAP11:
-				default:
-				_localLogger.debug() << "Going to unwrap SOAP/1.1 envelope.";
-				return this->_soap11Handler->unwrap<T>( unmarshaller, soapDocument );
-			}
-		}
-		
-	};
-	
-	/*
-	 * Despite the code for these methods being very similar, they will remain seperate
-	 * so that any differences between SOAP 1.1 and 1.2 don't require massive refactoring
-	 * to implement.
-	 * 
-	 * That said, I know this could be done more cleanly with templates :)
-	 */
-	
-	template <typename T>
-	T* SOAPUtil::SOAP11Handler::unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument )
-	{
-		std::auto_ptr<soap::v11::Envelope> envelope( this->_envelopeUnmarshaller->unMarshallUnSigned( soapDocument, true ) );
-		
-		_localLogger.debug() << "Unmarshalled envelope successfully. Going to process Body.";
+        /**
+         * Wraps a given SAML object and marshalls into a SOAP document ready for a web service request/response.
+         */
+        SOAPDocument wrapObjectInSOAP(DOMElement *objectElement, const std::string& characterEncoding, SOAPVersion soapVersion);
 
-		// Not going to change anything. Just seems dumb that we can't get a reference without being const
-		soap::v11::Body &body = const_cast<soap::v11::Body&>( envelope->Body() );
-		
-		soap::v11::Body::any_iterator bodyAnyIterator;
-		for( bodyAnyIterator = body.any().begin();
-			bodyAnyIterator != body.any().end();
-			++bodyAnyIterator )
-		{
-			DOMElement *root = &(*bodyAnyIterator);
-			xml_schema::dom::auto_ptr<DOMDocument> domDoc( this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 ) );
-			
-			{
-				XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );
-				XercesCharStringAdapter namespaceURI( XMLString::transcode( root->getNamespaceURI() ) );
-				_localLogger.debug() << "Got document element with namespace " << namespaceURI.get() << " and local name " << localName.get();
-			}
+        /**
+         * Unwraps a SAML object and unmarshalls into an expected SAML object from a web service request/response.
+         */
+        template<typename T>
+        T* unwrapObjectFromSOAP(saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument, SOAPVersion soapVersion)
+        {
+            switch (soapVersion)
+            {
+            case SOAP12:
+                mLocalLogger.debug() << "Going to unwrap SOAP/1.2 envelope.";
+                return mSoap12Handler->unwrap<T>(unmarshaller, soapDocument);
 
-			DOMElement *documentElement = domDoc->getDocumentElement();
-			if( documentElement != NULL )
-			{
-				domDoc->removeChild( documentElement );
-			}
-			
-			domDoc->appendChild( domDoc->importNode( root, true ) );
-			unmarshaller->validateSignature( domDoc.get() );
-			
-			return unmarshaller->unMarshallUnSignedElement( static_cast<DOMElement*>( root->cloneNode( true ) ), true );
-		}
-		
-		_localLogger.error() << "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller.";
-		return NULL;
-	}
-	
-	template <typename T>
-	T* SOAPUtil::SOAP12Handler::unwrap( saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument )
-	{
-		std::auto_ptr<soap::v12::Envelope> envelope( this->_envelopeUnmarshaller->unMarshallUnSigned( soapDocument, true ) );
-		
-		_localLogger.debug() << "Unmarshalled envelope successfully. Going to process Body.";
+                // Default to SOAP/1.1 processing
+            case SOAP11:
+            default:
+                mLocalLogger.debug() << "Going to unwrap SOAP/1.1 envelope.";
+                return mSoap11Handler->unwrap<T>(unmarshaller, soapDocument);
+            }
+        }
 
-		// Not going to change anything. Just seems dumb that we can't get a reference without being const
-		soap::v12::Body &body = const_cast<soap::v12::Body&>( envelope->Body() );
-		
-		soap::v12::Body::any_iterator bodyAnyIterator;
-		for( bodyAnyIterator = body.any().begin();
-			bodyAnyIterator != body.any().end();
-			++bodyAnyIterator )
-		{
-			DOMElement *root = &(*bodyAnyIterator);
-			xml_schema::dom::auto_ptr<DOMDocument> domDoc( this->_domImpl->createDocument( root->getNamespaceURI(), root->getLocalName(), 0 ) );
-			
-			{
-				XercesCharStringAdapter localName( XMLString::transcode( root->getLocalName() ) );
-				XercesCharStringAdapter namespaceURI( XMLString::transcode( root->getNamespaceURI() ) );
-				_localLogger.debug() << "Got document element with namespace " << namespaceURI.get() << " and local name " << localName.get();
-			}
+    private:
 
-			DOMElement *documentElement = domDoc->getDocumentElement();
-			if( documentElement != NULL )
-			{
-				domDoc->removeChild( documentElement );
-			}
-			
-			domDoc->appendChild( domDoc->importNode( root, true ) );
-			unmarshaller->validateSignature( domDoc.get() );
+        /**
+        * Class definition for SOAP 1.1 handler.
+        */
+        class SOAP11Handler
+        {
+        public:
 
-			return unmarshaller->unMarshallUnSignedElement( static_cast<DOMElement*>( root->cloneNode( true ) ), true );
-		}
-		
-		_localLogger.error() << "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller.";
-		return NULL;
-	}
+            SOAP11Handler(saml2::Logger *logger, const std::string& schemaPath);
+            ~SOAP11Handler();
+            template <typename T>
+            T* unwrap(saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument);
+            SOAPDocument wrap(DOMElement *objectElement, const std::string& characterEncoding);
+
+        private:
+
+            SOAP11Handler(const SOAP11Handler& other);
+            SOAP11Handler& operator=(const SOAP11Handler& other);
+
+            saml2::LocalLogger mLocalLogger;
+            std::unique_ptr<saml2::Unmarshaller<soap::v11::Envelope>> mEnvelopeUnmarshaller;
+            std::unique_ptr<saml2::Marshaller<soap::v11::Envelope>> mEnvelopeMarshaller;
+            std::unique_ptr<saml2::Unmarshaller<soap::v11::Body>> mBodyUnmarshaller;
+            std::unique_ptr<saml2::Marshaller<soap::v11::Body>> mBodyMarshaller;
+            XMLCh* mImplFlags;
+            DOMImplementation* mDomImpl;
+        };
+
+        /**
+        * Class definition for SOAP 1.2 handler.
+        */
+        class SOAP12Handler
+        {
+        public:
+
+            SOAP12Handler(saml2::Logger *logger, const std::string& schemaPath);
+            ~SOAP12Handler();
+            template <typename T>
+            T* unwrap(saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument);
+            SOAPDocument wrap(DOMElement *objectElement, const std::string& characterEncoding);
+
+        private:
+
+            SOAP12Handler(const SOAP12Handler& other);
+            SOAP12Handler& operator=(const SOAP12Handler& other);
+
+            saml2::LocalLogger mLocalLogger;
+            std::unique_ptr<saml2::Unmarshaller<soap::v12::Envelope>> mEnvelopeUnmarshaller;
+            std::unique_ptr<saml2::Marshaller<soap::v12::Envelope>> mEnvelopeMarshaller;
+            XMLCh* mImplFlags;
+            DOMImplementation* mDomImpl;
+        };
+
+        saml2::LocalLogger mLocalLogger;
+        std::unique_ptr<SOAP11Handler> mSoap11Handler;
+        std::unique_ptr<SOAP12Handler> mSoap12Handler;
+
+        SOAPUtil(const SOAPUtil& other);
+        SOAPUtil& operator=(const SOAPUtil& other);
+    };
+
+    /*
+     * Despite the code for these methods being very similar, they will remain seperate
+     * so that any differences between SOAP 1.1 and 1.2 don't require massive refactoring
+     * to implement.
+     *
+     * That said, I know this could be done more cleanly with templates :)
+     */
+    template <typename T>
+    inline T* SOAPUtil::SOAP11Handler::unwrap(saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument)
+    {
+        std::auto_ptr<soap::v11::Envelope> envelope(mEnvelopeUnmarshaller->unMarshallUnSigned(soapDocument, true));
+
+        mLocalLogger.debug() << "Unmarshalled envelope successfully. Going to process Body.";
+
+        // Not going to change anything. Just seems dumb that we can't get a reference without being const
+        soap::v11::Body &body = const_cast<soap::v11::Body&>(envelope->Body());
+
+        soap::v11::Body::any_iterator bodyAnyIterator;
+        for (bodyAnyIterator = body.any().begin();
+            bodyAnyIterator != body.any().end();
+            ++bodyAnyIterator)
+        {
+            DOMElement *root = &(*bodyAnyIterator);
+            xml_schema::dom::auto_ptr<DOMDocument> domDoc(mDomImpl->createDocument(root->getNamespaceURI(), root->getLocalName(), 0));
+
+            {
+                XercesCharStringAdapter localName(XMLString::transcode(root->getLocalName()));
+                XercesCharStringAdapter namespaceURI(XMLString::transcode(root->getNamespaceURI()));
+                mLocalLogger.debug() << "Got document element with namespace " << namespaceURI.get() << " and local name " << localName.get();
+            }
+
+            DOMElement *documentElement = domDoc->getDocumentElement();
+            if (documentElement != NULL)
+            {
+                domDoc->removeChild(documentElement);
+            }
+
+            domDoc->appendChild(domDoc->importNode(root, true));
+            unmarshaller->validateSignature(domDoc.get());
+
+            return unmarshaller->unMarshallUnSignedElement(static_cast<DOMElement*>(root->cloneNode(true)), true);
+        }
+
+        mLocalLogger.error() << "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller.";
+        return NULL;
+    }
+
+    template <typename T>
+    inline T* SOAPUtil::SOAP12Handler::unwrap(saml2::Unmarshaller<T> *unmarshaller, const SOAPDocument& soapDocument)
+    {
+        std::auto_ptr<soap::v12::Envelope> envelope(mEnvelopeUnmarshaller->unMarshallUnSigned(soapDocument, true));
+
+        mLocalLogger.debug() << "Unmarshalled envelope successfully. Going to process Body.";
+
+        // Not going to change anything. Just seems dumb that we can't get a reference without being const
+        soap::v12::Body &body = const_cast<soap::v12::Body&>(envelope->Body());
+
+        soap::v12::Body::any_iterator bodyAnyIterator;
+        for (bodyAnyIterator = body.any().begin();
+            bodyAnyIterator != body.any().end();
+            ++bodyAnyIterator)
+        {
+            DOMElement *root = &(*bodyAnyIterator);
+            xml_schema::dom::auto_ptr<DOMDocument> domDoc(mDomImpl->createDocument(root->getNamespaceURI(), root->getLocalName(), 0));
+
+            {
+                XercesCharStringAdapter localName(XMLString::transcode(root->getLocalName()));
+                XercesCharStringAdapter namespaceURI(XMLString::transcode(root->getNamespaceURI()));
+                mLocalLogger.debug() << "Got document element with namespace " << namespaceURI.get() << " and local name " << localName.get();
+            }
+
+            DOMElement *documentElement = domDoc->getDocumentElement();
+            if (documentElement != NULL)
+            {
+                domDoc->removeChild(documentElement);
+            }
+
+            domDoc->appendChild(domDoc->importNode(root, true));
+            unmarshaller->validateSignature(domDoc.get());
+
+            return unmarshaller->unMarshallUnSignedElement(static_cast<DOMElement*>(root->cloneNode(true)), true);
+        }
+
+        mLocalLogger.error() << "Fell off the loop while looking for a SOAP <Body> element. Returning NULL to caller.";
+        return NULL;
+    }
 }
 
 #endif /*SOAPUTIL_H_*/

@@ -37,18 +37,18 @@ namespace spep { namespace ipc {
 #define METADATA_getSPEPStartupServiceEndpoint METADATA "getSPEPStartupServiceEndpoint"
 #define METADATA_resolveKey METADATA "resolveKey"
 
-	class SPEPEXPORT MetadataDispatcher : public Dispatcher
-	{
-		
-		std::string _prefix;
-		spep::Metadata *_metadata;
-		
-		public:
-		MetadataDispatcher( spep::Metadata *metadata );
-		virtual bool dispatch( MessageHeader &header, Engine &en );
-		virtual ~MetadataDispatcher();
-		
-	};
+    class SPEPEXPORT MetadataDispatcher : public Dispatcher
+    {
+    public:
+        MetadataDispatcher(spep::Metadata *metadata);
+        virtual ~MetadataDispatcher();
+
+        virtual bool dispatch(MessageHeader &header, Engine &en) override;
+
+    private:
+        std::string mPrefix;
+        spep::Metadata *mMetadata;
+    };
 
 } }
 

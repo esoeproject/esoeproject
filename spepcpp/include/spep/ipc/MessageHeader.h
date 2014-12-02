@@ -43,45 +43,44 @@ namespace spep { namespace ipc {
 	 * RPC message, be it request or response.
 	 */
 	class SPEPEXPORT MessageHeader
-	{
-		
-		friend class spep::ipc::access;
-		
-		template <class Archive>
-		void serialize( Archive &ar, const unsigned int version );
-		
-		public:
-		/**
-		 * Constructs a new MessageHeader object with no values.
-		 */
-		MessageHeader();
-		
-		/**
-		 * Constructs a new MessageHeader object with the given type and dispatch string
-		 */
-		MessageHeader( MessageType messageType, std::string dispatch );
-		
-		/**
-		 * Returns the message type, one of the MessageType enum values.
-		 */
-		MessageType getType();
-		
-		/**
-		 * Returns the dispatch string for this message. Only used for request messages.
-		 */
-		std::string &getDispatch();
-		
-		bool operator==(MessageHeader &rhs);
-		bool operator!=(MessageHeader &rhs);
-		
-		private:
-		MessageType _messageType;
-		std::string _dispatch;
+    {
+        friend class spep::ipc::access;
+
+    public:
+        /**
+         * Constructs a new MessageHeader object with no values.
+         */
+        MessageHeader();
+
+        /**
+         * Constructs a new MessageHeader object with the given type and dispatch string
+         */
+        MessageHeader(MessageType messageType, const std::string& dispatch);
+
+        /**
+         * Returns the message type, one of the MessageType enum values.
+         */
+        MessageType getType() const;
+
+        /**
+         * Returns the dispatch string for this message. Only used for request messages.
+         */
+        std::string getDispatch() const;
+
+        bool operator==(MessageHeader &rhs);
+        bool operator!=(MessageHeader &rhs);
+
+    private:
+        template <class Archive>
+        void serialize(Archive &ar, const unsigned int version);
+
+        MessageType _messageType;
+        std::string _dispatch;
 		
 	};
 
 	template <class Archive>
-	void MessageHeader::serialize( Archive &ar, const unsigned int version )
+	inline void MessageHeader::serialize(Archive &ar, const unsigned int version)
 	{
 		ar & (unsigned int&)_messageType & _dispatch;
 	}

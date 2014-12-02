@@ -24,24 +24,23 @@
 
 namespace spep { namespace daemon {
 
-	class StreamLogHandler : public saml2::Handler
-	{
+    class StreamLogHandler : public saml2::Handler
+    {
+    public:
 
-		private:
-		std::ostream &_out;
-		saml2::LogLevel _level;
+        StreamLogHandler(std::ostream &out, saml2::LogLevel level);
+        /**
+         * @see saml2::LoggingHandler::log
+         */
+        virtual void log(saml2::LogLevel level, const std::string& name, const std::string& msg);
+        virtual saml2::LogLevel minimumLevel();
+        virtual ~StreamLogHandler();
 
-		public:
+    private:
+        std::ostream &_out;
+        saml2::LogLevel _level;
 
-		StreamLogHandler( std::ostream &out, saml2::LogLevel level );
-		/**
-		 * @see saml2::LoggingHandler::log
-		 */
-		virtual void log( saml2::LogLevel level, const std::string& name, const std::string& msg );
-		virtual saml2::LogLevel minimumLevel();
-		virtual ~StreamLogHandler();
-
-	};
+    };
 
 } }
 

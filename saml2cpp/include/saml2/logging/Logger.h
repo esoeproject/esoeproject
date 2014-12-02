@@ -49,14 +49,7 @@ namespace saml2
 	 * and log() at the same time.
 	 */
 	class SAML2EXPORT Logger
-	{
-
-		private:
-		std::vector<Handler*> _handlers;
-
-		Logger( const Logger& other );
-		Logger& operator=( const Logger& other );
-
+    {
 		public:
 
 		/**
@@ -68,7 +61,7 @@ namespace saml2
 		 * Initializes the logger with a list of logging handlers.
 		 * @param handlers The list of handlers to use
 		 */
-		Logger( std::vector<Handler*> handlers );
+		Logger(const std::vector<Handler*>& handlers);
 
 		virtual ~Logger();
 
@@ -76,7 +69,7 @@ namespace saml2
 		 * Adds a logging handler to this logger. If the same handler
 		 * is added multiple times, it will be logged to multiple times.
 		 */
-		virtual void registerHandler( Handler* handler );
+		virtual void registerHandler(Handler* handler);
 
 		/**
 		 * Logs a message to each of the logging handlers.
@@ -84,9 +77,16 @@ namespace saml2
 		 * @param name The name of the local logger that logged this.
 		 * @param msg The message to log.
 		 */
-		virtual void log( LogLevel level, const std::string& name, const std::string& msg );
+		virtual void log(LogLevel level, const std::string& name, const std::string& msg);
 
 		static std::string timestamp();
+
+    private:
+
+        Logger(const Logger& other);
+        Logger& operator=(const Logger& other);
+
+        std::vector<Handler*> mHandlers;
 	};
 }
 

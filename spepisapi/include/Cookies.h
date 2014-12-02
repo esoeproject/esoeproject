@@ -22,23 +22,23 @@
 
 #include "ISAPIRequest.h"
 
-#include <map>
+#include <unordered_map>
 #include <string>
 
 #define COOKIES_EXPIRES_TIME_STRING_FORMAT "%a, %d-%b-%Y %H:%M:%S GMT"
 
 namespace spep { namespace isapi {
 
-	class Cookies
-	{
-		private:
-		std::map<std::string,std::string> _values;
-		
-		public:
-		Cookies( ISAPIRequest *isapiRequest );
-		const std::string& operator[]( const std::string& name );
-		void addCookie( ISAPIRequest *isapiRequest, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0 );
-	};
+    class Cookies
+    {
+    public:
+        Cookies(ISAPIRequest *isapiRequest);
+        std::string operator[](const std::string& name);
+        void addCookie(ISAPIRequest *isapiRequest, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0);
+
+    private:
+        std::unordered_map<std::string, std::string> mValues;
+    };
 	
 } }
 

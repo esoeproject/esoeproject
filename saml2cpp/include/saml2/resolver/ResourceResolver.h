@@ -29,13 +29,13 @@
 /* Xerces C++ */
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/dom/DOMEntityResolver.hpp>
+#include <xercesc/sax/EntityResolver.hpp>
 
 XERCES_CPP_NAMESPACE_USE
 
 namespace saml2
 {
-	class SAML2EXPORT ResourceResolver : public DOMEntityResolver
+	class SAML2EXPORT ResourceResolver : public EntityResolver
 	{
 		public:
 			/*
@@ -43,19 +43,19 @@ namespace saml2
 			 * 
 			 * @param baseSchemaPath Base path on disk that schema can be loaded from
 			 */
-			ResourceResolver(std::string baseSchemaPath);
+			ResourceResolver(const std::string& schemaPath);
 			
 			/*
 			 * Destructor
 			 * 
 			 * Releases Xerces string data
 			 */
-			~ResourceResolver();		
+			virtual ~ResourceResolver();		
 			
 			/*
 			 * Returns a DOMInputSource to match the requested schema, implementation of DOMEntityResolver pure virtual method
 			 */
-			DOMInputSource * resolveEntity (const XMLCh *const publicId, const XMLCh *const systemId, const XMLCh *const baseURI);
+			virtual InputSource * resolveEntity (const XMLCh *const publicId, const XMLCh *const systemId) override;
 		
 		private: 
 			/*

@@ -27,18 +27,18 @@
 
 namespace spep { namespace ipc {
 	
-	class SPEPEXPORT StartupProcessorProxy : public spep::StartupProcessor
-	{
-		
-		private:
-		ClientSocketPool *_socketPool;
-		
-		public:
-		StartupProcessorProxy( ClientSocketPool *socketPool );
-		virtual ~StartupProcessorProxy();
-		
-		virtual spep::StartupResult allowProcessing();
-		virtual void beginSPEPStart();
+    class SPEPEXPORT StartupProcessorProxy : public spep::StartupProcessor
+    {
+    public:
+        StartupProcessorProxy(ClientSocketPool *socketPool);
+        virtual ~StartupProcessorProxy();
+
+        virtual spep::StartupResult allowProcessing() override;
+        virtual void beginSPEPStart() override;
+
+    private:
+        ClientSocketPool *mSocketPool;
+
 	};
 	
 } }

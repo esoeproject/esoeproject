@@ -21,43 +21,41 @@
 
 #include "saml2/logging/api.h"
 
-spep::ipc::MultifacetedDispatcher::MultifacetedDispatcher( saml2::Logger *logger, std::vector<Dispatcher*> dispatchers )
-: 
-_localLogger( logger, "spep::ipc::MultifacetedDispatcher" ),
-_dispatchers(dispatchers) 
+spep::ipc::MultifacetedDispatcher::MultifacetedDispatcher(saml2::Logger *logger, const std::vector<Dispatcher*>& dispatchers ) : 
+    mLocalLogger(logger, "spep::ipc::MultifacetedDispatcher"),
+    mDispatchers(dispatchers) 
 {}
 
 spep::ipc::MultifacetedDispatcher::~MultifacetedDispatcher()
 {
 	// Free each dispatcher in the list..
-	for( DispatcherIterator iter = _dispatchers.begin(); iter != _dispatchers.end(); ++iter )
+	for (DispatcherIterator iter = mDispatchers.begin(); iter != mDispatchers.end(); ++iter)
 	{
 		delete *iter;
 	}
 }
 
-bool spep::ipc::MultifacetedDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
+bool spep::ipc::MultifacetedDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &en)
 {
-	_localLogger.trace() << "Dispatching request bound for " << header.getDispatch();
+	mLocalLogger.trace() << "Dispatching request bound for " << header.getDispatch();
 	
 	// For each dispatcher in the list..
-	for( DispatcherIterator iter = _dispatchers.begin(); iter != _dispatchers.end(); ++iter )
+	for (DispatcherIterator iter = mDispatchers.begin(); iter != mDispatchers.end(); ++iter)
 	{
 		Dispatcher *dispatcher = (*iter);
 		// If it dispatches return true.
-		if ( dispatcher->dispatch( header, en ) )
+		if (dispatcher->dispatch(header, en))
 			return true;
 	}
 	
-	_localLogger.warn() << "No dispatcher for " << header.getDispatch() << ". Failing.";
+	mLocalLogger.warn() << "No dispatcher for " << header.getDispatch() << ". Failing.";
 	// All dispatchers returned false, so we can as well.
 	return false;
 }
 
-spep::ipc::ExceptionCatchingDispatcher::ExceptionCatchingDispatcher( saml2::Logger *logger, spep::ipc::Dispatcher* nextDispatcher )
-:
-_localLogger( logger, "spep::ipc::ExceptionCatchingDispatcher" ),
-_nextDispatcher( nextDispatcher )
+spep::ipc::ExceptionCatchingDispatcher::ExceptionCatchingDispatcher(saml2::Logger *logger, spep::ipc::Dispatcher* nextDispatcher) :
+    mLocalLogger(logger, "spep::ipc::ExceptionCatchingDispatcher"),
+    mNextDispatcher(nextDispatcher)
 {
 }
 
@@ -65,50 +63,50 @@ spep::ipc::ExceptionCatchingDispatcher::~ExceptionCatchingDispatcher()
 {
 }
 
-bool spep::ipc::ExceptionCatchingDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &engine )
+bool spep::ipc::ExceptionCatchingDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &engine)
 {
 	try
 	{
 		// If everything happens as it should, return the result directly.
-		return this->_nextDispatcher->dispatch( header, engine );
+		return this->mNextDispatcher->dispatch(header, engine);
 	}
-	catch( std::exception &ex )
+	catch (std::exception &ex)
 	{
 		// Exception where we can return a message to the calling side.
-		std::string message( "An exception occurred while processing the request. Message was: " );
-		message.append( ex.what() );
+		std::string message("An exception occurred while processing the request. Message was: ");
+		message.append(ex.what());
 		
-		if( header.getType() == SPEPIPC_REQUEST )
+		if (header.getType() == SPEPIPC_REQUEST)
 		{
 			// Send the error response.
 			engine.sendErrorResponseHeader();
-			InvocationTargetException exception( message );
+			InvocationTargetException exception(message);
 			engine.sendObject(exception);
 		}
 		else
 		{
 			// Not expecting a response. We can still log it.
-			_localLogger.error() << "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " << message;
+			mLocalLogger.error() << "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " << message;
 		}
 		
 		return true;
 	}
-	catch( ... )
+	catch (...)
 	{
 		// No exception information, but still we must report an error.
-		std::string message( "An unknown exception occurred while processing the request." );
+		std::string message("An unknown exception occurred while processing the request.");
 		
-		if( header.getType() == SPEPIPC_REQUEST )
+		if (header.getType() == SPEPIPC_REQUEST)
 		{
 			// Send the error response.
 			engine.sendErrorResponseHeader();
-			InvocationTargetException exception( message );
+			InvocationTargetException exception(message);
 			engine.sendObject(exception);
 		}
 		else
 		{
 			// Not expecting a response. We can still log it.
-			_localLogger.error() << "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " << message;
+			mLocalLogger.error() << "Exception was thrown while dispatching a request, but client does not expect a reply. Error was: " << message;
 		}
 		
 		return true;

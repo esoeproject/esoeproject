@@ -24,180 +24,181 @@
 #include "spep/ipc/MessageHeader.h"
 
 namespace spep{ namespace ipc{
-static const char *insertPrincipalSession = SESSIONCACHE_insertPrincipalSession;
-static const char *getPrincipalSession = SESSIONCACHE_getPrincipalSession;
-static const char *getPrincipalSessionByEsoeSessionID = SESSIONCACHE_getPrincipalSessionByEsoeSessionID;
-static const char *terminatePrincipalSession = SESSIONCACHE_terminatePrincipalSession;
-static const char *insertUnauthenticatedSession = SESSIONCACHE_insertUnauthenticatedSession;
-static const char *getUnauthenticatedSession = SESSIONCACHE_getUnauthenticatedSession;
-static const char *terminateUnauthenticatedSession = SESSIONCACHE_terminateUnauthenticatedSession;
-static const char *terminateExpiredSessions = SESSIONCACHE_terminateExpiredSessions;
+    static const std::string INSERT_PRINCIPAL_SESSION = SESSIONCACHE_insertPrincipalSession;
+    static const std::string GET_PRINCIPAL_SESSION = SESSIONCACHE_getPrincipalSession;
+    static const std::string GET_PRINCIPAL_SESSION_BY_ESOE_SESSION_ID = SESSIONCACHE_getPrincipalSessionByEsoeSessionID;
+    static const std::string TERMINATE_PRINCIPAL_SESSION = SESSIONCACHE_terminatePrincipalSession;
+    static const std::string INSERT_UNAUTHENTICATED_SESSION = SESSIONCACHE_insertUnauthenticatedSession;
+    static const std::string GET_UNAUTHENTICATED_SESSION = SESSIONCACHE_getUnauthenticatedSession;
+    static const std::string TERMINATE_UNAUTHENTICATED_SESSION = SESSIONCACHE_terminateUnauthenticatedSession;
+    static const std::string TERMINATE_EXPIRED_SESSIONS = SESSIONCACHE_terminateExpiredSessions;
+    
 } }
 
- 
-spep::ipc::SessionCacheDispatcher::SessionCacheDispatcher(SessionCache *sessionCache)
-: _sessionCache(sessionCache),
-_prefix(SESSIONCACHEPREFIX)
+
+spep::ipc::SessionCacheDispatcher::SessionCacheDispatcher(SessionCache *sessionCache) :
+    mSessionCache(sessionCache),
+    mPrefix(SESSIONCACHEPREFIX)
 {}
 
 spep::ipc::SessionCacheDispatcher::~SessionCacheDispatcher()
 {}
-		
-bool spep::ipc::SessionCacheDispatcher::dispatch( spep::ipc::MessageHeader &header, spep::ipc::Engine &en )
+
+bool spep::ipc::SessionCacheDispatcher::dispatch(spep::ipc::MessageHeader &header, spep::ipc::Engine &en)
 {
-	std::string dispatch = header.getDispatch();
-	if ( dispatch.compare( 0, strlen(SESSIONCACHEPREFIX), _prefix ) != 0 )
-		return false;
-	
-	/* Insert client session call dispatcher */
-	if ( dispatch.compare( insertPrincipalSession ) == 0 )
-	{
-		SessionCache_InsertClientSessionCommand command;
-		en.getObject( command );
-		
-		// Try to perform the insert
-		_sessionCache->insertPrincipalSession( command.sessionID, command.principalSession );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			NoData noData;
-			// If the client is expecting a response, send one.
-			en.sendResponseHeader();
-			en.sendObject( noData );
-		}
-		return true;
-	}
-	
-	/* Get client session call dispatcher */
-	if ( dispatch.compare( getPrincipalSession ) == 0 )
-	{
-		std::string sessionID;
-		en.getObject( sessionID );
-		
-		PrincipalSession principalSession;
-		
-		// Try to find the session
-		_sessionCache->getPrincipalSession( principalSession, sessionID );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// If the client is expecting a response, send one.
-			en.sendResponseHeader();
-			en.sendObject( principalSession );
-		}
-			
-		return true;
-	}
-	
-	/* Get client session call dispatcher */
-	if ( dispatch.compare( getPrincipalSessionByEsoeSessionID ) == 0 )
-	{
-		//virtual const PrincipalSession* getPrincipalSessionByEsoeSessionID(const UnicodeString esoeSessionID) const;
+    std::string dispatch = header.getDispatch();
+    if (dispatch.compare(0, strlen(SESSIONCACHEPREFIX), mPrefix) != 0)
+        return false;
 
-		std::wstring esoeSessionID;
-		en.getObject( esoeSessionID );
-		
-		PrincipalSession principalSession;
-		
-		// Try to find the session
-		_sessionCache->getPrincipalSessionByEsoeSessionID( principalSession, esoeSessionID );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			// If the client is expecting a response, send one.
-			en.sendResponseHeader();
-			en.sendObject( principalSession );
-		}
-			
-		return true;
-	}
-	
-	/* Terminate client session call dispatcher */
-	if ( dispatch.compare( terminatePrincipalSession ) == 0 )
-	{
-		std::wstring sessionID;
-		en.getObject( sessionID );
-		
-		// Try to terminate the session
-		_sessionCache->terminatePrincipalSession( sessionID );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			throw InvocationTargetException( "No return type from this method" );
-		}
-		
-		return true;
-	}
-	
-	/* Insert unauthenticated session call dispatcher */
-	if ( dispatch.compare( insertUnauthenticatedSession ) == 0 )
-	{
-		UnauthenticatedSession unauthenticatedSession;
-		en.getObject( unauthenticatedSession );
-		
-		_sessionCache->insertUnauthenticatedSession( unauthenticatedSession );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			NoData noData;
-			// If the client is expecting a response, send one.
-			en.sendResponseHeader();
-			en.sendObject( noData );
-		}
-		
-		return true;
-	}
-	
-	/* Get unauthenticated session call dispatcher */
-	if ( dispatch.compare( getUnauthenticatedSession ) == 0 )
-	{
-		std::wstring requestID;
-		en.getObject( requestID );
-		
-		UnauthenticatedSession unauthenticatedSession;
-		
-		_sessionCache->getUnauthenticatedSession( unauthenticatedSession, requestID );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			en.sendResponseHeader();
-			en.sendObject( unauthenticatedSession );
-		}
+    /* Insert client session call dispatcher */
+    if (dispatch == INSERT_PRINCIPAL_SESSION)
+    {
+        SessionCache_InsertClientSessionCommand command;
+        en.getObject(command);
 
-		return true;
-	}
-	
-	/* Terminate unauthenticated session call dispatcher */
-	if ( dispatch.compare( terminateUnauthenticatedSession ) == 0 )
-	{
-		std::wstring requestID;
-		en.getObject( requestID );
-		
-		_sessionCache->terminateUnauthenticatedSession( requestID );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			throw InvocationTargetException( "No return type from this method" );
-		}
+        // Try to perform the insert
+        mSessionCache->insertPrincipalSession(command.mSessionID, command.mPrincipalSession);
 
-		return true;
-	}
-	
-	/* Terminate expired sessions call dispatcher */
-	if ( dispatch.compare( terminateExpiredSessions ) == 0 )
-	{
-		int sessionCacheTimeout;
-		en.getObject( sessionCacheTimeout );
-		
-		_sessionCache->terminateExpiredSessions( sessionCacheTimeout );
-		
-		if ( header.getType() == SPEPIPC_REQUEST )
-		{
-			throw InvocationTargetException( "No return type from this method" );
-		}
-		
-		return true;
-	}
-	
-	return false;
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            NoData noData;
+            // If the client is expecting a response, send one.
+            en.sendResponseHeader();
+            en.sendObject(noData);
+        }
+        return true;
+    }
+
+    /* Get client session call dispatcher */
+    if (dispatch == GET_PRINCIPAL_SESSION)
+    {
+        std::string sessionID;
+        en.getObject(sessionID);
+
+        PrincipalSession principalSession;
+
+        // Try to find the session
+        mSessionCache->getPrincipalSession(principalSession, sessionID);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // If the client is expecting a response, send one.
+            en.sendResponseHeader();
+            en.sendObject(principalSession);
+        }
+
+        return true;
+    }
+
+    /* Get client session call dispatcher */
+    if (dispatch == GET_PRINCIPAL_SESSION_BY_ESOE_SESSION_ID)
+    {
+        //virtual const PrincipalSession* getPrincipalSessionByEsoeSessionID(const UnicodeString esoeSessionID) const;
+
+        std::wstring esoeSessionID;
+        en.getObject(esoeSessionID);
+
+        PrincipalSession principalSession;
+
+        // Try to find the session
+        mSessionCache->getPrincipalSessionByEsoeSessionID(principalSession, esoeSessionID);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            // If the client is expecting a response, send one.
+            en.sendResponseHeader();
+            en.sendObject(principalSession);
+        }
+
+        return true;
+    }
+
+    /* Terminate client session call dispatcher */
+    if (dispatch == TERMINATE_PRINCIPAL_SESSION)
+    {
+        std::wstring sessionID;
+        en.getObject(sessionID);
+
+        // Try to terminate the session
+        mSessionCache->terminatePrincipalSession(sessionID);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            throw InvocationTargetException("No return type from this method");
+        }
+
+        return true;
+    }
+
+    /* Insert unauthenticated session call dispatcher */
+    if (dispatch == INSERT_UNAUTHENTICATED_SESSION)
+    {
+        UnauthenticatedSession unauthenticatedSession;
+        en.getObject(unauthenticatedSession);
+
+        mSessionCache->insertUnauthenticatedSession(unauthenticatedSession);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            NoData noData;
+            // If the client is expecting a response, send one.
+            en.sendResponseHeader();
+            en.sendObject(noData);
+        }
+
+        return true;
+    }
+
+    /* Get unauthenticated session call dispatcher */
+    if (dispatch == GET_UNAUTHENTICATED_SESSION)
+    {
+        std::wstring requestID;
+        en.getObject(requestID);
+
+        UnauthenticatedSession unauthenticatedSession;
+
+        mSessionCache->getUnauthenticatedSession(unauthenticatedSession, requestID);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            en.sendResponseHeader();
+            en.sendObject(unauthenticatedSession);
+        }
+
+        return true;
+    }
+
+    /* Terminate unauthenticated session call dispatcher */
+    if (dispatch == TERMINATE_UNAUTHENTICATED_SESSION)
+    {
+        std::wstring requestID;
+        en.getObject(requestID);
+
+        mSessionCache->terminateUnauthenticatedSession(requestID);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            throw InvocationTargetException("No return type from this method");
+        }
+
+        return true;
+    }
+
+    /* Terminate expired sessions call dispatcher */
+    if (dispatch == TERMINATE_EXPIRED_SESSIONS)
+    {
+        int sessionCacheTimeout;
+        en.getObject(sessionCacheTimeout);
+
+        mSessionCache->terminateExpiredSessions(sessionCacheTimeout);
+
+        if (header.getType() == SPEPIPC_REQUEST)
+        {
+            throw InvocationTargetException("No return type from this method");
+        }
+
+        return true;
+    }
+
+    return false;
 }

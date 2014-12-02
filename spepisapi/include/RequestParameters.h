@@ -24,22 +24,24 @@
 #include "ISAPIRequest.h"
 
 #include <string>
-#include <map>
+#include <unordered_map>
 
 namespace spep { namespace isapi {
 
-	class RequestParameters
-	{
-		private:
-		std::map<std::string,std::string> _params;
-		
-		RequestParameters( const RequestParameters& other );
-		RequestParameters& operator=( const RequestParameters& other );
-		
-		public:
-		RequestParameters( ISAPIRequest *req );
-		const std::string& operator[]( const std::string& name );
-	};
+    class RequestParameters
+    {
+    public:
+        RequestParameters(ISAPIRequest *req);
+        std::string operator[](const std::string& name) const;
+
+    private:
+
+        RequestParameters(const RequestParameters& other);
+        RequestParameters& operator=(const RequestParameters& other);
+
+
+        std::unordered_map<std::string, std::string> mParams;
+    };
 
 } }
 

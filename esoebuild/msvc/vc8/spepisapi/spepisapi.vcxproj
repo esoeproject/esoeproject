@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\openssl.1.0.1.25\build\native\openssl.props" Condition="Exists('..\packages\openssl.1.0.1.25\build\native\openssl.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}</ProjectGuid>
+    <RootNamespace>spepisapi</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">.\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+    <NuGetPackageImportStamp>2f035f7f</NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\spepisapi\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4251;4275;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>spep.lib;saml2.lib;icuuc.lib;icudt.lib;icutu.lib;icule.lib;iculx.lib;icuin.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputPath);..\..\..\spepcpp\w32\vc8\release;..\..\..\saml2cpp\w32\vc8\release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>..\..\..\..\spepisapi\w32\spepisapi.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <MapExports>false</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\..\spepisapi\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4251;4275;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>spep.lib;saml2.lib;icuuc.lib;icudt.lib;icutu.lib;icule.lib;iculx.lib;icuin.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputPath);..\..\..\spepcpp\w32\vc8\release;..\..\..\saml2cpp\w32\vc8\release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>..\..\..\..\spepisapi\w32\spepisapi.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <MapExports>false</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\spepisapi\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>spep.lib;saml2.lib;icuuc.lib;icudt.lib;icutu.lib;icule.lib;iculx.lib;icuin.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\spepcpp\w32\vc8\Release;..\..\..\saml2cpp\w32\vc8\Release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>..\..\..\..\spepisapi\w32\spepisapi.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\..\spepisapi\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <StringPooling>true</StringPooling>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>spep.lib;saml2.lib;icuuc.lib;icudt.lib;icutu.lib;icule.lib;iculx.lib;icuin.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\spepcpp\w32\vc8\Release;..\..\..\saml2cpp\w32\vc8\Release;..\..\..\spepcppdepends\open_ssl\lib;..\..\..\spepcppdepends\boost\lib;..\..\..\spepcppdepends\curl\lib;..\..\..\spepcppdepends\icu\lib;..\..\..\spepcppdepends\xerces\lib;..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ModuleDefinitionFile>..\..\..\..\spepisapi\w32\spepisapi.def</ModuleDefinitionFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\spepisapi\include\Cookies.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\FilterConstants.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\ISAPI.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\ISAPIRequest.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\RequestParameters.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\SPEPExtension.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\SSOHandler.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\include\WSHandler.h" />
+    <ClInclude Include="..\..\..\..\spepisapi\w32\vc8\resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\..\spepisapi\w32\vc8\spepisapi.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\spepisapi\src\Cookies.cpp" />
+    <ClCompile Include="..\..\..\..\spepisapi\src\ISAPI.cpp" />
+    <ClCompile Include="..\..\..\..\spepisapi\src\ISAPIRequest.cpp" />
+    <ClCompile Include="..\..\..\..\spepisapi\src\RequestParameters.cpp" />
+    <ClCompile Include="..\..\..\..\spepisapi\src\SPEPExtension.cpp" />
+    <ClCompile Include="..\..\..\..\spepisapi\src\SSOHandler.cpp" />
+    <ClCompile Include="..\..\..\..\spepisapi\src\WSHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+    <Import Project="..\packages\boost.1.56.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" />
+    <Import Project="..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets" Condition="Exists('..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets')" />
+    <Import Project="..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets" Condition="Exists('..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets')" />
+    <Import Project="..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets" Condition="Exists('..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets')" />
+    <Import Project="..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets" Condition="Exists('..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets')" />
+    <Import Project="..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets" Condition="Exists('..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets')" />
+    <Import Project="..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets" Condition="Exists('..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets')" />
+    <Import Project="..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets" Condition="Exists('..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" />
+    <Import Project="..\packages\zlib.1.2.8.7\build\native\zlib.targets" Condition="Exists('..\packages\zlib.1.2.8.7\build\native\zlib.targets')" />
+    <Import Project="..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets" Condition="Exists('..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" />
+    <Import Project="..\packages\openssl.1.0.1.25\build\native\openssl.targets" Condition="Exists('..\packages\openssl.1.0.1.25\build\native\openssl.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.56.0.0\build\native\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.56.0.0\build\native\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc120.1.56.0.0\build\native\boost_regex-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc120.1.56.0.0\build\native\boost_chrono-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_system-vc120.1.56.0.0\build\native\boost_system-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time-vc120.1.56.0.0\build\native\boost_date_time-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc120.1.56.0.0\build\native\boost_thread-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_program_options-vc120.1.56.0.0\build\native\boost_program_options-vc120.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib.redist.1.2.8.7\build\native\zlib.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\zlib.1.2.8.7\build\native\zlib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib.1.2.8.7\build\native\zlib.targets'))" />
+    <Error Condition="!Exists('..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.redist.1.0.1.25\build\native\openssl.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\openssl.1.0.1.25\build\native\openssl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1.25\build\native\openssl.props'))" />
+    <Error Condition="!Exists('..\packages\openssl.1.0.1.25\build\native\openssl.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\openssl.1.0.1.25\build\native\openssl.targets'))" />
+  </Target>
+</Project>

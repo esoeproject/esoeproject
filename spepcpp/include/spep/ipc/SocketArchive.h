@@ -45,7 +45,6 @@ namespace spep
 {
 	namespace ipc
 	{
-		using namespace boost;
 		
 		/**
 		 * This object, when serialized, puts no data into the stream. Also, when
@@ -115,6 +114,9 @@ namespace spep
 				
 				void load(long double &d)
 				{ _sa->loadLexical(d); }
+
+                void load(size_t &st)
+                { _sa->loadLexical(st); }
 				
 				void load(saml2::LogLevel &level)
 				{
@@ -281,6 +283,9 @@ namespace spep
 				
 				void save(long double d)
 				{ _sa->saveLexical(d); }
+
+                void save(size_t st)
+                { _sa->saveLexical(st); }
 				
 				void save(saml2::LogLevel &level)
 				{
@@ -299,6 +304,12 @@ namespace spep
 				{
 					_sa->saveString(s);
 				}
+
+                template <class CharT>
+                void save(const std::basic_string<CharT> &s)
+                {
+                    _sa->saveString(s);
+                }
 				
 				void save(UnicodeString &string)
 				{
@@ -364,6 +375,13 @@ namespace spep
 					// Generic type serializer. Calls T::serialize(*this,0);
 					spep::ipc::access::serialize( t, *this, 0 );
 				}
+
+                template <class T>
+                void save(const T &t)
+                {
+                    // Generic type serializer. Calls T::serialize(*this,0);
+                    spep::ipc::access::serialize(t, *this, 0);
+                }
 				/*@}*/
 				
 				/**
@@ -373,10 +391,22 @@ namespace spep
 				template <class T>
 				SocketArchiveOutput &operator &(T &t)
 				{ save(t); return *this; }
+
+                template <class T>
+                SocketArchiveOutput &operator &(const T &t)
+                {
+                    save(t); return *this;
+                }
 				
 				template <class T>
 				SocketArchiveOutput &operator <<(T &t)
 				{ save(t); return *this; }
+
+                template <class T>
+                SocketArchiveOutput &operator <<(const T &t)
+                {
+                    save(t); return *this;
+                }
 				/*@}*/
 			
 				private:

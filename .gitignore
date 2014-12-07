@@ -14,7 +14,6 @@ bin
 .deps
 .libs
 *.la
-spepd
 *.dll
 *.dll.manifest
 *.exp

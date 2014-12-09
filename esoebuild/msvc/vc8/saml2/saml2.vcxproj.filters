@@ -385,9 +385,6 @@
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\xsd\xml-schema-custom.cpp">
       <Filter>Source Files\xsd</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\impl\UnmarshallerImpl.cpp">
-      <Filter>Source Files\handlers\impl</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -267,7 +267,6 @@
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\InvalidSAMLResponseException.cpp" />
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\MarshallerException.cpp" />
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\exceptions\UnmarshallerException.cpp" />
-    <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\impl\UnmarshallerImpl.cpp" />
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\MetadataOutput.cpp" />
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\handlers\SAML2ErrorHandler.cpp" />
     <ClCompile Include="..\..\..\..\saml2cpp\src\saml2\identifier\IdentifierCache.cpp" />

@@ -115,9 +115,11 @@ namespace spep
 				void load(long double &d)
 				{ _sa->loadLexical(d); }
 
+#ifdef _WIN64
                 void load(size_t &st)
                 { _sa->loadLexical(st); }
-				
+#endif
+
 				void load(saml2::LogLevel &level)
 				{
 					int val;
@@ -284,8 +286,10 @@ namespace spep
 				void save(long double d)
 				{ _sa->saveLexical(d); }
 
+#ifdef _WIN64
                 void save(size_t st)
                 { _sa->saveLexical(st); }
+#endif
 				
 				void save(saml2::LogLevel &level)
 				{

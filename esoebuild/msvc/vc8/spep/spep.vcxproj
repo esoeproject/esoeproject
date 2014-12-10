@@ -64,8 +64,8 @@
     <NuGetPackageImportStamp>53eaafa0</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -73,8 +73,8 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -94,7 +94,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1d.lib;saml2.lib;ws2_32.lib;xerces-c_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(OutputPath);..\..\..\..\spepcppdepends\open_ssl\lib;..\..\..\..\spepcppdepends\boost\lib;..\..\..\..\spepcppdepends\curl\lib;..\..\..\..\spepcppdepends\icu\lib;..\..\..\..\spepcppdepends\xerces\lib;..\..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutputPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -131,8 +131,8 @@
       <DisableSpecificWarnings>4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcurl_imp.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;libeay32.lib;ssleay32.lib;xsec_1.lib;xerces-c_2.lib;saml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\saml2cpp\w32\vc8\Release;..\..\..\..\spepcppdepends\open_ssl\lib;..\..\..\..\spepcppdepends\boost\lib;..\..\..\..\spepcppdepends\curl\lib;..\..\..\..\spepcppdepends\icu\lib;..\..\..\..\spepcppdepends\xerces\lib;..\..\..\..\spepcppdepends\xml-security\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1.lib;xerces-c_3.lib;saml2.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>

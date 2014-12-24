@@ -17,9 +17,11 @@
  * Purpose:
  */
 
+#if defined(WIN32)
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#endif
 
 #include "Daemon.h"
 #include "StreamLogHandler.h"
@@ -137,46 +139,76 @@ static const std::string REGISTRY_KEY_SOFTWARE{ "Software" };
 static const std::string REGISTRY_KEY_ESOEPROJECT{ "ESOE Project" };
 static const std::string REGISTRY_KEY_SPEP{ "SPEP" };
 
-#define		SPEPSERVICE_NAME			"SPEP Service"
+#define		SPEPSERVICE_NAME			TEXT("SPEP Service")
 #define		SPEPSERVICE_DESCRIPTION		"Handles the caching of data for SPEP protected services."
 
 void WINAPI ServiceMain(DWORD argc, LPSTR *argv);
 
-
-struct SPEPService
+// Create a string with last error message
+std::string GetLastErrorStdStr()
 {
-    static bool isInited;
-    static bool debug;
-    static SERVICE_STATUS serviceStatus;
-    static SERVICE_STATUS_HANDLE serviceStatusHandle;
+	DWORD error = GetLastError();
+	if (error)
+	{
+		LPVOID lpMsgBuf;
+		DWORD bufLen = FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			error,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&lpMsgBuf,
+			0, NULL);
+		if (bufLen)
+		{
+			LPCSTR lpMsgStr = (LPCSTR)lpMsgBuf;
+			std::string result(lpMsgStr, lpMsgStr + bufLen);
 
-    static void WINAPI ServiceControlHandler(DWORD code)
-    {
-        if (code == SERVICE_CONTROL_STOP)
-        {
-            serviceStatus.dwWin32ExitCode = NO_ERROR;
-            updateStatus(SERVICE_STOPPED);
-            SPEPDaemonIsRunning = false;
-        }
-    }
+			LocalFree(lpMsgBuf);
 
-    static void updateStatus(DWORD status)
-    {
-        if (!isInited)
-        {
-            serviceStatusHandle = RegisterServiceCtrlHandler(SPEPSERVICE_NAME, ServiceControlHandler);
-            isInited = true;
-        }
+			return result;
+		}
+	}
+	return std::string();
+}
 
-        serviceStatus.dwCurrentState = status;
-        SetServiceStatus(serviceStatusHandle, &serviceStatus);
-    }
-};
 
-bool SPEPService::isInited = false;
-bool SPEPService::debug = false;
-SERVICE_STATUS SPEPService::serviceStatus;
-SERVICE_STATUS_HANDLE SPEPService::serviceStatusHandle;
+static bool isInited = false;
+static bool debug = false;
+static SERVICE_STATUS serviceStatus;
+static SERVICE_STATUS_HANDLE serviceStatusHandle;
+
+void updateStatus(DWORD status);
+
+void WINAPI ServiceControlHandler(DWORD code)
+{
+	if (code == SERVICE_CONTROL_STOP)
+	{
+		serviceStatus.dwWin32ExitCode = NO_ERROR;
+		updateStatus(SERVICE_STOPPED);
+		SPEPDaemonIsRunning = false;
+	}
+}
+
+void updateStatus(DWORD status)
+{
+	if (!isInited)
+	{
+		if (!debug) {
+			serviceStatusHandle = RegisterServiceCtrlHandler(SPEPSERVICE_NAME, ServiceControlHandler);
+			const std::string errorCode = GetLastErrorStdStr();
+			if (!errorCode.empty()) {
+				std::cout << "GetLastErrorStdStr returned: " << errorCode << std::endl;
+			}
+		}
+		isInited = true;
+	}
+
+	serviceStatus.dwCurrentState = status;
+	SetServiceStatus(serviceStatusHandle, &serviceStatus);
+}
+
 
 class ServiceController
 {
@@ -312,7 +344,7 @@ int main(int argc, char** argv)
         }
         else if (arg.compare("-x") == 0)
         {
-            SPEPService::debug = true;
+            debug = true;
             ServiceMain(argc, argv);
         }
         else
@@ -339,11 +371,12 @@ int main(int argc, char** argv)
 
 void WINAPI ServiceMain(DWORD argc, LPSTR *argv)
 {
-    std::memset(&SPEPService::serviceStatus, 0, sizeof(SERVICE_STATUS));
-    SPEPService::serviceStatus.dwServiceType = SERVICE_WIN32;
-    SPEPService::serviceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+    std::memset(&serviceStatus, 0, sizeof(SERVICE_STATUS));
+	serviceStatus.dwServiceType = SERVICE_WIN32;
+    serviceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
 
-    SPEPService::updateStatus(SERVICE_START_PENDING);
+    updateStatus(SERVICE_START_PENDING);
+	
 
     std::vector<saml2::Handler*> handlers;
 
@@ -379,7 +412,7 @@ void WINAPI ServiceMain(DWORD argc, LPSTR *argv)
                     stream.reset(new std::ofstream(logFilename.c_str(), std::ios_base::out | std::ios_base::app));
                     logHandler.reset(new spep::daemon::StreamLogHandler(*stream, logLevel));
 
-                    if (SPEPService::debug) {
+                    if (debug) {
                         debugHandler.reset(new spep::daemon::StreamLogHandler(std::cout, saml2::DEBUG));
                         handlers.push_back(debugHandler.get());
                     }
@@ -433,7 +466,7 @@ void WINAPI ServiceMain(DWORD argc, LPSTR *argv)
     // Get configuration
     spep::ConfigurationReader configReader(configFileVariableMap);
 
-    SPEPService::updateStatus(SERVICE_RUNNING);
+    updateStatus(SERVICE_RUNNING);
     doInit(configReader, handlers, false, false);
 }
 

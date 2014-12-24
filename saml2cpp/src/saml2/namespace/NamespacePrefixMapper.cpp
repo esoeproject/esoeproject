@@ -32,18 +32,8 @@ namespace saml2
 {
 	NamespacePrefixMapper::NamespacePrefixMapper()
 	{
-		this->setupPrefixMap();
-	}
-
-	std::map <const char*, const char*> NamespacePrefixMapper::getNamespaces()
-	{
-		return this->map;
-	}
-
-	void NamespacePrefixMapper::setupPrefixMap()
-	{
 		/* Define all of our custom mappings */
-		this->map["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema"; 
+		this->map["xmlns:xs"] = "http://www.w3.org/2001/XMLSchema";
 
 		this->map["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance";
 
@@ -74,11 +64,21 @@ namespace saml2
 		this->map["xmlns:esoe"] = "http://www.qut.com/middleware/ESOEProtocolSchema";
 
 		this->map["xmlns:clear"] = "http://www.qut.com/middleware/cacheClearServiceSchema";
-		
+
 		this->map["xmlns:spep"] = "http://www.qut.com/middleware/spepStartupServiceSchema";
-		
+
 		this->map["xmlns:env"] = "http://schemas.xmlsoap.org/soap/envelope/";
-		
+
 		this->map["xmlns:soapenv"] = "http://www.w3.org/2003/05/soap-envelope";
+	}
+
+	std::map <const char*, const char*> NamespacePrefixMapper::getNamespaces()
+	{
+		return this->map;
+	}
+
+	const std::map <const char*, const char*>& NamespacePrefixMapper::getNamespacesRef()
+	{
+		return this->map;
 	}
 }

@@ -91,6 +91,7 @@ void spep::MetadataThread::ThreadHandler::operator()()
 		
 		// If we get here, the metadata operation succeeded.
 		mMetadataThread->mMetadata->mError = false;
+		return;
 	}
 	catch (std::exception& ex)
 	{
@@ -166,7 +167,7 @@ spep::MetadataThread::MetadataThread(saml2::Logger *logger, spep::MetadataImpl *
     mDie(false)
 {
     EVP_MD_CTX_init(&(this->mHashContext));
-    std::vector<std::string> metadataSchemas{
+    const std::vector<std::string> metadataSchemas{
         ConfigurationConstants::samlProtocol,
         ConfigurationConstants::lxacmlMetadata,
         ConfigurationConstants::cacheClearService,

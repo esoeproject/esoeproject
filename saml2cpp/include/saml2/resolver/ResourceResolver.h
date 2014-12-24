@@ -29,42 +29,48 @@
 /* Xerces C++ */
 #include <xercesc/util/XMLEntityResolver.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/sax/EntityResolver.hpp>
 
 XERCES_CPP_NAMESPACE_USE
 
 namespace saml2
 {
-	class SAML2EXPORT ResourceResolver : public EntityResolver
+	class SAML2EXPORT ResourceResolver : public XMLEntityResolver
 	{
-		public:
-			/*
-			 * Constructor
-			 * 
-			 * @param baseSchemaPath Base path on disk that schema can be loaded from
-			 */
-			ResourceResolver(const std::string& schemaPath);
-			
-			/*
-			 * Destructor
-			 * 
-			 * Releases Xerces string data
-			 */
-			virtual ~ResourceResolver();		
-			
-			/*
-			 * Returns a DOMInputSource to match the requested schema, implementation of DOMEntityResolver pure virtual method
-			 */
-			virtual InputSource * resolveEntity (const XMLCh *const publicId, const XMLCh *const systemId) override;
-		
-		private: 
-			/*
-			 * Loads a schema file from disk
-			 */
-			LocalFileInputSource * loadSchema (const XMLCh* location);
-			
-			XMLCh* baseSchemaPath;
-	};		
+	public:
+		/*
+		 * Constructor
+		 *
+		 * @param baseSchemaPath Base path on disk that schema can be loaded from
+		 */
+		ResourceResolver(const std::string& schemaPath);
+
+		/*
+		 * Destructor
+		 *
+		 * Releases Xerces string data
+		 */
+		virtual ~ResourceResolver();
+
+		/*
+		*  Handlers for the XMLEntityResolver interface
+		*/
+		InputSource* resolveEntity(XMLResourceIdentifier* resourceIdentifier) override;
+
+
+	private:
+
+		/* SAX2 function - we dont override this anymore but use it internally
+		* Returns a DOMInputSource to match the requested schema, implementation of DOMEntityResolver pure virtual method
+		*/
+		virtual InputSource * resolveEntity(const XMLCh *const publicId, const XMLCh *const systemId);
+
+		/*
+		 * Loads a schema file from disk
+		 */
+		LocalFileInputSource * loadSchema(const XMLCh* location);
+
+		XMLCh* baseSchemaPath;
+	};
 }
 
 #endif /*RESOURCERESOLVER_H_*/

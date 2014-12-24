@@ -29,28 +29,31 @@ namespace saml2
 {
 	class SAML2EXPORT NamespacePrefixMapper
 	{
-		public:
-			/*
-			 * Constructor
-			 * 
-			 * Sets up prefix mapping for the library
-			 */
-			NamespacePrefixMapper();
-			
-			/*
-			 * Method to get active mappings.
-			 * 
-			 * @return A copy of all mapped namespaces for the library to use
-			 */
-			std::map < const char*, const char* > getNamespaces();
-			
-		private:
-			/*
-			 * Undertakes prefix mapping operation
-			 */
-			void setupPrefixMap();
-			
-			std::map < const char*, const char* > map;
+	public:
+		/*
+		 * Constructor
+		 *
+		 * Sets up prefix mapping for the library
+		 */
+		NamespacePrefixMapper();
+
+		/*
+		 * Method to get active mappings.
+		 *
+		 * @return A copy of all mapped namespaces for the library to use
+		 */
+		std::map < const char*, const char* > getNamespaces();
+
+		/*
+		* Method to get active mappings.
+		*
+		* @return A reference of all mapped namespaces for the library to use
+		*/
+		const std::map<const char*, const char*>& getNamespacesRef();
+
+	private:
+
+		std::map < const char*, const char* > map;
 	};
 }
 

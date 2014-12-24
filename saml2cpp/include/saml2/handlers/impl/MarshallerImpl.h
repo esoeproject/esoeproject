@@ -161,10 +161,6 @@ namespace saml2
     template <class T>
     MarshallerImpl<T>::~MarshallerImpl()
     {
-        // No need to 'NULL' the pointers here - they won't be used again.
-        //delete errorHandler;
-        //delete resourceResolver;
-
         XMLString::release(&mDefaultURI);
         XMLString::release(&mRootElement);
         XMLString::release(&mImplFlags);
@@ -194,17 +190,18 @@ namespace saml2
         XMLPlatformUtils::Initialize();
         XSECPlatformUtils::Initialise();
 
+		mErrorHandler = std::make_unique<SAML2ErrorHandler>();
+		mResourceResolver = std::make_unique<ResourceResolver>(mSchemaDir);
+
         if (mRootElementName.find(':') == std::string::npos)
         {
-            std::map<const char*, const char*> namespaces = mNamespaceMapper.getNamespaces();
-            for (std::map<const char*, const char*>::iterator namespaceIterator = namespaces.begin();
-                namespaceIterator != namespaces.end();
-                namespaceIterator++)
+            const std::map<const char*, const char*>& namespaces = mNamespaceMapper.getNamespacesRef();
+			for (const auto& namespaceIterator: namespaces)
             {
-                if (mNamespaceURI.compare(namespaceIterator->second) == 0)
+                if (mNamespaceURI == namespaceIterator.second)
                 {
                     // Strip the leading 'xmlns:' that the namespace mapper uses
-                    std::string namespaceAttribute = namespaceIterator->first;
+                    std::string namespaceAttribute = namespaceIterator.first;
                     std::size_t index = namespaceAttribute.find(':');
                     std::string qualName = namespaceAttribute;
                     if (index != std::string::npos)
@@ -230,9 +227,6 @@ namespace saml2
         this->mSamlSiblingInsertAfter = XMLString::transcode(SAML_SIBLING_INSERT_AFTER);
 
         this->mDomImpl = DOMImplementationRegistry::getDOMImplementation(this->mImplFlags);
-
-        mErrorHandler = std::make_unique<SAML2ErrorHandler>();
-        mResourceResolver = std::make_unique<ResourceResolver>(mSchemaDir);
     }
 
     /*
@@ -567,11 +561,11 @@ namespace saml2
 
             if (addNamespaces)
             {
-                std::map<const char*, const char*> namespaces = mNamespaceMapper.getNamespaces();
-                for (std::map<const char*, const char*>::iterator i = namespaces.begin(); i != namespaces.end(); i++)
+                const std::map<const char*, const char*>& namespaces = mNamespaceMapper.getNamespacesRef();
+				for (const auto& i: namespaces)
                 {
-                    qualName = XMLString::transcode(i->first);
-                    uriVal = XMLString::transcode(i->second);
+                    qualName = XMLString::transcode(i.first);
+                    uriVal = XMLString::transcode(i.second);
                     rootElem->setAttributeNS(this->mXmlns, qualName, uriVal);
 
                     XMLString::release(&qualName);
@@ -583,13 +577,13 @@ namespace saml2
             else
             {
                 // Find the single namespace we need and add it.
-                std::map<const char*, const char*> namespaces = mNamespaceMapper.getNamespaces();
-                for (std::map<const char*, const char*>::iterator i = namespaces.begin(); i != namespaces.end(); i++)
+                const std::map<const char*, const char*>& namespaces = mNamespaceMapper.getNamespacesRef();
+				for (const auto& i: namespaces)
                 {
-                    if (this->mNamespaceURI.compare(i->second) == 0)
+                    if (mNamespaceURI == i.second)
                     {
-                        qualName = XMLString::transcode(i->first);
-                        uriVal = XMLString::transcode(i->second);
+                        qualName = XMLString::transcode(i.first);
+                        uriVal = XMLString::transcode(i.second);
                         rootElem->setAttributeNS(this->mXmlns, qualName, uriVal);
 
                         XMLString::release(&qualName);
@@ -647,11 +641,11 @@ namespace saml2
             domDoc->setXmlStandalone(true); //TODO: confirm this is accurate
             rootElem = domDoc->getDocumentElement();
 
-            std::map<const char*, const char*> namespaces = mNamespaceMapper.getNamespaces();
-            for (std::map<const char*, const char*>::iterator i = namespaces.begin(); i != namespaces.end(); i++)
+            const std::map<const char*, const char*>& namespaces = mNamespaceMapper.getNamespacesRef();
+			for (const auto& i: namespaces)
             {
-                qualName = XMLString::transcode(i->first);
-                uriVal = XMLString::transcode(i->second);
+                qualName = XMLString::transcode(i.first);
+                uriVal = XMLString::transcode(i.second);
                 rootElem->setAttributeNS(this->mXmlns, qualName, uriVal);
 
                 XMLString::release(&qualName);
@@ -738,10 +732,9 @@ namespace saml2
             parser->getDomConfig()->setParameter(XMLUni::fgXercesEntityResolver, mResourceResolver.get());
             parser->getDomConfig()->setParameter(XMLUni::fgDOMErrorHandler, mErrorHandler.get());
 
-
-            for (std::vector<std::string>::iterator i = mSchemaList.begin(); i != mSchemaList.end(); i++)
+			for (const auto& i : mSchemaList)
             {
-                schema = XMLString::transcode(i->c_str());
+                schema = XMLString::transcode(i.c_str());
                 parser->loadGrammar(schema, Grammar::SchemaGrammarType, true);
                 XMLString::release(&schema);
             }

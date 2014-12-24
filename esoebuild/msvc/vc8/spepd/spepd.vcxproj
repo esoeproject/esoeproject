@@ -78,7 +78,7 @@
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -112,6 +112,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <EnablePREfast>false</EnablePREfast>
+      <CallingConvention />
     </ClCompile>
     <Link>
       <AdditionalDependencies>saml2.lib;spep.lib;libcurld.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -149,6 +150,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <StringPooling>true</StringPooling>
+      <CallingConvention />
     </ClCompile>
     <Link>
       <AdditionalDependencies>saml2.lib;spep.lib;libcurl.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>

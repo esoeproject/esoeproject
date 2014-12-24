@@ -99,8 +99,6 @@ namespace saml2
         std::vector<std::string> mSchemaList;
         std::string mSchemaDir;
 
-        //SAML2ErrorHandler* errorHandler;
-        //ResourceResolver* resourceResolver;
         std::unique_ptr<SAML2ErrorHandler> mErrorHandler;
         std::unique_ptr<ResourceResolver> mResourceResolver;
 
@@ -951,8 +949,6 @@ namespace saml2
 
         try
         {
-            ResourceResolver* resourceResolver = mResourceResolver.get();
-
             parser = ((DOMImplementationLS*)mDomImpl)->createLSParser(DOMImplementationLS::MODE_SYNCHRONOUS, 0);
             parser->getDomConfig()->setParameter(XMLUni::fgXercesSchema, true);
             parser->getDomConfig()->setParameter(XMLUni::fgDOMValidate, true);
@@ -962,11 +958,9 @@ namespace saml2
             parser->getDomConfig()->setParameter(XMLUni::fgXercesUserAdoptsDOMDocument, true);
             // This is particuarly important so that signatures are not corrupted
             parser->getDomConfig()->setParameter(XMLUni::fgDOMDatatypeNormalization, false);
-            parser->getDomConfig()->setParameter(XMLUni::fgXercesEntityResolver, resourceResolver);
+            parser->getDomConfig()->setParameter(XMLUni::fgXercesEntityResolver, mResourceResolver.get());
             parser->getDomConfig()->setParameter(XMLUni::fgDOMErrorHandler, mErrorHandler.get());
 
-
-            //for (std::vector<std::string>::iterator i = mSchemaList.begin(); i != mSchemaList.end(); i++)
             for (const auto& i: mSchemaList)
             {
                 schema = XMLString::transcode(i.c_str());

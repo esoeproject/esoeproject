@@ -182,7 +182,6 @@ void spep::MetadataImpl::buildCacheRecurse(saml2::metadata::EntitiesDescriptorTy
                 {
                     // Add the endpoint to the list.
                     cache.singleSignOnEndpoints.push_back(UnicodeStringConversion::toString(singleSignOnServiceIterator->Location()));
-
                 }
 
                 // Loop through <SingleLogoutService> elements
@@ -193,7 +192,6 @@ void spep::MetadataImpl::buildCacheRecurse(saml2::metadata::EntitiesDescriptorTy
                 {
                     // Add the endpoint to the list
                     cache.singleLogoutEndpoints.push_back(UnicodeStringConversion::toString(singleLogoutServiceIterator->Location()));
-
                 }
 
                 // Check in <Extensions> for SPEP startup service elements
@@ -436,7 +434,7 @@ saml2::KeyData spep::MetadataImpl::resolveKey(const std::string& keyName)
     waitForData();
     ScopedLock lock(mMetadataMutex);
 
-    KeyMap::iterator iter = mCache->mKeys.find(keyName);
+    const auto iter = mCache->mKeys.find(keyName);
     if (iter != mCache->mKeys.end())
         return iter->second;
 
@@ -504,7 +502,7 @@ XSECCryptoKey *spep::MetadataImpl::MetadataKeyResolver::resolveKey(DSIGKeyInfoLi
 
 saml2::KeyData spep::MetadataImpl::MetadataKeyResolver::resolveKey(const std::string& keyName)
 {
-    KeyMap::iterator iter = mKeys.find(keyName);
+    const auto iter = mKeys.find(keyName);
     if (iter != this->mKeys.end())
         return iter->second;
 

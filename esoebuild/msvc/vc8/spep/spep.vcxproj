@@ -112,6 +112,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <EnablePREfast>false</EnablePREfast>
+      <CallingConvention />
     </ClCompile>
     <Link>
       <AdditionalDependencies>libcurld.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1d.lib;saml2.lib;xerces-c_3D.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -151,6 +152,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <StringPooling>true</StringPooling>
+      <CallingConvention />
     </ClCompile>
     <Link>
       <AdditionalDependencies>libcurl.lib;icudt.lib;icule.lib;icutu.lib;iculx.lib;icuuc.lib;icuin.lib;icuio.lib;xsec_1.lib;xerces-c_3.lib;saml2.lib;%(AdditionalDependencies)</AdditionalDependencies>

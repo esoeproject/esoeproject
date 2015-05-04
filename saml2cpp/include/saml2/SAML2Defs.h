@@ -21,11 +21,32 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+#ifdef WIN32
 // These definitions are required here because of the way that the template classes are used across dll boundaries.
 // It's not nice to do this, but it's preventing multiply defined strings
 #include <string>
 template class __declspec(dllexport) std::basic_string<char, std::char_traits<char>, std::allocator<char>>;
 template class __declspec(dllexport) std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>;
+#endif
+
+#ifdef __GNUC__
+// GCC 4.8+ only supports C++11. std::make_unique is a C++14 feature and is only supported in GCC 4.9+
+namespace std {
+
+	template<typename T, typename A1>
+	std::unique_ptr<T> make_unique(A1&& a1)
+	{
+		return std::unique_ptr<T>(new T(std::forward<A1>(a1)));
+	}
+
+	template<typename T, typename A1, typename A2>
+	std::unique_ptr<T> make_unique(A1&& a1, A2&& a2)
+	{
+		return std::unique_ptr<T>(new T(std::forward<A1>(a1), std::forward<A2>(a2)));
+	}
+
+}
+#endif
 
 
 /* TODO: Make this different for unix / windows */

@@ -32,6 +32,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spepisapi", "spepisapi\spep
 	EndProjectSection
 EndProject
 Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "spepinstaller", "spepinstaller\spepinstaller.isproj", "{DE3EA076-1212-488B-9539-58B8A843170A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD} = {6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}
+		{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6} = {C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}
+		{E1412FC5-012B-4D65-A12C-484005A18E01} = {E1412FC5-012B-4D65-A12C-484005A18E01}
+		{73A27EDA-EC4A-411B-9309-35FAB0F24A03} = {73A27EDA-EC4A-411B-9309-35FAB0F24A03}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

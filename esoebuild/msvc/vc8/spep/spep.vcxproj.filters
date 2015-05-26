@@ -462,11 +462,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\..\..\spepcpp\w32\vc8\spep.rc">
-      <Filter>Resources</Filter>
-    </ResourceCompile>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ResourceCompile Include="..\..\..\..\spepcpp\spep.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

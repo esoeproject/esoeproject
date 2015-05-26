@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Project ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
 		<!-- Select a Product Configuration -->
 		<InstallShieldProductConfiguration>Express</InstallShieldProductConfiguration>
@@ -28,4 +28,22 @@
 		</TaggedOutputs> -->
 	</ItemGroup>
 	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2013Limited\InstallShield.targets"/>
+	<ItemGroup>
+		<ProjectReference Include="..\saml2\saml2.vcxproj">
+			<Name>saml2</Name>
+			<Project>{73A27EDA-EC4A-411B-9309-35FAB0F24A03}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\spep\spep.vcxproj">
+			<Name>spep</Name>
+			<Project>{E1412FC5-012B-4D65-A12C-484005A18E01}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\spepd\spepd.vcxproj">
+			<Name>spepd</Name>
+			<Project>{6FA13E17-A1DB-4F51-AE3E-774EB4F97FCD}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\spepisapi\spepisapi.vcxproj">
+			<Name>spepisapi</Name>
+			<Project>{C77546B6-24B1-4E2A-B05F-DA1A08BDFEC6}</Project>
+		</ProjectReference>
+	</ItemGroup>
 </Project>

@@ -52,8 +52,8 @@
 	<summary>
 		<codepage>1252</codepage>
 		<title>Installation Database</title>
-		<subject/>
-		<author>InstallShield</author>
+		<subject></subject>
+		<author>##ID_STRING3##</author>
 		<keywords>Installer,MSI,Database</keywords>
 		<comments>Contact:  Your local administrator</comments>
 		<template>Intel;1033</template>
@@ -251,6 +251,8 @@
 		<col def="V0">Data</col>
 		<col def="S255">ISBuildSourcePath</col>
 		<row><td>ISExpHlp.dll</td><td/><td>&lt;ISRedistPlatformDependentFolder&gt;\ISExpHlp.dll</td></row>
+		<row><td>ISSELFREG.DLL</td><td/><td>&lt;ISRedistPlatformDependentFolder&gt;\isregsvr.dll</td></row>
+		<row><td>ISSetupFilesHelper</td><td/><td>&lt;ISRedistPlatformDependentFolder&gt;\SFHelper.dll</td></row>
 		<row><td>NewBinary1</td><td/><td>&lt;ISProductFolder&gt;\Support\Themes\InstallShield Blue Theme\banner.jpg</td></row>
 		<row><td>NewBinary10</td><td/><td>&lt;ISProductFolder&gt;\Redist\Language Independent\OS Independent\CompleteSetupIco.ibd</td></row>
 		<row><td>NewBinary11</td><td/><td>&lt;ISProductFolder&gt;\Redist\Language Independent\OS Independent\CustomSetupIco.ibd</td></row>
@@ -338,6 +340,22 @@
 		<col def="S0">ISDotNetInstallerArgsCommit</col>
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
+		<row><td>ISX_DEFAULTCOMPONENT</td><td>{67D013E8-C1E8-4FF9-ABE4-BA3915C49D3D}</td><td>SCHEMA</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{2BAA0A1F-FB97-47F5-95A2-B2682DC2CA5F}</td><td>INSTALLDIR</td><td>258</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{A6F073B5-1309-4366-8361-9FF978EEAFD8}</td><td>CONFIG</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{D7B0CC61-2EB3-4299-8DEA-E21D4C8C8832}</td><td>LOGS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>icudt54.dll</td><td>{C19B40A7-16BB-4870-9D4C-1BEB5331AAC4}</td><td>INSTALLDIR</td><td>2</td><td/><td>icudt54.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>icuin54.dll</td><td>{3BF67995-2C66-4C10-895B-0C61DB82FEF5}</td><td>INSTALLDIR</td><td>2</td><td/><td>icuin54.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>icuuc54.dll</td><td>{44D924E8-49A5-421C-A44A-EE5DC2521D3D}</td><td>INSTALLDIR</td><td>2</td><td/><td>icuuc54.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>libcurl.dll</td><td>{A2925E20-D3E8-4E14-89C4-547A1BB31FAE}</td><td>INSTALLDIR</td><td>2</td><td/><td>libcurl.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>libeay32.dll</td><td>{EF54FA04-49E5-406F-B593-765F2C2D4AAF}</td><td>INSTALLDIR</td><td>2</td><td/><td>libeay32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>saml2.Primary_Output</td><td>{B80FFACE-EEDC-4F50-9009-CE608B8F11C8}</td><td>INSTALLDIR</td><td>2</td><td/><td>saml2.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>spep.Primary_Output</td><td>{6C974DDC-BE31-4FBD-B0DC-7EB6D4633A21}</td><td>INSTALLDIR</td><td>2</td><td/><td>spep.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>spepd.Primary_Output</td><td>{7F69D83A-A3C3-4D19-94C9-06679DE15769}</td><td>INSTALLDIR</td><td>2</td><td/><td>spepd.primary_output</td><td>81</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>spepisapi.Primary_Output</td><td>{EFB01EC0-6E44-40AD-B163-3988B47B296C}</td><td>INSTALLDIR</td><td>2</td><td/><td>spepisapi.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ssleay32.dll</td><td>{C8D15D88-4E07-42B1-9EDB-C2D99B59E498}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssleay32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>xerces_c_3_1.dll</td><td>{3A4DB681-114A-4FCC-94A8-3F7C93A2B1BA}</td><td>INSTALLDIR</td><td>2</td><td/><td>xerces_c_3_1.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>xsec_1_7.dll</td><td>{1BF59AD8-37FB-4004-961F-1FA563084673}</td><td>INSTALLDIR</td><td>2</td><td/><td>xsec_1_7.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -895,6 +913,7 @@
 		<row><td>AdminWelcome</td><td>Next</td><td>NewDialog</td><td>AdminNetworkLocation</td><td>1</td><td>0</td></row>
 		<row><td>CancelSetup</td><td>No</td><td>EndDialog</td><td>Return</td><td>1</td><td>0</td></row>
 		<row><td>CancelSetup</td><td>Yes</td><td>DoAction</td><td>CleanUp</td><td>ISSCRIPTRUNNING="1"</td><td>1</td></row>
+		<row><td>CancelSetup</td><td>Yes</td><td>DoAction</td><td>ISSetupFilesCleanup</td><td>1</td><td>200</td></row>
 		<row><td>CancelSetup</td><td>Yes</td><td>EndDialog</td><td>Exit</td><td>1</td><td>2</td></row>
 		<row><td>CustomSetup</td><td>Back</td><td>NewDialog</td><td>CustomerInformation</td><td>NOT Installed</td><td>0</td></row>
 		<row><td>CustomSetup</td><td>Back</td><td>NewDialog</td><td>MaintenanceType</td><td>Installed</td><td>0</td></row>
@@ -917,7 +936,7 @@
 		<row><td>DatabaseFolder</td><td>ChangeFolder</td><td>SpawnDialog</td><td>InstallChangeFolder</td><td>1</td><td>1</td></row>
 		<row><td>DatabaseFolder</td><td>ChangeFolder</td><td>[_BrowseProperty]</td><td>DATABASEDIR</td><td>1</td><td>2</td></row>
 		<row><td>DatabaseFolder</td><td>Next</td><td>NewDialog</td><td>SetupType</td><td>1</td><td>1</td></row>
-		<row><td>DestinationFolder</td><td>Back</td><td>NewDialog</td><td>CustomerInformation</td><td>1</td><td>0</td></row>
+		<row><td>DestinationFolder</td><td>Back</td><td>NewDialog</td><td>LicenseAgreement</td><td>NOT Installed</td><td>0</td></row>
 		<row><td>DestinationFolder</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>1</td></row>
 		<row><td>DestinationFolder</td><td>ChangeFolder</td><td>SpawnDialog</td><td>InstallChangeFolder</td><td>1</td><td>1</td></row>
 		<row><td>DestinationFolder</td><td>ChangeFolder</td><td>[_BrowseProperty]</td><td>INSTALLDIR</td><td>1</td><td>2</td></row>
@@ -938,7 +957,7 @@
 		<row><td>LicenseAgreement</td><td>Back</td><td>NewDialog</td><td>InstallWelcome</td><td>1</td><td>0</td></row>
 		<row><td>LicenseAgreement</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>LicenseAgreement</td><td>ISPrintButton</td><td>DoAction</td><td>ISPrint</td><td>1</td><td>0</td></row>
-		<row><td>LicenseAgreement</td><td>Next</td><td>NewDialog</td><td>CustomerInformation</td><td>AgreeToLicense = "Yes"</td><td>0</td></row>
+		<row><td>LicenseAgreement</td><td>Next</td><td>NewDialog</td><td>DestinationFolder</td><td>AgreeToLicense = "Yes"</td><td>0</td></row>
 		<row><td>MaintenanceType</td><td>Back</td><td>NewDialog</td><td>MaintenanceWelcome</td><td>1</td><td>0</td></row>
 		<row><td>MaintenanceType</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>MaintenanceType</td><td>Next</td><td>NewDialog</td><td>CustomSetup</td><td>_IsMaintenance = "Change"</td><td>12</td></row>
@@ -969,7 +988,7 @@
 		<row><td>ReadmeInformation</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>1</td></row>
 		<row><td>ReadmeInformation</td><td>Next</td><td>NewDialog</td><td>CustomerInformation</td><td>1</td><td>1</td></row>
 		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>CustomSetup</td><td>Installed OR _IsSetupTypeMin = "Custom"</td><td>2</td></row>
-		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>CustomerInformation</td><td>NOT Installed</td><td>1</td></row>
+		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>DestinationFolder</td><td>NOT Installed</td><td>1</td></row>
 		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>MaintenanceType</td><td>Installed AND _IsMaintenance = "Reinstall"</td><td>3</td></row>
 		<row><td>ReadyToInstall</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>ReadyToInstall</td><td>InstallNow</td><td>EndDialog</td><td>Return</td><td>OutOfNoRbDiskSpace &lt;&gt; 1</td><td>0</td></row>
@@ -1004,9 +1023,11 @@
 		<row><td>SetupCompleteError</td><td>Cancel</td><td>EndDialog</td><td>Return</td><td>1</td><td>2</td></row>
 		<row><td>SetupCompleteError</td><td>Cancel</td><td>[Suspend]</td><td>1</td><td>1</td><td>1</td></row>
 		<row><td>SetupCompleteError</td><td>Finish</td><td>DoAction</td><td>CleanUp</td><td>ISSCRIPTRUNNING="1"</td><td>1</td></row>
+		<row><td>SetupCompleteError</td><td>Finish</td><td>DoAction</td><td>ISSetupFilesCleanup</td><td>1</td><td>200</td></row>
 		<row><td>SetupCompleteError</td><td>Finish</td><td>DoAction</td><td>ShowMsiLog</td><td>MsiLogFileLocation And (ISSHOWMSILOG="1")</td><td>3</td></row>
 		<row><td>SetupCompleteError</td><td>Finish</td><td>EndDialog</td><td>Exit</td><td>1</td><td>2</td></row>
 		<row><td>SetupCompleteSuccess</td><td>OK</td><td>DoAction</td><td>CleanUp</td><td>ISSCRIPTRUNNING="1"</td><td>1</td></row>
+		<row><td>SetupCompleteSuccess</td><td>OK</td><td>DoAction</td><td>ISSetupFilesCleanup</td><td>1</td><td>200</td></row>
 		<row><td>SetupCompleteSuccess</td><td>OK</td><td>DoAction</td><td>ShowMsiLog</td><td>MsiLogFileLocation And (ISSHOWMSILOG="1") And NOT ISENABLEDWUSFINISHDIALOG</td><td>6</td></row>
 		<row><td>SetupCompleteSuccess</td><td>OK</td><td>EndDialog</td><td>Exit</td><td>1</td><td>2</td></row>
 		<row><td>SetupError</td><td>A</td><td>EndDialog</td><td>ErrorAbort</td><td>1</td><td>0</td></row>
@@ -1022,6 +1043,7 @@
 		<row><td>SetupInterrupted</td><td>Cancel</td><td>EndDialog</td><td>Exit</td><td>1</td><td>2</td></row>
 		<row><td>SetupInterrupted</td><td>Cancel</td><td>[Suspend]</td><td>1</td><td>1</td><td>1</td></row>
 		<row><td>SetupInterrupted</td><td>Finish</td><td>DoAction</td><td>CleanUp</td><td>ISSCRIPTRUNNING="1"</td><td>1</td></row>
+		<row><td>SetupInterrupted</td><td>Finish</td><td>DoAction</td><td>ISSetupFilesCleanup</td><td>1</td><td>200</td></row>
 		<row><td>SetupInterrupted</td><td>Finish</td><td>DoAction</td><td>ShowMsiLog</td><td>MsiLogFileLocation And (ISSHOWMSILOG="1")</td><td>3</td></row>
 		<row><td>SetupInterrupted</td><td>Finish</td><td>EndDialog</td><td>Exit</td><td>1</td><td>2</td></row>
 		<row><td>SetupProgress</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
@@ -1046,6 +1068,8 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>INSTALLDIR</td><td>ISX_DEFAULTCOMPONENT1</td></row>
+		<row><td>LOGS</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1058,6 +1082,12 @@
 		<row><td>ISPreventDowngrade</td><td>19</td><td/><td>[IS_PREVENT_DOWNGRADE_EXIT]</td><td/><td>Exits install when a newer version of this product is found</td></row>
 		<row><td>ISPrint</td><td>1</td><td>SetAllUsers.dll</td><td>PrintScrollableText</td><td/><td>Prints the contents of a ScrollableText control on a dialog.</td></row>
 		<row><td>ISRunSetupTypeAddLocalEvent</td><td>1</td><td>ISExpHlp.dll</td><td>RunSetupTypeAddLocalEvent</td><td/><td>Run the AddLocal events associated with the Next button on the Setup Type dialog.</td></row>
+		<row><td>ISSelfRegisterCosting</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterCosting</td><td/><td/></row>
+		<row><td>ISSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFiles</td><td/><td/></row>
+		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
+		<row><td>ISSetupFilesCleanup</td><td>257</td><td>ISSetupFilesHelper</td><td>SFCleanupEx</td><td/><td/></row>
+		<row><td>ISSetupFilesExtract</td><td>257</td><td>ISSetupFilesHelper</td><td>SFStartupEx</td><td/><td/></row>
+		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
@@ -1123,6 +1153,7 @@
 		<row><td>ALLUSERSPROFILE</td><td>TARGETDIR</td><td>.:ALLUSE~1|All Users</td><td/><td>0</td><td/></row>
 		<row><td>AdminToolsFolder</td><td>TARGETDIR</td><td>.:Admint~1|AdminTools</td><td/><td>0</td><td/></row>
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
+		<row><td>CONFIG</td><td>INSTALLDIR</td><td>Config</td><td/><td>0</td><td/></row>
 		<row><td>CommonAppDataFolder</td><td>TARGETDIR</td><td>.:Common~1|CommonAppData</td><td/><td>0</td><td/></row>
 		<row><td>CommonFiles64Folder</td><td>TARGETDIR</td><td>.:Common64</td><td/><td>0</td><td/></row>
 		<row><td>CommonFilesFolder</td><td>TARGETDIR</td><td>.:Common</td><td/><td>0</td><td/></row>
@@ -1131,12 +1162,14 @@
 		<row><td>FavoritesFolder</td><td>TARGETDIR</td><td>.:FAVORI~1|Favorites</td><td/><td>0</td><td/></row>
 		<row><td>FontsFolder</td><td>TARGETDIR</td><td>.:Fonts</td><td/><td>0</td><td/></row>
 		<row><td>GlobalAssemblyCache</td><td>TARGETDIR</td><td>.:Global~1|GlobalAssemblyCache</td><td/><td>0</td><td/></row>
-		<row><td>INSTALLDIR</td><td>ISMyProductDir</td><td>.</td><td/><td>0</td><td/></row>
+		<row><td>INSTALLDIR</td><td>MY_PRODUCT_NAME</td><td>.</td><td/><td>0</td><td/></row>
 		<row><td>ISCommonFilesFolder</td><td>CommonFilesFolder</td><td>Instal~1|InstallShield</td><td/><td>0</td><td/></row>
 		<row><td>ISMyCompanyDir</td><td>ProgramFilesFolder</td><td>MYCOMP~1|My Company Name</td><td/><td>0</td><td/></row>
 		<row><td>ISMyProductDir</td><td>ISMyCompanyDir</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>ISYourDataBaseDir</td><td>INSTALLDIR</td><td>Database</td><td/><td>0</td><td/></row>
+		<row><td>LOGS</td><td>INSTALLDIR</td><td>Logs</td><td/><td>0</td><td/></row>
 		<row><td>LocalAppDataFolder</td><td>TARGETDIR</td><td>.:LocalA~1|LocalAppData</td><td/><td>0</td><td/></row>
+		<row><td>MY_PRODUCT_NAME</td><td>QUT</td><td>SPEPSE~1|SPEP Service</td><td/><td>0</td><td/></row>
 		<row><td>MyPicturesFolder</td><td>TARGETDIR</td><td>.:MyPict~1|MyPictures</td><td/><td>0</td><td/></row>
 		<row><td>NetHoodFolder</td><td>TARGETDIR</td><td>.:NetHood</td><td/><td>0</td><td/></row>
 		<row><td>PersonalFolder</td><td>TARGETDIR</td><td>.:Personal</td><td/><td>0</td><td/></row>
@@ -1145,7 +1178,9 @@
 		<row><td>ProgramFiles64Folder</td><td>TARGETDIR</td><td>.:Prog64~1|Program Files 64</td><td/><td>0</td><td/></row>
 		<row><td>ProgramFilesFolder</td><td>TARGETDIR</td><td>.:PROGRA~1|program files</td><td/><td>0</td><td/></row>
 		<row><td>ProgramMenuFolder</td><td>TARGETDIR</td><td>.:Programs</td><td/><td>3</td><td/></row>
+		<row><td>QUT</td><td>ProgramFilesFolder</td><td>QUT</td><td/><td>0</td><td/></row>
 		<row><td>RecentFolder</td><td>TARGETDIR</td><td>.:Recent</td><td/><td>0</td><td/></row>
+		<row><td>SCHEMA</td><td>INSTALLDIR</td><td>Schema</td><td/><td>0</td><td/></row>
 		<row><td>SendToFolder</td><td>TARGETDIR</td><td>.:SendTo</td><td/><td>3</td><td/></row>
 		<row><td>StartMenuFolder</td><td>TARGETDIR</td><td>.:STARTM~1|Start Menu</td><td/><td>3</td><td/></row>
 		<row><td>StartupFolder</td><td>TARGETDIR</td><td>.:StartUp</td><td/><td>3</td><td/></row>
@@ -1849,6 +1884,22 @@
 	<table name="FeatureComponents">
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
+		<row><td>AlwaysInstall</td><td>icudt54.dll</td></row>
+		<row><td>AlwaysInstall</td><td>icuin54.dll</td></row>
+		<row><td>AlwaysInstall</td><td>icuuc54.dll</td></row>
+		<row><td>AlwaysInstall</td><td>libcurl.dll</td></row>
+		<row><td>AlwaysInstall</td><td>libeay32.dll</td></row>
+		<row><td>AlwaysInstall</td><td>saml2.Primary_Output</td></row>
+		<row><td>AlwaysInstall</td><td>spep.Primary_Output</td></row>
+		<row><td>AlwaysInstall</td><td>spepd.Primary_Output</td></row>
+		<row><td>AlwaysInstall</td><td>spepisapi.Primary_Output</td></row>
+		<row><td>AlwaysInstall</td><td>ssleay32.dll</td></row>
+		<row><td>AlwaysInstall</td><td>xerces_c_3_1.dll</td></row>
+		<row><td>AlwaysInstall</td><td>xsec_1_7.dll</td></row>
 	</table>
 
 	<table name="File">
@@ -1863,6 +1914,40 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
+		<row><td>attributeconfig_schema.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>ATTRIB~1.XSD|attributeconfig-schema.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\attributeconfig-schema.xsd</td><td>1</td><td/></row>
+		<row><td>ca_bundle.crt</td><td>ISX_DEFAULTCOMPONENT2</td><td>CA-BUN~1.CRT|ca-bundle.crt</td><td>0</td><td/><td/><td/><td>1</td><td>C:\Users\kaurm\Downloads\ca-bundle.crt</td><td>1</td><td/></row>
+		<row><td>cacheclear_schema_saml_metad</td><td>ISX_DEFAULTCOMPONENT</td><td>CACHEC~1.XSD|cacheclear-schema-saml-metadata.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\cacheclear-schema-saml-metadata.xsd</td><td>1</td><td/></row>
+		<row><td>delegated_schema_saml_protoc</td><td>ISX_DEFAULTCOMPONENT</td><td>DELEGA~1.XSD|delegated-schema-saml-protocol.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\delegated-schema-saml-protocol.xsd</td><td>1</td><td/></row>
+		<row><td>esoe_schema_saml_protocol.xs</td><td>ISX_DEFAULTCOMPONENT</td><td>ESOE-S~1.XSD|esoe-schema-saml-protocol.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\esoe-schema-saml-protocol.xsd</td><td>1</td><td/></row>
+		<row><td>icudt54.dll</td><td>icudt54.dll</td><td>icudt54.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\icudt54.dll</td><td>1</td><td/></row>
+		<row><td>icuin54.dll</td><td>icuin54.dll</td><td>icuin54.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\icuin54.dll</td><td>1</td><td/></row>
+		<row><td>icuuc54.dll</td><td>icuuc54.dll</td><td>icuuc54.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\icuuc54.dll</td><td>1</td><td/></row>
+		<row><td>libcurl.dll</td><td>libcurl.dll</td><td>libcurl.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\libcurl.dll</td><td>1</td><td/></row>
+		<row><td>libeay32.dll</td><td>libeay32.dll</td><td>libeay32.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\libeay32.dll</td><td>1</td><td/></row>
+		<row><td>lxacml_schema.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>LXACML~1.XSD|lxacml-schema.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\lxacml-schema.xsd</td><td>1</td><td/></row>
+		<row><td>lxacml_schema_context.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>LXACML~1.XSD|lxacml-schema-context.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\lxacml-schema-context.xsd</td><td>1</td><td/></row>
+		<row><td>lxacml_schema_grouptarget.xs</td><td>ISX_DEFAULTCOMPONENT</td><td>LXACML~1.XSD|lxacml-schema-grouptarget.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\lxacml-schema-grouptarget.xsd</td><td>1</td><td/></row>
+		<row><td>lxacml_schema_metadata.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>LXACML~1.XSD|lxacml-schema-metadata.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\lxacml-schema-metadata.xsd</td><td>1</td><td/></row>
+		<row><td>lxacml_schema_saml_assertion</td><td>ISX_DEFAULTCOMPONENT</td><td>LXACML~1.XSD|lxacml-schema-saml-assertion.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\lxacml-schema-saml-assertion.xsd</td><td>1</td><td/></row>
+		<row><td>lxacml_schema_saml_protocol.</td><td>ISX_DEFAULTCOMPONENT</td><td>LXACML~1.XSD|lxacml-schema-saml-protocol.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\lxacml-schema-saml-protocol.xsd</td><td>1</td><td/></row>
+		<row><td>saml2.primary_output</td><td>saml2.Primary_Output</td><td>saml2.Primary Output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;saml2&gt;|Built</td><td>3</td><td/></row>
+		<row><td>saml_schema_assertion_2.0.xs</td><td>ISX_DEFAULTCOMPONENT</td><td>SAML-S~1.XSD|saml-schema-assertion-2.0.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\saml-schema-assertion-2.0.xsd</td><td>1</td><td/></row>
+		<row><td>saml_schema_metadata_2.0.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>SAML-S~1.XSD|saml-schema-metadata-2.0.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\saml-schema-metadata-2.0.xsd</td><td>1</td><td/></row>
+		<row><td>saml_schema_protocol_2.0.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>SAML-S~1.XSD|saml-schema-protocol-2.0.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\saml-schema-protocol-2.0.xsd</td><td>1</td><td/></row>
+		<row><td>sessiondata_schema.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>SESSIO~1.XSD|sessiondata-schema.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\sessiondata-schema.xsd</td><td>1</td><td/></row>
+		<row><td>soap_1.1_envelope.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>SOAP-1~1.XSD|soap-1.1-envelope.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\soap-1.1-envelope.xsd</td><td>1</td><td/></row>
+		<row><td>soap_1.2_envelope.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>SOAP-1~1.XSD|soap-1.2-envelope.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\soap-1.2-envelope.xsd</td><td>1</td><td/></row>
+		<row><td>spep.config</td><td>ISX_DEFAULTCOMPONENT2</td><td>SPEP~1.CON|spep.config</td><td>0</td><td/><td/><td/><td>1</td><td>H:\spep.config</td><td>1</td><td/></row>
+		<row><td>spep.primary_output</td><td>spep.Primary_Output</td><td>spep.Primary Output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;spep&gt;|Built</td><td>3</td><td/></row>
+		<row><td>spepd.primary_output</td><td>spepd.Primary_Output</td><td>spepd.Primary Output</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;spepd&gt;|Built</td><td>3</td><td/></row>
+		<row><td>spepisapi.primary_output</td><td>spepisapi.Primary_Output</td><td>spepisapi.Primary Output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;spepisapi&gt;|Built</td><td>3</td><td/></row>
+		<row><td>spepstartup_schema_saml_meta</td><td>ISX_DEFAULTCOMPONENT</td><td>SPEPST~1.XSD|spepstartup-schema-saml-metadata.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\spepstartup-schema-saml-metadata.xsd</td><td>1</td><td/></row>
+		<row><td>ssleay32.dll</td><td>ssleay32.dll</td><td>ssleay32.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\ssleay32.dll</td><td>1</td><td/></row>
+		<row><td>xenc_schema.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>XENC-S~1.XSD|xenc-schema.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\xenc-schema.xsd</td><td>1</td><td/></row>
+		<row><td>xerces_c_3_1.dll</td><td>xerces_c_3_1.dll</td><td>XERCES~1.DLL|xerces-c_3_1.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\xerces-c_3_1.dll</td><td>1</td><td/></row>
+		<row><td>xml.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>xml.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\xml.xsd</td><td>1</td><td/></row>
+		<row><td>xmldsig_core_schema.xsd</td><td>ISX_DEFAULTCOMPONENT</td><td>XMLDSI~1.XSD|xmldsig-core-schema.xsd</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\..\..\..\saml2cpp\schema\xmldsig-core-schema.xsd</td><td>1</td><td/></row>
+		<row><td>xsec_1_7.dll</td><td>xsec_1_7.dll</td><td>xsec_1_7.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISPROJECTFOLDER&gt;..\x64\Release\xsec_1_7.dll</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -1878,6 +1963,9 @@
 	<table name="ISAssistantTag">
 		<col key="yes" def="s72">Tag</col>
 		<col def="S255">Data</col>
+		<row><td>PROJECT_ASSISTANT_DEFAULT_FEATURE</td><td>AlwaysInstall</td></row>
+		<row><td>PROJECT_ASSISTANT_FEATURES</td><td>NonSelectable</td></row>
+		<row><td>RegistryPageEnabled</td><td>Yes</td></row>
 	</table>
 
 	<table name="ISBillBoard">
@@ -2004,6 +2092,22 @@
 		<col def="S0">FTPLocation</col>
 		<col def="S0">HTTPLocation</col>
 		<col def="S0">Miscellaneous</col>
+		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_37E9AEED_FDEC_42B5_AB89_41A510E07065_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_663F4CB5_D2C8_468E_85C3_64F0CEB5BF11_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_F8C33F7D_ED82_446A_8DC8_2D3AD3E2F1F7_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_51157C29_4E91_45DA_A82C_83AB958B5A26_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>icudt54.dll</td><td/><td/><td>_F4864EB4_24CD_4F84_A9A8_B7A97E0CBD3C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>icuin54.dll</td><td/><td/><td>_FBFBE28D_40C1_4D03_BBD5_641FAE408692_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>icuuc54.dll</td><td/><td/><td>_A20D6932_4906_4CD1_BFEC_B5C815504F03_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>libcurl.dll</td><td/><td/><td>_CF97EE06_5F3C_428A_AE72_42BDDCDE23E1_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>libeay32.dll</td><td/><td/><td>_9C806325_994D_4A9B_B045_D1C95340F894_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>saml2.Primary_Output</td><td/><td/><td>_41165253_F3E4_44FA_ABAE_505E2991C4B2_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>spep.Primary_Output</td><td/><td/><td>_F56FDF7B_8EA5_434C_BEB9_C4A18475339E_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>spepd.Primary_Output</td><td/><td/><td>_C3036E87_26C2_4437_A34E_CBC2BCEEE045_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>spepisapi.Primary_Output</td><td/><td/><td>_D1FE6D43_6AFC_4EE1_964D_36FA355DD7DE_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ssleay32.dll</td><td/><td/><td>_504D4C56_BF7C_4395_BDF4_62BE0A05CE9A_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>xerces_c_3_1.dll</td><td/><td/><td>_57FE432E_7A5B_477F_B713_67828D0BB8F5_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>xsec_1_7.dll</td><td/><td/><td>_67A1152F_BF35_452F_868B_28B1BC7EC70E_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="ISCustomActionReference">
@@ -2105,6 +2209,7 @@
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s255">ISMergeModule_</col>
 		<col key="yes" def="i2">Language_</col>
+		<row><td>AlwaysInstall</td><td>Microsoft_VC120_CRT_x64.05F0B5F5_44A8_3793_976B_A4F17AECF92C</td><td>0</td></row>
 	</table>
 
 	<table name="ISFeatureSetupPrerequisites">
@@ -2227,6 +2332,7 @@
 		<col def="s255">Name</col>
 		<col def="S255">Destination</col>
 		<col def="I4">ISAttributes</col>
+		<row><td>Microsoft_VC120_CRT_x64.05F0B5F5_44A8_3793_976B_A4F17AECF92C</td><td>0</td><td>Visual C++ 12.0 CRT (x64)</td><td/><td/></row>
 	</table>
 
 	<table name="ISMergeModuleCfgValues">
@@ -2312,6 +2418,10 @@
 		<row><td>ProgramFilesFolder</td><td/><td/><td>1</td></row>
 		<row><td>SystemFolder</td><td/><td/><td>1</td></row>
 		<row><td>WindowsFolder</td><td/><td/><td>1</td></row>
+		<row><td>saml2</td><td>saml2\saml2.vcxproj</td><td/><td>2</td></row>
+		<row><td>spep</td><td>spep\spep.vcxproj</td><td/><td>2</td></row>
+		<row><td>spepd</td><td>spepd\spepd.vcxproj</td><td/><td>2</td></row>
+		<row><td>spepisapi</td><td>spepisapi\spepisapi.vcxproj</td><td/><td>2</td></row>
 	</table>
 
 	<table name="ISPowerShellWrap">
@@ -2579,6 +2689,7 @@
 		<col def="S50">Language</col>
 		<col def="I2">Splash</col>
 		<col def="S0">Path</col>
+		<row><td>_isconfig.xml</td><td>_isconfig.xml</td><td/><td>0</td><td>0</td><td>&lt;ISProjectDataFolder&gt;\_isconfig.xml</td></row>
 	</table>
 
 	<table name="ISSetupPrerequisites">
@@ -2620,7 +2731,7 @@
 		<col def="I2">Encoded</col>
 		<col def="S0">Comment</col>
 		<col def="I4">TimeStamp</col>
-		<row><td>COMPANY_NAME</td><td>1033</td><td>Your Company Name</td><td>0</td><td/><td>-1306271605</td></row>
+		<row><td>COMPANY_NAME</td><td>1033</td><td>QUT</td><td>0</td><td/><td>-1834807089</td></row>
 		<row><td>DN_AlwaysInstall</td><td>1033</td><td>Always Install</td><td>0</td><td/><td>-1306271605</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>-1306271605</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_OS</td><td>1033</td><td>The operating system is not adequate for running [ProductName].</td><td>0</td><td/><td>-1306271605</td></row>
@@ -3721,6 +3832,8 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>-1306271605</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-1306271605</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>-1306269557</td></row>
+		<row><td>ID_STRING2</td><td>1033</td><td>http://www.QUT.com</td><td>0</td><td/><td>-1834807089</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>QUT</td><td>0</td><td/><td>-1834807089</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-1306271605</td></row>
 	</table>
 
@@ -3871,6 +3984,12 @@
 		<row><td>FindRelatedProducts</td><td>NOT ISSETUPDRIVEN</td><td>420</td><td>FindRelatedProducts</td><td/></row>
 		<row><td>ISPreventDowngrade</td><td>ISFOUNDNEWERPRODUCTVERSION</td><td>450</td><td>ISPreventDowngrade</td><td/></row>
 		<row><td>ISRunSetupTypeAddLocalEvent</td><td>Not Installed And Not ISRUNSETUPTYPEADDLOCALEVENT</td><td>1050</td><td>ISRunSetupTypeAddLocalEvent</td><td/></row>
+		<row><td>ISSelfRegisterCosting</td><td/><td>2201</td><td/><td/></row>
+		<row><td>ISSelfRegisterFiles</td><td/><td>5601</td><td/><td/></row>
+		<row><td>ISSelfRegisterFinalize</td><td/><td>6601</td><td/><td/></row>
+		<row><td>ISSetupFilesCleanup</td><td>UILevel &lt; 5</td><td>6602</td><td/><td/></row>
+		<row><td>ISSetupFilesExtract</td><td/><td>3</td><td/><td/></row>
+		<row><td>ISUnSelfRegisterFiles</td><td/><td>2202</td><td/><td/></row>
 		<row><td>InstallFiles</td><td/><td>4000</td><td>InstallFiles</td><td/></row>
 		<row><td>InstallFinalize</td><td/><td>6600</td><td>InstallFinalize</td><td/></row>
 		<row><td>InstallInitialize</td><td/><td>1501</td><td>InstallInitialize</td><td/></row>
@@ -3957,7 +4076,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{DF2109C1-6F1A-4A39-9BB2-E654F81DE0C0}</td></row>
 		<row><td>ISUSSignature</td><td>{49C75B0D-B6E7-4FF7-AD33-F2D0CF33D297}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewObjects,viewProject,viewRegistry,viewUI,viewRealSetupDesign,viewUpgradePaths,viewAppFiles,viewDependencies,viewEnvironmentVariables,viewSupportFiles,viewCustomActions,viewFeatureFiles,viewRelease,viewDesignPatches</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -3987,6 +4106,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>FileCost</td><td/><td>900</td><td>FileCost</td><td/></row>
 		<row><td>FindRelatedProducts</td><td/><td>430</td><td>FindRelatedProducts</td><td/></row>
 		<row><td>ISPreventDowngrade</td><td>ISFOUNDNEWERPRODUCTVERSION</td><td>450</td><td>ISPreventDowngrade</td><td/></row>
+		<row><td>ISSetupFilesCleanup</td><td>UILevel &lt; 5</td><td>1301</td><td/><td/></row>
+		<row><td>ISSetupFilesExtract</td><td/><td>3</td><td/><td/></row>
 		<row><td>InstallWelcome</td><td>Not Installed</td><td>1210</td><td>InstallWelcome</td><td/></row>
 		<row><td>IsolateComponents</td><td/><td>950</td><td>IsolateComponents</td><td/></row>
 		<row><td>LaunchConditions</td><td>Not Installed</td><td>410</td><td>LaunchConditions</td><td/></row>
@@ -4265,6 +4386,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ARPINSTALLLOCATION</td><td/><td/></row>
 		<row><td>ARPPRODUCTICON</td><td>ARPPRODUCTICON.exe</td><td/></row>
 		<row><td>ARPSIZE</td><td/><td/></row>
+		<row><td>ARPURLINFOABOUT</td><td>##ID_STRING2##</td><td/></row>
 		<row><td>AgreeToLicense</td><td>No</td><td/></row>
 		<row><td>ApplicationUsers</td><td>AllUsers</td><td/></row>
 		<row><td>DWUSINTERVAL</td><td>30</td><td/></row>
@@ -4330,7 +4452,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{0BC1202A-024B-4026-9850-059F7E1111A4}</td><td/></row>
 		<row><td>ProductName</td><td>spepinstaller</td><td/></row>
-		<row><td>ProductVersion</td><td>1.00.0000</td><td/></row>
+		<row><td>ProductVersion</td><td>0.9.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
@@ -4397,6 +4519,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S0">Value</col>
 		<col def="s72">Component_</col>
 		<col def="I4">ISAttributes</col>
+		<row><td>Registry1</td><td>2</td><td>SOFTWARE\ESOE Project\SPEP</td><td>ConfigFile</td><td>[INSTALLDIR]Config\spep.config</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
+		<row><td>Registry2</td><td>2</td><td>SOFTWARE\ESOE Project\SPEP</td><td>LogFile</td><td>[INSTALLDIR]Logs\spep.log</td><td>ISX_DEFAULTCOMPONENT1</td><td>0</td></row>
 	</table>
 
 	<table name="RemoveFile">

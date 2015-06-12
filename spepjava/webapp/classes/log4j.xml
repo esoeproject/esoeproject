@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"
-	debug="true">
+	debug="false">
 
 	<appender name="spep-core-logger"
 		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${spep.data}/logging/spep.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
@@ -16,7 +15,6 @@
 	<appender name="spep-authn-logger"
 		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${spep.data}/logging/spep-authn.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
@@ -26,7 +24,6 @@
 	<appender name="spep-authz-logger"
 		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${spep.data}/logging/spep-authz.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
@@ -36,7 +33,6 @@
 	<appender name="saml2-logger"
 		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${spep.data}/logging/saml2.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />
@@ -46,7 +42,6 @@
 	<appender name="metadata-logger"
 		class="org.apache.log4j.FileAppender">
 		<param name="File" value="${spep.data}/logging/metadata.log" />
-		<param name="DatePattern" value="'.'yyyy-MM-dd" />
 
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d %-5p %c - %m%n" />

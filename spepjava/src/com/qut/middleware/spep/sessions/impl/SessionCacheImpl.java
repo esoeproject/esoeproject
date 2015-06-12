@@ -62,9 +62,7 @@ public class SessionCacheImpl implements SessionCache
 
 	/**
 	 * Default constructor.
-	 * 
-	 * @param reportingProcessor
-	 *            The processor to use for logging.
+	 *
 	 * @param sessionCacheTimeout
 	 *            Expiry age in seconds for cached sessions. Sessions older than specified time will be removed. from
 	 *            the cache at regular intervals.

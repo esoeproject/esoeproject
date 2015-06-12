@@ -162,9 +162,11 @@
     <ClInclude Include="..\..\..\..\spepiismodule\include\SPEPModule.h" />
     <ClInclude Include="..\..\..\..\spepiismodule\include\SSOHandler.h" />
     <ClInclude Include="..\..\..\..\spepiismodule\include\WSHandler.h" />
+    <ClInclude Include="..\..\..\..\spepiismodule\src\HttpRequest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\spepiismodule\src\Cookies.cpp" />
+    <ClCompile Include="..\..\..\..\spepiismodule\src\HttpRequest.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\ISAPI.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\ISAPIRequest.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\RequestParameters.cpp" />

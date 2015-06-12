@@ -20,12 +20,7 @@
 package com.qut.middleware.spep.sessions.impl;
 
 import java.text.MessageFormat;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -376,7 +371,7 @@ public class SessionCacheImpl implements SessionCache
 				}
 				catch (Exception e)
 				{
-					this.logger.error(MessageFormat.format(Messages.getString("SessionCacheImpl.11"), e.getMessage())); //$NON-NLS-1$
+					this.logger.error(MessageFormat.format(Messages.getString("SessionCacheImpl.11"), e.toString()), e); //$NON-NLS-1$
 				}
 			}
 		}
@@ -390,28 +385,37 @@ public class SessionCacheImpl implements SessionCache
 		private void cleanup()
 		{
 			List<String> expired = new Vector<String>();
+            List<PrincipalSession> expiredPrincipalSessions = new ArrayList<>();
 
 			lock();
 			try
 			{
 				this.logger.info(Messages.getString("SessionCacheImpl.15")); //$NON-NLS-1$
-				/* Remove principal sessions that have expired */
+
+                XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
+                GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
+
+				// Find principal sessions that have expired (can't terminate here because of ConcurrentModificationExceptions on esoeSessions)
 				for (String esoeID : SessionCacheImpl.this.esoeSessions.keySet())
 				{
 					PrincipalSession principal = SessionCacheImpl.this.esoeSessions.get(esoeID);
+
 					if (principal != null)
 					{
-						XMLGregorianCalendar thisXmlCal = CalendarUtils.generateXMLCalendar();
-						GregorianCalendar thisCal = thisXmlCal.toGregorianCalendar();
-
 						if (thisCal.getTime().after(principal.getSessionNotOnOrAfter()))
 						{
-							this.logger.info("Terminating session " +principal.getEsoeSessionID() + " current time is: " + thisCal + " sessionNotOnAfter was set to: " + principal.getSessionNotOnOrAfter());
-							this.logger.debug(Messages.getString("SessionCacheImpl.16") + principal.getEsoeSessionID() + Messages.getString("SessionCacheImpl.17")); //$NON-NLS-1$ //$NON-NLS-2$
-							terminatePrincipalSession(principal);
+                            this.logger.debug("Found expired principal session, adding to expired list - sessionId: " + principal.getEsoeSessionID() + ", sessionNotOnAfter: " + principal.getSessionNotOnOrAfter());
+                            expiredPrincipalSessions.add(principal);
 						}
 					}
 				}
+
+                // terminate the found expired principal sessions
+                for (PrincipalSession principal : expiredPrincipalSessions) {
+                    this.logger.info("Terminating session " + principal.getEsoeSessionID() + " sessionNotOnAfter was set to: " + principal.getSessionNotOnOrAfter());
+                    this.logger.debug(Messages.getString("SessionCacheImpl.16") + principal.getEsoeSessionID() + Messages.getString("SessionCacheImpl.17")); //$NON-NLS-1$ //$NON-NLS-2$
+                    terminatePrincipalSession(principal);
+                }
 
 				// Now clean up the unauthenticated sessions
 				for (Entry<String, UnauthenticatedSession> entry : SessionCacheImpl.this.unauthenticatedSessions.entrySet())

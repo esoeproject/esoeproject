@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "ISAPIRequest.h"
+#include "HttpRequest.h"
 #include "SPEPExtension.h"
 
 #include "spep/SPEP.h"
@@ -35,17 +35,17 @@ namespace spep {
         {
         public:
             SSOHandler(spep::SPEP* spep, SPEPExtension* spepExtension);
-            DWORD handleRequest(ISAPIRequest* request);
+			DWORD handleRequest(HttpRequest* request);
 
         private:
 
             SSOHandler(const SSOHandler& other);
             SSOHandler& operator=(const SSOHandler& other);
 
-            DWORD handleSSOGetRequest(ISAPIRequest* request);
-            DWORD handleSSOPostRequest(ISAPIRequest* request);
-            std::string buildAuthnRequestDocument(ISAPIRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL);
-            BOOL parseGetRequestQueryString(ISAPIRequest* request);
+			DWORD handleSSOGetRequest(HttpRequest* request);
+			DWORD handleSSOPostRequest(HttpRequest* request);
+			std::string buildAuthnRequestDocument(HttpRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL);
+			BOOL parseGetRequestQueryString(HttpRequest* request);
             
             spep::SPEP *mSpep;
             SPEPExtension *mSpepExtension;

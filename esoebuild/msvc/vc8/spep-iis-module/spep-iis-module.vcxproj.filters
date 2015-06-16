@@ -21,12 +21,6 @@
     <ClInclude Include="..\..\..\..\spepiismodule\include\FilterConstants.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\spepiismodule\include\ISAPI.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\spepiismodule\include\ISAPIRequest.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\spepiismodule\include\RequestParameters.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -51,12 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\spepiismodule\src\Cookies.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\spepiismodule\src\ISAPI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\spepiismodule\src\ISAPIRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\spepiismodule\src\RequestParameters.cpp">

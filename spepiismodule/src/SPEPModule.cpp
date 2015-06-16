@@ -22,8 +22,7 @@
 #include <boost/program_options/variables_map.hpp>
 
 #include "SPEPModule.h"
-#include "RegistryKey.h"
-#include "SPEPExtension.h"
+
 
 
 #define 	SPEP_ISAPI_EXTENSION_DESCRIPTION  "SPEP ISAPI v1.0"
@@ -34,7 +33,7 @@
 
 namespace spep {
 namespace isapi {
-
+	static SPEPExtension *extensionInstance = nullptr;
 bool LoadConfiguration() {
 	std::string logFilename;
 

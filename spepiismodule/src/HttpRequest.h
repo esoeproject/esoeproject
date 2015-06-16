@@ -27,7 +27,7 @@ namespace spep{
 			virtual ~HttpRequest(){}
 			virtual std::string getHeader(const std::string &name) = 0;
 			virtual void setHeader(const std::string& headerName, const std::string& headerValue) = 0;
-			virtual std::wstring getServerVariable(const std::string& name) = 0;
+			virtual std::string getServerVariable(const std::string& name) = 0;
 			virtual std::string getRequestMethod() const = 0;
 			virtual std::string getQueryString() const = 0;
 			virtual std::string getScriptName() const = 0;
@@ -48,6 +48,8 @@ namespace spep{
 			virtual void addRequestHeader(const std::string& name, const std::string& value) = 0;
 			virtual DWORD continueRequest() = 0;
 			virtual void urlDecode(std::string& url) = 0;
+			virtual std::wstring convertStrToWString(const std::string& str) = 0;
+			virtual std::string convertWStrToString(const std::wstring& str) = 0;
 			virtual void setRemoteUser(const std::string& username) = 0;
 			virtual void setRemoteAddress(const std::string& ipaddress) = 0;
 			
@@ -55,13 +57,15 @@ namespace spep{
 
 		class HttpRequestImpl : public HttpRequest
 		{
+
+		public:
 			HttpRequestImpl(IHttpContext *pHttpContext);
 			
 			virtual ~HttpRequestImpl();
 
 			virtual std::string getHeader(const std::string &name) override;
 			virtual void setHeader(const std::string& headerName, const std::string& headerValue) override;
-			virtual std::wstring getServerVariable(const std::string& name) override;
+			virtual std::string getServerVariable(const std::string& name) override;
 			virtual std::string getRequestURL() const override;
 			virtual std::string getRequestMethod() const override;
 			virtual std::string getQueryString() const override;
@@ -86,6 +90,8 @@ namespace spep{
 			virtual char *isprintf(const char *fmt, ...) override;
 			virtual DWORD continueRequest() override;
 			virtual void urlDecode(std::string& url) override;
+			virtual std::wstring convertStrToWString(const std::string& str) override;
+			virtual std::string convertWStrToString(const std::wstring& str) override;
 
 			
 
@@ -93,13 +99,13 @@ namespace spep{
 			IHttpContext * httpContext;
 			std::vector<LPVOID> mFreeList;
 			std::unordered_map<std::string, std::string> mResponseHeaders;
-			std::wstring mRequestURL;
+			std::string mRequestURL;
 			std::string mRequestMethod;
 			std::string mQueryString;
-			std::wstring mScriptName;
-			std::wstring mContentType;
+			std::string mScriptName;
+			std::string mContentType;
 			std::string mRemoteUser;
-			std::wstring mRemoteAddress;
+			std::string mRemoteAddress;
 			std::string mChildHeaders;
 			BOOL mIsSecureRequest;
 			DWORD mContentLength;

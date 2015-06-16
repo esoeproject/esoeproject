@@ -24,9 +24,9 @@
 namespace spep {
     namespace isapi {
 
-        Cookies::Cookies(spep::isapi::ISAPIRequest *isapiRequest)
+        Cookies::Cookies(spep::isapi::HttpRequest *request)
         {
-            std::string cookieHeader(isapiRequest->getHeader("Cookie"));
+			std::string cookieHeader(request->getHeader("Cookie"));
             for (std::size_t pos = 0; pos != std::string::npos;)
             {
                 std::size_t start = cookieHeader.find_first_not_of(' ', pos);
@@ -81,11 +81,10 @@ namespace spep {
         }
 
         //Thu, 01-Jan-1970 00:00:00 GMT
-        void Cookies::addCookie(ISAPIRequest *isapiRequest, const char *name, const char *value, const char *path, const char *domain, bool secureOnly, int expires)
+        void Cookies::addCookie(HttpRequest *request, const char *name, const char *value, const char *path, const char *domain, bool secureOnly, int expires)
         {
             std::stringstream ss;
 
-            ss << "Set-Cookie: ";
 
             if (name == NULL || value == NULL)
                 return;
@@ -130,7 +129,7 @@ namespace spep {
 
             ss << "\r\n";
 
-            isapiRequest->setHeader(ss.str());
+           httpRequest->setHeader("Set-Cookie", ss.str());
         }
 
     }

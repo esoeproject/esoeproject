@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\..\spepiismodule\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\spepcppdepends\open_ssl\include;..\..\..\spepcppdepends\xsd\include;..\..\..\spepcppdepends\asio\include;..\..\..\spepcppdepends\boost\include;..\..\..\spepcppdepends\curl\include;..\..\..\spepcppdepends\icu\include;..\..\..\spepcppdepends\xerces\include;..\..\..\spepcppdepends\xml-security\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\spepiismodule\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;..\..\..\..\spepcppdepends\open_ssl\include;..\..\..\..\spepcppdepends\xsd\include;..\..\..\..\spepcppdepends\curl\include;..\..\..\..\spepcppdepends\asio\include;..\..\..\..\spepcppdepends\icu\include;..\..\..\..\spepcppdepends\boost\include;..\..\..\..\spepcppdepends\xml-security\include;..\..\..\..\spepcppdepends\xerces\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -154,8 +154,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\spepiismodule\include\Cookies.h" />
     <ClInclude Include="..\..\..\..\spepiismodule\include\FilterConstants.h" />
-    <ClInclude Include="..\..\..\..\spepiismodule\include\ISAPI.h" />
-    <ClInclude Include="..\..\..\..\spepiismodule\include\ISAPIRequest.h" />
     <ClInclude Include="..\..\..\..\spepiismodule\include\RegistryKey.h" />
     <ClInclude Include="..\..\..\..\spepiismodule\include\RequestParameters.h" />
     <ClInclude Include="..\..\..\..\spepiismodule\include\SPEPExtension.h" />
@@ -167,8 +165,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\..\spepiismodule\src\Cookies.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\HttpRequest.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\ISAPI.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\ISAPIRequest.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\RequestParameters.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\SPEPExtension.cpp" />
     <ClCompile Include="..\..\..\..\spepiismodule\src\SPEPModule.cpp" />
@@ -176,7 +172,9 @@
     <ClCompile Include="..\..\..\..\spepiismodule\src\WSHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

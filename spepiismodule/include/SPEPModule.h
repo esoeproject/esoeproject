@@ -20,6 +20,8 @@
 #include <windows.h>
 #include <sal.h>
 #include <httpserv.h>
+#include "RegistryKey.h"
+#include "SPEPExtension.h"
 
 namespace spep {
 namespace isapi {
@@ -29,11 +31,15 @@ namespace isapi {
 // Create the module class.
 class SPEPModule : public CHttpModule
 {
+	
 public:
 	REQUEST_NOTIFICATION_STATUS OnBeginRequest(IN IHttpContext * pHttpContext, IN IHttpEventProvider * pProvider)
 	{
+		DWORD status;
 		UNREFERENCED_PARAMETER(pProvider);
-
+		
+		spep::isapi::HttpRequestImpl request(pHttpContext);
+		status = spep::isapi::extensionInstance->processRequest(&request);
 		// Return processing to the pipeline.
 		return RQ_NOTIFICATION_CONTINUE;
 	}
@@ -49,7 +55,7 @@ public:
 
 		// Create a new instance.
 		SPEPModule * pModule = new SPEPModule;
-
+		
 		// Test for an error.
 		if (!pModule)
 		{
@@ -73,7 +79,7 @@ public:
 	}
 };
 
-	}
+}
 }
 
 // Create the module's exported registration function.

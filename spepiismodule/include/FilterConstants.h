@@ -178,6 +178,8 @@
 		"</body>\n" \
 		"</html>\n"
 
+#define HTTP_OK 200
+#define HTTP_REDIRECT 302
 #define HTTP_FORBIDDEN 403
 #define HTTP_FORBIDDEN_READ 403, 2
 #define HTTP_METHOD_NOT_ALLOWED 405

@@ -20,7 +20,7 @@
 #ifndef COOKIES_H_
 #define COOKIES_H_
 
-#include "ISAPIRequest.h"
+#include "HttpRequest.h"
 
 #include <unordered_map>
 #include <string>
@@ -32,9 +32,9 @@ namespace spep { namespace isapi {
     class Cookies
     {
     public:
-        Cookies(ISAPIRequest *isapiRequest);
+		Cookies(HttpRequest *request);
         std::string operator[](const std::string& name);
-        void addCookie(ISAPIRequest *isapiRequest, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0);
+		void addCookie(HttpRequest *request, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0);
 
     private:
         std::unordered_map<std::string, std::string> mValues;

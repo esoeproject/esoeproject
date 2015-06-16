@@ -36,7 +36,7 @@ namespace spep {
         {
         }
 
-        DWORD SSOHandler::handleSSOGetRequest(ISAPIRequest *request)
+		DWORD SSOHandler::handleSSOGetRequest(HttpRequest *request)
         {
             RequestParameters params(request);
 
@@ -99,10 +99,10 @@ namespace spep {
             // Build the authentication request document
             std::string authnRequestDocument(buildAuthnRequestDocument(request, base64RedirectURL, baseRequestURL));
 
-            return request->sendResponseDocument(HTTP_OK_STATUS_LINE, authnRequestDocument.c_str(), authnRequestDocument.length(), HTTP_POST_REQUEST_DOCUMENT_CONTENT_TYPE);
+            return request->sendResponseDocument(HTTP_OK, HTTP_OK_STATUS_LINE, authnRequestDocument.c_str(), authnRequestDocument.length(), HTTP_POST_REQUEST_DOCUMENT_CONTENT_TYPE);
         }
 
-        DWORD SSOHandler::handleSSOPostRequest(ISAPIRequest *request)
+		DWORD SSOHandler::handleSSOPostRequest(HttpRequest *request)
         {
             RequestParameters params(request);
 
@@ -169,7 +169,7 @@ namespace spep {
             //return request->sendResponseHeader( HTTP_REDIRECT_STATUS_LINE, TRUE );
         }
 
-        DWORD SSOHandler::handleRequest(ISAPIRequest *request)
+		DWORD SSOHandler::handleRequest(HttpRequest *request)
         {
             try
             {
@@ -202,7 +202,7 @@ namespace spep {
             }
         }
 
-        std::string SSOHandler::buildAuthnRequestDocument(ISAPIRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL)
+		std::string SSOHandler::buildAuthnRequestDocument(HttpRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL)
         {
             AuthnProcessorData data;
             data.setRequestURL(base64RedirectURL);

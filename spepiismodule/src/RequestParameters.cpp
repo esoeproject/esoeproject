@@ -23,7 +23,7 @@
 namespace spep {
     namespace isapi {
 
-        RequestParameters::RequestParameters(ISAPIRequest *request)
+		RequestParameters::RequestParameters(HttpRequest *request)
         {
             std::string paramString;
 

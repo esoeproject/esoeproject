@@ -21,7 +21,7 @@
 #ifndef WSHANDLER_H_
 #define WSHANDLER_H_
 
-#include "ISAPIRequest.h"
+#include "HttpRequest.h"
 
 #include "spep/SPEP.h"
 #include "spep/ws/SOAPUtil.h"
@@ -44,16 +44,16 @@ namespace spep {
             /**
              * Performs the WS processing logic.
              */
-            DWORD processRequest(ISAPIRequest* request);
-            DWORD authzCacheClear(ISAPIRequest* request);
-            DWORD singleLogout(ISAPIRequest* request);
+			DWORD processRequest(HttpRequest* request);
+			DWORD authzCacheClear(HttpRequest* request);
+			DWORD singleLogout(HttpRequest* request);
 
         private:
             SPEP *mSpep;
             SPEPExtension *mSpepExtension;
 
-            spep::SOAPDocument readRequestDocument(ISAPIRequest* request, spep::SOAPUtil::SOAPVersion* soapVersion, std::string& characterEncoding);
-            DWORD sendResponseDocument(ISAPIRequest* request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
+			spep::SOAPDocument readRequestDocument(HttpRequest* request, spep::SOAPUtil::SOAPVersion* soapVersion, std::string& characterEncoding);
+			DWORD sendResponseDocument(HttpRequest* request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
         };
 
     }

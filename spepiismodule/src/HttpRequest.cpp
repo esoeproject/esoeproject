@@ -4,6 +4,8 @@
 #include "spep/exceptions/InvalidStateException.h"
 
 #include <ctype.h>
+#include <AtlBase.h>
+#include <utility>
 
 #include <boost/lexical_cast.hpp>
 
@@ -18,7 +20,7 @@ namespace spep {
 			httpContext(pHttpContext),
 			mRequestURL(),
 			mRequestMethod(pHttpContext->GetRequest()->GetHttpMethod()),
-			mQueryString(pHttpContext->GetRequest()->GetRawHttpRequest()->CookedUrl.pQueryString),
+			mQueryString(convertWStrToString(pHttpContext->GetRequest()->GetRawHttpRequest()->CookedUrl.pQueryString)),
 			mScriptName(),
 			mContentType(),
 			mContentLength(0),
@@ -28,7 +30,7 @@ namespace spep {
 			mScriptName = getServerVariable("SCRIPT_NAME");
 			mContentType = getServerVariable("CONTENT_TYPE");
 			mRemoteAddress = getServerVariable("REMOTE_ADDR");
-			mIsSecureRequest = (getServerVariable("SERVER_PORT_SECURE").compare(std::wstring(L"1")) == 0);
+			mIsSecureRequest = (getServerVariable("SERVER_PORT_SECURE").compare(std::string("1")) == 0);
 			try
 			{
 				mContentLength = boost::lexical_cast<DWORD>(getServerVariable("CONTENT_LENGTH"));
@@ -50,7 +52,7 @@ namespace spep {
 
 			PCSTR headerValue;
 			USHORT buf;
-			headerValue = httpContext->GetHeader(name, &buf);
+			headerValue = httpContext->GetRequest()->GetHeader(name.c_str(), &buf);
 			if (buf) {
 				header = std::string(headerValue);
 			}
@@ -61,22 +63,22 @@ namespace spep {
 			if (mHeadersSent)
 				throw spep::InvalidStateException();
 
-			mResponseHeaders.insert(std::make_pair<std::string, std::string>(headerName, headerValue));
+			mResponseHeaders.insert(std::make_pair<const std::string&, const std::string&>(headerName, headerValue));
 		}
 
-		std::wstring HttpRequestImpl::getServerVariable(const std::string& name){
+		std::string HttpRequestImpl::getServerVariable(const std::string& name){
 
 			// Create an HRESULT to receive return values from methods.
 			HRESULT hr;
 
 			DWORD size = 128;
-			std::wstring variableValue;
+			std::string variableValue;
 			PCWSTR returnString;
 
 			hr = httpContext->GetServerVariable(name.c_str(), &returnString, &size);
 
 			if (!FAILED(hr)){
-				variableValue = std::wstring(returnString);
+				variableValue = convertWStrToString(returnString);
 			}
 			return variableValue;
 		}
@@ -85,7 +87,7 @@ namespace spep {
 			return httpContext;
 		}
 
-		std::wstring HttpRequestImpl::getRequestURL() const
+		std::string HttpRequestImpl::getRequestURL() const
 		{
 			return mRequestURL;
 		}
@@ -100,12 +102,12 @@ namespace spep {
 			return mQueryString;
 		}
 
-		std::wstring HttpRequestImpl::getScriptName() const
+		std::string HttpRequestImpl::getScriptName() const
 		{
 			return mScriptName;
 		}
 
-		std::wstring HttpRequestImpl::getContentType() const
+		std::string HttpRequestImpl::getContentType() const
 		{
 			return mContentType;
 		}
@@ -115,7 +117,7 @@ namespace spep {
 			return mContentLength; //ask why?
 		}
 
-		std::wstring HttpRequestImpl::getRemoteAddress() const
+		std::string HttpRequestImpl::getRemoteAddress() const
 		{
 			return mRemoteAddress;
 		}
@@ -125,17 +127,12 @@ namespace spep {
 			return mIsSecureRequest;
 		}
 
-		IHttpContext *HttpRequestImpl::getHttpContext()
-		{
-			return httpContext; //check if this is correct
-		}
-
 		void HttpRequestImpl::setRemoteUser(const std::string& username)
 		{
 			mRemoteUser = username;
 		}
 
-		void HttpRequestImpl::setRemoteAddress(const std::wstring& ipaddress)
+		void HttpRequestImpl::setRemoteAddress(const std::string& ipaddress)
 		{
 			mRemoteAddress = ipaddress;
 		}
@@ -201,10 +198,107 @@ namespace spep {
 			return HSE_STATUS_SUCCESS;
 		}
 
+		DWORD HttpRequestImpl::sendErrorDocument(int errorCode, int minorCode)
+		{
+			HRESULT hr;
+			const char *statusLine;
+			const char *document;
+			const char *contentType;
+			DWORD contentLength;
+
+			switch (errorCode)
+			{
+			case HTTP_FORBIDDEN:
+				statusLine = HTTP_FORBIDDEN_STATUS_LINE;
+				document = HTTP_FORBIDDEN_DOCUMENT;
+				contentType = HTTP_FORBIDDEN_DOCUMENT_TYPE;
+				break;
+
+			case HTTP_METHOD_NOT_ALLOWED:
+				statusLine = HTTP_METHOD_NOT_ALLOWED_STATUS_LINE;
+				document = HTTP_METHOD_NOT_ALLOWED_DOCUMENT;
+				contentType = HTTP_METHOD_NOT_ALLOWED_DOCUMENT_TYPE;
+				break;
+
+			case HTTP_SERVICE_UNAVAILABLE:
+				statusLine = HTTP_SERVICE_UNAVAILABLE_STATUS_LINE;
+				document = HTTP_SERVICE_UNAVAILABLE_DOCUMENT;
+				contentType = HTTP_SERVICE_UNAVAILABLE_DOCUMENT_TYPE;
+				break;
+
+			case HTTP_INTERNAL_SERVER_ERROR:
+			default:
+				statusLine = HTTP_INTERNAL_SERVER_ERROR_STATUS_LINE;
+				document = HTTP_INTERNAL_SERVER_ERROR_DOCUMENT;
+				contentType = HTTP_INTERNAL_SERVER_ERROR_DOCUMENT_TYPE;
+				break;
+			}
+			contentLength = strlen(document);
+			//check this
+			hr = httpContext->GetResponse()->SetStatus(errorCode, statusLine, 0, S_OK);
+
+			if (!FAILED(hr))
+			{
+				return HSE_STATUS_SUCCESS;
+			}
+
+			return sendResponseDocument(errorCode, statusLine, document, contentLength, contentType);
+		}
+
+		DWORD HttpRequestImpl::sendRedirectResponse(const std::string& location)
+		{
+			setHeader(std::string(REDIRECT_HEADER), location);
+//check this
+			return sendResponseHeader(HTTP_REDIRECT, HTTP_REDIRECT_STATUS_LINE);
+		}
+
+		BOOL HttpRequestImpl::readRequestDocument(spep::CArray<char> &buffer, DWORD &size)
+		{
+			HRESULT hr;
+			DWORD bytesReceived = 1024;
+
+			if (httpContext->GetRequest()->GetRemainingEntityBytes() > 0)
+			{
+				while (httpContext->GetRequest()->GetRemainingEntityBytes() != 0)
+				{
+					hr = httpContext->GetRequest()->ReadEntityBody(buffer.get(), size, false, &bytesReceived, NULL);
+
+					if (FAILED(hr))
+					{
+						return HSE_STATUS_ERROR;
+					}
+				}
+			}
+
+			return TRUE;
+		}
+
+		void HttpRequestImpl::addRequestHeader(const std::string& name, const std::string& value)
+		{
+			if (mChildHeaders.empty())
+			{
+				mChildHeaders = getServerVariable("ALL_RAW");
+			}
+
+			mChildHeaders = name + ": " + value + "\r\n" + mChildHeaders;
+		}
+
+		std::wstring HttpRequestImpl::convertStrToWString(const std::string& str){
+			CA2W ca2wstr(str.c_str());
+			std::wstring returnwstr = ca2wstr;
+			return returnwstr;
+		}
+
+		std::string HttpRequestImpl::convertWStrToString(const std::wstring& str){
+			CW2A cw2astr(str.c_str());
+			std::string returnstr = cw2astr;
+			return returnstr;
+		}
+
 		VOID* HttpRequestImpl::allocMem(DWORD size)
 		{
 			LPVOID retval = malloc(size);
-			mFreeList.push_back(retval);
+			mFreeList.push_back(retval); 
 			return retval;
 		}
 

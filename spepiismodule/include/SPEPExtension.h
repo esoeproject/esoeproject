@@ -30,7 +30,7 @@
 #include "spep/config/ConfigurationReader.h"
 #include "spep/SPEP.h"
 
-#include "ISAPIRequest.h"
+#include "HttpRequest.h"
 
 namespace spep{
     namespace isapi{
@@ -51,7 +51,7 @@ namespace spep{
             /**
              * Performs the SPEP extension logic.
              */
-            DWORD processRequest(ISAPIRequest* request);
+            DWORD processRequest(HttpRequest* request);
 
         private:
 

@@ -21,7 +21,7 @@
 #ifndef REQUESTPARAMETERS_H_
 #define REQUESTPARAMETERS_H_
 
-#include "ISAPIRequest.h"
+#include "HttpRequest.h"
 
 #include <string>
 #include <unordered_map>
@@ -31,7 +31,7 @@ namespace spep { namespace isapi {
     class RequestParameters
     {
     public:
-        RequestParameters(ISAPIRequest *req);
+		RequestParameters(HttpRequest *req);
         std::string operator[](const std::string& name) const;
 
     private:

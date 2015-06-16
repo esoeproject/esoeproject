@@ -34,7 +34,7 @@ namespace spep {
         {
         }
 
-        spep::SOAPDocument WSHandler::readRequestDocument(ISAPIRequest *request, spep::SOAPUtil::SOAPVersion *soapVersion, std::string &characterEncoding)
+        spep::SOAPDocument WSHandler::readRequestDocument(HttpRequest *request, spep::SOAPUtil::SOAPVersion *soapVersion, std::string &characterEncoding)
         {
             std::string contentType(request->getContentType());
             if (contentType.find(SOAP12_DOCUMENT_CONTENT_TYPE) != std::string::npos)
@@ -77,14 +77,14 @@ namespace spep {
             throw spep::InvalidStateException();
         }
 
-        DWORD WSHandler::sendResponseDocument(ISAPIRequest *request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string &characterEncoding)
+        DWORD WSHandler::sendResponseDocument(HttpRequest *request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string &characterEncoding)
         {
             std::string contentType(request->getContentType());
 
-            return request->sendResponseDocument(HTTP_OK_STATUS_LINE, reinterpret_cast<const char*>(soapResponse.getData()), soapResponse.getLength(), contentType);
+            return request->sendResponseDocument(HTTP_OK, HTTP_OK_STATUS_LINE, reinterpret_cast<const char*>(soapResponse.getData()), soapResponse.getLength(), contentType);
         }
 
-        DWORD WSHandler::authzCacheClear(ISAPIRequest* request)
+		DWORD WSHandler::authzCacheClear(HttpRequest* request)
         {
             std::string requestXML;
             try
@@ -110,7 +110,7 @@ namespace spep {
             }
         }
 
-        DWORD WSHandler::singleLogout(ISAPIRequest* request)
+		DWORD WSHandler::singleLogout(HttpRequest* request)
         {
             std::string requestXML;
             try
@@ -136,7 +136,7 @@ namespace spep {
             }
         }
 
-        DWORD WSHandler::processRequest(ISAPIRequest* request)
+		DWORD WSHandler::processRequest(HttpRequest* request)
         {
             // We don't check if the SPEP is started here, because we want the initial authz cache clear request to succeed.
             try

@@ -1,13 +1,11 @@
-#include "HttpRequest.h"
-#include "FilterConstants.h"
-
-#include "spep/exceptions/InvalidStateException.h"
-
 #include <ctype.h>
 #include <AtlBase.h>
 #include <utility>
-
 #include <boost/lexical_cast.hpp>
+
+#include "HttpRequest.h"
+#include "spep/exceptions/InvalidStateException.h"
+
 
 // This is only safe for direct variable parameters
 // Any expression with a side effect, such as a ++ or a function call should NOT be passed into this macro.

@@ -39,7 +39,7 @@
     <ClInclude Include="..\..\..\..\spepiismodule\include\RegistryKey.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\spepiismodule\src\HttpRequest.h">
+    <ClInclude Include="..\..\..\..\spepiismodule\include\HttpRequest.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

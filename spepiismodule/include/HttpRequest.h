@@ -9,10 +9,10 @@
 #define HTTP_HEADER_VALUE_DEFAULT_LENGTH 64
 #define HTTP_HEADER_VARIABLE_PREFIX "HTTP_"
 
-#include <winsock2.h>
+//#include <winsock2.h>
+#define _WINSOCKAPI_
 #include <windows.h>
-#include <httpfilt.h>
-#include <httpext.h>
+#include <sal.h>
 #include <httpserv.h>
 
 #include "spep/Util.h"

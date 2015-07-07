@@ -11,15 +11,15 @@ License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root
 Prefix: /usr/local/spep
-Requires: boost >= 1.33
-Requires: xml-security-c >= 1.3.0
-Requires: xerces >= 2.7.0
-Requires: libicu >= 3.6
-#BuildRequires: boost-devel >= 1.33
-#BuildRequires: xml-security-c-devel >= 1.3.0
-#BuildRequires: xerces-devel >= 2.7.0
-#BuildRequires: libicu-devel >= 3.6
-#BuildRequires: xsd = 3.2.0
+Requires: boost >= 1.53
+Requires: xml-security-c-ESOE >= 1.7.0
+Requires: xerces-c >= 2.7.0
+Requires: libicu >= 1.50
+BuildRequires: boost-devel >= 1.53
+BuildRequires: xml-security-c-ESOE >= 1.7.0
+BuildRequires: xerces-c-devel >= 2.7.0
+BuildRequires: libicu >= 1.50
+BuildRequires: xsd >= 3.2.0
 
 %description
 The SAML2 C++ Library provides an API for manipulating SAML 2.0 compliant
@@ -37,8 +37,8 @@ Summary: SPEP Apache module
 Group: Development/Libraries
 Requires: libapreq2 = 2.13
 Requires: httpd >= 2.0.0
-#BuildRequires: libapreq2-devel = 2.13
-#BuildRequires: httpd-devel >= 2.0.0
+BuildRequires: libapreq2 = 2.13
+BuildRequires: httpd-devel >= 2.0.0
 
 %description module
 Module for packages Apache version.
@@ -94,7 +94,7 @@ export CXXFLAGS="$CXXFLAGS `$APRCONFIG --includes`"
 make
 
 %install
-rm -rf $RPM_BUILD_ROOT
+#rm -rf $RPM_BUILD_ROOT
 for Z in saml2cpp spepcpp spepcppdaemon modspep; do
 cd $RPM_BUILD_DIR/src/$Z || exit 1
 pwd
@@ -115,7 +115,7 @@ useradd -r spepd
 
 %post
 ldconfig
-/usr/sbin/sysv-rc-conf spepd on
+/sbin/chkconfig --add spepd
 
 %postun
 userdel spepd

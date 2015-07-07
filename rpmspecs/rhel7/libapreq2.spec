@@ -2,7 +2,7 @@ Summary: libapreq2
 Name: libapreq2-ESOE
 Version: 2.13
 Release: 1.el5
-Source0: http://www.apache.org/dist/httpd/libapreq/libapreq2-%{version}.tar.gz
+Source0: http://www.apache.org/dist/httpd/libapreq/libapreq2-2.13.tar.gz
 License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root

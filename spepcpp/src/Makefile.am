@@ -1,5 +1,6 @@
 
 lib_LTLIBRARIES = libspep.la
+AM_LDFLAGS = -lcurl
 libspep_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
 #-version-info $(VERSION_INFO)
 libspep_la_SOURCES = spep/pep/PolicyEnforcementProcessorData.cpp \

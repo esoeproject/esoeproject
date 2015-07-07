@@ -3,8 +3,10 @@
 
 AC_PREREQ(2.59)
 AC_INIT([modspep], 0.8.5)
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([include/Cookies.h])
 AC_CONFIG_HEADER([config.h])
+AC_DEFINE([BUILDING_SPEP],[],[To define Spep Module])
 
 # No version info needed for the apache module
 dnl AC_SUBST([VERSION_INFO],[0])
@@ -14,6 +16,7 @@ AM_DISABLE_STATIC
 
 # Checks for programs.
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 dnl AC_PROG_CC
 dnl AC_PROG_INSTALL
 dnl AC_PROG_MKDIR_P
@@ -203,32 +206,42 @@ AC_ARG_WITH(
 	[apreqpath=]
 )
 
+AC_ARG_WITH(
+	[apr],
+	[AS_HELP_STRING(
+		[--with-apr=DIR],
+		[path to look for apreq (for apache 1.3) or apreq2 (for apache 2.x) ./include and ./lib])
+	],
+	[aprpath=$withval],
+	[aprpath=]
+)
+
 if test -n "$xercespath"; then
 	xercesinc=-I$xercespath/include
-	xerceslib=-L$xercespath/lib
+	xerceslib=-L$xercespath/lib64
 fi
 if test -n "$xmlsecpath"; then
 	xmlsecinc=-I$xmlsecpath/include
-	xmlseclib=-L$xmlsecpath/lib
+	xmlseclib=-L$xmlsecpath/lib64
 fi
 if test -n "$boostpath"; then
 	boostinc=-I$boostpath/include
-	boostlib=-I$boostpath/lib
+	boostlib=-I$boostpath/lib64
 fi
 if test -n "$icupath"; then
 	icuinc=-I$icupath/include
-	iculib=-L$icupath/lib
+	iculib=-L$icupath/lib64
 fi
 if test -n "$xsdpath"; then
 	xsdinc=-I$xsdpath/libxsd
 fi
 if test -n "$opensslpath"; then
 	opensslinc=-I$opensslpath/include
-	openssllib=-I$opensslpath/lib
+	openssllib=-I$opensslpath/lib64
 fi
 if test -n "$curlpath"; then
 	curlinc=-I$curlpath/include
-	curllib=-L$curlpath/lib
+	curllib=-L$curlpath/lib64
 fi
 if test -n "$speppath"; then
 	spepinc="-I$speppath/include/spep-\$(VERSION)"
@@ -239,7 +252,7 @@ if test -n "$saml2path"; then
 	saml2lib=-L$saml2path/lib
 fi
 if test -n "$apachepath"; then
-	apacheinc=-I$apachepath/include
+	apacheinc=-I$apachepath/include/httpd
 	apachelib=-L$apachepath/lib
 fi
 if test -n "$apxspath"; then
@@ -251,10 +264,15 @@ if test -n "$apreqpath"; then
 	apreqlib=-L$apreqpath/lib
 fi
 
+if test -n "$aprpath"; then
+	aprinc=-I$aprpath/include/apr-1
+	aprlib=-L$aprpath/lib
+fi
+
 localinc='-I${top_srcdir}/include'
 
-AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $icuinc $xsdinc $opensslinc $curlinc $saml2inc $spepinc $apacheinc $apreqinc"])
-AC_SUBST([AM_LDFLAGS],["$xerceslib $xmlseclib $boostlib $iculib $openssllib $curllib $saml2lib $speplib $apreqlib"])
+AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $icuinc $xsdinc $opensslinc $curlinc $saml2inc $spepinc $apacheinc $apreqinc $aprinc"])
+AC_SUBST([AM_LDFLAGS],["$xerceslib $xmlseclib $boostlib $iculib $openssllib $curllib $saml2lib $speplib $apreqlib $aprlib"])
 AC_SUBST([BOOST_SUFFIX],["$boostsuffix"])
 
 AC_CONFIG_FILES([Makefile src/Makefile include/Makefile])

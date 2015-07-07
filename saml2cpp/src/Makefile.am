@@ -1,5 +1,6 @@
 
 lib_LTLIBRARIES = libesoesaml2.la
+AM_LDFLAGS = -lboost_system$(BOOST_SUFFIX) -lboost_regex$(BOOST_SUFFIX) 
 
 libesoesaml2_la_LDFLAGS = $(AM_LDFLAGS) -release $(PACKAGE_VERSION)
 libesoesaml2_la_SOURCES = saml2/resolver/ResourceResolver.cpp \

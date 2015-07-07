@@ -33,9 +33,9 @@
 
 XERCES_CPP_NAMESPACE_USE
 
-#define NANOSECONDS_PER_MILLISECOND 1000*1000
-#define MILLISECONDS_PER_SECOND 1000
-#define NANOSECONDS_PER_SECOND MILLISECONDS_PER_SECOND*NANOSECONDS_PER_MILLISECOND
+extern const int NANOSECONDS_PER_MILLISECOND;
+extern const int MILLISECONDS_PER_SECOND;
+extern const int NANOSECONDS_PER_SECOND;
 
 namespace spep
 {
@@ -219,7 +219,7 @@ namespace spep
 				
 				// If the target time isn't within our grasp yet, sleep until the next update
 				if( _targetTime.sec > nextUpdate.sec ||
-					_targetTime.sec == nextUpdate.sec && _targetTime.nsec > nextUpdate.nsec )
+				(_targetTime.sec == nextUpdate.sec && _targetTime.nsec > nextUpdate.nsec ))
 				{
 					boost::thread::sleep( nextUpdate );
 				}

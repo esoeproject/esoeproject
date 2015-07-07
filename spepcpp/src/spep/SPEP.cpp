@@ -35,6 +35,10 @@
 #include "spep/logging/proxy/LoggerProxy.h"
 #include "spep/ws/SOAPUtil.h"
 
+const int NANOSECONDS_PER_MILLISECOND = 1000 * 1000;
+const int MILLISECONDS_PER_SECOND = 1000;
+const int NANOSECONDS_PER_SECOND = MILLISECONDS_PER_SECOND * NANOSECONDS_PER_MILLISECOND;
+
 // Define a "short sleep" to be 100 milliseconds.
 #define SHORT_SLEEP_NANOSECONDS (20*1000*1000)
 #define LONGER_SLEEP_NANOSECONDS (500*1000*1000)

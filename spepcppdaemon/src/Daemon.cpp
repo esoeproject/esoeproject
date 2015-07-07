@@ -39,6 +39,8 @@ void spep::daemon::Daemon::prepare()
 
 #else /*WIN32*/
 
+#include <unistd.h>
+
 std::vector<std::string> spep::daemon::Daemon::pidFileList;
 
 void spep::daemon::Daemon::daemonize()

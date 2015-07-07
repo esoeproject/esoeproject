@@ -3,6 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT([SPEP], 0.8.5)
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([include/spep/Util.h])
 #AC_CONFIG_HEADER([config.h])
 
@@ -13,7 +14,7 @@ AM_DISABLE_STATIC
 
 # Checks for programs.
 AC_PROG_CXX
-
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AM_PROG_LIBTOOL
 
 # Checks for libraries.
@@ -123,30 +124,30 @@ AC_ARG_WITH(
 
 if test -n "$xercespath"; then
 	xercesinc=-I$xercespath/include
-	xerceslib=-L$xercespath/lib
+	xerceslib=-L$xercespath/lib64
 fi
 if test -n "$xmlsecpath"; then
 	xmlsecinc=-I$xmlsecpath/include
-	xmlseclib=-L$xmlsecpath/lib
+	xmlseclib=-L$xmlsecpath/lib64
 fi
 if test -n "$boostpath"; then
 	boostinc=-I$boostpath/include
-	boostlib=-I$boostpath/lib
+	boostlib=-I$boostpath/lib64
 fi
 if test -n "$icupath"; then
 	icuinc=-I$icupath/include
-	iculib=-L$icupath/lib
+	iculib=-L$icupath/lib64
 fi
 if test -n "$xsdpath"; then
 	xsdinc=-I$xsdpath/libxsd
 fi
 if test -n "$opensslpath"; then
 	opensslinc=-I$opensslpath/include
-	openssllib=-I$opensslpath/lib
+	openssllib=-I$opensslpath/lib64
 fi
 if test -n "$curlpath"; then
 	curlinc=-I$curlpath/include
-	curllib=-L$curlpath/lib
+	curllib=-L$curlpath/lib64
 fi
 if test -n "$saml2path"; then
 	saml2inc="-I$saml2path/include/saml2-\$(VERSION)"

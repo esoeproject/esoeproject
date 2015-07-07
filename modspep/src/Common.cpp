@@ -289,6 +289,7 @@ extern "C" int modspep_check_session( request_rec *req )
 		{
 #ifndef APACHE1 // The following won't work on 1.3.x
 			// SPEPEnabled On but no daemon port specified.
+			APLOG_USE_MODULE(spep);
 			ap_log_error( APLOG_MARK, APLOG_ALERT, APR_SUCCESS, req->server, "SPEPEnabled is set On with no daemon port specified. Can't continue." );
 #endif //APACHE1
 

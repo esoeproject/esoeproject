@@ -15,13 +15,13 @@
 ####
 
 # KeyStore 1
-keystorePath=/usr/local/etc/spep/spepKeystore.ks
+keystorePath=/usr/local/spep/etc/spep/spepKeystore.ks
 keystorePassword=
 spepKeyAlias=
 spepKeyPassword=
 
 # Path to look for schema documents as installed by the SAML2 library.
-schemaPath=/usr/local/share/saml2/schema
+schemaPath=/usr/local/spep/share/saml2/schema
 
 # The unique identifier of the authenticating ESOE.
 esoeIdentifier=
@@ -39,9 +39,9 @@ serverInfo=Default SPEP Deployment. Please change this message.
 nodeIdentifier=
 
 # Indicies of this service node - in default setups these are the same as the node identifier.
-attributeConsumingServiceIndex=
-assertionConsumerServiceIndex=
-authzCacheIndex=
+attributeConsumingServiceIndex=1
+assertionConsumerServiceIndex=1
+authzCacheIndex=1
 
 # Address of the service host in use without any application path 
 # e.g. https://myserver.company.com 

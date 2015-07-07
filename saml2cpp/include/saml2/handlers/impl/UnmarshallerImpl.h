@@ -38,7 +38,7 @@
 /* Xerces */
 #include <xercesc/dom/DOMDocument.hpp>
 #include <xercesc/dom/DOMElement.hpp>
-#include <xercesc/parsers/XercesDomParser.hpp>
+#include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMLSSerializer.hpp>
 #include <xercesc/framework/MemBufFormatTarget.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -85,7 +85,7 @@ namespace saml2
         T* unMarshallSigned(const SAMLDocument& document, XSECCryptoKey* pk, bool keepDOM = false) override;
         T* unMarshallSigned(const SAMLDocument& document, bool keepDOM = false) override;
         T* unMarshallUnSigned(const SAMLDocument& document, bool keepDOM = false) override;
-        T* unMarshallUnSignedElement(DOMElement* elem, bool keepDOM = false override);
+        T* unMarshallUnSignedElement(DOMElement* elem, bool keepDOM = false ) override;
         saml2::MetadataOutput<T>* unMarshallMetadata(const SAMLDocument& document, bool keepDOM = false) override;
         void validateSignature(DOMDocument* doc, XSECCryptoKey* pk = NULL) override;
 

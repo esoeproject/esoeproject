@@ -17,9 +17,9 @@
  * Purpose: 
  */
 
-#include "RequestParameters.h"
-
 #include "spep/Util.h"
+
+#include "RequestParameters.h"
 
 #include "httpd.h"
 #include "http_protocol.h"

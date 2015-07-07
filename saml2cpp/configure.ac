@@ -3,6 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT([SAML2], 0.8.5)
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([include/saml2/SAML2Defs.h])
 
 #AC_SUBST([VERSION_INFO],[1:0:0])
@@ -12,12 +13,17 @@ AM_DISABLE_STATIC
 
 # Checks for programs.
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
 # Checks for libraries.
 
 # Checks for header files.
+AX_BOOST_BASE([1.53.0])
+AX_BOOST_REGEX
+AX_BOOST_ASIO
+
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -60,6 +66,15 @@ AC_ARG_WITH(
 	[boostpath=$withval],
 	[boostpath=]
 )
+AC_ARG_WITH(
+        [boost-suffix],
+        [AS_HELP_STRING(
+                [--with-boost-suffix=SUFFIX],
+                [value to append to Boost library names when linking])
+        ],
+        [boostsuffix=$withval],
+        [boostsuffix=]
+)
 
 AC_ARG_WITH(
 	[xsd],
@@ -83,27 +98,29 @@ AC_ARG_WITH(
 
 if test -n "$xercespath"; then
 	xercesinc=-I$xercespath/include
-	xerceslib=-L$xercespath/lib
+	xerceslib=-L$xercespath/lib64
 fi
 if test -n "$xmlsecpath"; then
 	xmlsecinc=-I$xmlsecpath/include
-	xmlseclib=-L$xmlsecpath/lib
+	xmlseclib=-L$xmlsecpath/lib64
 fi
 if test -n "$boostpath"; then
 	boostinc=-I$boostpath/include
-	boostlib=-L$boostpath/lib
+	boostlib=-L$boostpath/lib64
 fi
 if test -n "$xsdpath"; then
 	xsdinc=-I$xsdpath/libxsd
 fi
 if test -n "$opensslpath"; then
 	opensslinc=-I$opensslpath/include
-	openssllib=-I$opensslpath/lib
+	openssllib=-I$opensslpath/lib64
 fi
 
 localinc='-I${top_srcdir}/include'
 
 AC_SUBST([AM_CPPFLAGS],["$localinc $xercesinc $xmlsecinc $boostinc $xsdinc $opensslinc"])
+AC_SUBST([AM_LDFLAGS],["$boostlib"])
+AC_SUBST([BOOST_SUFFIX],["$boostsuffix"])
 
 AC_CONFIG_FILES([Makefile include/Makefile src/Makefile schema/Makefile])
 AC_OUTPUT

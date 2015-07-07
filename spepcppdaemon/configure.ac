@@ -3,6 +3,7 @@
 
 AC_PREREQ(2.59)
 AC_INIT([SPEPD], 0.8.5)
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([include/StreamLogHandler.h])
 #AC_CONFIG_HEADER([config.h])
 
@@ -10,6 +11,7 @@ AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AC_PROG_CC
 dnl AC_PROG_INSTALL
 dnl AC_PROG_MKDIR_P
@@ -17,6 +19,9 @@ dnl AC_PROG_MKDIR_P
 # Checks for libraries.
 
 # Checks for header files.
+AX_BOOST_BASE([1.53.0])
+AX_BOOST_REGEX
+AX_BOOST_ASIO
 
 # Checks for typedefs, structures, and compiler characteristics.
 dnl AC_C_CONST
@@ -126,30 +131,30 @@ AC_ARG_WITH(
 
 if test -n "$xercespath"; then
 	xercesinc=-I$xercespath/include
-	xerceslib=-L$xercespath/lib
+	xerceslib=-L$xercespath/lib64
 fi
 if test -n "$xmlsecpath"; then
 	xmlsecinc=-I$xmlsecpath/include
-	xmlseclib=-L$xmlsecpath/lib
+	xmlseclib=-L$xmlsecpath/lib64
 fi
 if test -n "$boostpath"; then
 	boostinc=-I$boostpath/include
-	boostlib=-I$boostpath/lib
+	boostlib=-I$boostpath/lib64
 fi
 if test -n "$icupath"; then
 	icuinc=-I$icupath/include
-	iculib=-L$icupath/lib
+	iculib=-L$icupath/lib64
 fi
 if test -n "$xsdpath"; then
 	xsdinc=-I$xsdpath/libxsd
 fi
 if test -n "$opensslpath"; then
 	opensslinc=-I$opensslpath/include
-	openssllib=-I$opensslpath/lib
+	openssllib=-I$opensslpath/lib64
 fi
 if test -n "$curlpath"; then
 	curlinc=-I$curlpath/include
-	curllib=-L$curlpath/lib
+	curllib=-L$curlpath/lib64
 fi
 if test -n "$speppath"; then
 	spepinc="-I$speppath/include/spep-\$(VERSION)"

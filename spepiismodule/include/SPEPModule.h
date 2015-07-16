@@ -20,29 +20,25 @@
 #include <windows.h>
 #include <sal.h>
 #include <httpserv.h>
-#include "RegistryKey.h"
-#include "SPEPExtension.h"
+#include "HttpRequest.h"
 
 namespace spep {
 namespace isapi {
 
+BOOL WriteEventViewerLog(LPCSTR szNotification);
+void RegisterEventLog();
+void DeregisterEventLog();
+bool InitialiseSPEPModule();
 
 
 // Create the module class.
 class SPEPModule : public CHttpModule
 {
-	
 public:
-	REQUEST_NOTIFICATION_STATUS OnBeginRequest(IN IHttpContext * pHttpContext, IN IHttpEventProvider * pProvider)
-	{
-		DWORD status;
-		UNREFERENCED_PARAMETER(pProvider);
-		
-		spep::isapi::HttpRequestImpl request(pHttpContext);
-		status = spep::isapi::extensionInstance->processRequest(&request);
-		// Return processing to the pipeline.
-		return RQ_NOTIFICATION_CONTINUE;
-	}
+
+	//virtual ~SPEPModule() {}
+
+	virtual REQUEST_NOTIFICATION_STATUS OnBeginRequest(IHttpContext* pHttpContext, IHttpEventProvider* pProvider) override;
 };
 
 // Create the module's class factory.
@@ -82,12 +78,24 @@ public:
 }
 }
 
+
+extern "C" {
 // Create the module's exported registration function.
-HRESULT __stdcall RegisterModule(DWORD dwServerVersion, IHttpModuleRegistrationInfo * pModuleInfo, IHttpServer * pGlobalInfo)
+__declspec(dllexport) HRESULT __stdcall RegisterModule(DWORD dwServerVersion, IHttpModuleRegistrationInfo * pModuleInfo, IHttpServer * pGlobalInfo)
 {
 	UNREFERENCED_PARAMETER(dwServerVersion);
 	UNREFERENCED_PARAMETER(pGlobalInfo);
+	
+	spep::isapi::RegisterEventLog();
+
+	auto configLoaded = spep::isapi::InitialiseSPEPModule();
+
+	if (!configLoaded) {
+		spep::isapi::WriteEventViewerLog("Error Initialising SPEP Module");
+		return RQ_NOTIFICATION_FINISH_REQUEST;
+	}
 
 	// Set the request notifications and exit.
 	return pModuleInfo->SetRequestNotifications(new spep::isapi::SPEPModuleFactory, RQ_BEGIN_REQUEST, 0);
+}
 }

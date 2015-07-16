@@ -261,6 +261,7 @@ void spep::AttributeProcessor::processAttributeStatements(AttributeStatementPoin
 			}
 			
 			// This will either a) create an empty list, or b) let us append to the existing list of values
+			// TODO: fix up the operator[] - this is bad
 			std::vector<UnicodeString>& attributeValueList = principalSession.getAttributeMap()[attributeNameText];
 
 			mLocalLogger.debug() << "Current attribute: " << UnicodeStringConversion::toString(attributeNameText) << ". " << attributeValueList.size() << " value(s) already populated.";

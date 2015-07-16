@@ -21,42 +21,43 @@
 #ifndef WSHANDLER_H_
 #define WSHANDLER_H_
 
-#include "HttpRequest.h"
-
-#include "spep/SPEP.h"
-#include "spep/ws/SOAPUtil.h"
-
 #include <string>
+#include "spep/ws/SOAPUtil.h"
+#include "saml2/logging/locallogger.h"
 
-#include <winsock2.h>
-#include <windows.h>
 
 namespace spep {
-    namespace isapi {
 
-        class SPEPExtension;
+class SPEP;
 
-        class WSHandler
-        {
-        public:
-            WSHandler(SPEP *spep, SPEPExtension *extension);
+namespace isapi {
 
-            /**
-             * Performs the WS processing logic.
-             */
-			DWORD processRequest(HttpRequest* request);
-			DWORD authzCacheClear(HttpRequest* request);
-			DWORD singleLogout(HttpRequest* request);
+class SPEPExtension;
+class HttpRequest;
+enum class RequestResultStatus;
 
-        private:
-            SPEP *mSpep;
-            SPEPExtension *mSpepExtension;
 
-			spep::SOAPDocument readRequestDocument(HttpRequest* request, spep::SOAPUtil::SOAPVersion* soapVersion, std::string& characterEncoding);
-			DWORD sendResponseDocument(HttpRequest* request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
-        };
+class WSHandler
+{
+public:
+	WSHandler(SPEP *spep, SPEPExtension *extension);
 
-    }
+	//!< Performs the WS processing logic.
+	RequestResultStatus processRequest(HttpRequest* request);
+
+private:
+
+	RequestResultStatus authzCacheClear(HttpRequest* request);
+	RequestResultStatus singleLogout(HttpRequest* request);
+	spep::SOAPDocument readRequestDocument(HttpRequest* request, spep::SOAPUtil::SOAPVersion* soapVersion, std::string& characterEncoding);
+	RequestResultStatus sendResponseDocument(HttpRequest* request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string& characterEncoding);
+
+	SPEP *mSpep;
+	SPEPExtension *mSpepExtension;
+	std::shared_ptr<saml2::LocalLogger> mLocalLogger;
+};
+
+	}
 }
 
 #endif /*WSHANDLER_H_*/

@@ -21,76 +21,59 @@
 #include "RequestParameters.h"
 
 namespace spep {
-    namespace isapi {
+namespace isapi {
 
-		RequestParameters::RequestParameters(HttpRequest *request)
-        {
-            std::string paramString;
+RequestParameters::RequestParameters(HttpRequest *request) {
+	std::string paramString;
 
-            if (request->getRequestMethod().compare("POST") == 0)
-            {
-                DWORD contentLength = 128;
-                spep::CArray<char> buf(contentLength);
+	if (request->getRequestMethod() == "POST") {
+		paramString = request->readRequestBodyAsString();
+	} else {
+		paramString = request->getQueryString();
+	}
 
-                std::memset(buf.get(), 0, contentLength);
-                request->readRequestDocument(buf, contentLength);
+	// Start at the beginning and keep going til we fall off the string..
+	// Not exactly rocket science.
+	for (std::size_t pos = 0; pos != std::string::npos;) {
+		// Split before next param
+		std::size_t end = paramString.find_first_of('&', pos);
 
-                paramString = std::string(buf.get(), contentLength);
-            }
-            else
-            {
-                paramString = request->getQueryString();
-            }
+		std::string current;
+		// If we've hit the end
+		if (end == std::string::npos) {
+			// Consume the rest of the string
+			current = paramString.substr(pos);
+			pos = end;
+		} else {
+			// otherwise grab the part that is this parameter
+			current = paramString.substr(pos, end - pos);
+			pos = end + 1;
+		}
 
-            // Start at the beginning and keep going til we fall off the string..
-            // Not exactly rocket science.
-            for (std::size_t pos = 0; pos != std::string::npos;)
-            {
-                // Split before next param
-                std::size_t end = paramString.find_first_of('&', pos);
+		// Split at equals sign, if any.. otherwise ignore this parameter
+		end = current.find_first_of('=');
+		if (end != std::string::npos) {
+			// Separate the values and store them
+			std::string name(current.substr(0, end));
+			std::string value(current.substr(end + 1));
 
-                std::string current;
-                // If we've hit the end
-                if (end == std::string::npos)
-                {
-                    // Consume the rest of the string
-                    current = paramString.substr(pos);
-                    pos = end;
-                }
-                else
-                {
-                    // otherwise grab the part that is this parameter
-                    current = paramString.substr(pos, end - pos);
-                    pos = end + 1;
-                }
+			request->urlDecode(name);
+			request->urlDecode(value);
 
-                // Split at equals sign, if any.. otherwise ignore this parameter
-                end = current.find_first_of('=');
-                if (end != std::string::npos)
-                {
-                    // Separate the values and store them
-                    std::string name(current.substr(0, end));
-                    std::string value(current.substr(end + 1));
+			mParams[name] = value;
+		}
+	}
+}
 
-                    request->urlDecode(name);
-                    request->urlDecode(value);
+std::string RequestParameters::operator[](const std::string& name) const {
+	auto iter = mParams.find(name);
+	if (iter != mParams.end()) {
+		return iter->second;
+	}
 
-                    mParams[name] = value;
-                }
-            }
-        }
+	static std::string empty;
+	return empty;
+}
 
-        std::string RequestParameters::operator[](const std::string& name) const
-        {
-            auto iter = mParams.find(name);
-            if (iter != mParams.end())
-            {
-                return iter->second;
-            }
-
-            static std::string empty;
-            return empty;
-        }
-
-    }
+}
 }

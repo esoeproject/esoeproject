@@ -205,7 +205,7 @@
 #define HTTP_SERVICE_UNAVAILABLE_DOCUMENT_TYPE "text/html; charset=utf-8"
 
 #define HTTP_REDIRECT_STATUS_LINE "302 Found"
-#define REDIRECT_HEADER "Location: "
+#define REDIRECT_HEADER "Location"
 #define CONTENT_TYPE_HEADER "Content-Type: "
 #define CONTENT_LENGTH_HEADER "Content-Length: "
 #define HOST_HEADER "Host: "

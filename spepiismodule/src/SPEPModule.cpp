@@ -22,19 +22,56 @@
 #include <boost/program_options/variables_map.hpp>
 
 #include "SPEPModule.h"
+#include "SPEPExtension.h"
+#include "RegistryKey.h"
+#include "spep/exceptions/InvalidStateException.h"
 
 
-
-#define 	SPEP_ISAPI_EXTENSION_DESCRIPTION  "SPEP ISAPI v1.0"
-#define 	REGISTRY_KEY_SOFTWARE 		"Software"
-#define 	REGISTRY_KEY_ESOEPROJECT 	"ESOE Project"
-#define 	REGISTRY_KEY_SPEP 			"SPEP"
+#define	SPEP_ISAPI_EXTENSION_DESCRIPTION  "SPEP ISAPI v1.0"
+#define	REGISTRY_KEY_SOFTWARE 		"Software"
+#define	REGISTRY_KEY_ESOEPROJECT 	"ESOE Project"
+#define	REGISTRY_KEY_SPEP 			"SPEP"
 
 
 namespace spep {
 namespace isapi {
-	static SPEPExtension *extensionInstance = nullptr;
-bool LoadConfiguration() {
+
+static SPEPExtension *extensionInstance = nullptr;
+static HANDLE EVENT_LOG = nullptr;
+
+
+// Define a method that writes to the Event Viewer.
+BOOL WriteEventViewerLog(LPCSTR szNotification) {
+	// Test whether the handle for the Event Viewer is open.
+	if (nullptr != EVENT_LOG)
+	{
+		// Write any strings to the Event Viewer and return.
+		return ReportEvent(EVENT_LOG, EVENTLOG_INFORMATION_TYPE, 0, 0, NULL, 1, 0, &szNotification, NULL);
+	}
+	return FALSE;
+}
+
+
+void RegisterEventLog() {
+	// Open a handle to the Event Viewer.
+	EVENT_LOG = RegisterEventSource(NULL, "IISADMIN");
+}
+
+void DeregisterEventLog() {
+	// Test whether the handle for the Event Viewer is open.
+	if (nullptr != EVENT_LOG)
+	{
+		// Close the handle to the Event Viewer.
+		DeregisterEventSource(EVENT_LOG);
+		EVENT_LOG = nullptr;
+	}
+}
+
+
+bool InitialiseSPEPModule() {
+	
+	WriteEventViewerLog("Initialising SPEP Module");
+
 	std::string logFilename;
 
 	boost::program_options::variables_map configFileVariableMap;
@@ -115,13 +152,54 @@ bool LoadConfiguration() {
 		spep::ConfigurationReader configReader(configFileVariableMap);
 
 		// Establish the SPEP instance.
-		//spep::isapi::extensionInstance = new spep::isapi::SPEPExtension(configReader, logFilename);
+		WriteEventViewerLog("Creating SPEP Module Instance");
+		extensionInstance = new spep::isapi::SPEPExtension(configReader, logFilename);
+		WriteEventViewerLog("SPEP Module Created");
 	}
 	catch (...)
 	{
+		WriteEventViewerLog("Exception occurred creating SPEP Module");
 	}
 
 	return true;
+}
+
+
+
+REQUEST_NOTIFICATION_STATUS SPEPModule::OnBeginRequest(IHttpContext* pHttpContext, IHttpEventProvider* pProvider)
+{
+	UNREFERENCED_PARAMETER(pProvider);
+
+	if (!extensionInstance) {
+		WriteEventViewerLog("SPEP Extension Instance has not been initialised");
+		return RQ_NOTIFICATION_FINISH_REQUEST;
+	}
+
+	try {
+		HttpRequest request(pHttpContext);
+		auto status = extensionInstance->processRequest(&request);
+
+		switch (status)
+		{
+		case RequestResultStatus::STATUS_ERROR:
+			return RQ_NOTIFICATION_FINISH_REQUEST;
+		case RequestResultStatus::STATUS_SUCCESS:
+			return RQ_NOTIFICATION_CONTINUE;
+		case RequestResultStatus::STATUS_SUCCESS_AND_FINISH_REQUEST:
+			return RQ_NOTIFICATION_FINISH_REQUEST;
+		case RequestResultStatus::STATUS_SUCCESS_AND_KEEP_CONN:
+			return RQ_NOTIFICATION_CONTINUE;
+		default:
+			return RQ_NOTIFICATION_FINISH_REQUEST;
+		}
+	}
+	catch (InvalidStateException& e) {
+		// TODO: set error code
+		return RQ_NOTIFICATION_FINISH_REQUEST;
+	}
+
+	// Return processing to the pipeline.
+	return RQ_NOTIFICATION_CONTINUE;
 }
 
 }

@@ -20,26 +20,28 @@
 #ifndef COOKIES_H_
 #define COOKIES_H_
 
-#include "HttpRequest.h"
-
 #include <unordered_map>
 #include <string>
 
 #define COOKIES_EXPIRES_TIME_STRING_FORMAT "%a, %d-%b-%Y %H:%M:%S GMT"
 
-namespace spep { namespace isapi {
+namespace spep { 
+namespace isapi {
 
-    class Cookies
-    {
-    public:
-		Cookies(HttpRequest *request);
-        std::string operator[](const std::string& name);
-		void addCookie(HttpRequest *request, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0);
+class HttpRequest;
 
-    private:
-        std::unordered_map<std::string, std::string> mValues;
-    };
+class Cookies
+{
+public:
+	Cookies(HttpRequest *request);
+	std::string operator[](const std::string& name) const;
+	void addCookie(HttpRequest *request, const char *name, const char *value, const char *path = NULL, const char *domain = NULL, bool secureOnly = false, int expires = 0) const;
+
+private:
+	std::unordered_map<std::string, std::string> mValues;
+};
 	
-} }
+}
+}
 
 #endif /*COOKIES_H_*/

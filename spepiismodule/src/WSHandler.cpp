@@ -19,150 +19,130 @@
  */
 
 #include "WSHandler.h"
-#include "FilterConstants.h"
+#include "HttpRequest.h"
 #include "SPEPExtension.h"
-
+#include "FilterConstants.h"
 #include "spep/exceptions/InvalidStateException.h"
 
 namespace spep {
-    namespace isapi {
+namespace isapi {
 
-        WSHandler::WSHandler(SPEP *spep, SPEPExtension *extension)
-            :
-            mSpep(spep),
-            mSpepExtension(extension)
-        {
-        }
+WSHandler::WSHandler(SPEP *spep, SPEPExtension *extension)
+	:
+	mSpep(spep),
+	mSpepExtension(extension)
+{
+}
 
-        spep::SOAPDocument WSHandler::readRequestDocument(HttpRequest *request, spep::SOAPUtil::SOAPVersion *soapVersion, std::string &characterEncoding)
-        {
-            std::string contentType(request->getContentType());
-            if (contentType.find(SOAP12_DOCUMENT_CONTENT_TYPE) != std::string::npos)
-            {
-                *soapVersion = SOAPUtil::SOAP12;
-            }
-            else if (contentType.find(SOAP11_DOCUMENT_CONTENT_TYPE) != std::string::npos)
-            {
-                *soapVersion = SOAPUtil::SOAP11;
-            }
-            else
-            {
-                // TODO Throw something more useful
-                throw spep::InvalidStateException();
-            }
 
-            // This is the way it's done everywhere I can see... Seems kinda dodgy but what can you do.
-            std::size_t i;
-            if ((i = contentType.find(";")) != std::string::npos)
-            {
-                if ((i = contentType.find("=", i)) != std::string::npos)
-                {
-                    characterEncoding = contentType.substr(i + 1);
-                }
-            }
+RequestResultStatus WSHandler::processRequest(HttpRequest* request) {
+	// We don't check if the SPEP is started here, because we want the initial authz cache clear request to succeed.
+	try
+	{
+		if (request->getRequestMethod() != "POST") {
+			return request->sendErrorDocument(HTTP_METHOD_NOT_ALLOWED);
+		}
 
-            DWORD contentLength(128);
+		if (request->getRequestURL() == mSpepExtension->mSpepAuthzCacheClearURL) {
+			// This request is bound for /spep/services/spep/authzCacheClear - handle it
+			return authzCacheClear(request);
+		}
+		else if (request->getRequestURL() == mSpepExtension->mSpepSingleLogoutURL) {
+			// This request is bound for /spep/services/spep/singleLogout - handle it.
+			return singleLogout(request);
+		}
 
-            spep::CArray<char> requestDocument(contentLength);
+		SetLastError(ERROR_FILE_NOT_FOUND);
+		return RequestResultStatus::STATUS_ERROR;
+	}
+	catch (std::exception& ex)
+	{
+		SetLastError(ERROR_FILE_NOT_FOUND);
+		return RequestResultStatus::STATUS_ERROR;
+	}
+	return RequestResultStatus::STATUS_ERROR; // TODO amcg: not sure if this should be an error. 
+}
 
-            request->readRequestDocument(requestDocument, contentLength);
+RequestResultStatus WSHandler::authzCacheClear(HttpRequest* request) {
+	try
+	{
+		std::string characterEncoding;
+		spep::SOAPUtil::SOAPVersion soapVersion;
+		SOAPDocument requestDocument = readRequestDocument(request, &soapVersion, characterEncoding);
 
-            if (contentLength > 0)
-            {
-                char *documentArray = new char[contentLength];
-                std::memcpy(documentArray, requestDocument.get(), contentLength);
-                return spep::SOAPDocument(reinterpret_cast<SAMLByte*>(documentArray), contentLength);
-            }
+		spep::WSProcessor *wsProcessor = mSpep->getWSProcessor();
 
-            throw spep::InvalidStateException();
-        }
+		SOAPDocument responseDocument = wsProcessor->authzCacheClear(requestDocument, soapVersion, characterEncoding);
 
-        DWORD WSHandler::sendResponseDocument(HttpRequest *request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string &characterEncoding)
-        {
-            std::string contentType(request->getContentType());
+		if (responseDocument.getData() == NULL || responseDocument.getLength() == 0) {
+			return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
+		}
 
-            return request->sendResponseDocument(HTTP_OK, HTTP_OK_STATUS_LINE, reinterpret_cast<const char*>(soapResponse.getData()), soapResponse.getLength(), contentType);
-        }
+		return sendResponseDocument(request, responseDocument, soapVersion, characterEncoding);
+	}
+	catch (std::exception& ex)
+	{
+		return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
+	}
+}
 
-		DWORD WSHandler::authzCacheClear(HttpRequest* request)
-        {
-            std::string requestXML;
-            try
-            {
-                std::string characterEncoding;
-                spep::SOAPUtil::SOAPVersion soapVersion;
-                SOAPDocument requestDocument = readRequestDocument(request, &soapVersion, characterEncoding);
+RequestResultStatus WSHandler::singleLogout(HttpRequest* request) {
+	try
+	{
+		std::string characterEncoding;
+		spep::SOAPUtil::SOAPVersion soapVersion;
+		SOAPDocument requestDocument = readRequestDocument(request, &soapVersion, characterEncoding);
 
-                spep::WSProcessor *wsProcessor = mSpep->getWSProcessor();
+		spep::WSProcessor *wsProcessor = mSpep->getWSProcessor();
 
-                SOAPDocument responseDocument = wsProcessor->authzCacheClear(requestDocument, soapVersion, characterEncoding);
+		SOAPDocument responseDocument = wsProcessor->singleLogout(requestDocument, soapVersion, characterEncoding);
 
-                if (responseDocument.getData() == NULL || responseDocument.getLength() == 0)
-                {
-                    return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
-                }
+		if (responseDocument.getData() == NULL || responseDocument.getLength() == 0) {
+			return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
+		}
 
-                return sendResponseDocument(request, responseDocument, soapVersion, characterEncoding);
-            }
-            catch (std::exception& ex)
-            {
-                return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
-            }
-        }
+		return this->sendResponseDocument(request, responseDocument, soapVersion, characterEncoding);
+	}
+	catch (std::exception& ex)
+	{
+		return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
+	}
+}
 
-		DWORD WSHandler::singleLogout(HttpRequest* request)
-        {
-            std::string requestXML;
-            try
-            {
-                std::string characterEncoding;
-                spep::SOAPUtil::SOAPVersion soapVersion;
-                SOAPDocument requestDocument = readRequestDocument(request, &soapVersion, characterEncoding);
 
-                spep::WSProcessor *wsProcessor = mSpep->getWSProcessor();
+spep::SOAPDocument WSHandler::readRequestDocument(HttpRequest *request, spep::SOAPUtil::SOAPVersion *soapVersion, std::string &characterEncoding) {
+	
+	std::string contentType(request->getContentType());
+	if (contentType.find(SOAP12_DOCUMENT_CONTENT_TYPE) != std::string::npos) {
+		*soapVersion = SOAPUtil::SOAP12;
+	} else if (contentType.find(SOAP11_DOCUMENT_CONTENT_TYPE) != std::string::npos)	{
+		*soapVersion = SOAPUtil::SOAP11;
+	} else{
+		// TODO Throw something more useful
+		throw spep::InvalidStateException();
+	}
 
-                SOAPDocument responseDocument = wsProcessor->singleLogout(requestDocument, soapVersion, characterEncoding);
+	// This is the way it's done everywhere I can see... Seems kinda dodgy but what can you do.
+	std::size_t i;
+	if ((i = contentType.find(";")) != std::string::npos) {
+		if ((i = contentType.find("=", i)) != std::string::npos) {
+			characterEncoding = contentType.substr(i + 1);
+		}
+	}
+	
+	auto result = request->readRequestDocument();
 
-                if (responseDocument.getData() == NULL || responseDocument.getLength() == 0)
-                {
-                    return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
-                }
+	if (result.first != nullptr && result.second > 0) {
+		return spep::SOAPDocument(reinterpret_cast<SAMLByte*>(result.first), result.second);
+	}
 
-                return this->sendResponseDocument(request, responseDocument, soapVersion, characterEncoding);
-            }
-            catch (std::exception& ex)
-            {
-                return request->sendErrorDocument(HTTP_INTERNAL_SERVER_ERROR);
-            }
-        }
+	throw spep::InvalidStateException();
+}
 
-		DWORD WSHandler::processRequest(HttpRequest* request)
-        {
-            // We don't check if the SPEP is started here, because we want the initial authz cache clear request to succeed.
-            try
-            {
-                const std::string path(request->getRequestURL());
-                if (path == mSpepExtension->mSpepAuthzCacheClearURL)
-                {
-                    // This request is bound for /spep/services/spep/authzCacheClear - handle it
-                    return authzCacheClear(request);
-                }
-                else if (path == mSpepExtension->mSpepSingleLogoutURL)
-                {
-                    // This request is bound for /spep/services/spep/singleLogout - handle it.
-                    return singleLogout(request);
-                }
+RequestResultStatus WSHandler::sendResponseDocument(HttpRequest *request, spep::SOAPDocument soapResponse, spep::SOAPUtil::SOAPVersion soapVersion, const std::string &characterEncoding) {
+	std::string contentType(request->getContentType());
+	return request->sendResponseDocument(HTTP_OK, HTTP_OK_STATUS_LINE, reinterpret_cast<const char*>(soapResponse.getData()), soapResponse.getLength(), contentType);
+}
 
-                SetLastError(ERROR_FILE_NOT_FOUND);
-                return HSE_STATUS_ERROR;
-            }
-            catch (std::exception& ex)
-            {
-                SetLastError(ERROR_FILE_NOT_FOUND);
-                return HSE_STATUS_ERROR;
-            }
-            return 0;
-        }
-
-    }
+}
 }

@@ -30,45 +30,51 @@
 #include "spep/config/ConfigurationReader.h"
 #include "spep/SPEP.h"
 
-#include "HttpRequest.h"
+
 
 namespace spep{
-    namespace isapi{
+namespace isapi{
 
-        class WSHandler;
-        class SSOHandler;
+enum class RequestResultStatus;
+class HttpRequest;
+class WSHandler;
+class SSOHandler;
+class Cookies;
 
-        class SPEPExtension
-        {
-            friend class WSHandler;
-            friend class SSOHandler;
+class SPEPExtension
+{
+	friend class WSHandler;
+	friend class SSOHandler;
 
-        public:
+public:
 
-            SPEPExtension(spep::ConfigurationReader &configReader, const std::string& logFile);
-            ~SPEPExtension();
+	SPEPExtension(spep::ConfigurationReader &configReader, const std::string& logFile);
+	~SPEPExtension();
 
-            /**
-             * Performs the SPEP extension logic.
-             */
-            DWORD processRequest(HttpRequest* request);
+	/**
+	 * Performs the SPEP extension logic.
+	 */
+	RequestResultStatus processRequest(HttpRequest* request);
 
-        private:
+private:
 
-            spep::SPEP *mSpep;
-            std::ofstream mStream;
-            std::string mSpepWebappURL;
-            std::string mSpepSSOURL;
-            std::string mSpepWebServicesURL;
-            std::string mSpepAuthzCacheClearURL;
-            std::string mSpepSingleLogoutURL;
-            WSHandler *mWSHandler;
-            SSOHandler *mSSOHandler;
+	void AddSessionAttributes(HttpRequest* httpRequest, const spep::PrincipalSession& principalSession, const std::string& attributePrefix, const std::string& attributeSeparator, const std::string& usernameAttribute);
+	void ClearCookies(HttpRequest* httpRequest, const Cookies& cookies);
 
-            std::shared_ptr<saml2::LocalLogger> mLocalLogger;
-        };
+	spep::SPEP *mSpep;
+	std::ofstream mStream;
+	std::string mSpepWebappURL;
+	std::string mSpepSSOURL;
+	std::string mSpepWebServicesURL;
+	std::string mSpepAuthzCacheClearURL;
+	std::string mSpepSingleLogoutURL;
+	WSHandler *mWSHandler;
+	SSOHandler *mSSOHandler;
 
-    }
+	std::shared_ptr<saml2::LocalLogger> mLocalLogger;
+};
+
+}
 }
 
 #endif /*SPEPEXTENSION_H_*/

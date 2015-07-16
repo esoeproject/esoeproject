@@ -19,77 +19,81 @@
 
 #include "spep/authn/AuthnProcessorData.h"
 
-spep::AuthnProcessorData::AuthnProcessorData()
+namespace spep {
+
+AuthnProcessorData::AuthnProcessorData()
 {
 	_disableAttributeQuery = false;
 }
 
-std::string spep::AuthnProcessorData::getRequestURL()
+std::string AuthnProcessorData::getRequestURL() const
 {
 	return _requestURL;
 }
 
-void spep::AuthnProcessorData::setRequestURL( const std::string &requestURL )
+void AuthnProcessorData::setRequestURL(const std::string &requestURL)
 {
 	_requestURL = requestURL;
 }
 
-std::string spep::AuthnProcessorData::getBaseRequestURL()
+std::string AuthnProcessorData::getBaseRequestURL() const
 {
 	return _baseRequestURL;
 }
 
-void spep::AuthnProcessorData::setBaseRequestURL( const std::string& baseRequestURL )
+void AuthnProcessorData::setBaseRequestURL(const std::string& baseRequestURL)
 {
 	_baseRequestURL = baseRequestURL;
 }
 
-std::string spep::AuthnProcessorData::getSessionID()
+std::string AuthnProcessorData::getSessionID() const
 {
 	return _sessionID;
 }
 
-void spep::AuthnProcessorData::setSessionID( const std::string &sessionID )
+void AuthnProcessorData::setSessionID(const std::string &sessionID)
 {
 	_sessionID = sessionID;
 }
 
-const saml2::SAMLDocument& spep::AuthnProcessorData::getRequestDocument()
+const saml2::SAMLDocument& AuthnProcessorData::getRequestDocument() const
 {
 	return _requestDocument;
 }
 
-void spep::AuthnProcessorData::setRequestDocument( const saml2::SAMLDocument& document )
+void AuthnProcessorData::setRequestDocument(const saml2::SAMLDocument& document)
 {
 	_requestDocument = document;
 }
 
-const saml2::SAMLDocument& spep::AuthnProcessorData::getResponseDocument()
+const saml2::SAMLDocument& AuthnProcessorData::getResponseDocument() const
 {
 	return _responseDocument;
 }
 
-void spep::AuthnProcessorData::setResponseDocument( const saml2::SAMLDocument& document )
+void AuthnProcessorData::setResponseDocument(const saml2::SAMLDocument& document)
 {
 	_responseDocument = document;
 }
 
-void spep::AuthnProcessorData::setDisableAttributeQuery( bool value )
+void AuthnProcessorData::setDisableAttributeQuery(bool value)
 {
 	_disableAttributeQuery = value;
 }
 
-bool spep::AuthnProcessorData::getDisableAttributeQuery()
+bool AuthnProcessorData::getDisableAttributeQuery() const
 {
 	return _disableAttributeQuery;
 }
 
-void spep::AuthnProcessorData::setRemoteIpAddress(const std::string &remoteIpAddress)
+void AuthnProcessorData::setRemoteIpAddress(const std::string &remoteIpAddress)
 {
 	_remoteIpAddress = remoteIpAddress;
 }
 
-std::string spep::AuthnProcessorData::getRemoteIpAddress() const
+std::string AuthnProcessorData::getRemoteIpAddress() const
 {
 	return _remoteIpAddress;
+}
+
 }

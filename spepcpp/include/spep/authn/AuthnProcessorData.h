@@ -27,72 +27,72 @@
 
 namespace spep
 {
-	
+
+/**
+ * Contains data used for or returned from calls to the authentication processor.
+ */
+class SPEPEXPORT AuthnProcessorData
+{
+
+public:
+
+	AuthnProcessorData();
+
 	/**
-	 * Contains data used for or returned from calls to the authentication processor.
+	 * Sets the URL originally request by the user agent, before authentication was invoked.
 	 */
-	class SPEPEXPORT AuthnProcessorData
-	{
-		
-		public:
-			
-		AuthnProcessorData();
-		
-		/**
-		 * Sets the URL originally request by the user agent, before authentication was invoked.
-		 */
-		void setRequestURL( const std::string &requestURL );
-		std::string getRequestURL();
-		
-		/**
-		 * Sets the base URL for the host the request was made to.
-		 */
-		void setBaseRequestURL( const std::string& baseRequestURL );
-		std::string getBaseRequestURL();
+	void setRequestURL(const std::string &requestURL);
+	std::string getRequestURL() const;
 
-		/**
-		 * Sets the local session ID assigned to the session by the authentication processor
-		 */		
-		void setSessionID( const std::string &sessionID );
-		std::string getSessionID();
-		
-		/**
-		 * Sets the SAML request document. The meaning of this document is context dependant, and
-		 * may also be used to return a SAML request document from a method.
-		 */ 
-		void setRequestDocument( const saml2::SAMLDocument& requestDocument );
-		const saml2::SAMLDocument& getRequestDocument();
-		
-		/**
-		 * Sets the SAML response document. The meaning of this document is context dependant, and
-		 * may also be used to return a SAML response document from a method.
-		 */ 
-		void setResponseDocument( const saml2::SAMLDocument& responseDocument );
-		const saml2::SAMLDocument& getResponseDocument();
-		
-		/**
-		 * Sets whether or not to disable attribute querying for this session
-		 */
-		void setDisableAttributeQuery( bool value );
-		bool getDisableAttributeQuery();
+	/**
+	 * Sets the base URL for the host the request was made to.
+	 */
+	void setBaseRequestURL(const std::string& baseRequestURL);
+	std::string getBaseRequestURL() const;
 
-		/**
-		 * Sets the remote user's IP address. 
-		 */
-		void setRemoteIpAddress(const std::string &remoteIpAddress);
-		std::string getRemoteIpAddress() const;
-		
-		private:
-		std::string _requestURL;
-		std::string _baseRequestURL;
-		std::string _sessionID;
-		std::string _remoteIpAddress;
-		saml2::SAMLDocument _requestDocument;
-		saml2::SAMLDocument _responseDocument;
-		bool _disableAttributeQuery;
-		
-	};
-	
+	/**
+	 * Sets the local session ID assigned to the session by the authentication processor
+	 */
+	void setSessionID(const std::string &sessionID);
+	std::string getSessionID() const;
+
+	/**
+	 * Sets the SAML request document. The meaning of this document is context dependant, and
+	 * may also be used to return a SAML request document from a method.
+	 */
+	void setRequestDocument(const saml2::SAMLDocument& requestDocument);
+	const saml2::SAMLDocument& getRequestDocument() const;
+
+	/**
+	 * Sets the SAML response document. The meaning of this document is context dependant, and
+	 * may also be used to return a SAML response document from a method.
+	 */
+	void setResponseDocument(const saml2::SAMLDocument& responseDocument);
+	const saml2::SAMLDocument& getResponseDocument() const;
+
+	/**
+	 * Sets whether or not to disable attribute querying for this session
+	 */
+	void setDisableAttributeQuery(bool value);
+	bool getDisableAttributeQuery() const;
+
+	/**
+	 * Sets the remote user's IP address.
+	 */
+	void setRemoteIpAddress(const std::string &remoteIpAddress);
+	std::string getRemoteIpAddress() const;
+
+private:
+	std::string _requestURL;
+	std::string _baseRequestURL;
+	std::string _sessionID;
+	std::string _remoteIpAddress;
+	saml2::SAMLDocument _requestDocument;
+	saml2::SAMLDocument _responseDocument;
+	bool _disableAttributeQuery;
+
+};
+
 }
 
 #endif /*AUTHNPROCESSORDATA_H_*/

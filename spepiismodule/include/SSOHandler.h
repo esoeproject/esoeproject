@@ -22,36 +22,41 @@
 #define SSOHANDLER_H_
 
 #include <string>
-
-#include "HttpRequest.h"
-#include "SPEPExtension.h"
-
-#include "spep/SPEP.h"
+#include <memory>
+#include "saml2/logging/locallogger.h"
 
 namespace spep {
-    namespace isapi {
 
-        class SSOHandler
-        {
-        public:
-            SSOHandler(spep::SPEP* spep, SPEPExtension* spepExtension);
-			DWORD handleRequest(HttpRequest* request);
+class SPEP;
 
-        private:
+namespace isapi {
 
-            SSOHandler(const SSOHandler& other);
-            SSOHandler& operator=(const SSOHandler& other);
+class SPEPExtension;
+class HttpRequest;
+enum class RequestResultStatus;
 
-			DWORD handleSSOGetRequest(HttpRequest* request);
-			DWORD handleSSOPostRequest(HttpRequest* request);
-			std::string buildAuthnRequestDocument(HttpRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL);
-			BOOL parseGetRequestQueryString(HttpRequest* request);
-            
-            spep::SPEP *mSpep;
-            SPEPExtension *mSpepExtension;
-        };
+class SSOHandler
+{
+public:
+	SSOHandler(spep::SPEP* spep, SPEPExtension* spepExtension);
+	RequestResultStatus processRequest(HttpRequest* request);
 
-    }
+private:
+
+	SSOHandler(const SSOHandler& other);
+	SSOHandler& operator=(const SSOHandler& other);
+
+	RequestResultStatus handleSSOGetRequest(HttpRequest* request);
+	RequestResultStatus handleSSOPostRequest(HttpRequest* request);
+	std::string buildAuthnRequestDocument(HttpRequest* request, const std::string& base64RedirectURL, const std::string& baseRequestURL);
+	//BOOL parseGetRequestQueryString(HttpRequest* request);
+
+	spep::SPEP *mSpep;
+	SPEPExtension *mSpepExtension;
+	std::shared_ptr<saml2::LocalLogger> mLocalLogger;
+};
+
+}
 }
 
 #endif /*SSOHANDLER_H_*/

@@ -87,7 +87,12 @@ spep::PrincipalSession::SessionIDListType &spep::PrincipalSession::getSessionIDL
     return mSessionIDList;
 }
 
-spep::PrincipalSession::AttributeMapType &spep::PrincipalSession::getAttributeMap()
+spep::PrincipalSession::AttributeMapType& spep::PrincipalSession::getAttributeMap()
+{
+	return mAttributeMap;
+}
+
+const spep::PrincipalSession::AttributeMapType& spep::PrincipalSession::getAttributeMap() const
 {
     return mAttributeMap;
 }

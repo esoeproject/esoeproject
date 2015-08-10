@@ -37,7 +37,8 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>
+    </CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -51,7 +52,8 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>
+    </CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -106,6 +108,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;SPEPISAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\spepiismodule\include;..\..\..\..\spepcpp\include;..\..\..\..\saml2cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -165,13 +168,27 @@
     <ClInclude Include="..\..\..\..\spepiismodule\include\WSHandler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\spepiismodule\src\Cookies.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\HttpRequest.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\RequestParameters.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\SPEPExtension.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\SPEPModule.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\SSOHandler.cpp" />
-    <ClCompile Include="..\..\..\..\spepiismodule\src\WSHandler.cpp" />
+    <ClCompile Include="..\..\..\..\spepiismodule\src\Cookies.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Disabled</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepiismodule\src\HttpRequest.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepiismodule\src\RequestParameters.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepiismodule\src\SPEPExtension.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepiismodule\src\SPEPModule.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepiismodule\src\SSOHandler.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\spepiismodule\src\WSHandler.cpp">
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

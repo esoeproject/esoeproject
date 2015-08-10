@@ -1,17 +1,17 @@
 #ifndef HTTPREQUEST_H_
 #define HTTPREQUEST_H_
 
+#include "spep/Util.h"
+
 #include <string>
 #include <sstream>
 #include <vector>
 #include <unordered_map>
 
-#define _WINSOCKAPI_
-#include <windows.h>
-#include <sal.h>
-#include <httpserv.h>
+class IHttpContext;
+class IHttpRequest;
+class IHttpResponse;
 
-#include "spep/Util.h"
 
 namespace spep{
 namespace isapi{
@@ -63,20 +63,21 @@ public:
 	RequestResultStatus sendResponseDocument(int statuscode, const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType);
 	RequestResultStatus sendErrorDocument(int errorCode, int minorCode = 0);
 	RequestResultStatus sendRedirectResponse(const std::string& location);
+	RequestResultStatus continueRequest();
 
-
-	VOID* allocMem(DWORD size);
 	char* istrndup(const char *str, size_t len);
 	char *isprintf(const char *fmt, ...);
-	RequestResultStatus continueRequest();
 	void urlDecode(std::string& url);
 	
 private:
+
+	void* allocMem(size_t size);
+
 	IHttpContext* mHttpContext;
 	IHttpRequest* mHttpRequest;
 	IHttpResponse* mHttpResponse;
 
-	std::vector<LPVOID> mFreeList;
+	std::vector<void*> mFreeList;
 	std::unordered_map<std::string, std::string> mResponseHeaders;
 	std::string mRequestURL;
 	std::string mRequestMethod;
@@ -87,7 +88,7 @@ private:
 	std::string mRemoteAddress;
 	std::vector<std::pair<std::string, std::string>> mChildHeaders;
 	bool mIsSecureRequest;
-	DWORD mContentLength;
+	unsigned long mContentLength;
 	bool mHeadersSent;
 };
 }

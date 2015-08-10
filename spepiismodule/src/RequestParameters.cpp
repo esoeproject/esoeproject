@@ -19,6 +19,7 @@
  */
 
 #include "RequestParameters.h"
+#include "HttpRequest.h"
 
 namespace spep {
 namespace isapi {

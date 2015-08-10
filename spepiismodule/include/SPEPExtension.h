@@ -20,17 +20,8 @@
 #ifndef SPEPEXTENSION_H_
 #define SPEPEXTENSION_H_
 
-#include <fstream>
-
-#include <winsock2.h>
-#include <windows.h>
-#include <httpfilt.h>
-#include <memory>
-
 #include "spep/config/ConfigurationReader.h"
 #include "spep/SPEP.h"
-
-
 
 namespace spep{
 namespace isapi{
@@ -51,9 +42,7 @@ public:
 	SPEPExtension(spep::ConfigurationReader &configReader, const std::string& logFile);
 	~SPEPExtension();
 
-	/**
-	 * Performs the SPEP extension logic.
-	 */
+	//!< Performs the SPEP extension logic.
 	RequestResultStatus processRequest(HttpRequest* request);
 
 private:

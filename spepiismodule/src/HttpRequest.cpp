@@ -1,13 +1,17 @@
+#include "HttpRequest.h"
+#include "FilterConstants.h"
+#include "spep/exceptions/InvalidStateException.h"
+
+#define _WINSOCKAPI_
+#include <windows.h>
+#include <sal.h>
+#include <httpserv.h>
+
 #include <ctype.h>
 #include <AtlBase.h>
 #include <utility>
 #include <codecvt>
 #include <boost/lexical_cast.hpp>
-
-#include "HttpRequest.h"
-#include "FilterConstants.h"
-#include "spep/exceptions/InvalidStateException.h"
-
 
 // This is only safe for direct variable parameters
 // Any expression with a side effect, such as a ++ or a function call should NOT be passed into this macro.
@@ -35,7 +39,7 @@ static std::string convertWStrToString(const wchar_t* str) {
 }
 
 
-std::wstring s2ws(const std::string& str)
+static std::wstring s2ws(const std::string& str)
 {
 	typedef std::codecvt_utf8<wchar_t> convert_typeX;
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
@@ -43,7 +47,7 @@ std::wstring s2ws(const std::string& str)
 	return converterX.from_bytes(str);
 }
 
-std::string ws2s(const std::wstring& wstr)
+static std::string ws2s(const std::wstring& wstr)
 {
 	typedef std::codecvt_utf8<wchar_t> convert_typeX;
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
@@ -52,8 +56,30 @@ std::string ws2s(const std::wstring& wstr)
 }
 
 
+static std::string ConvertSocketAddressToString(PSOCKADDR address) {
+	DWORD len = 50;
+	char *buf = (char *)malloc(len);
+
+	if (buf == NULL)
+		return "";
+
+	buf[0] = 0;
+
+	WSAAddressToString(address, sizeof(SOCKADDR), NULL, buf, &len);
+
+	std::string buffer = buf;
+	free(buf);
+
+	return buffer;
+}
+
+
+
 HttpRequest::HttpRequest(IHttpContext* pHttpContext) :
-mHttpContext(pHttpContext),
+mHttpContext(nullptr),
+mHttpRequest(nullptr),
+mHttpResponse(nullptr),
+mIsSecureRequest(false),
 mContentLength(0),
 mHeadersSent(false)
 {
@@ -61,6 +87,7 @@ mHeadersSent(false)
 		throw InvalidStateException();
 	}
 
+	mHttpContext = pHttpContext;
 	mHttpRequest = pHttpContext->GetRequest();
 
 	if (!mHttpRequest) {
@@ -89,11 +116,19 @@ mHeadersSent(false)
 	mRequestURL = getServerVariable("URL");
 	mScriptName = getServerVariable("SCRIPT_NAME");
 	mContentType = getServerVariable("CONTENT_TYPE");
-	mRemoteAddress = getServerVariable("REMOTE_ADDR");
 	mIsSecureRequest = (getServerVariable("SERVER_PORT_SECURE").compare(std::string("1")) == 0);
+
+	//mRemoteAddress = getServerVariable("REMOTE_ADDR");
+
+	// Create a pointer to a SOCKADDR structure and convert it to a std::string.
+	PSOCKADDR socketAddress = mHttpRequest->GetRemoteAddress();
+	if (NULL != socketAddress) {
+		mRemoteAddress = ConvertSocketAddressToString(socketAddress);
+	}
+
 	try
 	{
-		mContentLength = boost::lexical_cast<DWORD>(getServerVariable("CONTENT_LENGTH"));
+		mContentLength = boost::lexical_cast<unsigned long>(getServerVariable("CONTENT_LENGTH"));
 	}
 	catch (boost::bad_lexical_cast&)
 	{
@@ -104,17 +139,15 @@ mHeadersSent(false)
 }
 
 HttpRequest::~HttpRequest() {
-	for (auto iter = mFreeList.begin(); iter != mFreeList.end(); ++iter)
-	{
+	for (auto iter = mFreeList.begin(); iter != mFreeList.end(); ++iter) {
 		free(*iter);
 	}
 }
 
 std::string HttpRequest::getHeader(const std::string &name) {
-	PCSTR headerValue = nullptr;
-	USHORT buf = 0;
-	headerValue = mHttpContext->GetRequest()->GetHeader(name.c_str(), &buf);
-	if (buf) {
+	USHORT length = 0;
+	PCSTR headerValue = mHttpRequest->GetHeader(name.c_str(), &length);
+	if (length) {
 		return std::string(headerValue);
 	}
 	return std::string();
@@ -128,11 +161,10 @@ void HttpRequest::setHeader(const std::string& headerName, const std::string& he
 }
 
 std::string HttpRequest::getServerVariable(const std::string& name) {
-	HRESULT hr;
-	DWORD size;
+	DWORD length;
 	PCSTR returnString;
 
-	hr = mHttpContext->GetServerVariable(name.c_str(), &returnString, &size);
+	HRESULT hr = mHttpContext->GetServerVariable(name.c_str(), &returnString, &length);
 
 	if (!FAILED(hr)) {
 		return std::string(returnString);
@@ -193,6 +225,7 @@ bool HttpRequest::readRequestDocument(spep::CArray<char>& buffer, DWORD& size) {
 	if (initialBufferSize > 0)	{
 		DWORD pos = 0, bytesReceived = size, inc = size;
 		buffer.resize(initialBufferSize);
+		std::memset(buffer.get(), 0, initialBufferSize);
 
 		while (mHttpRequest->GetRemainingEntityBytes() != 0)
 		{
@@ -219,7 +252,6 @@ std::pair<char*, size_t> HttpRequest::readRequestDocument() {
 
 	const size_t initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
 	
-
 	if (initialBufferSize > 0)	{
 		auto size = size_t{ initialBufferSize };
 		DWORD pos = 0, bytesReceived = size, inc = size;
@@ -229,7 +261,6 @@ std::pair<char*, size_t> HttpRequest::readRequestDocument() {
 
 		while (mHttpRequest->GetRemainingEntityBytes() != 0)
 		{
-			//buffer.resize(pos + inc);
 			bytesReceived = inc;
 
 			HRESULT hr = mHttpRequest->ReadEntityBody(&(buffer[pos]), size, false, &bytesReceived);
@@ -356,8 +387,7 @@ RequestResultStatus HttpRequest::sendResponseHeader(int statuscode, const std::s
 		throw spep::InvalidStateException();
 
 
-	for (const auto& it : mResponseHeaders)
-	{
+	for (const auto& it : mResponseHeaders)	{
 		HRESULT hr = mHttpResponse->SetHeader(it.first.c_str(), it.second.c_str(), (USHORT)(it.second.size()), false);
 		if (FAILED(hr)) {
 			return RequestResultStatus::STATUS_ERROR;
@@ -375,13 +405,13 @@ RequestResultStatus HttpRequest::sendResponseHeader(int statuscode, const std::s
 	return RequestResultStatus::STATUS_SUCCESS;
 }
 
+
+/*! Send a synchronous HTTP response. */
 RequestResultStatus HttpRequest::sendResponseDocument(int statuscode, const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType) {
 
-	//setHeader(CONTENT_TYPE_HEADER, contentType);
-	//setHeader(CONTENT_LENGTH_HEADER, std::to_string(documentLength));
-
+	const auto contentLengthValue = std::to_string(documentLength);
 	mHttpResponse->SetHeader(HttpHeaderContentType, contentType.c_str(), (USHORT)contentType.size(), true);
-	mHttpResponse->SetHeader(HttpHeaderContentLength, std::to_string(documentLength).c_str(), (USHORT)documentLength, true);
+	mHttpResponse->SetHeader(HttpHeaderContentLength, contentLengthValue.c_str(), (USHORT)contentLengthValue.size(), true);
 
 	if (!mHeadersSent) {
 		RequestResultStatus result = sendResponseHeader(statuscode, statusLine);
@@ -389,19 +419,14 @@ RequestResultStatus HttpRequest::sendResponseDocument(int statuscode, const std:
 			return result;
 	}
 
+	// it's ok to pass *document to this structure as WriteEntitychunks is set to not be async down below
 	HTTP_DATA_CHUNK dc;
 	dc.DataChunkType = HttpDataChunkFromMemory;
 	dc.FromMemory.BufferLength = documentLength;
-	dc.FromMemory.pBuffer = mHttpContext->AllocateRequestMemory(documentLength + 1);
-
-	if (!dc.FromMemory.pBuffer) {
-		return RequestResultStatus::STATUS_ERROR;
-	}
-
-	// documentLength + 1 does not seem to be correct to copy (crashes?)
-	std::memcpy(dc.FromMemory.pBuffer, document, documentLength);
-
-	HRESULT hr = mHttpResponse->WriteEntityChunkByReference(&dc, -1);
+	dc.FromMemory.pBuffer = (PVOID)document;
+	
+	DWORD cbSent;
+	HRESULT hr = mHttpResponse->WriteEntityChunks(&dc, 1, FALSE, TRUE, &cbSent);
 
 	if (FAILED(hr)) {
 		return RequestResultStatus::STATUS_ERROR;
@@ -414,7 +439,7 @@ RequestResultStatus HttpRequest::sendErrorDocument(int errorCode, int minorCode)
 	const char *statusLine;
 	const char *document;
 	const char *contentType;
-	DWORD contentLength;
+	size_t contentLength;
 
 	switch (errorCode)
 	{
@@ -467,7 +492,7 @@ RequestResultStatus HttpRequest::sendRedirectResponse(const std::string& locatio
 }
 
 
-VOID* HttpRequest::allocMem(DWORD size) {
+void* HttpRequest::allocMem(size_t size) {
 	LPVOID retval = malloc(size);
 	mFreeList.push_back(retval);
 	return retval;

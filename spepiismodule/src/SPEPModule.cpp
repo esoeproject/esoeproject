@@ -16,15 +16,17 @@
 *
 */
 
+#include "SPEPModule.h"
+#include "HttpRequest.h"
+#include "SPEPExtension.h"
+#include "RegistryKey.h"
+#include "spep/exceptions/InvalidStateException.h"
+
 #include <string>
 #include <boost/program_options/config.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#include "SPEPModule.h"
-#include "SPEPExtension.h"
-#include "RegistryKey.h"
-#include "spep/exceptions/InvalidStateException.h"
 
 
 #define	SPEP_ISAPI_EXTENSION_DESCRIPTION  "SPEP ISAPI v1.0"
@@ -193,7 +195,10 @@ REQUEST_NOTIFICATION_STATUS SPEPModule::OnBeginRequest(IHttpContext* pHttpContex
 			return RQ_NOTIFICATION_FINISH_REQUEST;
 		}
 	}
-	catch (InvalidStateException& e) {
+	catch (std::exception& e) {
+		std::string errorMessage{ "SPEP Extension error: " };
+		errorMessage += e.what();
+		WriteEventViewerLog(errorMessage.c_str());
 		// TODO: set error code
 		return RQ_NOTIFICATION_FINISH_REQUEST;
 	}

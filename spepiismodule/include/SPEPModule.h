@@ -20,7 +20,6 @@
 #include <windows.h>
 #include <sal.h>
 #include <httpserv.h>
-#include "HttpRequest.h"
 
 namespace spep {
 namespace isapi {
@@ -38,7 +37,8 @@ public:
 
 	//virtual ~SPEPModule() {}
 
-	virtual REQUEST_NOTIFICATION_STATUS OnBeginRequest(IHttpContext* pHttpContext, IHttpEventProvider* pProvider) override;
+	//virtual REQUEST_NOTIFICATION_STATUS OnBeginRequest(IHttpContext* pHttpContext, IHttpEventProvider* pProvider) override;
+	REQUEST_NOTIFICATION_STATUS OnBeginRequest(IHttpContext* pHttpContext, IHttpEventProvider* pProvider);
 };
 
 // Create the module's class factory.

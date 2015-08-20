@@ -97,7 +97,7 @@ void spep::ConfigurationReader::addOptions( boost::program_options::options_desc
 
 void spep::ConfigurationReader::setStringValue( boost::program_options::variables_map &variablesMap, std::string variableName, bool optional )
 {
-	int count = variablesMap.count( variableName );
+	const auto count = variablesMap.count( variableName );
 	char buf[MESSAGE_CONFIG_BUFFER_SIZE];
 	
 	if( count <= 0 )
@@ -131,7 +131,7 @@ void spep::ConfigurationReader::setStringValue( boost::program_options::variable
 
 void spep::ConfigurationReader::setIntegerValue( boost::program_options::variables_map &variablesMap, std::string variableName, bool optional )
 {
-	int count = variablesMap.count( variableName );
+	const auto count = variablesMap.count( variableName );
 	char buf[MESSAGE_CONFIG_BUFFER_SIZE];
 	
 	if( count <= 0 )

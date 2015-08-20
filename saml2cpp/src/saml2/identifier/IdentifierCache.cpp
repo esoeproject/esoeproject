@@ -53,14 +53,14 @@ namespace saml2
 			time_t rawtime;
 			time(&rawtime);
 			
-			cacheData.insert(std::make_pair(identifier, rawtime));
+			cacheData.insert(std::make_pair(identifier, static_cast<long>(rawtime)));
 		}
 	
 		bool IdentifierCache::containsIdentifier(const std::string& identifier)
 		{
 			/* Lock automatically released when it goes out of scope */
 			boost::recursive_mutex::scoped_lock lock(mutex);
-			std::map<std::string, long>::iterator i = cacheData.find(identifier);
+			auto i = cacheData.find(identifier);
 			if(i != this->cacheData.end())
 				return true;
 				
@@ -76,9 +76,9 @@ namespace saml2
 			
 			/* Lock automatically released when it goes out of scope */
 			boost::recursive_mutex::scoped_lock lock(mutex);
-			std::map<std::string, long>::iterator i = cacheData.begin();
+			auto i = std::begin(cacheData);
 			
-			while (i != cacheData.end())
+			while (i != std::end(cacheData))
 			{
 				expire = i->second + age;
 				

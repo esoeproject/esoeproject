@@ -28,7 +28,7 @@
 
 /* STL */
 #include <string>
-#include <map>
+#include <unordered_map>
 
 namespace saml2
 {
@@ -72,7 +72,7 @@ namespace saml2
 			IdentifierCache( const IdentifierCache& other );
 			IdentifierCache& operator= (const IdentifierCache& identifierCache);
 			
-			std::map<std::string, long> cacheData;
+			std::unordered_map<std::string, long> cacheData;
 			boost::recursive_mutex mutex;
 	};
 }

@@ -22,6 +22,11 @@
 #define CONSTANTS_H_
 
 #ifdef WIN32
+#define _CRT_SECURE_NO_WARNINGS // this needs to be revised
+#pragma warning(disable: 4251) // disable "needs to have dll-interface to be used by clients of class"
+#pragma warning(disable: 4275) // disable "non dll-interface class 'X' used as base for dll-interface class 'Y'"
+#pragma warning(disable: 4101) // disable "unreferenced local variable"
+
 // These definitions are required here because of the way that the template classes are used across dll boundaries.
 // It's not nice to do this, but it's preventing multiply defined strings
 #include <string>

@@ -135,6 +135,7 @@ namespace spep {
         }
         catch (ipc::SocketException& e) {
             // There's not much we can do with it. Just stop the caller from dying.
+			localLogger.error() << "Error reinitializing SPEP client. ipc::SocketException. Error was: " << e.what();
         }
         catch (std::runtime_error& e)
         {
@@ -298,6 +299,8 @@ namespace spep {
                     reinitializeClient();
                 }
                 catch (ipc::SocketException& e) {
+					saml2::LocalLogger localLogger(mLogger, "spep::SPEP::checkConnection");
+					localLogger.error() << "Error reinitializing SPEP client. ipc::SocketException. Error was: " << e.what();
                 }
                 catch (std::runtime_error& e)
                 {

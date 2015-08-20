@@ -429,19 +429,19 @@ void WINAPI ServiceMain(DWORD argc, LPSTR *argv)
             }
             else
             {
-                directLog(handlers, "Couldn't open HKEY_LOCAL_MACHINE\Software\ESOE Project\SPEP");
+                directLog(handlers, "Couldn't open HKEY_LOCAL_MACHINE\\Software\\ESOE Project\\SPEP");
                 return;
             }
         }
         else
         {
-            directLog(handlers, "Couldn't open HKEY_LOCAL_MACHINE\Software\ESOE Project");
+            directLog(handlers, "Couldn't open HKEY_LOCAL_MACHINE\\Software\\ESOE Project");
             return;
         }
     }
     else
     {
-        directLog(handlers, "Couldn't open HKEY_LOCAL_MACHINE\Software");
+        directLog(handlers, "Couldn't open HKEY_LOCAL_MACHINE\\Software");
         return;
     }
 

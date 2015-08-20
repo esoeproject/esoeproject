@@ -121,6 +121,7 @@ namespace spep
                     }
                     catch (SocketException& e)
                     {
+						(void)(e); // unused
                         boost::system::error_code error;
                         mSocket->shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
                         mSocket->close(error);

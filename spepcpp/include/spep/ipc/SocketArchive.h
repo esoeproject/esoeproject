@@ -146,7 +146,7 @@ namespace spep
 					std::basic_string<UChar> ucharString;
 
 					load(ucharString);
-					string.setTo(ucharString.c_str(), ucharString.length());
+					string.setTo(ucharString.c_str(), (int32_t)ucharString.length());
 				}
 				
 				void load( NoData& )

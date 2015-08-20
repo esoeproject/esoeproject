@@ -139,7 +139,7 @@ RequestResultStatus SSOHandler::handleSSOPostRequest(HttpRequest *request) {
 
 	spep::Base64Document samlResponse(decoder.getResult());
 
-	long documentLength = samlResponse.getLength();
+	const auto documentLength = samlResponse.getLength();
 	SAMLByte *document = new SAMLByte[documentLength];
 	std::memcpy(document, samlResponse.getData(), documentLength);
 

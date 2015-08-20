@@ -1,3 +1,16 @@
+/* Copyright 2015, Queensland University of Technology
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+*/
 #ifndef HTTPREQUEST_H_
 #define HTTPREQUEST_H_
 
@@ -39,7 +52,7 @@ public:
 	std::string getScriptName() const;
 	std::string getContentType() const;
 	std::string getRemoteAddress() const;
-	DWORD getContentLength() const;
+	size_t getContentLength() const;
 	bool isSecureRequest() const;
 	IHttpContext *getHttpContext();
 	void setRemoteUser(const std::string& username);
@@ -47,7 +60,7 @@ public:
 
 	//!< Main functions for reading the HTTP request body and returing the data in whatever array format you need
 	//!< Read the HTTP request body
-	bool readRequestDocument(spep::CArray<char>& buffer, DWORD& size);
+	bool readRequestDocument(spep::CArray<char>& buffer, size_t& size);
 	//!< Read the HTTP request body
 	std::pair<char*, size_t> readRequestDocument();
 	//!< Read the HTTP request body
@@ -60,7 +73,7 @@ public:
 
 	//!< HTTP Repsonse processing. TODO: this should be moved into a HttpResponse class
 	RequestResultStatus sendResponseHeader(int statuscode, const std::string& statusLine, bool keepConn = FALSE);
-	RequestResultStatus sendResponseDocument(int statuscode, const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType);
+	RequestResultStatus sendResponseDocument(int statuscode, const std::string& statusLine, const char *document, size_t documentLength, const std::string& contentType);
 	RequestResultStatus sendErrorDocument(int errorCode, int minorCode = 0);
 	RequestResultStatus sendRedirectResponse(const std::string& location);
 	RequestResultStatus continueRequest();
@@ -88,7 +101,7 @@ private:
 	std::string mRemoteAddress;
 	std::vector<std::pair<std::string, std::string>> mChildHeaders;
 	bool mIsSecureRequest;
-	unsigned long mContentLength;
+	size_t mContentLength;
 	bool mHeadersSent;
 };
 }

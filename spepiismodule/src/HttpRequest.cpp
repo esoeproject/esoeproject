@@ -1,3 +1,17 @@
+/* Copyright 2015, Queensland University of Technology
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+*/
+
 #include "HttpRequest.h"
 #include "FilterConstants.h"
 #include "spep/exceptions/InvalidStateException.h"
@@ -128,7 +142,7 @@ mHeadersSent(false)
 
 	try
 	{
-		mContentLength = boost::lexical_cast<unsigned long>(getServerVariable("CONTENT_LENGTH"));
+		mContentLength = boost::lexical_cast<size_t>(getServerVariable("CONTENT_LENGTH"));
 	}
 	catch (boost::bad_lexical_cast&)
 	{
@@ -196,7 +210,7 @@ std::string HttpRequest::getContentType() const {
 	return mContentType;
 }
 
-DWORD HttpRequest::getContentLength() const {
+size_t HttpRequest::getContentLength() const {
 	return mContentLength;
 }
 
@@ -218,12 +232,12 @@ void HttpRequest::setRemoteAddress(const std::string& ipaddress) {
 
 
 /*!  Read the http request body and populate the provided buffer and size attributes */
-bool HttpRequest::readRequestDocument(spep::CArray<char>& buffer, DWORD& size) {
+bool HttpRequest::readRequestDocument(spep::CArray<char>& buffer, size_t& size) {
 	
-	const size_t initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
+	const auto initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
 
 	if (initialBufferSize > 0)	{
-		DWORD pos = 0, bytesReceived = size, inc = size;
+		DWORD pos = 0, bytesReceived = (DWORD)size, inc = (DWORD)size;
 		buffer.resize(initialBufferSize);
 		std::memset(buffer.get(), 0, initialBufferSize);
 
@@ -231,7 +245,7 @@ bool HttpRequest::readRequestDocument(spep::CArray<char>& buffer, DWORD& size) {
 		{
 			bytesReceived = inc;
 
-			HRESULT hr = mHttpRequest->ReadEntityBody(&(buffer[pos]), size, false, &bytesReceived);
+			HRESULT hr = mHttpRequest->ReadEntityBody(&(buffer[pos]), (DWORD)size, false, &bytesReceived);
 
 			if (FAILED(hr))	{
 				if (ERROR_HANDLE_EOF != (hr & 0x0000FFFF)) {
@@ -250,10 +264,10 @@ bool HttpRequest::readRequestDocument(spep::CArray<char>& buffer, DWORD& size) {
 /*! */
 std::pair<char*, size_t> HttpRequest::readRequestDocument() {
 
-	const size_t initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
+	const auto initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
 	
 	if (initialBufferSize > 0)	{
-		auto size = size_t{ initialBufferSize };
+		auto size = DWORD{ initialBufferSize };
 		DWORD pos = 0, bytesReceived = size, inc = size;
 		
 		auto buffer = new char[initialBufferSize];
@@ -285,8 +299,8 @@ std::pair<char*, size_t> HttpRequest::readRequestDocument() {
 /*! */
 std::vector<char> HttpRequest::readRequestBody() {
 	
-	const size_t initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
-	auto size = size_t{ initialBufferSize };
+	const auto initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
+	auto size = DWORD{ initialBufferSize };
 	std::vector<char> buffer(initialBufferSize, '\0');
 
 	if (initialBufferSize > 0)	{
@@ -316,8 +330,8 @@ std::vector<char> HttpRequest::readRequestBody() {
 /*! */
 std::string HttpRequest::readRequestBodyAsString() {
 
-	const size_t initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
-	auto size = size_t{ initialBufferSize };
+	const auto initialBufferSize = mHttpRequest->GetRemainingEntityBytes();
+	auto size = DWORD{ initialBufferSize };
 	std::string buffer(initialBufferSize, '\0');
 
 	if (initialBufferSize > 0)	{
@@ -407,7 +421,7 @@ RequestResultStatus HttpRequest::sendResponseHeader(int statuscode, const std::s
 
 
 /*! Send a synchronous HTTP response. */
-RequestResultStatus HttpRequest::sendResponseDocument(int statuscode, const std::string& statusLine, const char *document, DWORD documentLength, const std::string& contentType) {
+RequestResultStatus HttpRequest::sendResponseDocument(int statuscode, const std::string& statusLine, const char *document, size_t documentLength, const std::string& contentType) {
 
 	const auto contentLengthValue = std::to_string(documentLength);
 	mHttpResponse->SetHeader(HttpHeaderContentType, contentType.c_str(), (USHORT)contentType.size(), true);
@@ -422,13 +436,13 @@ RequestResultStatus HttpRequest::sendResponseDocument(int statuscode, const std:
 	// it's ok to pass *document to this structure as WriteEntitychunks is set to not be async down below
 	HTTP_DATA_CHUNK dc;
 	dc.DataChunkType = HttpDataChunkFromMemory;
-	dc.FromMemory.BufferLength = documentLength;
+	dc.FromMemory.BufferLength = (ULONG)documentLength;
 	dc.FromMemory.pBuffer = (PVOID)document;
 	
 	DWORD cbSent;
 	HRESULT hr = mHttpResponse->WriteEntityChunks(&dc, 1, FALSE, TRUE, &cbSent);
 
-	if (FAILED(hr)) {
+	if (FAILED(hr) /*|| cbSent != documentLength*/) {
 		return RequestResultStatus::STATUS_ERROR;
 	}
 	return RequestResultStatus::STATUS_SUCCESS_AND_FINISH_REQUEST;
@@ -481,7 +495,6 @@ RequestResultStatus HttpRequest::sendErrorDocument(int errorCode, int minorCode)
 
 RequestResultStatus HttpRequest::sendRedirectResponse(const std::string& location) {
 	setHeader("Location", location);
-	//check this
 	RequestResultStatus status = sendResponseHeader(HTTP_REDIRECT, HTTP_REDIRECT_STATUS_LINE);
 
 	if (status != RequestResultStatus::STATUS_SUCCESS) {

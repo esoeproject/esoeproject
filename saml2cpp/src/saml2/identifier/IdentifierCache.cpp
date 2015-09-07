@@ -82,17 +82,15 @@ namespace saml2
 			{
 				expire = i->second + age;
 				
-				/* Remove the identifier. This line works because the iterator is actually
-				 * incremented *before* the erase() call is made, but the old value is
-				 * still passed into the function.
-				 */
+				// Remove the identifier.
 				if (expire < rawtime)
 				{
-					cacheData.erase(i++);
-					count ++;
+					// erase in C++11 returns the next iterator, so this is safe.
+					i = cacheData.erase(i);
+					++count;
 				}
 				else
-					i++;
+					++i;
 			}
 			return count;
 		}

@@ -39,7 +39,6 @@ namespace isapi {
 
 SPEPExtension::SPEPExtension(spep::ConfigurationReader &configReader, const std::string& log) :
 mSpep(nullptr),
-mStream(log.c_str()),
 mSpepWebappURL(DEFAULT_URL_SPEP_WEBAPP),
 mSpepSSOURL(DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_SSO),
 mSpepWebServicesURL(DEFAULT_URL_SPEP_WEBAPP DEFAULT_URL_SPEP_WEBSERVICES),

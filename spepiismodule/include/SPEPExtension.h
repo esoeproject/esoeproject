@@ -51,7 +51,6 @@ private:
 	void ClearCookies(HttpRequest* httpRequest, const Cookies& cookies);
 
 	spep::SPEP *mSpep;
-	std::ofstream mStream;
 	std::string mSpepWebappURL;
 	std::string mSpepSSOURL;
 	std::string mSpepWebServicesURL;

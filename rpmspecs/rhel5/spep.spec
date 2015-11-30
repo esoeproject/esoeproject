@@ -114,7 +114,7 @@ mkdir -p $RPM_BUILD_ROOT/var/log/spepd
 mkdir -p $RPM_BUILD_ROOT/var/run/spepd
 
 %pre
-useradd -r spepd
+useradd -s /sbin/nologin -r spepd
 
 %post
 ldconfig

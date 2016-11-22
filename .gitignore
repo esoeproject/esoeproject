@@ -25,6 +25,7 @@ bin
 .settings
 .springBeans
 pom.xml
+*.iml
 
 # Other generated stuff
 saml2java/src-gen

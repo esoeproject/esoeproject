@@ -1,0 +1,12 @@
+[Unit]
+Description=SPEP Daemon
+After=network.target
+
+[Service]
+ExecStart=${SPEP_HOME}/sbin/spepd -l /var/log/spepd/spepd.log -f ${SPEP_HOME}/etc/spep/spep.conf -p /var/run/spepd/spepd.pid
+Type=forking
+PIDFile=/run/spepd/spepd.pid
+User=spepd
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,76 @@
+===== RHEL7 SPEP build =====
+(note that some of the dependencies come from rhel-7-server-optional-rpms repository)
+
+*** Unless stated otherwise, all of these commands are performed on the RHEL7 host ***
+*** Some of these steps are probably optional, but this is what I did to get the RHEL7 host into an SPEP-buildable state ***
+
+sudo yum install boost
+sudo yum install boost-devel
+sudo yum install xerces-c
+sudo yum install xerces-c-devel
+sudo yum install openssl-devel
+
+install lib-security-c - http://santuario.apache.org/download.html
+  - download and extract tar.gz
+  - ./configure
+  - make
+  - sudo make install
+
+install codesynthesis xsd - http://www.codesynthesis.com/products/xsd/download.xhtml
+  - download and install xsd-3.2.0-1.x86_64.rpm
+  - sudo yum install <above rpm file>
+  - edit the file /usr/include/xsd/cxx/zc-istream.txx, change to  'this->setg (b, b, e);' in place of 'setg (b, b, e);'
+
+sudo yum install libcurl-devel
+sudo yum install libicu-devel
+sudo yum install httpd-devel
+
+install libapreq for apache 2.4 - http://httpd.apache.org/apreq/download.cgi
+  - download and extract libapreq2-2.13.tar.gz
+  - ./configure
+  - make
+  - sudo make install
+
+sudo yum install libtool
+sudo yum install rpm-build
+
+*** make sure the SPEP version number is correct in source before building!  it is set using the AC_INIT directive in the configure.ac scripts in modspep/saml2cpp/spepcpp/spepcppdaemon folders.
+
+for each of modspep, saml2cpp, spepcpp and spepcppdaemon folders in esoeproject source, copy to RHEL7 host (doesn't matter where) and run the following commands under each folder:
+  - libtoolize
+  - aclocal
+  - autoconf
+  (this was only required for modspep) - autoheader
+  - automake --add-missing
+
+create tar.gz's for the modspep, saml2cpp, spepcpp and spepcppdaemon folders from source and name them as follows:
+  - modspep-{spep-version}.tar.gz
+  - saml2-{spep-version}.tar.gz
+  - spep-{spep-version}.tar.gz
+  - spepd-{spep-version}.tar.gz
+put all those archives under /home/<user>/rpmbuild/SOURCES
+
+copy the 4 .m4 files under m4-files to /usr/share/aclocal
+
+also put the xml-security-c-*.tar.gz and libapreq2-2.13.tar.gz file from earlier in /home/<user>/rpmbuild/SOURCES
+
+*** make sure the SPEP and build version numbers are correct in the rpmspecs/rhel7 folder in source before building!  it is set using the Version and Release directives in the spep.spec file.
+
+copy over rpmspecs/rhel7 folder to RHEL7 host (doesn't matter where)
+under that rhel7 folder, run the following (these two RPMS are essentially wrappers over libraries that are only distributed as source):
+  - rpmbuild -ba xml-security-c.spec
+  - rpmbuild -ba libapreq2.spec
+install those rpms, under rpmbuild/RPMS/x86_64:
+  - sudo yum install xml-security-c-ESOE-1.7.3-1.el7.x86_64.rpm
+  - sudo yum install xml-security-c-ESOE-devel-1.7.3-1.el7.x86_64.rpm
+  - sudo yum install libapreq2-ESOE-2.13-1.el7.x86_64.rpm
+  - sudo yum install libapreq2-ESOE-devel-2.13-1.el7.x86_64.rpm
+
+back to the rhel7 folder, time to finally build the SPEP RPMS!
+  - rpmbuild -ba spep.spec
+
+At the end of all this, you should have the following RPMS ready to distribute under rpmbuild/RPMS/x86_64 (some of the build numbers may differ):
+  - xml-security-c-ESOE-1.7.3-1.el7.x86_64.rpm
+  - libapreq2-ESOE-2.13-1.el7.x86_64.rpm
+  - spep-{spep-version}-1.el7.x86_64.rpm
+  - spep-module-{spep-version}-1.el7.x86_64.rpm

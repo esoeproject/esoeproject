@@ -1,7 +1,7 @@
 Summary: libapreq2
 Name: libapreq2-ESOE
 Version: 2.13
-Release: 1.el5
+Release: 1.el7
 Source0: http://www.apache.org/dist/httpd/libapreq/libapreq2-2.13.tar.gz
 License: Apache 2.0
 Group: Development/Libraries
@@ -34,7 +34,7 @@ Headers for libapreq2
 %setup -q -n libapreq2-%{version}
 
 %build
-./configure --prefix=%{prefix} --with-apache2-apxs=/usr/sbin/apxs
+./configure --prefix=%{prefix} --with-apache2-apxs=/usr/bin/apxs
 make
 
 %install

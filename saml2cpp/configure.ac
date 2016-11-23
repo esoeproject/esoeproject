@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([SAML2], 0.8.5)
+AC_INIT([SAML2], 0.9.0)
 AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_SRCDIR([include/saml2/SAML2Defs.h])
 

@@ -1,7 +1,7 @@
 Summary: XML-Security-C library
 Name: xml-security-c-ESOE
 Version: 1.7.3
-Release: 2.el5
+Release: 1.el7
 Source0: ~/Downloads/xml-security-c-%{version}.tar.gz
 License: Apache 2.0
 Group: Development/Libraries

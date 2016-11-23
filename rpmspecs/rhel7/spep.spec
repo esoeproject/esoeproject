@@ -1,12 +1,11 @@
 Summary : SPEP and dependencies
 Name: spep
-Version: 0.8.5
-Release: 1.el5
+Version: 0.9.0
+Release: 1.el7
 Source0: saml2-%{version}.tar.gz
 Source1: spep-%{version}.tar.gz
 Source2: spepd-%{version}.tar.gz
 Source3: modspep-%{version}.tar.gz
-Patch0: spep-config-rpm.patch
 License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root
@@ -35,9 +34,9 @@ This package includes the required files for an Apache SPEP.
 %package module
 Summary: SPEP Apache module
 Group: Development/Libraries
-Requires: libapreq2 = 2.13
+Requires: libapreq2-ESOE = 2.13
 Requires: httpd >= 2.0.0
-BuildRequires: libapreq2 = 2.13
+BuildRequires: libapreq2-ESOE = 2.13
 BuildRequires: httpd-devel >= 2.0.0
 
 %description module
@@ -55,7 +54,6 @@ Includes headers for developing against the SAML2 and SPEP libraries
 %prep
 [ $UID -eq 0 ] && echo "rpmbuild as root is bad." >&2 && exit 1
 %setup -q -n src -c -T -a 0 -a 1 -a 2 -a 3
-#%patch0 
 
 %build
 
@@ -100,9 +98,11 @@ cd $RPM_BUILD_DIR/src/$Z || exit 1
 pwd
 make install DESTDIR=$RPM_BUILD_ROOT
 done
-mkdir -p $RPM_BUILD_ROOT/etc/init.d $RPM_BUILD_ROOT/etc/ld.so.conf.d $RPM_BUILD_ROOT/etc/logrotate.d
-cat $RPM_BUILD_DIR/src/spepcpp/spepd-initscript | sed '/^SPEP_HOME/ s!\${SPEP_HOME}!'%{prefix}'!;/^log/ s!\$SPEP_HOME/logs!/var/log/spepd!;/^pidfile/ s!\$SPEP_HOME!/var/run/spepd!' > $RPM_BUILD_ROOT/etc/init.d/spepd
-chmod +x $RPM_BUILD_ROOT/etc/init.d/spepd
+
+mkdir -p $RPM_BUILD_ROOT/etc/ld.so.conf.d $RPM_BUILD_ROOT/etc/logrotate.d $RPM_BUILD_ROOT/lib/systemd/system
+
+cat $RPM_BUILD_DIR/src/spepcpp/spepd-systemd-unit | sed 's!\${SPEP_HOME}!'%{prefix}'!g' > $RPM_BUILD_ROOT/lib/systemd/system/spepd.service
+
 echo %{prefix}/lib > $RPM_BUILD_ROOT/etc/ld.so.conf.d/spep.conf
 for Z in '/var/log/spepd/spepd.log {' '	compress' '	copytruncate' '	missingok' '}'; do
 echo $Z >> $RPM_BUILD_ROOT/etc/logrotate.d/spepd
@@ -111,11 +111,12 @@ mkdir -p $RPM_BUILD_ROOT/var/log/spepd
 mkdir -p $RPM_BUILD_ROOT/var/run/spepd
 
 %pre
-useradd -s /sbin/nologin -r spepd
+useradd -s /sbin/nologin -r spepd || echo "useradd failed, spepd user probably already exists"
 
 %post
 ldconfig
-/sbin/chkconfig --add spepd
+systemctl daemon-reload
+systemctl enable spepd.service
 
 %postun
 userdel spepd
@@ -128,8 +129,8 @@ userdel spepd
 /usr/local/spep/share/saml2
 /usr/local/spep/bin
 /etc/ld.so.conf.d/spep.conf
-/etc/init.d/spepd
 /etc/logrotate.d/spepd
+/lib/systemd/system/spepd.service
 
 %attr(0640,root,spepd) %config /usr/local/spep/etc/spep/spep.conf.default
 %attr(0750,root,spepd) %dir /usr/local/spep/etc/spep

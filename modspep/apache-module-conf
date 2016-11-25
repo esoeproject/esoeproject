@@ -1,0 +1,2 @@
+# SPEP Module
+LoadModule spep_module /usr/local/spep/lib/modspep.so

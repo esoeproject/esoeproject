@@ -1,0 +1,83 @@
++-----------------------------------------------+
+| SPEPD CONFIGURATION AND SERVICE CONTROL GUIDE |
++-----------------------------------------------+
+
+This guide assumes you have both the spep and spep-module packages installed.
+
+=== Setting up a typical SPEPD service ===
+
+Typically, SPEPD is configured and run as a singleton systemd service, i.e. only one SPEP entity is protecting resources for Apache HTTPD.  If you require more than one SPEP entity to be configured, please refer to the multi-instance SPEPD setup instructions below.
+
+
+--- Configuration ---
+
+For a singleton SPEP daemon, the SPEP configuration file needs to be located at /usr/local/spep/etc/spep/spep.conf (there should be a template, spep.conf.default, in that folder that you can copy to spep.conf and modify).
+If you copied from the template, it is expecting the spepKeystore.ks file to be in that same folder.
+
+
+--- Service control ---
+
+To see the status of the SPEP daemon, run "systemctl status spepd".
+
+To manually start it, run "sudo systemctl start spepd".
+
+To manually stop it, run "sudo systemctl stop spepd".
+
+To manually restart it, run "sudo systemctl restart spepd".
+
+To enable it to auto-start on boot, run "sudo systemctl enable spepd".
+
+
+--- Logs ---
+
+The log file for the singleton SPEP service is located at /var/log/spepd/spepd.log
+
+
+=== Setting up multi-instance SPEPD services ===
+
+If you require more than on SPEP entity for protecting resources in Apache HTTPD, named instances of SPEP daemons can be configured.  Note that these named service instances can be used alongside the singleton SPEP daemon service if you desire (it really depends on how you want the names of your config files to look).
+
+
+--- Configuration ---
+
+The configuration files for all the instances need to be located in the /usr/local/spep/etc/spep/ folder, and include the name of the instance in the filename.  For example, for an SPEP instance named "bob", there needs to be a /usr/local/spep/etc/spep/spep-bob.conf file (which can be copied from the same spep.conf.default template that the singleton service uses).
+
+Properties you need to make sure are different between each spep-<instance>.conf file so the instances don't clash (haven't included the more obvious properties which already differ between SPEP entities, such as spepIdentifier):
+
+  * keystorePath - recommend keeping the keystore files in the same folder, using spepKeystore-<instance>.ks for the filename
+  * spepDaemonPort - each instance will need it's own port to listen on
+
+  
+--- Service control ---
+
+(all example commands are assuming the instance name is "bob")
+
+To see the status of one of the instances, run "systemctl status spepd@bob".  Note that the status will probably indicate it's "enabled" (i.e. configured to auto-start) even when it isn't, I'm assuming this is a bug/limitation with systemd and multi-instance services.  To actually check if an instance is enabled to auto-start, run "systemctl is-enabled spepd@bob".
+
+To manually start an instance, run "sudo systemctl start spepd@bob".
+
+To manually stop an instance, run "sudo systemctl stop spepd@bob".
+
+To manually restart an instance, run "sudo systemctl restart spepd@bob".
+
+To enable an instance to auto-start on boot, run "sudo systemctl enable spepd@bob".
+
+To see the status of all currently running instances, run "systemctl status spepd@*".  An instance has to be running to show up in this list;  even if it's enabled to auto-start it won't show up.
+
+
+--- Logs ---
+
+The logs for all the instances are located in the /var/log/spepd/ folder, and include the name of the instance in the filename.  For example, for an SPEP instance named "bob", there will be a /var/log/spepd/spepd-bob.log file.
+
+
+=== Setting up Apache HTTPD ===
+
+In the configuration for an Apache <VirtualHost>, include the following directive:
+
+    SPEPDaemonPort 7142       <-- if you changed the spepDaemonPort in the SPEP config file, make sure this one is the same as in that file
+  
+To protect a location, include the SPEPEnabled directive, e.g.
+
+    <Location /secure>
+        SPEPEnabled on
+    </Location>

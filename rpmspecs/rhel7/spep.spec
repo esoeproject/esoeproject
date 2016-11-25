@@ -102,13 +102,18 @@ done
 mkdir -p $RPM_BUILD_ROOT/etc/ld.so.conf.d $RPM_BUILD_ROOT/etc/logrotate.d $RPM_BUILD_ROOT/lib/systemd/system
 
 cat $RPM_BUILD_DIR/src/spepcpp/spepd-systemd-unit | sed 's!\${SPEP_HOME}!'%{prefix}'!g' > $RPM_BUILD_ROOT/lib/systemd/system/spepd.service
+cat $RPM_BUILD_DIR/src/spepcpp/spepd-systemd-instance-unit | sed 's!\${SPEP_HOME}!'%{prefix}'!g' > $RPM_BUILD_ROOT/lib/systemd/system/spepd@.service
+cp $RPM_BUILD_DIR/src/spepcpp/spepd-systemd-readme $RPM_BUILD_ROOT/usr/local/spep/etc/spep/README
 
 echo %{prefix}/lib > $RPM_BUILD_ROOT/etc/ld.so.conf.d/spep.conf
-for Z in '/var/log/spepd/spepd.log {' '	compress' '	copytruncate' '	missingok' '}'; do
+for Z in '/var/log/spepd/spepd*.log {' '	compress' '	copytruncate' '	missingok' 'weekly' 'rotate 52' '}'; do
 echo $Z >> $RPM_BUILD_ROOT/etc/logrotate.d/spepd
 done
 mkdir -p $RPM_BUILD_ROOT/var/log/spepd
 mkdir -p $RPM_BUILD_ROOT/var/run/spepd
+
+mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.modules.d
+cp $RPM_BUILD_DIR/src/modspep/apache-module-conf $RPM_BUILD_ROOT/etc/httpd/conf.modules.d/99-spep.conf
 
 %pre
 useradd -s /sbin/nologin -r spepd || echo "useradd failed, spepd user probably already exists"
@@ -116,10 +121,12 @@ useradd -s /sbin/nologin -r spepd || echo "useradd failed, spepd user probably a
 %post
 ldconfig
 systemctl daemon-reload
-systemctl enable spepd.service
+echo -e "\n$(tput setaf 3)Please refer to /usr/local/spep/etc/spep/README for information on how to configure an SPEP service.$(tput sgr0)\n"
+
+%post module
+echo -e "\n$(tput setaf 3)Please refer to /usr/local/spep/etc/spep/README for information on how to configure Apache with an SPEP service.$(tput sgr0)\n"
 
 %postun
-userdel spepd
 
 %files
 %defattr(-,root,root)
@@ -128,9 +135,11 @@ userdel spepd
 /usr/local/spep/sbin/spepd
 /usr/local/spep/share/saml2
 /usr/local/spep/bin
+/usr/local/spep/etc/spep/README
 /etc/ld.so.conf.d/spep.conf
 /etc/logrotate.d/spepd
 /lib/systemd/system/spepd.service
+/lib/systemd/system/spepd@.service
 
 %attr(0640,root,spepd) %config /usr/local/spep/etc/spep/spep.conf.default
 %attr(0750,root,spepd) %dir /usr/local/spep/etc/spep
@@ -146,6 +155,5 @@ userdel spepd
 
 %files module
 %defattr(-,root,root)
-
 /usr/local/spep/lib/modspep.*
-
+/etc/httpd/conf.modules.d/99-spep.conf

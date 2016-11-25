@@ -1,3 +1,6 @@
+# Standard systemd service definition for the SPEP Daemon.
+# There should also be an spepd@.service definition that allows for multiple named spepd instances (which can be used in parallel with this service definition)
+
 [Unit]
 Description=SPEP Daemon
 After=network.target

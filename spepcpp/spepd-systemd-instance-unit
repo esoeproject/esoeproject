@@ -6,7 +6,7 @@ Description=SPEP Daemon %I
 After=network.target
 
 [Service]
-ExecStart=${SPEP_HOME}/sbin/spepd -l /var/log/spepd/spepd-%I.log -f ${SPEP_HOME}/etc/spep/spep-%I.conf -p /var/run/spepd/spepd-%I.pid
+ExecStart=${SPEP_HOME}/sbin/spepd -l /var/log/spepd/spepd-%I.log -f ${SPEP_HOME}/etc/spep/spep-%I.conf -p /run/spepd/spepd-%I.pid
 Type=forking
 PIDFile=/run/spepd/spepd-%I.pid
 User=spepd

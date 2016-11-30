@@ -110,7 +110,10 @@ for Z in '/var/log/spepd/spepd*.log {' '	compress' '	copytruncate' '	missingok' 
 echo $Z >> $RPM_BUILD_ROOT/etc/logrotate.d/spepd
 done
 mkdir -p $RPM_BUILD_ROOT/var/log/spepd
-mkdir -p $RPM_BUILD_ROOT/var/run/spepd
+
+# because /run is a tmpfs, need a tmpfiles.d conf file to make sure the spepd PID directory is created on boot
+mkdir -p $RPM_BUILD_ROOT/usr/lib/tmpfiles.d
+echo "d /run/spepd 0755 spepd spepd" > $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/spepd.conf
 
 mkdir -p $RPM_BUILD_ROOT/etc/httpd/conf.modules.d
 cp $RPM_BUILD_DIR/src/modspep/apache-module-conf $RPM_BUILD_ROOT/etc/httpd/conf.modules.d/99-spep.conf
@@ -121,6 +124,7 @@ useradd -s /sbin/nologin -r spepd || echo "useradd failed, spepd user probably a
 %post
 ldconfig
 systemctl daemon-reload
+systemd-tmpfiles --create /usr/lib/tmpfiles.d/spepd.conf
 echo -e "\n$(tput setaf 3)Please refer to /usr/local/spep/etc/spep/README for information on how to configure an SPEP service.$(tput sgr0)\n"
 
 %post module
@@ -140,12 +144,12 @@ echo -e "\n$(tput setaf 3)Please refer to /usr/local/spep/etc/spep/README for in
 /etc/logrotate.d/spepd
 /lib/systemd/system/spepd.service
 /lib/systemd/system/spepd@.service
+/usr/lib/tmpfiles.d/spepd.conf
 
 %attr(0640,root,spepd) %config /usr/local/spep/etc/spep/spep.conf.default
 %attr(0750,root,spepd) %dir /usr/local/spep/etc/spep
 
 %attr(0700,spepd,spepd) %dir /var/log/spepd
-%attr(0700,spepd,spepd) %dir /var/run/spepd
 
 %files devel
 %defattr(-,root,root)

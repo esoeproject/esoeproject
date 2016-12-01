@@ -574,6 +574,8 @@ int main( int argc, char **argv )
     // Validate everything
     spep::ConfigurationReader configuration( configFileVariableMap );
 
+    curl_global_init(CURL_GLOBAL_ALL);
+
     doInit( configuration, handlers, verbose, debug );
 }
 

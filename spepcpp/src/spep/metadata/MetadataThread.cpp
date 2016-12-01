@@ -351,6 +351,8 @@ spep::MetadataThread::RawMetadata spep::MetadataThread::getRawMetadata(const std
 	// If the request didn't succeed, handle the error condition.
 	if (result != CURLE_OK)
 	{
+        mLocalLogger.error() << std::string("CURL response: ") << curl_easy_strerror(result);
+
 		mLocalLogger.error() << std::string("Metadata retrieve failed. Error message was: ") << errorBuffer.get();
 		data.failed = true;
 		return data;

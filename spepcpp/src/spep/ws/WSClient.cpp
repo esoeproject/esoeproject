@@ -149,6 +149,8 @@ void spep::WSClient::doSOAPRequest(spep::WSProcessorData& data, const std::strin
     // If the request didn't succeed, handle the error condition.
     if (result != CURLE_OK)
     {
+        mLocalLogger.error() << std::string("CURL response: ") << curl_easy_strerror(result);
+
         mLocalLogger.error() << std::string("Web service call failed. Error message was: ") << errorBuffer.get();
         throw WSException(std::string("Web service call failed. Error message was: ") + errorBuffer.get());
     }

@@ -6,6 +6,7 @@ Source0: saml2-%{version}.tar.gz
 Source1: spep-%{version}.tar.gz
 Source2: spepd-%{version}.tar.gz
 Source3: modspep-%{version}.tar.gz
+Patch0: spep.conf-rhel7.patch
 License: Apache 2.0
 Group: Development/Libraries
 BuildRoot: /var/tmp/%{name}-root
@@ -54,6 +55,7 @@ Includes headers for developing against the SAML2 and SPEP libraries
 %prep
 [ $UID -eq 0 ] && echo "rpmbuild as root is bad." >&2 && exit 1
 %setup -q -n src -c -T -a 0 -a 1 -a 2 -a 3
+%patch0
 
 %build
 
@@ -125,10 +127,17 @@ useradd -s /sbin/nologin -r spepd || echo "useradd failed, spepd user probably a
 ldconfig
 systemctl daemon-reload
 systemd-tmpfiles --create /usr/lib/tmpfiles.d/spepd.conf
+
+# make sure that SELinux is configured to allow Apache to make HTTP connections to the SPEP Daemon
+if [ -x /usr/sbin/selinuxenabled ] && selinuxenabled; then
+    setsebool -P httpd_can_network_connect=1
+fi
+
 echo -e "\n$(tput setaf 3)Please refer to /usr/local/spep/etc/spep/README for information on how to configure an SPEP service.$(tput sgr0)\n"
 
 %post module
 echo -e "\n$(tput setaf 3)Please refer to /usr/local/spep/etc/spep/README for information on how to configure Apache with an SPEP service.$(tput sgr0)\n"
+echo -e "\n$(tput setaf 1)You will need to restart Apache to pick up the linked spep module.$(tput sgr0)\n"
 
 %postun
 

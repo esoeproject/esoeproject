@@ -1,0 +1,11 @@
+--- spepcpp/spep.conf.default	2016-12-08 13:11:53.063351383 +1000
++++ spepcpp/spep.conf.default	2016-12-08 13:11:24.566039155 +1000
+@@ -96,7 +96,7 @@
+ # platform, this often will not need to be set. However if you need to customise your
+ # CA Bundle (for example, if your ESOE is using a self-signed certificate, or one 
+ # signed by an internal CA) this parameter will be useful.
+-#caBundle=/etc/pki/tls/certs/ca-bundle.crt
++caBundle=/etc/pki/tls/certs/ca-bundle.crt
+ 
+ ###########################################################################################################
+ #

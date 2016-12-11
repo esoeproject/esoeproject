@@ -57,7 +57,11 @@ also put the xml-security-c-*.tar.gz and libapreq2-2.13.tar.gz file from earlier
 *** make sure the SPEP and build version numbers are correct in the rpmspecs/rhel7 folder in source before building!  it is set using the Version and Release directives in the spep.spec file.
 
 copy over rpmspecs/rhel7 folder to RHEL7 host (doesn't matter where)
-under that rhel7 folder, run the following (these two RPMS are essentially wrappers over libraries that are only distributed as source):
+
+copy the RHEL7 patch file from the rpmspecs/rhel7 folder to the RPM SOURCES
+  - cp spep.conf-rhel7.patch /home/<user>/rpmbuild/SOURCES
+
+under the rpmspecs/rhel7 folder, run the following (these two RPMS are essentially wrappers over libraries that are only distributed as source):
   - rpmbuild -ba xml-security-c.spec
   - rpmbuild -ba libapreq2.spec
 install those rpms, under rpmbuild/RPMS/x86_64:

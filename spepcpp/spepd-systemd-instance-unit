@@ -2,13 +2,13 @@
 # There should also be an spepd.service definition that for a single non-named instance (which can be used in parallel with this service definition)
 
 [Unit]
-Description=SPEP Daemon %I
+Description=SPEP Daemon %i
 After=network.target
 
 [Service]
-ExecStart=${SPEP_HOME}/sbin/spepd -l /var/log/spepd/spepd-%I.log -f ${SPEP_HOME}/etc/spep/spep-%I.conf -p /run/spepd/spepd-%I.pid
+ExecStart=${SPEP_HOME}/sbin/spepd -l /var/log/spepd/spepd-%i.log -f ${SPEP_HOME}/etc/spep/spep-%i.conf -p /run/spepd/spepd-%i.pid
 Type=forking
-PIDFile=/run/spepd/spepd-%I.pid
+PIDFile=/run/spepd/spepd-%i.pid
 User=spepd
 
 [Install]
